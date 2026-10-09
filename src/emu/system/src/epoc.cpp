@@ -826,17 +826,20 @@ namespace eka2l1 {
             }
         }
 
-        const bool paced_clock = common::benchmark::event_clock && common::benchmark::paced;
+#ifdef __EMSCRIPTEN__
+        const bool paced_clock = common::benchmark::paced;
         if (paced_clock) timing_->start_host_clock();
         bool pending_watchdog = false;
+#endif
         if (to_run != nullptr) {
             common::performance::scope run_scope(common::performance::cpu_run);
             if (!should_step) {
                 // Requests raised while pacing or idle do not preempt a CPU
                 // slice that has not started. Otherwise pacing can repeatedly
                 // advance guest time without executing any guest code.
-                if (common::benchmark::event_clock)
-                    pending_watchdog = arm::aot::watchdog::request.exchange(0, std::memory_order_relaxed);
+#ifdef __EMSCRIPTEN__
+                pending_watchdog = arm::aot::watchdog::request.exchange(0, std::memory_order_relaxed);
+#endif
                 cpu->run(timing_->deterministic()
                     ? std::min<std::uint32_t>(to_run->get_remaining_screenticks(), 4840)
                     : to_run->get_remaining_screenticks());
@@ -849,12 +852,15 @@ namespace eka2l1 {
 #endif
             }
 
-            if (!common::benchmark::event_clock) to_run->add_ticks(cpu->get_num_instruction_executed());
+#ifndef __EMSCRIPTEN__
+            to_run->add_ticks(cpu->get_num_instruction_executed());
+#endif
         }
 
         if (timing_->deterministic()) {
             common::performance::scope timer_scope(common::performance::timers);
-            if (common::benchmark::event_clock) {
+#ifdef __EMSCRIPTEN__
+            {
                 const bool preempted = arm::aot::watchdog::request.exchange(0, std::memory_order_relaxed);
                 if (paced_clock) {
                     // A yield request controls execution, not the amount of
@@ -878,15 +884,20 @@ namespace eka2l1 {
                     if (to_run) to_run->add_ticks(static_cast<int>(std::min<std::uint64_t>(
                         to_run->get_remaining_screenticks(), (timing_->microseconds() - now) * hz / 1000000)));
                 }
-            } else if (to_run) timing_->advance_instructions(cpu->get_num_instruction_executed());
+            }
+#else
+            if (to_run) timing_->advance_instructions(cpu->get_num_instruction_executed());
             else timing_->advance_to_next_event();
+#endif
         }
 
         if (!kern_->should_terminate()) {
             common::performance::scope scheduler_scope(common::performance::scheduler);
             kern_->reschedule();
+#ifdef __EMSCRIPTEN__
             if (paced_clock && !kern_->crr_thread())
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
+#endif
         } else {
             exit = true;
             return 0;

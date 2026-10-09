@@ -69,11 +69,10 @@ namespace eka2l1::arm::aot {
         bool defer_memory = false, restartable_access = false;
         std::uint32_t current_pc = 0;
         bool pc_written = false;
-        // Reserved i32 locals for region instruction count and memory fast path.
-        // Short blocks do not use a dynamic count; local 9 records a callback.
+        // Reserved i32 locals for memory fast paths and callback state.
         static constexpr unsigned M=14;
         static constexpr unsigned CALLBACK=9;
-        static constexpr unsigned COUNT=9, ADDRESS=10, VALUE=11, HOST=12, ENTRY=13;
+        static constexpr unsigned ADDRESS=10, VALUE=11, HOST=12, ENTRY=13;
         bool memory_write = false;
         bool direct_memory_used = false;
         bool instruction_may_exit = true;
@@ -209,7 +208,7 @@ namespace eka2l1::arm::aot {
             if (memory_experiment::enabled() && (!write || common::code_tracking::skip_code_write_guards())) {
                 direct_access(*this, size, write, [&] {
                     if (defer_memory && restartable_access) {
-                        if (!watchdog::enabled) { get_local(COUNT); i32_const(1); op(op_i32_sub); set_local(COUNT); }
+
                         bail(current_pc, 0, exit_census::memory);
                     } else {
                         state_ptr(); get_local(ADDRESS); if(write) get_local(VALUE);
@@ -238,7 +237,7 @@ namespace eka2l1::arm::aot {
             }
             get_local(HOST); op(op_i32_eqz); op(op_if); op(type_void);
             if (defer_memory && restartable_access) {
-                if (!watchdog::enabled) { get_local(COUNT); i32_const(1); op(op_i32_sub); set_local(COUNT); }
+
                 bail(current_pc, 0, exit_census::memory);
             } else {
                 state_ptr(); get_local(ADDRESS); if(write) get_local(VALUE);
@@ -360,29 +359,27 @@ namespace eka2l1::arm::aot {
             else { cache.barrier_at(b.size()); op(op_return); }
         }
 
-        void bail(std::uint32_t pc, std::uint32_t instr_count, unsigned why=exit_census::control) {
+        void bail(std::uint32_t pc, std::uint32_t source_index, unsigned why=exit_census::control) {
             if (dispatch_entries && (why == exit_census::control || why == exit_census::source_end))
                 dispatch_entries->push_back(pc | (successor_thumb ? 1u : 0u));
             store_i32_const(S::PC, static_cast<std::int32_t>(pc));
-            if (watchdog::enabled) i32_const(why == exit_census::unsupported
+            i32_const(why == exit_census::unsupported
                 || why == exit_census::memory || why == exit_census::status ? 0 : 1);
-            else if (region) get_local(COUNT); else i32_const(static_cast<std::int32_t>(instr_count));
             ret(why);
             bail_count++;
         }
 
-        void bail_preserve_pc(std::uint32_t instr_count) {
-            if (watchdog::enabled) i32_const(1);
-            else if (region) get_local(COUNT); else i32_const(static_cast<std::int32_t>(instr_count));
+        void bail_preserve_pc() {
+            i32_const(1);
             ret();
             bail_count++;
         }
 
-        void bail_unsupported(std::uint32_t pc, std::uint32_t instr_count) {
-            if (region && !watchdog::enabled) { get_local(COUNT); i32_const(1); op(op_i32_sub); set_local(COUNT); }
+        void bail_unsupported(std::uint32_t pc, std::uint32_t source_index) {
+
             unsupported = true;
-            if (!instr_count) entry_supported = false;
-            bail(pc, instr_count, exit_census::unsupported);
+            if (!source_index) entry_supported = false;
+            bail(pc, source_index, exit_census::unsupported);
         }
     };
 
@@ -866,11 +863,10 @@ namespace eka2l1::arm::aot {
         std::size_t code_size,
         std::uint32_t start_address,
         const sibling_map *siblings,
-        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region, const leaf_resolver *leaves, bool defer_memory, bool allow_memory_proof, bool entry_budget_covers_region, arm_ir_policy ir_policy = arm_ir_policy::configured)
+        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region, const leaf_resolver *leaves, bool defer_memory, bool allow_memory_proof, arm_ir_policy ir_policy = arm_ir_policy::configured)
     {
-        // Policy 17 adds iteration proofs to policy 7's original lowering.
-        const bool loop_budgets = ir_policy == arm_ir_policy::loop_budget_chunks;
-        if (loop_budgets) ir_policy = arm_ir_policy::write_budget_chunks;
+        // Policy 17 retains the established default memory lowering.
+        if (ir_policy == arm_ir_policy::full_spans) ir_policy = arm_ir_policy::write_spans;
         region = region && bounded;
         // Bounded blocks exit on branches instead of recursively calling siblings.
         // Keep guest-visible instructions (including veneers) in the execution stream.
@@ -915,7 +911,7 @@ namespace eka2l1::arm::aot {
         std::map<std::size_t, code_dependency> inlined;
         std::map<std::size_t,exit_census::leaf_refusal> refusals;
         auto reachable = find_reachable_offsets_arm(code, code_size, bounded,
-            start_address, region ? leaves : nullptr, inlined, refusals, predicated_leaves && ir_policy == arm_ir_policy::write_budget_chunks);
+            start_address, region ? leaves : nullptr, inlined, refusals, predicated_leaves && ir_policy == arm_ir_policy::write_spans);
         struct instruction { std::size_t offset; std::uint32_t address, opcode; bool leaf; };
         std::vector<instruction> instructions;
         for (auto i : reachable) {
@@ -963,14 +959,14 @@ namespace eka2l1::arm::aot {
         // Write proofs also exclude physical code aliases. All helper paths end
         // this region before a later instruction can use a pointer invalidated by a callback.
         const bool include_writes = ir_policy == arm_ir_policy::invariant_writes
-            || ir_policy == arm_ir_policy::write_budget_chunks;
+            || ir_policy == arm_ir_policy::write_spans;
         const bool invariant_reads = allow_memory_proof && (ir_policy == arm_ir_policy::invariant_reads
-            || include_writes || ir_policy == arm_ir_policy::budget_chunks)
+            || include_writes || ir_policy == arm_ir_policy::read_spans)
             && w.region && w.defer_memory && cache_registers && !instructions.empty();
         if (invariant_reads) {
             unsigned written = 0;
             bool known = true;
-            bool linear = entry_budget_covers_region && memory_experiment::enabled();
+            bool linear = memory_experiment::enabled();
             std::vector<unsigned> written_before;
 
             for (const auto &ins : instructions) {
@@ -1017,8 +1013,8 @@ namespace eka2l1::arm::aot {
                 if (index + 1 < instructions.size() && (written & (1u << 15))) linear = false;
                 if (!known) break;
             }
-            // The full-entry budget covers this straight-line path. An incoming
-            // base remains usable through its last address evaluation, including
+            // A straight-line region runs to its exit without budget checks. An
+            // incoming base remains usable through its last address evaluation, including
             // LDR Rn,[Rn,#imm]. Conditional definitions conservatively end it.
             // New spans need four unconditional uses; helpers still exit before
             // any later instruction can consume an invalidated host pointer.
@@ -1105,7 +1101,7 @@ namespace eka2l1::arm::aot {
         direct_loop = direct_loop && has_backedge;
         for (const auto target : forward_targets_set)
             if (target > loop_start && target <= loop_last) direct_loop = false;
-        if (watchdog::enabled && direct_loop && loop_last >= loop_start + 4) {
+        if (direct_loop && loop_last >= loop_start + 4) {
             // A pure SUBS counter,#1 / BNE loop reaches zero for every 32-bit
             // entry value, including zero after wraparound. No helper, call,
             // alternate branch or other counter write may occur in its body.
@@ -1132,7 +1128,7 @@ namespace eka2l1::arm::aot {
             }
             if (finite) { safepoints.erase(loop_start); ++tr.proved_terminating_loops; }
         }
-        tr.watchdog_safepoints = watchdog::enabled ? safepoints.size() : 0;
+        tr.watchdog_safepoints = safepoints.size();
         bool inner_loop_open = false;
         unsigned direct_loop_depth = 0;
 
@@ -1166,75 +1162,11 @@ namespace eka2l1::arm::aot {
             fwd_idx[fwd_sorted[k]] = k;
         }
 
-        // Budget chunks keep the existing opcode lowering. Straight-line spans
-        // and selected single-entry loops prove their maximum instruction count.
-        // Short budgets use a precise callee; count/exit checks stay in place.
-        std::map<std::size_t, unsigned> budget_chunks;
-        std::set<std::size_t> loop_budget_chunks;
-        if (!watchdog::enabled && !entry_budget_covers_region && allow_memory_proof && (ir_policy == arm_ir_policy::budget_chunks
-                || ir_policy == arm_ir_policy::write_budget_chunks)
-            && w.region && cache_registers) {
-            auto straight = [](std::uint32_t op) {
-                if ((op >> 28) == 15) return false;
-                const unsigned rn = (op >> 16) & 15, rd = (op >> 12) & 15;
-                if (((op >> 26) & 3) == 1)
-                    return rd != 15 && rn != 15
-                        && !(!(op & (1u << 24)) && (op & (1u << 21)))
-                        && !((op & (1u << 25)) && (op & 16));
-                if (((op >> 25) & 7) == 4)
-                    return rn != 15 && (op & 65535) && !(op & ((1u << 22) | 32768));
-                if ((op & 0x0f8000f0u) == 0x00800090u)
-                    return rn != 15 && rd != 15 && rn != rd;
-                if ((op & 0x0fc000f0u) == 0x00000090u) return rn != 15;
-                if ((op & 0x0e000090u) == 0x00000090u && (op & 0x60))
-                    return rn != 15 && rd != 15 && ((op & (1u << 20)) || (op & 0x60) == 0x20);
-                if (((op >> 26) & 3) != 0 || (!(op & (1u << 25)) && (op & 0x90) == 0x90)) return false;
-                const unsigned alu = (op >> 21) & 15;
-                return alu >= 8 && alu <= 11 ? bool(op & (1u << 20)) : rd != 15;
-            };
-            for (std::size_t first = 0; first < instructions.size();) {
-                // A natural loop has no interior entry. Prove its longest
-                // iteration once, including conditional exits; each backedge
-                // re-enters this proof. Keep deferred-count policies on
-                // their existing straight-line chunks.
-                if (loop_budgets && direct_loop && instructions[first].address == loop_start) {
-                    std::size_t end = first;
-                    for (; end < instructions.size() && end - first < 32; ++end) {
-                        const auto &ins = instructions[end];
-                        if (ins.leaf || ins.address != loop_start + (end - first) * 4) break;
-                        const auto op = ins.opcode;
-                        const bool branch = ((op >> 25) & 7) == 5 && !(op & (1u << 24)) && (op >> 28) < 15;
-                        const auto target = ins.address + 8 + (static_cast<std::int32_t>(op << 8) >> 6);
-                        if (ins.address == loop_last) {
-                            if (branch && target == loop_start && end - first >= 3) {
-                                budget_chunks.emplace(first, static_cast<unsigned>(end - first + 1));
-                                loop_budget_chunks.insert(first);
-                                ++end;
-                            }
-                            break;
-                        }
-                        if (ins.address > loop_last || (!straight(op) && !(branch && (op >> 28) < 14
-                            && (target < loop_start || target > loop_last)))) break;
-                    }
-                    if (loop_budget_chunks.count(first)) { first = end; continue; }
-                }
-                std::size_t end = first;
-                for (; end < instructions.size() && end - first < 32; ++end) {
-                    const auto &ins = instructions[end];
-                    if (ins.leaf || !straight(ins.opcode)
-                        || (end != first && (ins.address != instructions[end - 1].address + 4
-                            || forward_targets_set.count(ins.address)))) break;
-                }
-                if (end - first < 4) { ++first; continue; }
-                budget_chunks.emplace(first, static_cast<unsigned>(end - first)); first = end;
-            }
-        }
-
         // Initialize pc_idx = 0
         w.i32_const(0);
         w.set_local(PC_IDX);
 
-        if ((!watchdog::enabled && region) || direct_blocks) { w.i32_const(0); w.set_local(arm_emit::COUNT); }
+        if (direct_blocks) { w.i32_const(0); w.set_local(arm_emit::CALLBACK); }
 
         std::uint32_t proof_call_offset = 0;
         if (prove_memory) {
@@ -1303,7 +1235,6 @@ namespace eka2l1::arm::aot {
 
         std::uint32_t insn_idx = 0;
         std::uint32_t decoded_end_offset = 0;
-        std::size_t budget_chunk_end = 0;
         std::vector<std::uint32_t> leaf_forward_targets;
         std::size_t leaf_closed = 0;
 
@@ -1365,11 +1296,9 @@ namespace eka2l1::arm::aot {
             // already published before their branch. No entry bypasses a value.
             if (!preserve_wide || leaf_join || (!instruction.leaf && forward_targets_set.count(insn_addr)))
                 w.end_wide();
-            const auto budget_chunk = budget_chunks.find(instruction_index);
-            if (budget_chunk != budget_chunks.end()) w.end_wide();
 
             // Only memory/helper paths can raise AOT_EXIT. Straight-line ALU
-            // successors need just their budget guard; join/loop entries retain
+            // successors can continue directly; join/loop entries retain
             // the exit check independently of their lexical predecessor.
             const bool check_exit = w.instruction_may_exit || insn_addr == start_address
                 || leaf_join || (!instruction.leaf && forward_targets_set.count(insn_addr));
@@ -1396,44 +1325,11 @@ namespace eka2l1::arm::aot {
                 inner_loop_open = true;
             }
 
-            if (watchdog::enabled && !instruction.leaf && safepoints.count(insn_addr)) {
+            if (!instruction.leaf && safepoints.count(insn_addr)) {
                 w.end_wide();
                 watchdog::emit_request(w); w.op(op_if); w.op(type_void);
                 w.bail(insn_addr, insn_idx, exit_census::guard); w.op(op_end);
             }
-            const bool loop_budget_chunk = loop_budget_chunks.count(instruction_index);
-            auto emit_budget_chunk = [&](bool charged) {
-                const auto length = budget_chunk->second;
-                // COUNT never exceeds the budget. Loop proofs run before the
-                // first charge, so zero/short budgets enter the precise callee.
-                w.load_i32(S::AOT_BUDGET); w.get_local(arm_emit::COUNT); w.op(op_i32_sub);
-                w.i32_const(length - (charged ? 1 : 0)); w.op(op_i32_lt_u);
-                w.op(op_if); w.op(type_void);
-                if (charged) { w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_sub); w.set_local(arm_emit::COUNT); }
-                w.store_i32_const(S::PC, insn_addr);
-                w.cache.barrier_at(w.b.size());
-                w.state_ptr(); w.load_i32(S::AOT_BUDGET); w.get_local(arm_emit::COUNT); w.op(op_i32_sub);
-                w.op(op_i32_store); leb(w.b, 2); leb(w.b, S::AOT_BUDGET);
-                w.state_ptr(); w.op(op_call);
-                const auto call_offset = static_cast<std::uint32_t>(w.b.size());
-                w.b.insert(w.b.end(), {0x80, 0x80, 0x80, 0x80, 0});
-                w.get_local(arm_emit::COUNT); w.op(op_i32_add);
-                w.state_ptr(); w.load_i32(S::AOT_BUDGET);
-                w.op(op_i32_store); leb(w.b, 2); leb(w.b, S::AOT_BUDGET);
-                w.op(op_return); w.op(op_end);
-                std::vector<std::uint32_t> words;
-                for (unsigned n = 0; n < length; ++n)
-                    words.push_back(instructions[instruction_index + n].opcode);
-                auto precise = translate_arm_block_impl(reinterpret_cast<const std::uint8_t *>(words.data()),
-                    words.size() * 4, insn_addr, nullptr, nullptr, true, stop_after_store,
-                    true, true, nullptr, defer_memory, false, false,
-                    arm_ir_policy::configured);
-                precise.func.export_name += "_budget_short";
-                result.outlined_calls.push_back({std::make_shared<wasm_func_def>(std::move(precise.func)), call_offset});
-                budget_chunk_end = instruction_index + length;
-                ++tr.budget_chunks;
-            };
-
             if (bounded) {
                 if (direct_blocks && instruction_index && check_exit) {
                     // Complete every access/writeback in the preceding guest
@@ -1454,26 +1350,11 @@ namespace eka2l1::arm::aot {
                     w.op(op_end);
                 }
                 if (!region) w.store_i32_const(S::PC, insn_addr);
-                const bool check_budget = !watchdog::enabled && !entry_budget_covers_region && instruction_index >= budget_chunk_end && !loop_budget_chunk;
-                if (check_budget) {
-                    w.load_i32(S::AOT_BUDGET);
-                    if (region) w.get_local(arm_emit::COUNT); else w.i32_const(insn_idx);
-                    w.op(op_i32_le_u);
-                }
                 if (region && check_exit) {
-                    w.load_i32(S::AOT_EXIT); if (check_budget) w.op(op_i32_or);
-                }
-                if (check_budget || (region && check_exit)) {
+                    w.load_i32(S::AOT_EXIT);
                     w.op(op_if); w.op(type_void);
                     w.bail(insn_addr, insn_idx, exit_census::guard);
                     w.op(op_end);
-                }
-                if (loop_budget_chunk) {
-                    emit_budget_chunk(false);
-                    ++tr.loop_budget_chunks;
-                }
-                if (region && !watchdog::enabled) {
-                    w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_add); w.set_local(arm_emit::COUNT);
                 }
                 // Match DynCom's PLD decode: an optional prefetch hint has no
                 // architectural effect, but still consumes one guest instruction.
@@ -1492,7 +1373,6 @@ namespace eka2l1::arm::aot {
                 }
             }
 
-            if (budget_chunk != budget_chunks.end() && !loop_budget_chunk) emit_budget_chunk(true);
 
             if (instruction.leaf && inst == 0xe12fff1e) {
                 // LR still contains this call's ARM return address. The next
@@ -1512,24 +1392,16 @@ namespace eka2l1::arm::aot {
             bool handled = true;
 
             // The generated instruction performs predicate/PC semantics; the
-            // outer loop services the trap at its cumulative guest count. Even
+            // outer loop services the trap after the region returns. Even
             // a false predicate returns this boundary without invoking kernel.
             if (bounded && compiled_svc_enabled && cond < 15 && (inst & 0x0f000000u) == 0x0f000000u) {
-                w.load_i32(S::NUM_INSTRS_TO_EXECUTE); w.i32_const(1); w.op(op_i32_eq);
-                w.load_i32(S::NUM_INSTRS_TO_EXECUTE + 4); w.op(op_i32_eqz); w.op(op_i32_and); w.op(op_if); w.op(type_void);
-                if (region && !watchdog::enabled) { w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_sub); w.set_local(arm_emit::COUNT); }
-                w.bail(insn_addr, insn_idx); w.op(op_end);
                 const auto descriptor = svc_pending | (((insn_addr + 4) & 4095) ? 0 : svc_page_end) | (inst & 0x00ffffffu);
                 w.store_i32_const(S::AOT_EXIT, descriptor);
                 const bool predicate = emit_cond_check(w, cond, TMP1, TMP2);
                 w.store_i32_const(S::AOT_EXIT, descriptor | svc_taken);
                 if (predicate) w.op(op_end);
                 w.store_i32_const(S::PC, insn_addr + 4);
-                if (!watchdog::enabled) {
-                    w.state_ptr();
-                    if (region) w.get_local(arm_emit::COUNT); else w.i32_const(insn_idx + 1);
-                    w.op(op_i32_store); leb(w.b, 2); leb(w.b, S::AOT_SVC_INSTRUCTIONS);
-                }
+
                 w.i32_const(0); w.ret(); ++w.bail_count;
                 ++insn_idx; decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
                 break;
@@ -1540,11 +1412,11 @@ namespace eka2l1::arm::aot {
 
             // Keep the existing monitor, including failed reservations and
             // callback effects. Return after this instruction so the runner
-            // rechecks stops, IRQs, mappings and instruction budget.
+            // rechecks stops, IRQs, mappings and yield requests.
             if (bounded && arm_exclusive_memory && supported_exclusive_word(inst)) {
                 w.store_i32_const(S::PC, insn_addr);
                 w.state_ptr(); w.i32_const(inst); w.slow_call(6);
-                w.bail_preserve_pc(insn_idx + 1);
+                w.bail_preserve_pc();
                 if (cond_opened) w.op(op_end);
                 ++insn_idx;
                 decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
@@ -1662,7 +1534,7 @@ namespace eka2l1::arm::aot {
                     w.op(op_i32_and);
                     w.set_local(TMP2);
                     w.store_i32(S::TFLAG, TMP2);
-                    w.bail_preserve_pc(insn_idx + 1);
+                    w.bail_preserve_pc();
                     if (cond_opened) w.op(op_end);
                     if (cond >= 0xE && closed_count >= N_fwd) {
                         decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
@@ -1679,7 +1551,7 @@ namespace eka2l1::arm::aot {
                     w.op(op_i32_and);
                     w.set_local(TMP2);
                     w.store_i32(S::TFLAG, TMP2);
-                    w.bail_preserve_pc(insn_idx + 1);
+                    w.bail_preserve_pc();
                     if (cond_opened) w.op(op_end);
                     if (cond >= 0xE && closed_count >= N_fwd) {
                         decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
@@ -1705,7 +1577,7 @@ namespace eka2l1::arm::aot {
                 w.op(op_i32_and);
                 w.set_local(TMP2);
                 w.store_i32(S::TFLAG, TMP2);
-                w.bail_preserve_pc(insn_idx + 1);
+                w.bail_preserve_pc();
                 if (cond_opened) w.op(op_end);
                 tr.resume_points.push_back(next_pc);
                 insn_idx++;
@@ -1801,7 +1673,7 @@ namespace eka2l1::arm::aot {
                         // writeback forms on the existing helper path.
                         // Whole-span validation precedes every transfer. Restart
                         // only here, never after a partially completed LDM/STM.
-                        if (!watchdog::enabled) { w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_sub); w.set_local(arm_emit::COUNT); }
+
                         w.bail(insn_addr, insn_idx, exit_census::memory);
                     }
                 }
@@ -1850,7 +1722,7 @@ namespace eka2l1::arm::aot {
                     w.op(op_i32_and);
                     w.set_local(TMP2);
                     w.store_i32(S::TFLAG, TMP2);
-                    w.bail_preserve_pc(insn_idx + 1);
+                    w.bail_preserve_pc();
                     if (cond_opened) w.op(op_end);
                     if (cond >= 0xE && closed_count >= N_fwd) {
                         decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
@@ -2092,7 +1964,7 @@ namespace eka2l1::arm::aot {
                         w.get_local(TMP1); w.i32_const(16); w.op(op_i32_ne);
                         w.op(op_i32_and); w.op(op_i32_or);
                         w.op(op_if); w.op(type_void);
-                        if (region && !watchdog::enabled) { w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_sub); w.set_local(arm_emit::COUNT); }
+
                         w.bail(insn_addr,insn_idx,exit_census::status); w.op(op_end);
                         w.load_reg(inst & 15); w.set_local(TMP1);
                         for (auto flag : {std::pair<unsigned,unsigned>{S::NFLAG,31},
@@ -2367,7 +2239,7 @@ namespace eka2l1::arm::aot {
                     w.store_reg(15, TMP3);
                     // Data-processing writes to PC keep the instruction mode;
                     // only interworking branches/loads derive T from bit zero.
-                    w.bail_preserve_pc(insn_idx + 1);
+                    w.bail_preserve_pc();
                     if (cond_opened) w.op(op_end);
                     if (cond >= 0xE && closed_count >= N_fwd) {
                         decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
@@ -2537,7 +2409,7 @@ namespace eka2l1::arm::aot {
                         if (writeback && rn != 15) {
                             w.store_reg(rn, ADDR_TMP);
                         }
-                        w.bail_preserve_pc(insn_idx + 1);
+                        w.bail_preserve_pc();
                         if (cond_opened) w.op(op_end);
                         if (cond >= 0xE && closed_count >= N_fwd) {
                             decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
@@ -2602,9 +2474,9 @@ namespace eka2l1::arm::aot {
         w.op(op_end); // end loop
         w.op(op_end); // end block
 
-        // Return total instruction count
+        // Return progress status
         if (bounded) w.bail(start_address + decoded_end_offset, insn_idx, decoded_end_offset>=code_size?exit_census::source_end:exit_census::emission_end);
-        else { w.i32_const(num_insns); w.ret(); }
+        else { w.i32_const(1); w.ret(); }
 
         finish_memory_locals(w);
         if (prove_memory) {
@@ -2614,7 +2486,7 @@ namespace eka2l1::arm::aot {
                 + (w.cache.shared_return ? 2 : 0);
             auto fallback = translate_arm_block_impl(code, code_size, start_address,
                 siblings, dll_code, bounded, stop_after_store, cache_registers,
-                region, leaves, defer_memory, false, false,
+                region, leaves, defer_memory, false,
                 arm_ir_policy::configured);
             fallback.func.export_name += "_memory_fallback";
             result.outlined_callee = std::make_shared<wasm_func_def>(std::move(fallback.func));
@@ -2657,14 +2529,12 @@ namespace eka2l1::arm::aot {
         arm_emit w{prefix}; w.source = {&marks, pc, source_kind::helper};
         const unsigned first = tr.func.num_prefix_i64_locals + tr.func.num_locals + 1;
         const unsigned head=first, node=first+1, obj=first+2, stat=first+3, bits=first+4,
-            answer=first+5, count=first+6, budget=first+7, address=first+8,
-            tmp=first+9, diff=first+10, host=arm_emit::HOST;
-        tr.func.num_locals += 11;
+            answer=first+5, address=first+6,
+            tmp=first+7, diff=first+8, host=arm_emit::HOST;
+        tr.func.num_locals += 9;
         w.op(op_block); w.op(type_void);
         auto original = [&] { w.op(op_br_if); leb(prefix, 0); };
-        if (!watchdog::enabled) {
-            w.load_i32(S::AOT_BUDGET); w.tee_local(budget); w.i32_const(8); w.op(op_i32_lt_u); original();
-        }
+
         w.load_i32(S::AOT_EXIT); original();
         w.load_i32(S::NIRQ); w.op(op_i32_eqz);
         w.load_i32(S::CPSR); w.i32_const(0x80); w.op(op_i32_and); w.op(op_i32_eqz);
@@ -2683,7 +2553,7 @@ namespace eka2l1::arm::aot {
         load(host, 0); w.set_local(node); w.source.kind=source_kind::helper;
         w.load_reg(status); w.set_local(stat); w.load_reg(payload); w.set_local(bits);
         w.load_reg(result); w.set_local(answer);
-        if (!watchdog::enabled) { w.i32_const(1); w.set_local(count); }
+
         auto publish = [&](unsigned next_pc) {
             w.store_reg(cursor,node); w.store_reg(object,obj); w.store_reg(status,stat);
             w.store_reg(payload,bits); w.store_reg(result,answer); w.store_i32_const(S::PC,next_pc);
@@ -2704,9 +2574,8 @@ namespace eka2l1::arm::aot {
             w.get_local(stat); w.get_local(stat); w.i32_const(magic); w.op(op_i32_sub); w.op(op_i32_xor);
             w.op(op_i32_and); w.i32_const(31); w.op(op_i32_shr_u); w.store_i32_from_stack(S::VFLAG,tmp);
         };
-        auto finish_count = [&](unsigned extra) {
-            if (watchdog::enabled) w.i32_const(1);
-            else { w.get_local(count); if (extra) { w.i32_const(extra); w.op(op_i32_add); } }
+        auto finish = [&]() {
+            w.i32_const(1);
             w.ret();
         };
         w.op(op_loop); w.op(type_void);
@@ -2715,27 +2584,26 @@ namespace eka2l1::arm::aot {
         w.get_local(node); w.get_local(head); w.op(op_i32_eq);
         w.op(op_if); w.op(type_void);
         publish(empty_pc); w.store_i32_const(S::NFLAG,0); w.store_i32_const(S::ZFLAG,1);
-        w.store_i32_const(S::CFLAG,1); w.store_i32_const(S::VFLAG,0); finish_count(4); w.op(op_end);
+        w.store_i32_const(S::CFLAG,1); w.store_i32_const(S::VFLAG,0); finish(); w.op(op_end);
         w.get_local(node); w.i32_const(8); w.op(op_i32_sub); w.set_local(address); span(12,4);
         w.get_local(host); w.op(op_i32_eqz);
         w.op(op_if); w.op(type_void);
-        publish(pc+12); cmp_flags(node,head); finish_count(2); w.op(op_end);
+        publish(pc+12); cmp_flags(node,head); finish(); w.op(op_end);
         w.source.pc=pc+12; w.source.kind=source_kind::guest_memory;
         load(host,0); w.set_local(stat); load(host,4); w.set_local(bits); load(host,8); w.set_local(node);
         w.source.kind=source_kind::helper;
-        if (!watchdog::enabled) { w.get_local(count); w.i32_const(7); w.op(op_i32_add); w.set_local(count); }
+
         w.get_local(stat); w.i32_const(magic); w.op(op_i32_ne);
         w.op(op_if); w.op(type_void);
         w.get_local(bits); w.i32_const(1); w.op(op_i32_and); w.tee_local(answer);
         w.op(op_if); w.op(type_void);
-        publish(pc+32); final_flags(0); finish_count(0); w.op(op_end); w.op(op_end);
-        if (watchdog::enabled) watchdog::emit_request(w);
-        else { w.get_local(budget); w.get_local(count); w.op(op_i32_sub); w.i32_const(7); w.op(op_i32_lt_u); }
+        publish(pc+32); final_flags(0); finish(); w.op(op_end); w.op(op_end);
+        watchdog::emit_request(w);
         w.load_i32(S::NIRQ); w.op(op_i32_eqz);
         w.load_i32(S::CPSR); w.i32_const(0x80); w.op(op_i32_and); w.op(op_i32_eqz);
         w.op(op_i32_and); w.op(op_i32_or);
         w.op(op_if); w.op(type_void);
-        publish(pc+4); final_flags(1); finish_count(0); w.op(op_end);
+        publish(pc+4); final_flags(1); finish(); w.op(op_end);
         w.op(op_br); leb(prefix,0); w.op(op_end); w.op(op_end);
         const auto offset=static_cast<unsigned>(prefix.size());
         if(tr.func.outlined_callee)tr.func.outlined_call_offset+=offset;
@@ -2778,11 +2646,11 @@ namespace eka2l1::arm::aot {
         arm_emit w{prefix};
         const unsigned first = tr.func.num_prefix_i64_locals + tr.func.num_locals + 1;
         const unsigned ns = first, ds = first+1, n = first+2, d = first+3,
-            q = first+4, rem = first+5, count = first+6, sign = first+7, tmp = first+8;
-        tr.func.num_locals += 9;
+            q = first+4, rem = first+5, sign = first+6, tmp = first+7;
+        tr.func.num_locals += 8;
         w.op(op_block); w.op(type_void);
         auto fallback = [&] { w.op(op_br_if); leb(prefix, 0); };
-        if (!watchdog::enabled) { w.load_i32(S::AOT_BUDGET); w.i32_const(63); w.op(op_i32_lt_u); fallback(); }
+
         w.load_i32(S::AOT_EXIT); fallback();
         w.load_i32(S::NIRQ); w.op(op_i32_eqz);
         w.load_i32(S::CPSR); w.i32_const(0x80); w.op(op_i32_and); w.op(op_i32_eqz);
@@ -2796,20 +2664,9 @@ namespace eka2l1::arm::aot {
         w.get_local(d); w.op(op_i32_eqz); fallback();
         w.get_local(n); w.i32_const(8); w.op(op_i32_shr_u);
         w.get_local(d); w.op(op_i32_lt_u); fallback();
-        // This path has quotient magnitude >= 256. Its full guest count depends
-        // only on three quotient-size boundaries and the signed-entry path.
-        // No digit loop or per-instruction accounting survives in the summary.
-        if (!watchdog::enabled) {
-            w.i32_const(64);
-            for (auto threshold : {std::pair<unsigned,unsigned>{14,24}, {20,28}, {26,20}}) {
-                w.get_local(n); w.i32_const(threshold.first); w.op(op_i32_shr_u);
-                w.get_local(d); w.op(op_i32_ge_u); w.i32_const(threshold.second);
-                w.op(op_i32_mul); w.op(op_i32_add);
-            }
-            w.get_local(ns); w.get_local(ds); w.op(op_i32_or); w.i32_const(1); w.op(op_i32_and);
-            w.op(op_i32_sub); w.set_local(count);
-            w.load_i32(S::AOT_BUDGET); w.get_local(count); w.op(op_i32_lt_u); fallback();
-        }
+        // This path has quotient magnitude >= 256. Compute the quotient and
+        // remainder directly, preserving the guest scratch registers and flags.
+
         w.get_local(n); w.get_local(d); w.op(op_i32_div_u); w.set_local(q);
         w.get_local(n); w.get_local(q); w.get_local(d); w.op(op_i32_mul);
         w.op(op_i32_sub); w.set_local(rem);
@@ -2833,7 +2690,7 @@ namespace eka2l1::arm::aot {
         w.store_i32_const(S::VFLAG, 0);
         w.load_reg(14); w.set_local(tmp); w.store_reg(15, tmp);
         w.get_local(tmp); w.i32_const(1); w.op(op_i32_and); w.store_i32_from_stack(S::TFLAG, tmp);
-        if (watchdog::enabled) w.i32_const(1); else w.get_local(count);
+        w.i32_const(1);
         w.ret(); w.op(op_end);
         const auto offset = static_cast<std::uint32_t>(prefix.size());
         if (tr.func.outlined_callee) tr.func.outlined_call_offset += offset;
@@ -2854,60 +2711,11 @@ namespace eka2l1::arm::aot {
     {
         auto precise = translate_arm_block_impl(code, code_size, start_address, siblings,
             dll_code, bounded, stop_after_store, cache_registers, region, leaves,
-            defer_memory, true, false, ir_policy);
+            defer_memory, true, ir_policy);
         if (bounded && region && cache_registers && precise.complete && !exit_census::enabled
             && summarize_list_scan(precise, code, code_size, start_address)) return precise;
         if (bounded && region && cache_registers && precise.complete && !exit_census::enabled
             && summarize_division_helper(precise, code, code_size)) return precise;
-        if (watchdog::enabled || !entry_budget_mode || !bounded || !region || !cache_registers
-            || !precise.complete || !precise.dependencies.empty()
-            || code_size > 0xffffffffu - start_address) return precise;
-        const auto extent = precise.end_address - start_address;
-        if (extent < 8 || extent > code_size) return precise;
-        // Each guest instruction can execute at most once, including untaken
-        // predicates. Callee inlining and backward/self branches are excluded.
-        for (std::size_t i = 0; i + 3 < extent; i += 4) {
-            std::uint32_t inst; std::memcpy(&inst, code + i, 4);
-            if (((inst >> 25) & 7) != 5 || (inst & (1u << 24))) continue;
-            if ((static_cast<std::int32_t>(inst << 8) >> 6) <= -8) return precise;
-        }
-        auto full = translate_arm_block_impl(code, code_size, start_address, siblings,
-            dll_code, bounded, stop_after_store, cache_registers, region, nullptr,
-            defer_memory, true, true, ir_policy);
-        if (!full.complete || full.end_address != precise.end_address
-            || !full.dependencies.empty()) return precise;
-        // The short-budget body has no private callees: generated modules keep
-        // one outlining level even when the full path has a memory fallback.
-        auto cold = translate_arm_block_impl(code, code_size, start_address, siblings,
-            dll_code, bounded, stop_after_store, cache_registers, region, nullptr,
-            defer_memory, false, false, ir_policy);
-        if (cold.func.outlined_callee || !cold.func.outlined_calls.empty()
-            || cold.end_address != precise.end_address || !cold.complete) return precise;
-        std::vector<std::uint8_t> body;
-        arm_emit w{body};
-        w.load_i32(S::AOT_BUDGET); w.i32_const(extent / 4);
-        std::uint32_t full_offset = 0, cold_call_offset = 0;
-        w.op(op_i32_lt_u); w.op(op_if); w.op(type_void);
-        w.state_ptr(); w.op(op_call);
-        cold_call_offset = static_cast<std::uint32_t>(body.size());
-        body.insert(body.end(), {0x80, 0x80, 0x80, 0x80, 0});
-        w.op(op_return); w.op(op_end);
-        full_offset = static_cast<std::uint32_t>(body.size());
-        for (auto &mark : full.func.sources) mark.offset += full_offset;
-        if (!full.func.sources.empty()) full.func.sources.insert(full.func.sources.begin(), {0, start_address, source_kind::accounting});
-        body.insert(body.end(), full.func.body.begin(), full.func.body.end());
-        if (full.func.outlined_callee) full.func.outlined_call_offset += full_offset;
-        for (auto &call : full.func.outlined_calls) call.call_offset += full_offset;
-        if (cold_call_offset) {
-            cold.func.export_name += "_entry_budget_short";
-            full.func.outlined_calls.push_back({std::make_shared<wasm_func_def>(std::move(cold.func)), cold_call_offset});
-        }
-        full.func.body = std::move(body);
-        precise.func = std::move(full.func);
-        precise.proved_reads = full.proved_reads;
-        precise.proved_writes = full.proved_writes;
-        precise.bail_count += full.bail_count;
-        precise.entry_budget_instructions = extent / 4;
         return precise;
     }
 }

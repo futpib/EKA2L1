@@ -10,13 +10,14 @@ struct matched_kernel_access { static ARMul_State *state(dyncom_core &c) { retur
 }
 namespace matched {
 using u32=std::uint32_t;
+inline u32 reference_budget=1; // Offline native oracle, never guest CPU state.
 struct Frame {
     ARMul_State *s;
     std::array<u32,16> r;
     u32 n,z,c,v,t,cpsr,budget,count=0;
     u32 page[2]={0,0}; unsigned char *base[2]={nullptr,nullptr};
     std::uintptr_t code_begin,code_end;
-    Frame(ARMul_State *s, std::uintptr_t begin,std::uintptr_t end):s(s),code_begin(begin),code_end(end) { reload(); budget=s->aot_budget; }
+    Frame(ARMul_State *s, std::uintptr_t begin,std::uintptr_t end):s(s),code_begin(begin),code_end(end) { reload(); budget=reference_budget; }
     __attribute__((always_inline)) void reload() { std::memcpy(r.data(),s->Reg.data(),64);n=s->NFlag;z=s->ZFlag;c=s->CFlag;v=s->VFlag;t=s->TFlag;cpsr=s->Cpsr; }
     __attribute__((always_inline)) void flush() { std::memcpy(s->Reg.data(),r.data(),64);s->NFlag=n;s->ZFlag=z;s->CFlag=c;s->VFlag=v;s->TFlag=t;s->Cpsr=cpsr; }
     __attribute__((always_inline)) unsigned char *host(u32 a,unsigned bytes,bool write) {

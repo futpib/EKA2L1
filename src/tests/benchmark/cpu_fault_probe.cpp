@@ -402,12 +402,6 @@ static int compiled_svc_probe(aot::arm_ir_policy compiler_policy) {
 }
 
 int main(int argc, char **argv){
-    if(argc>1 && std::strncmp(argv[argc-1],"--entry-budget-mode=",20)==0) {
-        const std::string value(argv[argc-1]+20);
-        if(value!="0" && value!="2")return 1;
-        aot::entry_budget_mode=static_cast<unsigned>(value[0]-'0');--argc;
-    }
-    std::cout<<"PROBE_ENTRY_BUDGET "<<aot::entry_budget_mode<<"\n";
     if(argc>1 && std::strncmp(argv[argc-1],"--aot-verify=",13)==0) {
         const std::string value(argv[argc-1]+13);
         if(value!="0" && value!="1")return 1;
@@ -668,12 +662,12 @@ int main(int argc, char **argv){
                 std::cerr<<"Predicated call fusion selection mismatch\n";return 4;
             }
 
-            const auto checked_policy = (ir_policy == aot::arm_ir_policy::loop_budget_chunks)
-                ? aot::arm_ir_policy::write_budget_chunks : ir_policy;
+            const auto checked_policy = (ir_policy == aot::arm_ir_policy::full_spans)
+                ? aot::arm_ir_policy::write_spans : ir_policy;
             const bool writes = checked_policy == aot::arm_ir_policy::invariant_writes
-                || checked_policy == aot::arm_ir_policy::write_budget_chunks;
+                || checked_policy == aot::arm_ir_policy::write_spans;
             const bool reads = writes || checked_policy == aot::arm_ir_policy::invariant_reads
-                || checked_policy == aot::arm_ir_policy::budget_chunks;
+                || checked_policy == aot::arm_ir_policy::read_spans;
             if (writes && invariant_write_remap && n == 0 && translated.proved_writes != 3) {
                 std::cerr << "Write remap proof was not selected\n"; return 4;
             }
@@ -711,7 +705,7 @@ int main(int argc, char **argv){
         if(!entry_budget) cpu.step();
 #endif
 #ifdef EKA_MATCHED_REFERENCE
-        auto *s=matched_kernel_access::state(cpu);s->aot_budget=1;s->aot_exit=0;
+        auto *s=matched_kernel_access::state(cpu);s->aot_exit=0;
         s->NFlag=s->Cpsr>>31;s->ZFlag=(s->Cpsr>>30)&1;s->CFlag=(s->Cpsr>>29)&1;s->VFlag=(s->Cpsr>>28)&1;
         matched::Frame frame(s,0,0);
         switch(op) {

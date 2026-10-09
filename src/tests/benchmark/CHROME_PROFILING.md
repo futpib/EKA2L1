@@ -3,9 +3,10 @@
 Use Chrome's sampling profiler for time attribution and its timeline for worker
 scheduling, WASM compilation/tiering, GC and rendering. Default WASM builds omit
 custom guest histograms, exit census, crash history and detailed scope timers.
-The benchmark's deterministic input, guest instruction totals, presentation
-count and measurement clock remain available. Correctness verification remains
-independently selectable with `EKA2L1_AOT_VERIFY`.
+Scripted input, presentation counts and guest clock measurements remain
+available. Browser execution uses the watchdog; instruction totals stay zero
+and the instruction-count verifier is removed. The default count-free Snakes
+route is sampled from 42–46 guest seconds.
 
 ## Capture
 
@@ -21,7 +22,7 @@ EKA2L1_THUMB_MEMORY=1 \
 EKA2L1_HOTPATH=2 \
 EKA2L1_CODE_COMPARE=2 \
 EKA2L1_PREDICATED_LEAVES=1 EKA2L1_LEAF_FEATURES=128 \
-node profile.ts /absolute/path/to/assets /absolute/path/to/new-capture 1 1 25000000
+node profile.ts /absolute/path/to/assets /absolute/path/to/new-capture 1 1 46000000
 ```
 
 The launcher, profiler and replay harness share defaults for Thumb memory (1),
@@ -35,7 +36,7 @@ from normal play.
 
 Arguments after the paths are capture mode, CPU sampling (0/1), and ending guest
 time in microseconds. Mode 1 skips PNG compression while retaining readback and
-frame metadata; it does not save pixel hashes. The default window is 21–25 guest
+frame metadata; it does not save pixel hashes. The default window is 42–46 guest
 seconds. For Sky Force combat,
 use its asset directory and add:
 
@@ -63,7 +64,7 @@ The capture produces:
 - `chrome-profile.json`: per-worker time-weighted samples, generated-code entry
   PCs, RAM versions and WASM module URLs. Worker selection uses generated-code
   samples, avoiding the mistake of selecting a parked worker as the bottleneck.
-- `report.json`: build/input hashes, browser/GPU, settings, exact guest work,
+- `report.json`: build/input hashes, browser/GPU, settings, guest clock and presentation counts,
   wall and CPU timing, diagnostics capability, trace scope and data-loss status.
 - `cpu-time.json`: raw before/after Chrome process CPU counters and, on local
   Linux, per-renderer-thread scheduler runtimes. The summary is also recorded in
@@ -243,7 +244,7 @@ and [Linux profiling support](https://v8.dev/docs/linux-perf).
 
 For throughput, repeat the same command with sampling **0** and
 `EKA2L1_CHROME_TRACE=off`. Keep custom counters, monitoring, crash/GL diagnostics
-and AOT verification off. Such reports are labelled `purpose: "throughput"`;
+off. Such reports are labelled `purpose: "throughput"`;
 profiled or instrumented reports are labelled `diagnostic`. Detailed custom
 counter fields are absent when not collected, rather than reported as zeros.
 
@@ -272,8 +273,9 @@ CPU snapshots bracket host resume and observed completion, so they include small
 collection/polling margins outside the exact guest wall-clock interval. Collection
 cost and host interval are reported. The emulator CPU thread is paused before
 resume and stops guest execution at completion; other renderer work may continue
-within the margins. Compare identical guest instruction totals and presentation
-counts. CPU time removes scheduling/wait noise, but CPU frequency, cache contention
+within the margins. Compare equivalent visible gameplay and output sequences;
+matching guest times or presentation totals alone does not establish equal work.
+The watchdog clock can change its execution schedule between runs. CPU time removes scheduling/wait noise, but CPU frequency, cache contention
 and JIT work can still vary. Use serial runs in both orders and retain wall time
 as the measure of actual elapsed gameplay throughput. CDP sample-weighted profile
 durations are elapsed time, not a substitute for these OS CPU counters.
@@ -306,16 +308,10 @@ For a machine-instruction hypothesis, the existing
 [`inspect_jitdump.py`](inspect_jitdump.py) and [V8 Linux perf workflow](https://v8.dev/docs/linux-perf)
 remain available. This switch does not turn sampling into a causal profiler.
 
-## Optional emulator diagnostics
+## Retired instruction diagnostics
 
-For a specific semantic question such as why a compiled region exits, configure
-a separate build with `-DEKA2L1_WASM_DIAGNOSTICS=ON`. Point the runner at that
-build, then explicitly set `EKA2L1_PROFILE_DETAIL=1`. Guest sampling additionally
-uses `EKA2L1_GUEST_PROFILE=1021`; exit reasons use `EKA2L1_EXIT_CENSUS=1` with guest
-sampling. Crash history uses `EKA2L1_AOT_DIAGNOSTICS=1`.
-
-Ordinary builds reject these requests with configuration error `-2`. Disabling
-them succeeds in both builds. Native builds retain their existing diagnostic
-capabilities. Census-specific tests report a skip when diagnostics are absent;
-run them on the diagnostic build to verify census behavior. Chrome capture and
-unprofiled timing require neither a diagnostic build nor injected guest code.
+Instruction-count verification, guest sampling, detailed instruction counters
+and crash-history requests are rejected by the browser harness. They cannot be
+restored by selecting a diagnostic build. Chrome sampling/tracing and host CPU
+snapshots remain available without instruction accounting. Native diagnostics
+and standalone compiler tests retain their own coverage.

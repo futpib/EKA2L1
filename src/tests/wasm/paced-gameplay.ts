@@ -6,13 +6,13 @@ import os from 'node:os';
 import path from 'node:path';
 import puppeteer from 'puppeteer';
 
-const [baseUrl, output, family, game, counting, duration = '30'] = process.argv.slice(2);
+const [baseUrl, output, family, game, duration = '30'] = process.argv.slice(2);
 if (!baseUrl || !output || !['chrome','firefox'].includes(family)
-    || !['snakes','sky-force'].includes(game) || !['on','off'].includes(counting)
+    || !['snakes','sky-force'].includes(game)
     || !/^\d+$/.test(duration) || Number(duration) < 10)
-  throw Error('Usage: node counting-comparison.ts URL NEW_OUTPUT chrome|firefox snakes|sky-force on|off [SECONDS]');
+  throw Error('Usage: node paced-gameplay.ts URL NEW_OUTPUT chrome|firefox snakes|sky-force [SECONDS]');
 fs.mkdirSync(output);
-const report: any = {started:new Date().toISOString(), family, game, counting,
+const report: any = {started:new Date().toISOString(), family, game,
   durationSeconds:Number(duration), sound:'muted', cpu:os.cpus()[0]?.model,
   menuKeyHoldMs:600,
   requiresSceneReview:true, loadBefore:os.loadavg(), samples:[], errors:[]};
@@ -58,18 +58,17 @@ try {
   });
   const landing = new URL(baseUrl);
   landing.searchParams.set('game','custom');
-  landing.searchParams.set('counting',counting === 'on' ? 'off' : 'on');
+  landing.searchParams.set('counting','on'); // Old bookmarks must not restore accounting.
   await page.goto(landing.href,{waitUntil:'domcontentloaded'});
-  await page.waitForSelector('#instruction-counting');
-  assert.equal(await page.$eval('#instruction-counting',e => (e as HTMLSelectElement).value),counting === 'on' ? 'off' : 'on');
+  await page.waitForSelector('#game-select');
+  assert.equal(await page.$('#instruction-counting'),null);
   await page.select('#game-select',game);
-  await page.select('#instruction-counting',counting);
   await page.setViewport({width:390,height:844});
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),false);
   await page.screenshot({path:path.join(output,'mobile-picker.png')});
   await page.setViewport({width:900,height:800});
   await Promise.all([page.waitForNavigation({waitUntil:'domcontentloaded'}),page.click('#btn-play')]);
-  assert.equal(new URL(page.url()).searchParams.get('counting'),counting);
+  assert.equal(new URL(page.url()).searchParams.get('counting'),null);
   await page.waitForFunction(() => (window as any)._gameRunning,{timeout:180000});
   report.url = page.url();
   report.launch = await page.evaluate(() => {
@@ -79,15 +78,13 @@ try {
     const renderer = debug ? gl!.getParameter(debug.UNMASKED_RENDERER_WEBGL) : gl?.getParameter(gl.RENDERER);
     gl?.getExtension('WEBGL_lose_context')?.loseContext();
     return {policy:g.ekaCompilerPolicy,assets:g.ekaAssetUrls,secure:isSecureContext,
-      isolated:crossOriginIsolated,selected:(document.querySelector('#instruction-counting') as HTMLSelectElement).value,
-      watchdog:g.Module._eka2l1_watchdog_report(),worker:!!g.ekaWatchdog,
+      isolated:crossOriginIsolated,retiredExports:['watchdog_configure','watchdog_report','entry_budget_configure','entry_budget_report'].filter(n => typeof g.Module['_eka2l1_'+n] === 'function'),
+      worker:!!g.ekaWatchdog,
       renderer,status:document.querySelector('#status')?.textContent};
   });
-  assert.equal(report.launch.selected,counting);
-  assert.equal(report.launch.watchdog,counting === 'off' ? 1 : 0);
-  assert.equal(report.launch.worker,counting === 'off');
+  assert.deepEqual(report.launch.retiredExports,[]);
+  assert.equal(report.launch.worker,true);
   assert.ok(report.launch.secure && report.launch.isolated && report.launch.policy.applied);
-  assert.ok(report.launch.status.includes('Instruction counting: '+(counting === 'on' ? 'On' : 'Off')));
   const waitGuest = (us: number) => page.waitForFunction(t => (window as any).Module._eka2l1_guest_time_us() >= t,{timeout:180000},us);
   // Loading can pause guest execution for compilation. Absolute deadlines can
   // then send several key pairs before the game consumes any of them. Start
@@ -117,13 +114,13 @@ try {
       return {guestUs:g.Module._eka2l1_guest_time_us(),frames:g.Module._eka2l1_presentations(),
         instructions:monitor.instructions,compiledFunctions:monitor.compiled_functions,
         compilation:monitor,browserMs:performance.now(),
-        inputs:g.Module._eka2l1_input_consumed(),watchdog:g.Module._eka2l1_watchdog_report()};
+        inputs:g.Module._eka2l1_input_consumed(),watchdogRequests:Atomics.load(g.ekaWatchdog.control,1)};
     });
     const after = performance.now();
     return {hostMs:(before+after)/2,queryMs:after-before,...state};
   };
   report.samples.push(await sample());
-  console.log('MEASURING '+JSON.stringify({family,game,counting,duration:report.durationSeconds,renderer:report.launch.renderer}));
+  console.log('MEASURING '+JSON.stringify({family,game,duration:report.durationSeconds,renderer:report.launch.renderer}));
   save();
   const begin = performance.now();
   while (performance.now()-begin < report.durationSeconds*1000) {
@@ -146,9 +143,8 @@ try {
     ['aot_translation_us','aot_emission_us','aot_installation_us'].map(k => [k,last.compilation[k]-first.compilation[k]]));
   report.loadAfter = os.loadavg();
   assert.ok(report.measurement.presentations > 0);
-  if (counting === 'on') assert.ok(report.measurement.instructions > 0);
-  else assert.ok(report.samples.every((s:any) => s.instructions === 0));
-  assert.ok(report.samples.every((s:any) => s.watchdog === report.launch.watchdog));
+  assert.ok(report.samples.every((s:any) => s.instructions === 0));
+  assert.ok(last.watchdogRequests > first.watchdogRequests);
   // Screenshots are outside the timing window; Firefox capture can be slow.
   await page.screenshot({path:path.join(output,'gameplay-end.png')});
   assert.deepEqual(report.errors,[]);

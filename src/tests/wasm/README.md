@@ -2,16 +2,13 @@
 
 Build `eka2l1_wasm` following the [browser build instructions](../benchmark/README.md),
 then run `npm ci --ignore-scripts` and `npm run serve -- 8188` in this directory.
-Choose **Sky Force** or **Snakes**, select **Instruction counting: On / Off**, and
-press **Play**. Play applies both settings in a fresh session. The running status
-shows the active mode. The choice stays in the URL when switching games or
-reloading, and does not affect other tabs or devices. **Load my own files** opens
-the ROM/RPKG/SIS upload controls. Each launch reloads the page and starts a fresh
-session; saves are not persisted. Changing the dropdown alone does not stop play.
+Choose **Sky Force** or **Snakes** and press **Play**. Each launch starts a
+fresh session; saves are not persisted. **Load my own files** opens the
+ROM/RPKG/SIS upload controls. Changing the dropdown alone does not stop play.
 
-Direct links use `?game=sky-force`, `?game=snakes` or `?game=custom`. Add
-`&counting=on` for the original instruction-counting mode or `&counting=off`
-for count-free execution. Without this option, the server's default applies.
+Direct links use `?game=sky-force`, `?game=snakes` or `?game=custom`.
+All browser execution uses the watchdog without instruction accounting.
+Legacy `counting` URL parameters are ignored and removed on Play.
 An optional
 third command-line argument, such as `node serve.ts 8188 Snakes`, selects an
 automatic default. Without it, the page waits for a choice.
@@ -52,15 +49,17 @@ The existing HTTPS host/certificate and compiler-policy environment variables
 still apply; see [LAN setup](../benchmark/REALTIME_PLAYABILITY.md#lan-https-launcher).
 The local launcher is at <https://claude-laptop.lan:8188/>.
 
-`EKA2L1_WATCHDOG_US=2000` sets count-free execution as the launcher default.
-The UI can override it for an individual session. Turning counting off uses this
-request interval, or 2 ms when no interval is configured. A separate worker
-requests yields; statically proved finite regions finish without polling.
-Paced count-free play advances guest timers from elapsed host time, while
-unpaced runs retain their event clock. Counting on restores instruction-driven
-guest time. The switch therefore compares both execution and timing policies.
-Count-free execution is disabled by default and incompatible
-with instruction verification/diagnostics. See [watchdog results and limitations](../benchmark/WATCHDOG_RESULTS.md).
+`EKA2L1_WATCHDOG_US` controls the external yield-request interval, defaulting
+to 2000 microseconds. Values 1..1000000 are accepted; zero cannot disable it.
+A separate worker requests yields. Statically proved finite regions finish
+without polling. Compiled chains have no instruction or region-count limit.
+Paced play advances guest timers from elapsed host time at scheduler boundaries;
+unpaced runs advance virtual CPU slices on yields and skip idle time. Explicit
+pauses do not advance the clock. Native CPU backends retain their scheduling
+budgets, and debugger single-step remains available.
+The instruction-count verifier, generated count/budget checks and their
+configuration APIs are removed. `EKA2L1_ENTRY_BUDGET` is retired. Historical
+comparisons are in [watchdog results](../benchmark/WATCHDOG_RESULTS.md).
 For output-based benchmark comparisons, `EKA2L1_BENCHMARK_START_FRAME=/path/to/frame.png`
 makes `benchmark.ts` wait for that exact image before capturing its frame sequence.
 
@@ -76,8 +75,8 @@ selection below remains independent of this fixed compiler behavior. See the
 [eligibility and adoption checks](../benchmark/ARM_MEMORY_ADOPTION.md).
 
 For compiled-region replay and profiling, set `EKA2L1_BENCHMARK_AOT=5`.
-With verification off, these runs select direct memory and unsafe code mode 3.
-Interpreter, verifier and mutation-compatible runs select TLB unless explicitly
+These runs select direct memory and unsafe code mode 3.
+Interpreter and mutation-compatible runs select TLB unless explicitly
 overridden. The launcher also selects TLB for `EKA2L1_UNSAFE_CODE=0` when no
 memory override is supplied. Only values 0 (TLB) and 2 (direct) are
 supported; the separate direct-policy and delayed-activation controls are
@@ -88,19 +87,16 @@ page. TLB retains its alignment checks. See the
 [alignment measurements and adoption](../benchmark/UNALIGNED_SCALAR_RESULTS.md).
 
 Compiled syscalls (`EKA2L1_COMPILED_SVC=1`), sparse ROM lookup
-(`EKA2L1_SPARSE_ROM_LOOKUP=1`) and outlined entry budgets
-(`EKA2L1_ENTRY_BUDGET=2`) are enabled by default. Entry-budget mode 0 retains
-per-span checks. These policies are frozen before initialization. Full state
-pruning and IR mode 17 remain the defaults. See the
-[combined measurements and graduation](../benchmark/RECOVERED_DEFAULTS_RESULTS.md).
+(`EKA2L1_SPARSE_ROM_LOOKUP=1`) are enabled by default and frozen before
+initialization. Full state pruning and IR mode 17 remain the defaults.
 
 Division lowering, entry-only pruning, static count batching (IR mode 18),
 and inline entry-budget recovery (mode 1) were removed after the completed
 controlled sweep. Remove `EKA2L1_DIVISION_DIGITS`, `EKA2L1_ENTRY_ONLY_PRUNING`,
 and `EKA2L1_EXECUTION_LIMITS` from launch environments, even if set to zero or
 the former default. The limits are now fixed: 512 source bytes, 32 leaf
-instructions, 8 inline sites, and 512 regions per chain. Their read-only API
-still reports `512,32,8,512`. See the [56-entry cleanup audit](../benchmark/RETIRED_SWEEP_EXPERIMENTS.md).
+instructions and 8 inline sites. Their read-only API reports `512,32,8,0`,
+where the final zero means no region-count cap. See the [56-entry cleanup audit](../benchmark/RETIRED_SWEEP_EXPERIMENTS.md).
 
 Run the actual browser integration check against a running launcher:
 
@@ -119,19 +115,19 @@ clock and PCM-queue state are included to distinguish browser output failures
 from missing emulator samples. Performance and audio underruns are reported,
 not hidden behind a boot-success assertion.
 
-To measure one paced counting-mode combination through the launcher:
+To measure paced gameplay through the launcher:
 
 ```sh
-node counting-comparison.ts https://claude-laptop.lan:8188/ /absolute/path/to/new-results chrome snakes on 30
+node paced-gameplay.ts https://claude-laptop.lan:8188/ /absolute/path/to/new-results chrome snakes 30
 ```
 
-The last arguments select `chrome` / `firefox`, `snakes` / `sky-force`, counting
-`on` / `off`, and the measurement duration in host seconds. Run combinations
+The last arguments select `chrome` / `firefox`, `snakes` / `sky-force`, and the
+measurement duration in host seconds. Run combinations
 serially with fresh output directories. Firefox needs working WebGL (on this
 Linux host, the existing `DISPLAY` and `XAUTHORITY` are supplied). The script
 uses an isolated browser profile that accepts the local HTTPS certificate.
-It exercises the mode selector and Play button, checks the runtime mode and
-instruction totals, and samples presentations and guest time with sound muted.
+It exercises the game picker and Play button, checks that retired APIs and the
+counting selector are absent, verifies watchdog requests and zero instruction totals, and samples presentations and guest time with sound muted.
 It also records installed compiled-function counts and elapsed microseconds in
 EKA2L1 translation, module emission and synchronous installation. Compilation
 during the window remains included in FPS. The first presentation snapshot and
@@ -140,8 +136,7 @@ presentation need not contain a visible game image. Menu presses start after
 that presentation and use relative guest-time waits, so a loading pause cannot
 collapse several input deadlines together. Menu screenshots are retained too.
 Screenshots are taken outside the measurement window; inspect them to confirm
-gameplay. The result is paced playability, including the selected clock policy,
-not an isolated measurement of instruction-counting overhead.
+gameplay. The result measures paced playability.
 
 Loaded ARM/Thumb images now queue preparation before their next CPU run, after
 relocation and import patching. The worker follows known entries, direct exits

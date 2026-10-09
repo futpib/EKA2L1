@@ -186,11 +186,7 @@ int eka2l1_graphics_diagnostics_configure(int enabled) {
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_aot_configure(int enabled, int verify, int diagnostics) {
     if (g_state || (enabled < 0 || enabled > 5) || verify < 0) return -1;
-    if ((verify || diagnostics) && eka2l1::arm::aot::watchdog::enabled) return -2;
-    if (diagnostics && !common::diagnostics::available) return -2;
-    eka2l1::arm::aot::diagnostics_enabled = diagnostics != 0;
-    if (verify) setenv("EKA2L1_AOT_VERIFY", std::to_string(verify).c_str(), 1);
-    else unsetenv("EKA2L1_AOT_VERIFY");
+    if (verify || diagnostics) return -2;
     if (enabled >= 2) setenv("EKA2L1_AOT_HOT", "1", 1);
     else unsetenv("EKA2L1_AOT_HOT");
     if (enabled >= 5) setenv("EKA2L1_AOT_REGION", "1", 1);
@@ -224,25 +220,29 @@ int eka2l1_sparse_rom_lookup_configure(int mode) {
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_sparse_rom_lookup_report() { return eka2l1::arm::aot::sparse_rom_lookup_enabled; }
 
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_entry_budget_configure(int mode) {
-    if (g_state || (mode != 0 && mode != 2)) return -1;
-    eka2l1::arm::aot::entry_budget_mode = static_cast<unsigned>(mode);
-    return 0;
-}
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_entry_budget_report() { return eka2l1::arm::aot::entry_budget_mode; }
+// Also start the watchdog for clients that use the raw frontend API. Launchers
+// may already have started one with a custom interval before initialization.
+EM_JS(void, start_browser_watchdog, (std::uint32_t address), {
+    if (globalThis.ekaWatchdog) return;
+    const control = new SharedArrayBuffer(8);
+    const source = `self.onmessage = ({data: {memory, address, control}}) => {
+        const flag = new Int32Array(memory, address, 1);
+        const state = new Int32Array(control);
+        postMessage('ready');
+        while (!Atomics.load(state, 0)) {
+            Atomics.wait(state, 0, 0, 2);
+            if (Atomics.load(state, 0)) break;
+            Atomics.store(flag, 0, 1);
+            Atomics.add(state, 1, 1);
+        }
+    };`;
+    const url = URL.createObjectURL(new Blob([source], {type: 'application/javascript'}));
+    const worker = new Worker(url);
+    worker.onmessage = () => URL.revokeObjectURL(url);
+    worker.postMessage({memory: HEAPU8.buffer, address, control});
+    globalThis.ekaWatchdog = {worker, intervalUs: 2000, control: new Int32Array(control)};
+});
 
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_watchdog_configure(int enabled) {
-    if (g_state || (enabled != 0 && enabled != 1)) return -1;
-    if (enabled && (std::getenv("EKA2L1_AOT_VERIFY") || eka2l1::arm::aot::diagnostics_enabled)) return -2;
-    eka2l1::arm::aot::watchdog::enabled = enabled != 0;
-    common::benchmark::event_clock = enabled != 0;
-    return 0;
-}
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_watchdog_report() { return eka2l1::arm::aot::watchdog::enabled; }
 EMSCRIPTEN_KEEPALIVE
 std::uint32_t *eka2l1_watchdog_address() {
     return reinterpret_cast<std::uint32_t *>(&eka2l1::arm::aot::watchdog::request);
@@ -528,6 +528,13 @@ int eka2l1_benchmark_configure(int frames, int start_us, int unique) {
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_init(const char *data_path) {
+    // Raw API clients also need a clock independent of executed instructions.
+    // Benchmark and route clients have already selected their unpaced clock.
+    if (!common::benchmark::enabled()) {
+        setenv("EKA2L1_BENCHMARK", "1", 1);
+        common::benchmark::interactive = true;
+        common::benchmark::paced = true;
+    }
     if(eka2l1::arm::aot::memory_experiment::mode) {
         if(std::getenv("EKA2L1_AOT_VERIFY") || !std::getenv("EKA2L1_AOT_REGION")) return -3;
         if(!common::code_tracking::skip_code_write_guards()) return -3;
@@ -928,6 +935,7 @@ int eka2l1_run(const char *app_name) {
         LOG_WARN(FRONTEND_CMDLINE, "Window server not found");
     }
 
+    start_browser_watchdog(reinterpret_cast<std::uintptr_t>(&arm::aot::watchdog::request));
     g_state->running = true;
     start_benchmark_input(g_state->symsys.get(), g_state->winserv);
 
@@ -935,9 +943,6 @@ int eka2l1_run(const char *app_name) {
     g_state->emu_thread = std::make_unique<std::thread>([]() {
         LOG_INFO(FRONTEND_CMDLINE, "Emulator thread started");
         int iterations = 0;
-        auto host_origin = std::chrono::steady_clock::now();
-        const auto guest_origin = common::benchmark::virtual_us.load();
-        std::uint64_t pacing_check = guest_origin;
         while (g_state && g_state->running) {
             if (g_route.enabled) {
                 std::unique_lock<std::mutex> lock(g_route.mutex);
@@ -963,23 +968,6 @@ int eka2l1_run(const char *app_name) {
                     event.key_.state_ = key.down ? drivers::key_state::pressed : drivers::key_state::released;
                     g_state->winserv->queue_input_from_driver(event);
                     g_state->input_consumed = key.serial;
-                }
-                const auto guest_now = common::benchmark::virtual_us.load();
-                if (!g_route.enabled && !common::benchmark::event_clock && guest_now >= pacing_check) {
-                    const auto host_now = std::chrono::steady_clock::now();
-                    const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
-                        host_now - host_origin).count();
-                    const auto ahead = static_cast<std::int64_t>(guest_now - guest_origin) - elapsed;
-                    if (ahead < -100000) {
-                        // Allow brief scheduler jitter, but discard host stalls
-                        // instead of fast-forwarding to repay them. Guest clocks
-                        // and pending events stay intact.
-                        host_origin = host_now - std::chrono::microseconds(guest_now - guest_origin);
-                    } else if (ahead > 2000) {
-                        std::this_thread::sleep_for(std::chrono::microseconds(std::min<std::int64_t>(ahead - 1000, 2000)));
-                        continue; // Host pacing never advances the guest clock.
-                    }
-                    pacing_check = guest_now + 1000;
                 }
             }
             if (common::performance::checkpoint(common::benchmark::virtual_us.load(), common::benchmark::instructions.load())) {

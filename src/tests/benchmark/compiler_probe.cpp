@@ -95,7 +95,7 @@ int main(int argc,char**argv) {
    return std::vector<std::uint8_t>(begin,begin+64);
   };
   auto t=translate_arm_block(src.bytes.data()+pc-0x70000000,size,pc,nullptr,nullptr,true,true,true,true,inline_leaves?&resolve:nullptr,defer_memory,ir_policy);
-  std::cout<<pc<<" region_end "<<t.end_address<<" body_bytes "<<t.func.body.size()<<" dependencies "<<t.dependencies.size()<<" guarded_memory "<<bool(t.func.outlined_callee)<<" proved_reads "<<t.proved_reads<<" proved_writes "<<t.proved_writes<<" budget_chunks "<<t.budget_chunks<<" loop_budget_chunks "<<t.loop_budget_chunks<<" ir_policy "<<static_cast<int>(ir_policy)<<"\n";
+  std::cout<<pc<<" region_end "<<t.end_address<<" body_bytes "<<t.func.body.size()<<" dependencies "<<t.dependencies.size()<<" guarded_memory "<<bool(t.func.outlined_callee)<<" proved_reads "<<t.proved_reads<<" proved_writes "<<t.proved_writes<<" ir_policy "<<static_cast<int>(ir_policy)<<"\n";
   for(const auto &dependency:t.dependencies) {
    const auto name=prefix+"-leaf-"+std::to_string(dependency.address);
    std::ofstream(name+".arm",std::ios::binary).write((const char*)dependency.bytes.data(),dependency.bytes.size());

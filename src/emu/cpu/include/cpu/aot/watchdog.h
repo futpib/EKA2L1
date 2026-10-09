@@ -4,9 +4,7 @@
 #include <cstdint>
 
 namespace eka2l1::arm::aot::watchdog {
-    // Frozen before translation. This mode returns progress status instead of
-    // instruction counts and uses an event clock. The browser owns requests.
-    inline bool enabled = false;
+    // Generated code returns progress status. The browser owns yield requests.
     alignas(64) inline std::atomic<std::uint32_t> request{0};
 
     inline bool requested() { return request.load(std::memory_order_relaxed) != 0; }

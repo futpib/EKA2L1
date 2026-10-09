@@ -31,13 +31,10 @@ struct ARMul_State;
 namespace eka2l1::arm { class core; }
 
 namespace eka2l1::arm::aot {
-    // Generated SVC returns a pending trap to the outer loop, where the exact
-    // cumulative instruction count and kernel callback contract are available.
-    // A trap returns zero to stop the chain and saves its logical count separately.
+    // Generated SVC returns a pending trap to the outer loop for the kernel
+    // callback. A trap returns zero to stop the compiled chain.
     inline bool compiled_svc_enabled = true;
     inline bool sparse_rom_lookup_enabled = true;
-    // 0: per-span budgets; 2: entry guard with a private precise fallback.
-    inline unsigned entry_budget_mode = 2;
     inline constexpr std::uint32_t svc_pending = 0x80000000u;
     inline constexpr std::uint32_t svc_taken = 0x40000000u;
     inline constexpr std::uint32_t svc_page_end = 0x20000000u;
@@ -51,7 +48,7 @@ namespace eka2l1::arm::aot {
     extern bool hot_compilation_enabled;
     extern bool ram_compilation_enabled;
     extern bool chaining_enabled;
-    struct compiled_run { std::uint32_t instructions = 0, blocks = 0; };
+    struct compiled_run { std::uint32_t progress = 0; };
     std::uint32_t execute_single(ARMul_State *cpu, aot_func function);
     compiled_run execute_chain(ARMul_State *cpu, aot_func function);
     aot_func lookup_compiled(ARMul_State *cpu);
@@ -69,9 +66,6 @@ namespace eka2l1::arm::aot {
     };
     extern compilation_counters compilation;
 
-    extern bool validation_running;
-    void validation_begin(ARMul_State *cpu);
-    void validation_end(ARMul_State *cpu, std::uint32_t count);
     // Stage WASM module bytes for deferred instantiation.
     // The actual WebAssembly.Instance + addFunction calls happen on the
     // first AOT lookup, which runs on the emulator worker thread where

@@ -48,7 +48,6 @@
 namespace eka2l1::arm::aot {
 #ifdef __EMSCRIPTEN__
 static_assert(offsetof(ARMul_State, NumInstrsToExecute) == state_offsets::NUM_INSTRS_TO_EXECUTE);
-static_assert(offsetof(ARMul_State, aot_svc_instructions) == state_offsets::AOT_SVC_INSTRUCTIONS);
 #endif
 compilation_counters compilation;
 struct compilation_timer {
@@ -60,141 +59,8 @@ struct compilation_timer {
 static std::atomic<std::uint64_t> completed_function_count{0};
 std::uint64_t compiled_function_count() { return completed_function_count.load(std::memory_order_relaxed); }
 
-// Optional differential execution. Guest memory is changed only by compiled
-// execution; the reference interpreter uses a private byte overlay.
 static std::uint32_t hot_rom_base = 0, hot_rom_size = 0;
 common::diagnostics::flag diagnostics_enabled = false;
-bool validation_running = false;
-static bool validating = false;
-static ARMul_State *validation_guest = nullptr;
-static core::thread_context validation_before;
-static r12l1::exclusive_monitor *validation_monitor = nullptr;
-static r12l1::exclusive_monitor::reservation_snapshot validation_reservation{};
-static std::unordered_map<std::uint32_t, std::uint8_t> validation_memory;
-static std::unordered_map<std::uint32_t, std::uint8_t> reference_writes;
-
-static unsigned verification_stride() {
-    static const unsigned stride = [] {
-        const char *value = std::getenv("EKA2L1_AOT_VERIFY");
-        return value ? std::max(1ul, std::strtoul(value, nullptr, 10)) : 0ul;
-    }();
-    return stride;
-}
-
-static inline void count_ram_dispatch(ARMul_State *cpu) {
-    if (common::performance::counting() && ram_compilation_enabled
-        && (cpu->Reg[15] < hot_rom_base || cpu->Reg[15] - hot_rom_base >= hot_rom_size))
-        ++common::performance::ram_aot_dispatches;
-}
-
-void validation_begin(ARMul_State *cpu) {
-    const auto stride = verification_stride();
-    static std::uint64_t attempts = 0;
-    validating = stride && (++attempts % stride == 0);
-    if (!validating) return;
-    validation_guest = cpu;
-    validation_monitor = arm_exclusive_memory
-        ? dynamic_cast<r12l1::exclusive_monitor *>(cpu->exmonitor()) : nullptr;
-    if (arm_exclusive_memory && !validation_monitor) std::abort();
-    if (validation_monitor) validation_reservation = validation_monitor->snapshot(cpu->parent()->core_number());
-    cpu->parent()->save_context(validation_before);
-    validation_before.cpsr = (cpu->Cpsr & 0x0fffffdf) | (cpu->NFlag << 31)
-        | (cpu->ZFlag << 30) | (cpu->CFlag << 29) | (cpu->VFlag << 28) | (cpu->TFlag << 5);
-    validation_memory.clear(); reference_writes.clear();
-}
-
-static void validation_access(ARMul_State *cpu, std::uint32_t addr, unsigned size) {
-    if (!validating) return;
-    for (unsigned i = 0; i < size; ++i)
-        if (!validation_memory.count(addr + i)) validation_memory[addr+i] = cpu->ReadMemory8(addr+i);
-}
-
-template<typename T> static bool reference_read(std::uint32_t addr, T *value) {
-    auto *bytes = reinterpret_cast<std::uint8_t *>(value);
-    for (unsigned i = 0; i < sizeof(T); ++i) {
-        const auto a = addr + i;
-        auto w = reference_writes.find(a);
-        auto v = validation_memory.find(a);
-        bytes[i] = w != reference_writes.end() ? w->second
-            : v != validation_memory.end() ? v->second : validation_guest->ReadMemory8(a);
-    }
-    return true;
-}
-template<typename T> static bool reference_write(std::uint32_t addr, T *value) {
-    const auto *bytes = reinterpret_cast<std::uint8_t *>(value);
-    for (unsigned i = 0; i < sizeof(T); ++i) reference_writes[addr+i] = bytes[i];
-    return true;
-}
-
-void validation_end(ARMul_State *cpu, std::uint32_t count) {
-    if (!validating || !count) { validating = false; return; }
-    static r12l1::exclusive_monitor monitor(1);
-    static dyncom_core reference(&monitor, 12);
-    reference.read_code = [cpu](address addr, std::uint32_t *v) { return cpu->parent()->read_code(addr, v); };
-    reference.read_8bit = reference_read<std::uint8_t>; reference.write_8bit = reference_write<std::uint8_t>;
-    reference.read_16bit = reference_read<std::uint16_t>; reference.write_16bit = reference_write<std::uint16_t>;
-    reference.read_32bit = reference_read<std::uint32_t>; reference.write_32bit = reference_write<std::uint32_t>;
-    reference.read_64bit = reference_read<std::uint64_t>; reference.write_64bit = reference_write<std::uint64_t>;
-    if (validation_monitor) {
-        monitor.restore(0, validation_reservation);
-        monitor.read_32bit = [](core *, address a, std::uint32_t *value) { return reference_read(a, value); };
-        monitor.write_32bit = [](core *, address a, std::uint32_t value, std::uint32_t expected) -> std::int32_t {
-            std::uint32_t current = 0;
-            if (!reference_read(a, &current) || current != expected) return 0;
-            return reference_write(a, &value) ? 1 : 0;
-        };
-    }
-    unsigned reference_svc_count = 0, reference_svc_number = 0;
-    auto pre_svc_reservation = monitor.snapshot(0);
-    reference.system_call_handler = [&](unsigned number) {
-        ++reference_svc_count; reference_svc_number = number;
-        pre_svc_reservation = monitor.snapshot(0);
-    };
-    reference.load_context(validation_before);
-    validation_running = true;
-    reference.run(count);
-    validation_running = false;
-    const auto pending = compiled_svc_enabled && (cpu->aot_exit & svc_pending);
-    const auto expected_calls = pending && (cpu->aot_exit & svc_taken) ? 1u : 0u;
-    bool same = reference_svc_count == expected_calls
-        && (!expected_calls || reference_svc_number == (cpu->aot_exit & 0x00ffffffu));
-    if (!same) fprintf(stderr,"AOT VERIFY SVC request pc=%08X\n",validation_before.cpu_registers[15]);
-    const auto expected_reservation = expected_calls ? pre_svc_reservation : monitor.snapshot(0);
-    if (validation_monitor && !(expected_reservation == validation_monitor->snapshot(cpu->parent()->core_number()))) {
-        fprintf(stderr, "AOT VERIFY exclusive reservation pc=%08X\n", validation_before.cpu_registers[15]);
-        same = false;
-    }
-    for (unsigned r = 0; r < 16; ++r) {
-        auto actual = cpu->Reg[r];
-        if (r == 15) actual &= cpu->TFlag ? ~1u : ~3u;
-        if (actual != reference.get_reg(r)) {
-            fprintf(stderr, "AOT VERIFY pc=%08X count=%u R%u compiled=%08X reference=%08X\n",
-                validation_before.cpu_registers[15],count,r,actual,reference.get_reg(r));
-            same = false;
-        }
-    }
-    const auto flags = (cpu->NFlag<<31)|(cpu->ZFlag<<30)|(cpu->CFlag<<29)|(cpu->VFlag<<28)|(cpu->TFlag<<5);
-    if ((reference.get_cpsr() & 0xF0000020) != flags) {
-        fprintf(stderr,"AOT VERIFY flags pc=%08X count=%u compiled=%08X reference=%08X\n",
-            validation_before.cpu_registers[15],count,flags,reference.get_cpsr()); same=false;
-    }
-    for (const auto &[addr, value] : validation_memory) {
-        auto it = reference_writes.find(addr);
-        const auto expected = it == reference_writes.end() ? value : it->second;
-        if (cpu->ReadMemory8(addr) != expected) { fprintf(stderr,"AOT VERIFY memory %08X\n",addr);same=false;break; }
-    }
-    for (const auto &[addr, value] : reference_writes)
-        if (cpu->ReadMemory8(addr) != value) { fprintf(stderr,"AOT VERIFY reference write %08X\n",addr);same=false;break; }
-    if (!same) {
-        fprintf(stderr,"AOT VERIFY entry mode=%u code:", (validation_before.cpsr>>5)&1);
-        for (unsigned i=0;i<32;i+=4) fprintf(stderr," %08X",cpu->ReadCode(validation_before.cpu_registers[15]+i));
-        fprintf(stderr,"\n");
-        for(unsigned i=0;i<16;++i) fprintf(stderr," r%u=%08X",i,validation_before.cpu_registers[i]);
-        fprintf(stderr,"\n");
-        std::abort();
-    }
-    validating = false;
-}
 
 // Extend export-based compilation using deterministic dispatch samples. Only
 // immutable ROM addresses are eligible; RAM code needs explicit invalidation.
@@ -294,8 +160,7 @@ __attribute__((always_inline))
 #endif
 static aot_func lookup_compiled_impl(ARMul_State *cpu, const registry &functions) {
     if constexpr(Profile) if(exit_census::enabled)census_entry=nullptr;
-    // TrustBytes is selected only after the frozen verifier stride is zero.
-    if constexpr(!TrustBytes) if (validation_running) return nullptr;
+    // TrustBytes follows the frozen code-cache policy.
     const auto pc = cpu->Reg[15], pc_mode = pc | cpu->TFlag;
     // Existing ROM functions use immutable bytes and need no mapping lookup.
     if (!ram_compilation_enabled || (pc >= hot_rom_base && pc - hot_rom_base < hot_rom_size)) {
@@ -343,149 +208,38 @@ static aot_func lookup_compiled_impl(ARMul_State *cpu, const registry &functions
 aot_func lookup_compiled(ARMul_State *cpu) {
     if (common::guest_profile::enabled && common::performance::enabled && common::performance::detailed)
         return lookup_compiled_impl<true>(cpu, global_registry());
-    if (!verification_stride() && hotpath_policy == 2 && common::code_tracking::skip_code_scans())
+    if (hotpath_policy == 2 && common::code_tracking::skip_code_scans())
         return lookup_compiled_impl<false, true>(cpu, global_registry());
     return lookup_compiled_impl<false>(cpu, global_registry());
 }
 
-template<bool Verify, bool Profile, bool TrustBytes = false, bool Direct = false, bool Watchdog = false>
+template<bool TrustBytes, bool Direct>
 static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
-    if constexpr(Direct) {
-        if(cpu->parent()->experimental_memory) cpu->aot_tlb=cpu->parent()->experimental_pointer;
+    if constexpr (Direct) {
+        if (cpu->parent()->experimental_memory) cpu->aot_tlb = cpu->parent()->experimental_pointer;
+    } else {
+        auto *tlb = static_cast<dyncom_core *>(cpu->parent())->mem_cache();
+        cpu->aot_tlb = tlb->page_bits == 12
+            ? static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(tlb->entries)) : 0;
     }
-    const auto budget = cpu->aot_budget;
     const auto &functions = global_registry();
-    // Keep counters private to this invocation until returning the result.
-    std::uint32_t instructions = 0, blocks = 0;
-    // The owning core and its embedded TLB storage outlive this chain. Entries
-    // still change on remaps; only the address of their fixed array is reused.
-    auto *tlb = static_cast<dyncom_core *>(cpu->parent())->mem_cache();
-    const auto tlb_address = tlb->page_bits == 12
-        ? static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(tlb->entries)) : 0;
-
-    while (function && (Watchdog || (instructions < budget && blocks < runner_region_limit))) {
-        if constexpr (!Watchdog) cpu->aot_budget = budget - instructions;
-        if constexpr (Profile) count_ram_dispatch(cpu);
-        if constexpr (Verify) validation_begin(cpu);
-        if constexpr(!Direct) cpu->aot_tlb = Verify && validating ? 0 : tlb_address;
+    std::uint32_t progress = 0;
+    while (function) {
         cpu->aot_exit = 0;
-        const auto entry_pc = cpu->Reg[15] | cpu->TFlag;
-        if constexpr(Profile) if(exit_census::enabled) {
-            exit_census::last_reason=0;exit_census::effects=0;exit_census::last_constraint=0;
-            exit_census::last_pc=0;exit_census::last_opcode=0;
-            exit_census::last_restriction=0;exit_census::last_rejected_pc=0;exit_census::last_rejected_opcode=0;
-            exit_census::guard_hits=0;exit_census::last_guard_host=0;exit_census::last_guard_size=0;
-            exit_census::entry_proof_failed=0;exit_census::entry_overlap_count=0;exit_census::entry_other_failure=0;
-            exit_census::entry_proof_attempted=0;exit_census::entry_read_spans=0;exit_census::entry_write_spans=0;
-        }
-        // Deque-backed entries remain stable across inserts/invalidation. Keep
-        // this invocation's entry even if a synchronous helper performs lookup.
-        const auto *guard_entry = Profile && exit_census::enabled ? census_entry : nullptr;
-        if constexpr(Profile) if(exit_census::counting() && guard_entry) {
-            ++exit_census::validated_entries;
-            exit_census::validated_primary_bytes += guard_entry->code.size();
-            exit_census::validated_dependency_spans += guard_entry->dependencies.size();
-            for(const auto &dependency:guard_entry->dependencies)
-                exit_census::validated_dependency_bytes += dependency.code.size();
-            exit_census::protected_interval_bytes += guard_entry->guard_end-guard_entry->guard_begin;
-        }
-
-        const auto returned_count = function(cpu);
-        auto count = returned_count;
-        if constexpr (Verify || Profile) {
-            if (!count && (cpu->aot_exit & svc_pending)) count = cpu->aot_svc_instructions;
-        }
-        if constexpr(Profile) if(exit_census::counting()) {
-            exit_census::entry_proof_attempts+=exit_census::entry_proof_attempted;
-            exit_census::entry_read_span_checks+=exit_census::entry_read_spans;
-            exit_census::entry_write_span_checks+=exit_census::entry_write_spans;
-            exit_census::entry_proof_fallbacks += bool(exit_census::entry_proof_failed);
-            unsigned gaps=0,snapshots=0;
-            for(unsigned n=0;n<std::min(32u,exit_census::entry_overlap_count);++n) {
-                const auto &span=exit_census::entry_overlaps[n];
-                const char *outcome=!guard_entry?"unavailable_entry":
-                    validated_code_cache::diagnostic_code_overlap(*guard_entry,span.host,span.bytes)?"snapshot_overlap":"interval_gap_only";
-                ++exit_census::entry_proof_outcomes[outcome];
-                if(guard_entry) {if(std::string(outcome)=="interval_gap_only")++gaps;else ++snapshots;}
-            }
-            if(exit_census::entry_overlap_count>32)exit_census::entry_overlap_dropped+=exit_census::entry_overlap_count-32;
-            if(exit_census::entry_proof_failed) {
-                const char *cause=exit_census::entry_overlap_count>32 || (!guard_entry && exit_census::entry_overlap_count)?"unclassified_overlap":
-                    gaps && !snapshots && !exit_census::entry_other_failure?"interval_gaps_only":
-                    gaps?"gap_with_other_failure":snapshots?"snapshot_overlap":"other_guard";
-                ++exit_census::entry_fallback_causes[cause];
-            }
-        }
-        if constexpr(Profile) if(exit_census::counting() && (exit_census::effects&2)) {
-            const char *outcome=!exit_census::guard_hits?"uncaptured_guard":!guard_entry?"unavailable_entry":exit_census::guard_hits!=1?"multiple_guards":
-                validated_code_cache::diagnostic_code_overlap(*guard_entry,exit_census::last_guard_host,exit_census::last_guard_size)
-                    ?"snapshot_overlap":"interval_gap_only";
-            ++exit_census::code_guard_outcomes[outcome];
-        }
-        if constexpr(Profile) exit_census::record(entry_pc,cpu->Reg[15]|cpu->TFlag,
-            cpu->parent()->code_address_space,count,cpu->aot_budget,cpu->aot_exit);
-        if (Profile && common::guest_profile::enabled && common::performance::counting()) {
-            auto &profile = common::guest_profile::state;
-            ++profile.block_lengths[count];
-            if (++profile.compiled_blocks % profile.stride == 0) {
-                core::code_mapping view;
-                if (cpu->parent()->resolve_code) cpu->parent()->resolve_code(entry_pc & ~1u,view);
-                const auto width = (entry_pc & 1) ? 2u : 4u;
-                std::uint32_t last = 0;
-                if (!region_enabled && count && cpu->parent()->resolve_code && cpu->parent()->resolve_code((entry_pc & ~1u)+(count-1)*width,view)
-                    && view.size >= width) std::memcpy(&last,view.bytes,width);
-                profile.edge(entry_pc,cpu->Reg[15] | cpu->TFlag,view.address_space,count,last);
-            }
-        }
-        if constexpr (Verify) validation_end(cpu, count);
-        if (!Watchdog && count > cpu->aot_budget) std::abort(); // generated-code contract
-        if (Profile && (common::guest_profile::enabled && common::performance::counting()) && !count) common::guest_profile::state.event("compiled_zero",cpu->Reg[15] | cpu->TFlag);
-        if constexpr (Watchdog) instructions = count; // Progress status, never a guest count.
-        else { ++blocks; instructions += count; }
-        // Zero already stops an ordinary unsuccessful dispatch. Decode traps
-        // only on that exit, keeping pending-trap loads out of successful regions.
-        if (!returned_count) {
-            if constexpr (!Verify && !Profile && !Watchdog) {
-                if (cpu->aot_exit & svc_pending) {
-                    if (cpu->aot_svc_instructions > cpu->aot_budget) std::abort();
-                    instructions += cpu->aot_svc_instructions;
-                }
-            }
-            break;
-        }
-        if (!cpu->NumInstrsToExecute || (!Watchdog && instructions == budget)
-            || (!cpu->NirqSig && !(cpu->Cpsr & 0x80))) break;
-        // Each emitted body has completed. The indirect successor chain can
-        // cycle and has no static termination proof, so it is a safepoint.
-        if constexpr (Watchdog) if (watchdog::requested()) break;
+        progress = function(cpu);
+        if (!progress || !cpu->NumInstrsToExecute
+            || (!cpu->NirqSig && !(cpu->Cpsr & 0x80)) || watchdog::requested()) break;
+        // Each body has completed; indirect successors may cycle.
         cpu->Reg[15] &= cpu->TFlag ? ~1u : ~3u;
-        // This stays inside the compiled runner. Every RAM successor retains
-        // mapping/lifetime validation. Byte-mutation detection is policy-dependent;
-        // trusted-byte modes intentionally permit stale code after guest writes.
-        function = lookup_compiled_impl<Profile, TrustBytes>(cpu, functions);
+        function = lookup_compiled_impl<false, TrustBytes>(cpu, functions);
     }
-    if constexpr(Profile) if(exit_census::counting()) {
-        const char *why = !cpu->NumInstrsToExecute ? "stop" : instructions==budget ? "budget"
-            : (!cpu->NirqSig && !(cpu->Cpsr&0x80)) ? "interrupt"
-            : !function ? "successor_unavailable" : (blocks==runner_region_limit) ? "region_cap" : "zero_progress";
-        ++exit_census::runners[why];
-    }
-    return {instructions, blocks};
+    return {progress};
 }
 
 template<bool Direct> static compiled_run execute_chain_selected(ARMul_State *cpu, aot_func function) {
-    if (watchdog::enabled) {
-        if (hotpath_policy == 2 && common::code_tracking::skip_code_scans())
-            return execute_chain_impl<false, false, true, Direct, true>(cpu, function);
-        return execute_chain_impl<false, false, false, Direct, true>(cpu, function);
-    }
-    // Select verification, diagnostics and the trusted cache once per chain.
-    if (verification_stride()) return execute_chain_impl<true, common::diagnostics::available, false, Direct>(cpu, function);
-    if (common::performance::enabled && common::performance::detailed)
-        return execute_chain_impl<false, true, false, Direct>(cpu, function);
     if (hotpath_policy == 2 && common::code_tracking::skip_code_scans())
-        return execute_chain_impl<false, false, true, Direct>(cpu, function);
-    return execute_chain_impl<false, false, false, Direct>(cpu, function);
+        return execute_chain_impl<true, Direct>(cpu, function);
+    return execute_chain_impl<false, Direct>(cpu, function);
 }
 
 compiled_run execute_chain(ARMul_State *cpu, aot_func function) {
@@ -494,14 +248,7 @@ compiled_run execute_chain(ARMul_State *cpu, aot_func function) {
 
 std::uint32_t execute_single(ARMul_State *cpu, aot_func function) {
     cpu->aot_exit = 0;
-    count_ram_dispatch(cpu);
-
-    const bool verify = verification_stride() != 0;
-    if (verify) validation_begin(cpu);
-    auto count = function(cpu);
-    if (!count && (cpu->aot_exit & svc_pending)) count = cpu->aot_svc_instructions;
-    if (verify) validation_end(cpu, count);
-    return count;
+    return function(cpu);
 }
 
 #ifdef __EMSCRIPTEN__
@@ -622,7 +369,7 @@ static void compile_at(core &cpu, std::uint32_t key, std::vector<std::uint32_t> 
 
 void prepare_compiled_code(core &cpu) {
 #ifdef __EMSCRIPTEN__
-    if (!hot_compilation_enabled || validation_running || !precompile_pending.load(std::memory_order_acquire)) return;
+    if (!hot_compilation_enabled || !precompile_pending.load(std::memory_order_acquire)) return;
     std::vector<precompile_image> images;
     {
         const std::lock_guard<std::mutex> lock(precompile_mutex);
@@ -657,7 +404,7 @@ void prepare_compiled_code(core &cpu) {
 
 void observe_hot_pc(ARMul_State *cpu) {
 #ifdef __EMSCRIPTEN__
-    if (!hot_compilation_enabled || validation_running) return;
+    if (!hot_compilation_enabled) return;
     ++hot_dispatches;
     if (hot_dispatches & 31) return;
     if ((hot_dispatches & 8191) == 0) flush_hot_blocks();
@@ -692,49 +439,42 @@ extern "C" {
     EMSCRIPTEN_KEEPALIVE
     std::uint32_t aot_tlb_read32(ARMul_State *state, std::uint32_t arm_addr) {
         publish_callback_cpsr(state);
-        validation_access(state, arm_addr, 4);
         return state->ReadMemory32(arm_addr);
     }
 
     EMSCRIPTEN_KEEPALIVE
     void aot_tlb_write32(ARMul_State *state, std::uint32_t arm_addr, std::uint32_t value) {
         publish_callback_cpsr(state);
-        validation_access(state, arm_addr, 4);
         state->WriteMemory32(arm_addr, value);
     }
 
     EMSCRIPTEN_KEEPALIVE
     std::uint32_t aot_tlb_read8(ARMul_State *state, std::uint32_t arm_addr) {
         publish_callback_cpsr(state);
-        validation_access(state, arm_addr, 1);
         return state->ReadMemory8(arm_addr);
     }
 
     EMSCRIPTEN_KEEPALIVE
     std::uint32_t aot_tlb_read16(ARMul_State *state, std::uint32_t arm_addr) {
         publish_callback_cpsr(state);
-        validation_access(state, arm_addr, 2);
         return state->ReadMemory16(arm_addr);
     }
 
     EMSCRIPTEN_KEEPALIVE
     void aot_tlb_write16(ARMul_State *state, std::uint32_t arm_addr, std::uint32_t value) {
         publish_callback_cpsr(state);
-        validation_access(state, arm_addr, 2);
         state->WriteMemory16(arm_addr, value);
     }
 
     EMSCRIPTEN_KEEPALIVE
     void aot_tlb_write8(ARMul_State *state, std::uint32_t arm_addr, std::uint32_t value) {
         publish_callback_cpsr(state);
-        validation_access(state, arm_addr, 1);
         state->WriteMemory8(arm_addr, value);
     }
 }
 
 // WASM imports use full i32 parameters; narrow inside C++, never in the caller ABI.
-// Uninstrumented internal imports. The checked variants above are selected only
-// for verifier runs; ordinary memory accesses contain no validation hook.
+// Internal imports preserve the direct-memory callback boundary where needed.
 template<bool Experimental=false> static std::uint32_t raw_read32(ARMul_State *s, std::uint32_t a) { memory_callback_scope<Experimental> memory(s); publish_callback_cpsr(s); return s->ReadMemory32(a); }
 template<bool Experimental=false> static std::uint32_t raw_read16(ARMul_State *s, std::uint32_t a) { memory_callback_scope<Experimental> memory(s); publish_callback_cpsr(s); return s->ReadMemory16(a); }
 template<bool Experimental=false> static std::uint32_t raw_read8(ARMul_State *s, std::uint32_t a) { memory_callback_scope<Experimental> memory(s); publish_callback_cpsr(s); return s->ReadMemory8(a); }
@@ -759,7 +499,6 @@ template<bool Experimental=false> static void raw_arm_exclusive(ARMul_State *s, 
     // split flags, but must retain that existing packed-CPSR visibility.
     const auto address = s->Reg[(instruction >> 16) & 15];
     const auto destination = (instruction >> 12) & 15;
-    if (validating) validation_access(s, address, 4);
     if (instruction & (1u << 20))
         s->Reg[destination] = s->exmonitor()->exclusive_read32(s->parent(), address);
     else {
@@ -839,15 +578,14 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
     if (wasm_bytes.empty()) return 0;
     compilation_timer timer{compilation.installation_us};
 
-    const bool verify = verification_stride() != 0;
     const bool experimental = memory_experiment::mode != 0;
     const std::uintptr_t helpers[] = {
-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read32 : common::guest_profile::enabled ? (experimental ? prof_read32<true> : prof_read32<false>) : experimental ? raw_read32<true> : raw_read32<false>),
-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write32 : common::guest_profile::enabled ? (experimental ? prof_write32<true> : prof_write32<false>) : experimental ? raw_write32<true> : raw_write32<false>),
-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read8 : common::guest_profile::enabled ? (experimental ? prof_read8<true> : prof_read8<false>) : experimental ? raw_read8<true> : raw_read8<false>),
-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write8 : common::guest_profile::enabled ? (experimental ? prof_write8<true> : prof_write8<false>) : experimental ? raw_write8<true> : raw_write8<false>),
-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read16 : common::guest_profile::enabled ? (experimental ? prof_read16<true> : prof_read16<false>) : experimental ? raw_read16<true> : raw_read16<false>),
-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write16 : common::guest_profile::enabled ? (experimental ? prof_write16<true> : prof_write16<false>) : experimental ? raw_write16<true> : raw_write16<false>),
+        reinterpret_cast<std::uintptr_t>(common::guest_profile::enabled ? (experimental ? prof_read32<true> : prof_read32<false>) : experimental ? raw_read32<true> : raw_read32<false>),
+        reinterpret_cast<std::uintptr_t>(common::guest_profile::enabled ? (experimental ? prof_write32<true> : prof_write32<false>) : experimental ? raw_write32<true> : raw_write32<false>),
+        reinterpret_cast<std::uintptr_t>(common::guest_profile::enabled ? (experimental ? prof_read8<true> : prof_read8<false>) : experimental ? raw_read8<true> : raw_read8<false>),
+        reinterpret_cast<std::uintptr_t>(common::guest_profile::enabled ? (experimental ? prof_write8<true> : prof_write8<false>) : experimental ? raw_write8<true> : raw_write8<false>),
+        reinterpret_cast<std::uintptr_t>(common::guest_profile::enabled ? (experimental ? prof_read16<true> : prof_read16<false>) : experimental ? raw_read16<true> : raw_read16<false>),
+        reinterpret_cast<std::uintptr_t>(common::guest_profile::enabled ? (experimental ? prof_write16<true> : prof_write16<false>) : experimental ? raw_write16<true> : raw_write16<false>),
         reinterpret_cast<std::uintptr_t>(experimental ? raw_arm_exclusive<true> : raw_arm_exclusive<false>)
     };
     char *result_str = js_instantiate_aot_module(wasm_bytes.data(),

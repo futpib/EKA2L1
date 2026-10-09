@@ -79,7 +79,7 @@ API void reset(unsigned seed,unsigned budget) {
  for(unsigned i=0;i<16;++i)state->Reg[i]=0x13000+i*64;
  state->Reg[0]=0x12000;state->Reg[1]=0x10000;state->Reg[2]=0x11000;state->Reg[4]=0x13000;state->Reg[5]=0x14000;state->Reg[13]=0x18000;state->Reg[14]=0x1a000;state->Reg[15]=selected;
  state->Cpsr=state->Mode=16;state->NFlag=state->ZFlag=state->CFlag=state->VFlag=state->TFlag=0;
- state->aot_budget=budget;state->aot_exit=0;state->NirqSig=1;
+ matched::reference_budget=budget;state->aot_exit=0;state->NirqSig=1;
  set_guard(reinterpret_cast<std::uintptr_t>(memory.data()+0x1f000),reinterpret_cast<std::uintptr_t>(memory.data()+0x1f100));
  cpu->flush_tlb();for(unsigned a=0x10000;a<=0x19000;a+=4096)cpu->set_tlb_page(a,memory.data()+a,prot_read_write);
 #ifdef __EMSCRIPTEN__

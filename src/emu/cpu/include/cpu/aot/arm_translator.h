@@ -33,7 +33,7 @@ namespace eka2l1::arm::aot {
             && (!store || (op & 15) != 15);
     }
     // Selected before translation. Numeric IDs remain stable for saved runs.
-    enum class arm_ir_policy { configured = -1, disabled = 0, invariant_reads = 4, invariant_writes = 5, budget_chunks = 6, write_budget_chunks = 7, loop_budget_chunks = 17 };
+    enum class arm_ir_policy { configured = -1, disabled = 0, invariant_reads = 4, invariant_writes = 5, read_spans = 6, write_spans = 7, full_spans = 17 };
 
     inline bool parse_arm_ir_policy(const char *text, arm_ir_policy &out) {
         if (!text) return false;
@@ -41,7 +41,7 @@ namespace eka2l1::arm::aot {
             out = static_cast<arm_ir_policy>(text[0] - '0'); return true;
         }
         if (text[0] == '1' && text[1] == '7' && !text[2]) {
-            out = arm_ir_policy::loop_budget_chunks; return true;
+            out = arm_ir_policy::full_spans; return true;
         }
         return false;
     }

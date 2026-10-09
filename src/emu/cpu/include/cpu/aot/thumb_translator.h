@@ -31,7 +31,6 @@ namespace eka2l1::arm::aot {
     // Pre-initialization experiment, shared by eager ROM and hot translations.
     inline bool thumb_direct_memory = false;
     inline bool thumb_region_fusion = true;
-    inline bool thumb_entry_budget = true;
     // ARMul_State field offsets (must match the actual struct layout)
     struct state_offsets {
         static constexpr std::uint32_t REG = 0;          // Reg[0]
@@ -43,14 +42,12 @@ namespace eka2l1::arm::aot {
         static constexpr std::uint32_t VFLAG = 816;
         static constexpr std::uint32_t TFLAG = 828;
         static constexpr std::uint32_t NUM_INSTRS_TO_EXECUTE = 840; // uint64_t
-        static constexpr std::uint32_t AOT_BUDGET = 848;
 
-        static constexpr std::uint32_t AOT_TLB = 852;
-        static constexpr std::uint32_t AOT_CODE_BEGIN = 856;
-        static constexpr std::uint32_t AOT_CODE_END = 860;
-        static constexpr std::uint32_t AOT_EXIT = 864;
-        static constexpr std::uint32_t NIRQ = 876;
-        static constexpr std::uint32_t AOT_SVC_INSTRUCTIONS = 896;
+        static constexpr std::uint32_t AOT_TLB = 848;
+        static constexpr std::uint32_t AOT_CODE_BEGIN = 852;
+        static constexpr std::uint32_t AOT_CODE_END = 856;
+        static constexpr std::uint32_t AOT_EXIT = 860;
+        static constexpr std::uint32_t NIRQ = 872;
 
         // VFP system registers (FPSID, FPSCR, FPEXC, ...)
         static constexpr std::uint32_t VFP_SYS = 496;
@@ -85,7 +82,7 @@ namespace eka2l1::arm::aot {
         wasm_func_def func;
         bool entry_supported = true;
         // Research coverage metadata; never used to select guest addresses.
-        unsigned proved_reads = 0, proved_writes = 0, budget_chunks = 0, loop_budget_chunks = 0, entry_budget_instructions = 0;
+        unsigned proved_reads = 0, proved_writes = 0;
         unsigned watchdog_safepoints = 0, proved_terminating_loops = 0;
         unsigned summarized_helpers = 0;
         unsigned fused_edges = 0;

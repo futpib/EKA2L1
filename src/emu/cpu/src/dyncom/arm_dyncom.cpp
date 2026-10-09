@@ -45,9 +45,11 @@ namespace eka2l1::arm {
         aot::prepare_compiled_code(*this);
         publish_memory_view();
         ticks_executed_ = 0;
-        if (aot::watchdog::enabled) {
-            state_->NumInstrsToExecute = UINT32_MAX;
-        } else state_->NumInstrsToExecute = instruction_count;
+#ifdef __EMSCRIPTEN__
+        state_->NumInstrsToExecute = UINT32_MAX;
+#else
+        state_->NumInstrsToExecute = instruction_count;
+#endif
 
         InterpreterMainLoop(state_.get(), ticks_executed_);
     }

@@ -8,12 +8,10 @@ import puppeteer from 'puppeteer';
 import {PNG} from 'pngjs';
 import {startServer, buildDir, compilerDefaults, rejectRetiredCompilerOptions} from './server.ts';
 
-const [assetArg, outputArg, frameArg = '1000', inputArg = '../benchmark/snakes.input', startArg = '21000000'] = process.argv.slice(2);
+const [assetArg, outputArg, frameArg = '1000', inputArg = '../benchmark/watchdog-snakes-countfree.input', startArg = '42000000'] = process.argv.slice(2);
 if (!assetArg || !outputArg) throw new Error('Usage: node benchmark.ts ASSETS NEW_OUTPUT [FRAMES] [INPUT] [START_US]');
 const sparseRom = Number(process.env.EKA2L1_SPARSE_ROM_LOOKUP ?? compilerDefaults.sparseRom);
 if (![0,1].includes(sparseRom)) throw Error('sparseRom must be 0 or 1');
-const entryBudget = Number(process.env.EKA2L1_ENTRY_BUDGET ?? compilerDefaults.entryBudget);
-if (![0,2].includes(entryBudget)) throw Error('Entry budget must be 0 or 2');
 const compiledSvc = Number(process.env.EKA2L1_COMPILED_SVC ?? compilerDefaults.compiledSvc);
 if (![0,1].includes(compiledSvc)) throw Error('Compiled syscall policy must be 0 or 1');
 const thumbMemory = Number(process.env.EKA2L1_THUMB_MEMORY ?? compilerDefaults.thumbMemory);
@@ -114,7 +112,7 @@ try {
       throw Error('Start-frame configuration failed');
   }, Array.from(startFrame.data));
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
-  await page.evaluate(async ({entryBudget, sparseRom, compiledSvc, hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio}) => {
+  await page.evaluate(async ({ sparseRom, compiledSvc, hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
@@ -173,9 +171,6 @@ try {
     call('eka2l1_sparse_rom_lookup_configure', ['number'], [sparseRom]);
     g.sparseRomActual = g.Module._eka2l1_sparse_rom_lookup_report();
     if (g.sparseRomActual !== sparseRom) throw Error('sparseRom readback mismatch');
-    call('eka2l1_entry_budget_configure', ['number'], [entryBudget]);
-    g.entryBudgetActual = g.Module._eka2l1_entry_budget_report();
-    if (g.entryBudgetActual !== entryBudget) throw Error('Entry budget readback mismatch');
     call('eka2l1_compiled_svc_configure', ['number'], [compiledSvc]);
     g.compiledSvcActual = g.Module._eka2l1_compiled_svc_report();
     if (g.compiledSvcActual !== compiledSvc) throw Error('Compiled syscall readback mismatch');
@@ -201,7 +196,6 @@ try {
     if (thumbMemory !== -1 && g.Module._eka2l1_thumb_memory_configure(1 - thumbMemory) !== -1)
       throw Error('Thumb memory policy changed after initialization');
     if (g.Module._eka2l1_sparse_rom_lookup_configure(1-sparseRom) !== -1) throw Error('sparseRom changed after initialization');
-    if (g.Module._eka2l1_entry_budget_configure(2-entryBudget) !== -1) throw Error('Entry budget changed after initialization');
     if (g.Module._eka2l1_compiled_svc_configure(1-compiledSvc) !== -1) throw Error('Compiled syscall policy changed after initialization');
     if (armExclusive !== -1 && g.Module._eka2l1_arm_exclusive_configure(1-armExclusive) !== -1) throw Error('ARM exclusive changed after initialization');
     if(typeof g.Module._eka2l1_unsafe_code_report==='function') {
@@ -229,7 +223,7 @@ try {
     }
     // N80 also registers a different ROM-bundled game with the caption Snakes.
     call('eka2l1_run', ['string'], [appUid]);
-  }, {entryBudget, sparseRom, compiledSvc, hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio});
+  }, { sparseRom, compiledSvc, hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio});
   const start = performance.now();
   let lastCount = -1;
   let firstCanvas: Buffer | undefined;
@@ -281,7 +275,7 @@ try {
 
   await page.evaluate(() => (window as any).Module._eka2l1_shutdown());
   if (failures.length) throw new Error(failures.join('\n'));
-  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({start_frame_sha256: startFrame ? hash(startFrame.data) : null, watchdog_us: watchdogInterval(), watchdog_requests: await page.evaluate(() => (globalThis as any).ekaWatchdog ? Atomics.load((globalThis as any).ekaWatchdog.control, 1) : 0), entry_budget: await page.evaluate(() => (globalThis as any).entryBudgetActual), sparse_rom_lookup: await page.evaluate(() => (globalThis as any).sparseRomActual), compiled_svc: await page.evaluate(() => (globalThis as any).compiledSvcActual), hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, app_uid: appUid, frames, start_us: startUs, unique: true, wall_seconds: (performance.now()-start)/1000,
+  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({start_frame_sha256: startFrame ? hash(startFrame.data) : null, watchdog_us: watchdogInterval(), watchdog_requests: await page.evaluate(() => (globalThis as any).ekaWatchdog ? Atomics.load((globalThis as any).ekaWatchdog.control, 1) : 0), sparse_rom_lookup: await page.evaluate(() => (globalThis as any).sparseRomActual), compiled_svc: await page.evaluate(() => (globalThis as any).compiledSvcActual), hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, app_uid: appUid, frames, start_us: startUs, unique: true, wall_seconds: (performance.now()-start)/1000,
     assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash, gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
     shared_audio: sharedAudio, aot, aot_diagnostics: aotDiagnostics, memory_impl:memoryImpl, memory_impl_stats:await page.evaluate(() => {const m=(globalThis as any).Module;return m._eka2l1_memory_impl_stats?JSON.parse(m.ccall('eka2l1_memory_impl_stats','string',[],[])):null;}), ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), exit_census:exitCensus, code_compare: codeCompare, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));
   console.log('PASS: captured benchmark');

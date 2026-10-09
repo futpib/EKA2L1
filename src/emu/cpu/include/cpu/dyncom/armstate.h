@@ -352,7 +352,6 @@ public:
 
     unsigned long long NumInstrs; // The number of instructions executed
     std::uint64_t NumInstrsToExecute;
-    std::uint32_t aot_budget = 0; // Remaining guest instructions for a bounded compiled block.
 
     std::uint32_t aot_tlb = 0; // WASM-only direct-memory view, refreshed by the runner.
     std::uint32_t aot_code_begin = 0, aot_code_end = 0;
@@ -365,7 +364,6 @@ public:
     unsigned NtransSig;
     unsigned bigendSig;
     unsigned syscallSig;
-    std::uint32_t aot_svc_instructions = 0; // Logical count when a trap returns the chain-stop sentinel.
 
     // Data TLB shared with the owning dyncom_core (== core->mem_cache()), cached
     // here so the inline memory accessors above don't need the full dyncom_core

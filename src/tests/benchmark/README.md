@@ -1,4 +1,4 @@
-# Deterministic Snakes benchmark
+# Snakes capture and native deterministic benchmark
 
 The [experiment index](EXPERIMENT_INDEX.md) is the central catalogue of measured
 gains and losses, pending comparisons, evidence and current adoption decisions.
@@ -11,9 +11,16 @@ The [verified audio replay results](RESULTS.md) record the four-run comparison a
 
 The [four compiler-option experiments](COMPILER_OPTIONS_RESULTS.md) compare V8 tiering, connected regions, a validation-cost ceiling, and restricted Dynarmic-IR-to-WASM kernels.
 
-The benchmark is opt-in (`EKA2L1_BENCHMARK=1`). The default reference uses the DynCom interpreter on both targets. Browser runs can opt into repaired and extended compiled execution; see [AOT modes and reproduction](AOT.md) and [AOT validation and performance](AOT_RESULTS.md).
+The native deterministic benchmark is opt-in (`EKA2L1_BENCHMARK=1`). Browser
+execution now always uses a watchdog with no instruction accounting. Paced play
+samples host time; unpaced capture advances virtual slices at yields and skips
+idle time. Browser instruction totals remain zero, and instruction-clock replay
+identity with native captures no longer applies. For current playability checks,
+use [paced gameplay](../wasm/README.md). The [count-free adoption report](COUNT_FREE_DEFAULT_RESULTS.md)
+records the transition. Earlier [AOT results](AOT_RESULTS.md) describe the older
+counted implementation.
 
-- The guest clock advances from executed instructions (one synthetic cycle per instruction, 484 MHz at the default clock), with at most 4,840 instructions per dispatch. This is a reproducible clock model, not a hardware cycle-accuracy claim.
+- The native benchmark clock advances from executed instructions (one synthetic cycle per instruction, 484 MHz at the default clock), with at most 4,840 instructions per dispatch. This is a reproducible clock model, not a hardware cycle-accuracy claim.
 - When no guest thread is runnable, execution jumps to the next scheduled event. There is no real-time timer thread or host vsync pacing.
 - Guest UTC starts at 2024-01-01 00:00:00, timezone UTC. Guest `Math::Random` and host-generated kernel object names have fixed seeds.
 - Input comes from `snakes.input`: virtual microseconds, raw Symbian scan code, press/release. Host keyboard, mouse and controller input are excluded.
@@ -84,20 +91,19 @@ cmake --build build-wasm -j8
 node build-wasm/src/tests/aot/test_aot_wasm.js
 cd src/tests/wasm
 npm ci --ignore-scripts
-node benchmark.ts /absolute/path/to/assets /absolute/path/to/wasm-run-1 1000
-node benchmark.ts /absolute/path/to/assets /absolute/path/to/wasm-run-2 1000
-cd ../../..
-python3 src/tests/benchmark/compare.py \
-  /absolute/path/to/wasm-run-1 /absolute/path/to/wasm-run-2
-python3 src/tests/benchmark/compare.py \
-  /absolute/path/to/new-results/run-0/frames /absolute/path/to/wasm-run-1
+EKA2L1_BENCHMARK_AOT=5 node benchmark.ts /absolute/path/to/assets /absolute/path/to/wasm-run-1 1000
 ```
+
+The browser harness defaults to `watchdog-snakes-countfree.input` and starts
+capture at 42 guest seconds. Native replay retains `snakes.input` and 21 seconds.
+The profile harness defaults to the same browser route, sampling 42–46 seconds.
+Inspect captured scenes when changing clock, input or game settings.
 
 Set `CHROMIUM_PATH` if Chromium is not at `/usr/bin/chromium`. The local server supplies the isolation headers required by WASM pthreads. Each browser run gets a fresh memory filesystem. The same replay file and asset hashes are used on both targets. Browser polling only observes completion; it does not deliver input or pace guest execution.
 
-`compare.py` requires non-silent gameplay PCM with buffer callbacks and compares the entire audio sample stream and timestamped audio events exactly, as well as every RGBA pixel, frame number, presentation ordinal, size, virtual timestamp and instruction count. It exits nonzero and prints the first differing record on divergence. There is no pixel tolerance or frame realignment. Startup screens are warmup and do not count toward the default 1,000-image window. The replay enters Level 1 automatically, then supplies direction changes. Native `--start-us` selects a different warmup boundary; `--all-presentations` retains duplicates for diagnostics. The optional last positional browser argument selects the warmup boundary. Always use the same settings when comparing targets.
+For native deterministic repeats and historical counted captures, `compare.py` requires non-silent gameplay PCM with buffer callbacks and compares the entire audio sample stream and timestamped audio events exactly, as well as every RGBA pixel, frame number, presentation ordinal, size, virtual timestamp and instruction count. It exits nonzero and prints the first differing record on divergence. There is no pixel tolerance or frame realignment. Startup screens are warmup and do not count toward the default 1,000-image window. The replay enters Level 1 automatically, then supplies direction changes. Native `--start-us` selects a different warmup boundary; `--all-presentations` retains duplicates for diagnostics. The optional last positional browser argument selects the warmup boundary. Count-free browser runs use a different clock and should not be expected to pass this exact timestamp/instruction comparison.
 
-`metrics.json` measures wall time from the first contentful presentation after the warmup boundary through the last captured image, including rendering, readback and PNG/manifest writes. Use that common capture window for performance comparisons. `report.json` also records runner elapsed time, which includes different amounts of setup/export work on each target and is not directly comparable. Host time is diagnostic only; it never advances the guest clock. This is a correctness baseline using interpreters and software rendering, not an optimized native-versus-WASM speed comparison.
+`metrics.json` measures wall time from the first contentful presentation after the warmup boundary through the last captured image, including rendering, readback and PNG/manifest writes. Use that common capture window for performance comparisons. `report.json` also records runner elapsed time, which includes different amounts of setup/export work on each target and is not directly comparable. Host time is diagnostic only; it never advances the guest clock. The harness uses software rendering and capture overhead; its FPS is not a paced-play speed measurement.
 
 The benchmark is scoped to this fixed Snakes/device replay in fresh processes. It does not promise deterministic network, compressed audio, microphone input, arbitrary host services, save-state resumes, or hardware-accurate instruction timing.
 
@@ -115,12 +121,11 @@ Direct mode retains the [all-cuts implementation](DIRECT_MEMORY_CUTS_RESULTS.md)
 Its process-local arena shares C++'s backing in the primary WASM memory. The
 fallback page directory handles aliases and addresses outside that arena; it
 is part of direct mode, not a separate selectable implementation. Direct mode
-requires compiled regions, disabled AOT verification and the unsafe code-write
-policy. The driver below supplies these settings. The WASM runtime and normal
+requires compiled regions and the unsafe code-write policy. The driver below supplies these settings. The WASM runtime and normal
 launcher default to direct memory; native cores retain their TLB backend.
-Replay/profile harnesses also default to direct with AOT mode 5, verification
-disabled and unsafe code mode 3. Interpreter, verifier and mutation-compatible
-runs select TLB unless explicitly overridden. Set `EKA2L1_MEMORY_IMPL=0` to
+Replay/profile harnesses also default to direct with AOT mode 5 and unsafe code
+mode 3. Interpreter and mutation-compatible runs select TLB unless explicitly
+overridden. Instruction-count verification has been removed. Set `EKA2L1_MEMORY_IMPL=0` to
 select TLB in the launcher or harnesses.
 
 [Default-selection validation](DIRECT_MEMORY_DEFAULT_RESULTS.json) records

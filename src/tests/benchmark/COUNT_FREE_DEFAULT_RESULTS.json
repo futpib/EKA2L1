@@ -1,0 +1,228 @@
+{
+  "base_commit": "dfb7b6ffc6f7803ec63059f0085af05b132f795f",
+  "wasm_sha256": "3bfa41faa491188e73e708f951d7d7653b115bdfbfbf361e252ebc9896dfdef2",
+  "launcher": "https://claude-laptop.lan:8188/",
+  "build_directory": "/home/claude/.scratch/eka-count-free-only/build",
+  "games": [
+    {
+      "game": "snakes",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "sound": "muted",
+      "measurement": {
+        "hostSeconds": 15.071447879500003,
+        "guestSeconds": 15.072294,
+        "guestSpeed": 1.0000561406247603,
+        "presentations": 241,
+        "presentationsPerSecond": 15.99050084151538,
+        "instructions": 0,
+        "installedCompiledFunctions": 41,
+        "maxQueryMs": 2.2508880000023055,
+        "maxObservedFrameGapMs": 66.79499995708466,
+        "compilationUs": {
+          "aot_translation_us": 4965,
+          "aot_emission_us": 133,
+          "aot_installation_us": 1064
+        }
+      },
+      "passed": true,
+      "url": "https://claude-laptop.lan:8188/?game=snakes",
+      "launch": {
+        "policy": {
+          "requested": {
+            "compiledSvc": 1,
+            "sparseRom": 1,
+            "watchdogUs": 2000,
+            "hotpath": 2,
+            "thumbMemory": 1,
+            "irMode": 17,
+            "predicatedLeaves": 1,
+            "leafFeatures": 224,
+            "executionLimits": [
+              512,
+              32,
+              8,
+              0
+            ],
+            "unsafeCode": 3
+          },
+          "applied": true,
+          "observed": {
+            "sparseRom": 1,
+            "compiledSvc": 1,
+            "hotpath": 2,
+            "thumbMemory": 1,
+            "predicatedLeaves": 1,
+            "leafFeatures": 224,
+            "unsafeCode": 3,
+            "executionLimits": [
+              512,
+              32,
+              8,
+              0
+            ]
+          }
+        },
+        "assets": {
+          "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+          "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+          "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+          "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+          "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+          "/eka2l1.data": "/eka2l1.data?v=7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+          "/eka2l1.js": "/eka2l1.js?v=db48656bc219925458a021261882d4d190035babfadacba1230e6fbe3eaab56b",
+          "/eka2l1.wasm": "/eka2l1.wasm?v=3bfa41faa491188e73e708f951d7d7653b115bdfbfbf361e252ebc9896dfdef2",
+          "/touch-controls.css": "/touch-controls.css?v=b94844897aeef4298aa36f13cd85cbe32d3065e319ec418f12b6cf3df7d95823",
+          "/touch-controls.js": "/touch-controls.js?v=95ed7d7f131bb23a3f0c02faf44ef74e628cc8d85cb27599a37e2ffc53f6c648"
+        },
+        "secure": true,
+        "isolated": true,
+        "retiredExports": [],
+        "worker": true,
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+        "status": "Running: Snakes \u00b7 Arrows/WASD to move, Enter to select \u00b7 Use Enable sound for audio"
+      },
+      "evidence_directory": "/home/claude/.scratch/eka-count-free-only/snakes-lan-final",
+      "screenshots_reviewed": [
+        "gameplay-start.png",
+        "gameplay-end.png"
+      ],
+      "watchdog_requests_during_measurement": 7261,
+      "input_events_during_launch": 24
+    },
+    {
+      "game": "sky-force",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "sound": "muted",
+      "measurement": {
+        "hostSeconds": 15.1045535505,
+        "guestSeconds": 15.104535,
+        "guestSpeed": 0.9999987718604235,
+        "presentations": 483,
+        "presentationsPerSecond": 31.977111960651854,
+        "instructions": 0,
+        "installedCompiledFunctions": 12,
+        "maxQueryMs": 5.92421800000011,
+        "maxObservedFrameGapMs": 50.545000076293945,
+        "compilationUs": {
+          "aot_translation_us": 5194,
+          "aot_emission_us": 50,
+          "aot_installation_us": 509
+        }
+      },
+      "passed": true,
+      "url": "https://claude-laptop.lan:8188/?game=sky-force",
+      "launch": {
+        "policy": {
+          "requested": {
+            "compiledSvc": 1,
+            "sparseRom": 1,
+            "watchdogUs": 2000,
+            "hotpath": 2,
+            "thumbMemory": 1,
+            "irMode": 17,
+            "predicatedLeaves": 1,
+            "leafFeatures": 224,
+            "executionLimits": [
+              512,
+              32,
+              8,
+              0
+            ],
+            "unsafeCode": 3
+          },
+          "applied": true,
+          "observed": {
+            "sparseRom": 1,
+            "compiledSvc": 1,
+            "hotpath": 2,
+            "thumbMemory": 1,
+            "predicatedLeaves": 1,
+            "leafFeatures": 224,
+            "unsafeCode": 3,
+            "executionLimits": [
+              512,
+              32,
+              8,
+              0
+            ]
+          }
+        },
+        "assets": {
+          "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+          "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+          "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+          "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+          "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+          "/eka2l1.data": "/eka2l1.data?v=7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+          "/eka2l1.js": "/eka2l1.js?v=db48656bc219925458a021261882d4d190035babfadacba1230e6fbe3eaab56b",
+          "/eka2l1.wasm": "/eka2l1.wasm?v=3bfa41faa491188e73e708f951d7d7653b115bdfbfbf361e252ebc9896dfdef2",
+          "/touch-controls.css": "/touch-controls.css?v=b94844897aeef4298aa36f13cd85cbe32d3065e319ec418f12b6cf3df7d95823",
+          "/touch-controls.js": "/touch-controls.js?v=95ed7d7f131bb23a3f0c02faf44ef74e628cc8d85cb27599a37e2ffc53f6c648"
+        },
+        "secure": true,
+        "isolated": true,
+        "retiredExports": [],
+        "worker": true,
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+        "status": "Running: Sky Force \u00b7 Arrows/WASD to move, Enter to select \u00b7 Use Enable sound for audio"
+      },
+      "evidence_directory": "/home/claude/.scratch/eka-count-free-only/sky-lan-final",
+      "screenshots_reviewed": [
+        "gameplay-start.png",
+        "gameplay-end.png"
+      ],
+      "watchdog_requests_during_measurement": 7216,
+      "input_events_during_launch": 18
+    }
+  ],
+  "validation": {
+    "wasm_compiler_tests": {
+      "passed": 181,
+      "failed": 0
+    },
+    "native_cpu_tests": {
+      "assertions": 497,
+      "cases": 33
+    },
+    "frontend_api": "pass",
+    "compiler_policy": "pass",
+    "watchdog": "pass",
+    "precompilation": "pass",
+    "svc_return_after_fixture_cleanup": "pass"
+  },
+  "unpaced_capture": {
+    "metrics": {
+      "frames": 20,
+      "capture_wall_seconds": 0.45031,
+      "first_virtual_us": 42000000,
+      "duplicate_presentations": 0,
+      "last_virtual_us": 43080000,
+      "instructions": 0
+    },
+    "evidence_directory": "/home/claude/.scratch/eka-count-free-only/unpaced-gameplay",
+    "screenshot_reviewed": "frame-0012.png",
+    "scene": "Snakes gameplay",
+    "input": "src/tests/benchmark/watchdog-snakes-countfree.input"
+  },
+  "profile_harness": {
+    "measurement": {
+      "diagnostics_available": false,
+      "detailed": false,
+      "capture_mode": 0,
+      "first_virtual_us": 42000000,
+      "last_virtual_us": 46000000,
+      "first_instructions": 0,
+      "last_instructions": 0,
+      "wall_seconds": 1.56339,
+      "presentations": 66
+    },
+    "evidence_directory": "/home/claude/.scratch/eka-count-free-only/profile-smoke",
+    "sampling": false
+  }
+}

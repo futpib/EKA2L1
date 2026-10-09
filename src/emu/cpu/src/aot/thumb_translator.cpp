@@ -102,8 +102,6 @@ namespace eka2l1::arm::aot {
         bool entry_supported = true;
         bool unsupported = false; // set by bail_unsupported()
         unsigned helper_calls = 0;
-        bool precise_budget = true;
-        unsigned required_budget = 0;
         // Number of early-exit bails emitted into the function body.
         // Incremented every time the decoder gives up mid-function and
         // hands control back to the interpreter. Lower is better — high
@@ -323,13 +321,12 @@ namespace eka2l1::arm::aot {
             source_scope provenance(source, source_kind::dispatch);
             census_exit(why); cache.barrier_at(b.size()); op(op_return); }
 
-        // Bail: set PC, return instruction count (normal control flow exit)
-        void bail(std::uint32_t pc, std::uint32_t instr_count, unsigned why=exit_census::control) {
+        // Bail: publish PC and report progress (normal control flow exit)
+        void bail(std::uint32_t pc, std::uint32_t source_index, unsigned why=exit_census::control) {
             if (dispatch_entries && (why == exit_census::control || why == exit_census::source_end))
                 dispatch_entries->push_back(pc | (successor_thumb ? 1u : 0u));
             store_i32_const(S::PC, static_cast<std::int32_t>(pc));
-            i32_const(watchdog::enabled ? (!instr_count || why == exit_census::unsupported ? 0 : 1)
-                : static_cast<std::int32_t>(instr_count));
+            i32_const(!source_index || why == exit_census::unsupported ? 0 : 1);
             ret(why);
             bail_count++;
         }
@@ -338,17 +335,17 @@ namespace eka2l1::arm::aot {
         // computed and stored PC (e.g. POP {PC}, BX LR, BLX Rm).
         // Leaves the state's PC alone so the interpreter dispatches at the
         // computed target instead of re-running the current instruction.
-        void bail_preserve_pc(std::uint32_t instr_count) {
-            i32_const(watchdog::enabled ? 1 : static_cast<std::int32_t>(instr_count));
+        void bail_preserve_pc() {
+            i32_const(1);
             ret();
             bail_count++;
         }
 
         // Bail due to unsupported instruction — marks the translation as incomplete
-        void bail_unsupported(std::uint32_t pc, std::uint32_t instr_count) {
+        void bail_unsupported(std::uint32_t pc, std::uint32_t source_index) {
             unsupported = true;
-            if (!instr_count) entry_supported = false;
-            bail(pc, instr_count, exit_census::unsupported);
+            if (!source_index) entry_supported = false;
+            bail(pc, source_index, exit_census::unsupported);
         }
     };
 
@@ -718,14 +715,6 @@ namespace eka2l1::arm::aot {
         const std::uint32_t TMP1 = 1, TMP2 = 2, TMP3 = 3, TMP4 = 4;
         const std::uint32_t PC_IDX = 5, ADDR_TMP = 6;
         const std::uint32_t FTMP1 = 7, FTMP2 = 8, DTMP1 = 9;
-        const auto budget_guard = [&](std::uint32_t pc, unsigned count) {
-            w.required_budget = std::max(w.required_budget, count + 1);
-            if (!w.precise_budget) return;
-            source_scope provenance(w.source, source_kind::accounting);
-            w.load_i32(S::AOT_BUDGET); w.i32_const(count);
-            w.op(op_i32_le_u); w.op(op_if); w.op(type_void);
-            w.bail(pc, count, exit_census::guard); w.op(op_end);
-        };
         const auto branch = [&](std::uint32_t target, unsigned count, bool checked = false) {
             std::uint16_t first = 0;
             const bool candidate = fusion && count < 128 && fusion->emitted < 512
@@ -920,7 +909,7 @@ namespace eka2l1::arm::aot {
 
             if (bounded) {
                 w.store_i32_const(S::PC, insn_addr);
-                budget_guard(insn_addr, insn_idx);
+
                 // High-register PC operands require pipeline/control-flow semantics.
                 // Keep these rare forms in the interpreter until implemented fully.
                 if ((insn & 0xFC00) == 0x4400 && (insn & 0x0300) != 0x0300
@@ -929,21 +918,21 @@ namespace eka2l1::arm::aot {
                     decoded_end_offset = static_cast<std::uint32_t>(i);
                     break;
                 }
-                // ARMv5/v6 long calls are two separately budgeted halfwords.
+                // ARMv5/v6 long calls have two separately observable halfwords.
                 // Keep the intermediate LR visible even if execution stops between them.
                 const auto call_half = insn & 0xF800;
                 if (call_half == 0xF000) {
                     const std::uint32_t displacement = ((insn & 0x7FF) << 12) | ((insn & 0x400) ? 0xFF800000u : 0u);
                     w.store_i32_const(S::LR, insn_addr + 4 + displacement);
                     // Fuse a complete ARMv5/v6 long-call pair, retaining the
-                    // architectural stop between its two budgeted halfwords.
+                    // architectural stop between its two halfwords.
                     if (direct_memory && i + 3 < code_size) {
                         const std::uint16_t suffix = code[i+2] | (code[i+3] << 8);
                         const auto kind = suffix & 0xF800;
                         if (kind == 0xF800 || (kind == 0xE800 && !(suffix & 1))) {
                             w.census_pc = (insn_addr + 2) | 1;
                             w.census_opcode = suffix;
-                            budget_guard(insn_addr + 2, insn_idx + 1);
+
                             // Preserve the outer runner's stop/IRQ boundary. A
                             // preceding callback may have requested either exit.
                             w.load_i32(S::NUM_INSTRS_TO_EXECUTE);
@@ -966,19 +955,11 @@ namespace eka2l1::arm::aot {
                                     && immutable_code->read(target, &veneer, sizeof(veneer))
                                     && (veneer & 0xff000000u) == 0xef000000u) {
                                 // The immutable ARM veneer can publish the same pending trap
-                                // here. The outer loop still handles the syscall at its
-                                // exact guest count, including both Thumb call halfwords.
+                                // here. The outer loop handles it before the successor region.
                                 w.source.pc = target; w.source.kind = source_kind::guest;
                                 w.census_pc = target; w.census_opcode = veneer;
                                 w.store_i32_const(S::PC, target);
-                                budget_guard(target, insn_idx + 2);
-                                // Retain the ordinary SVC's single-step fallback. Stop/IRQ
-                                // was checked at the preceding call-half boundary, with no
-                                // intervening callback or memory access.
-                                w.load_i32(S::NUM_INSTRS_TO_EXECUTE); w.i32_const(1); w.op(op_i32_eq);
-                                w.load_i32(S::NUM_INSTRS_TO_EXECUTE + 4); w.op(op_i32_eqz); w.op(op_i32_and);
-                                w.op(op_if); w.op(type_void);
-                                w.bail(target, insn_idx + 2); w.op(op_end);
+
                                 std::uint32_t return_hint = 0, next_arm = 0;
                                 std::uint16_t next_thumb = 0;
                                 if (memory_experiment::enabled() && ((target + 4) & 4095)
@@ -995,7 +976,7 @@ namespace eka2l1::arm::aot {
                                 }
                                 w.store_i32_const(S::AOT_EXIT, svc_pending | svc_taken | return_hint
                                     | (((target + 4) & 4095) ? 0 : svc_page_end) | (veneer & 0x00ffffffu));
-                                if (!watchdog::enabled) w.store_i32_const(S::AOT_SVC_INSTRUCTIONS, insn_idx + 3);
+
                                 w.bail(target + 4, 0);
                             } else if (kind == 0xE800 && memory_experiment::enabled() && immutable_code
                                     && immutable_code->read(target, &veneer, sizeof(veneer))
@@ -1006,7 +987,7 @@ namespace eka2l1::arm::aot {
                                 w.source.pc = target; w.source.kind = source_kind::guest;
                                 w.census_pc = target; w.census_opcode = veneer;
                                 w.store_i32_const(S::PC, target);
-                                budget_guard(target, insn_idx + 2);
+
                                 // The call-half boundary above already checked stop/IRQ;
                                 // no callback or guest memory access intervenes.
                                 const auto literal = (veneer & (1u << 23))
@@ -1016,7 +997,7 @@ namespace eka2l1::arm::aot {
                                 w.set_local(TMP1); w.store_reg(15, TMP1);
                                 w.get_local(TMP1); w.i32_const(1); w.op(op_i32_and);
                                 w.set_local(TMP2); w.store_i32(S::TFLAG, TMP2);
-                                w.bail_preserve_pc(insn_idx + 3);
+                                w.bail_preserve_pc();
                             } else if (kind == 0xF800) {
                                 branch(target, insn_idx + 2, true);
                             } else {
@@ -1040,7 +1021,7 @@ namespace eka2l1::arm::aot {
                     w.set_local(TMP1); w.store_reg(15,TMP1);
                     w.store_i32_const(S::LR,(insn_addr+2)|1);
                     if (call_half == 0xE800) w.store_i32_const(S::TFLAG,0);
-                    w.bail_preserve_pc(insn_idx+1);
+                    w.bail_preserve_pc();
                     decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
                     ++insn_idx; break;
                 }
@@ -1123,13 +1104,10 @@ namespace eka2l1::arm::aot {
                             if (it != siblings->end()) {
                                 // Set LR = next_pc | 1 before the call
                                 w.store_i32_const(S::LR, static_cast<std::int32_t>(next_pc | 1));
-                                // Call sibling: returns instruction count
+                                // Call sibling: returns progress status
                                 w.state_ptr();
                                 w.op(op_call);
                                 leb(result.body, it->second);
-                                // Add our BL's 1 instruction + our prior count
-                                w.i32_const(static_cast<std::int32_t>(insn_idx + 1));
-                                w.op(op_i32_add);
                                 w.ret();
                                 // The sibling sets PC = LR = next_pc on return.
                                 // C++ dispatch needs an AOT entry at next_pc to
@@ -1298,7 +1276,7 @@ namespace eka2l1::arm::aot {
                                 // overwriting so the interpreter dispatches
                                 // at the return address. This is the wide
                                 // POP {..., PC} function-return path.
-                                w.bail_preserve_pc(insn_idx + 1);
+                                w.bail_preserve_pc();
                                 // Function return — stop decoding past this
                                 // insn if no more forward targets remain.
                                 if (closed_count >= N_fwd) {
@@ -1395,7 +1373,7 @@ namespace eka2l1::arm::aot {
                             w.set_local(TMP2);
                             if (rd == 15) {
                                 w.store_reg(15, TMP2);
-                                w.bail_preserve_pc(insn_idx + 1);
+                                w.bail_preserve_pc();
                                 if (closed_count >= N_fwd) {
                                     decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
                                     i += 2;
@@ -1579,7 +1557,7 @@ namespace eka2l1::arm::aot {
                             } else {
                                 // Rd=15, no flags → branch. Bail.
                                 w.store_reg(15, TMP2);
-                                w.bail_preserve_pc(insn_idx + 1);
+                                w.bail_preserve_pc();
                                 if (closed_count >= N_fwd) {
                                     decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
                                     i += 2;
@@ -1861,7 +1839,7 @@ namespace eka2l1::arm::aot {
                             w.set_local(TMP2);
                             if (rd == 15) {
                                 w.store_reg(15, TMP2);
-                                w.bail_preserve_pc(insn_idx + 1);
+                                w.bail_preserve_pc();
                                 if (closed_count >= N_fwd) {
                                     decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
                                     i += 2;
@@ -2003,7 +1981,7 @@ namespace eka2l1::arm::aot {
                             w.store_reg(static_cast<int>(rn), TMP2);
                         }
                         if (is_load && rd == 15) {
-                            w.bail_preserve_pc(insn_idx + 1);
+                            w.bail_preserve_pc();
                             if (closed_count >= N_fwd) {
                                 decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
                                 i += 2;
@@ -3671,12 +3649,9 @@ namespace eka2l1::arm::aot {
                 std::uint8_t cond = (insn >> 8) & 0xF;
 
                 if (bounded && compiled_svc_enabled && cond == 15) {
-                    w.load_i32(S::NUM_INSTRS_TO_EXECUTE); w.i32_const(1); w.op(op_i32_eq);
-                    w.load_i32(S::NUM_INSTRS_TO_EXECUTE + 4); w.op(op_i32_eqz); w.op(op_i32_and); w.op(op_if); w.op(type_void);
-                    w.bail(insn_addr, insn_idx); w.op(op_end);
                     w.store_i32_const(S::AOT_EXIT, svc_pending | svc_taken
                         | (((insn_addr + 2) & 4095) ? 0 : svc_page_end) | (insn & 255));
-                    if (!watchdog::enabled) w.store_i32_const(S::AOT_SVC_INSTRUCTIONS, insn_idx + 1);
+
                     w.bail(insn_addr + 2, 0);
                     decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
                     ++insn_idx; break;
@@ -3767,13 +3742,10 @@ namespace eka2l1::arm::aot {
                         }
                     }
                     if (has_sibling) {
-                        // Call sibling f_<target>: returns instruction count
+                        // Call sibling f_<target>: returns progress status
                         w.state_ptr();
                         w.op(op_call);
                         leb(result.body, sibling_idx);
-                        // Add our prior count + this branch insn (1)
-                        w.i32_const(static_cast<std::int32_t>(insn_idx + 1));
-                        w.op(op_i32_add);
                         w.ret();
                     } else {
                         branch(target, insn_idx + 1);
@@ -3920,7 +3892,7 @@ namespace eka2l1::arm::aot {
                     // PC has been set by the pop above; bail without
                     // overwriting it so the interpreter dispatches at the
                     // return address.
-                    w.bail_preserve_pc(insn_idx + 1);
+                    w.bail_preserve_pc();
                     // Function return — stop decoding past the POP if there
                     // are no more forward targets ahead.
                     if (closed_count >= N_fwd) {
@@ -3966,13 +3938,13 @@ namespace eka2l1::arm::aot {
                 w.i32_const(1); w.op(op_i32_and); w.set_local(TMP2);
                 w.store_i32(S::TFLAG, TMP2);
                 w.load_reg(14);
-                // Align the outgoing PC before a short-budget return too.
+                // Align the outgoing PC before returning to dispatch.
                 w.get_local(TMP2); w.i32_const(1); w.op(op_i32_shl);
                 w.i32_const(~3); w.op(op_i32_or);
                 w.op(op_i32_and);
                 w.set_local(TMP1);
                 w.store_reg(15, TMP1);
-                w.bail_preserve_pc(insn_idx + 1);
+                w.bail_preserve_pc();
                 // Function return — linear control flow ends. If there are
                 // no more forward targets past this point, safe to stop
                 // decoding. Otherwise keep decoding: forward branches from
@@ -4006,13 +3978,13 @@ namespace eka2l1::arm::aot {
                 w.i32_const(1); w.op(op_i32_and); w.set_local(TMP2);
                 w.store_i32(S::TFLAG, TMP2);
                 w.get_local(TMP3);
-                // Align the outgoing PC before a short-budget return too.
+                // Align the outgoing PC before returning to dispatch.
                 w.get_local(TMP2); w.i32_const(1); w.op(op_i32_shl);
                 w.i32_const(~3); w.op(op_i32_or);
                 w.op(op_i32_and);
                 w.set_local(TMP1);
                 w.store_reg(15, TMP1);
-                w.bail_preserve_pc(insn_idx + 1);
+                w.bail_preserve_pc();
                 // Both BX and BLX are unconditional; linear control flow
                 // ends here. BLX re-entry is handled via its resume point.
                 // Stop decoding if no more forward targets lie ahead.
@@ -4475,9 +4447,9 @@ namespace eka2l1::arm::aot {
         w.op(op_end); // end loop
         w.op(op_end); // end block
 
-        // Return total instruction count
+        // Return progress status
         if (bounded) w.bail(start_address + decoded_end_offset, insn_idx, decoded_end_offset>=code_size?exit_census::source_end:exit_census::emission_end);
-        else { w.i32_const(num_insns); w.ret(); }
+        else { w.i32_const(1); w.ret(); }
 
         if (!count_base) tr.end_address = start_address + decoded_end_offset;
     }
@@ -4488,7 +4460,7 @@ namespace eka2l1::arm::aot {
         std::uint32_t start_address,
         const sibling_map *siblings,
         const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers,
-        const code_window *immutable_code, bool precise_budget)
+        const code_window *immutable_code)
     {
         // Bounded blocks exit on branches instead of recursively calling siblings.
         // Keep guest-visible instructions (including veneers) in the execution stream.
@@ -4511,11 +4483,10 @@ namespace eka2l1::arm::aot {
 
         emit w{result.body};
         w.dispatch_entries = &tr.dispatch_entries;
-        w.precise_budget = precise_budget;
         w.source.marks = &result.sources;
         w.direct_memory = direct_memory;
         w.cache.enabled = bounded && cache_registers;
-        // Keep repeated PC, budget, endian and TLB accesses in locals. Slow
+        // Keep repeated PC, endian and TLB accesses in locals. Slow
         // callbacks still publish/reload the complete cached state.
         w.cache.runtime_fields = direct_memory;
         w.cache.program_counter = direct_memory;
@@ -4532,7 +4503,6 @@ namespace eka2l1::arm::aot {
         tr.entry_supported = w.entry_supported;
         tr.complete = !w.unsupported;
         tr.bail_count = w.bail_count;
-        tr.entry_budget_instructions = w.required_budget;
         return tr;
     }
 
@@ -4541,46 +4511,8 @@ namespace eka2l1::arm::aot {
         const sibling_map *siblings, const code_window *dll_code, bool bounded,
         bool stop_after_store, bool cache_registers, const code_window *immutable_code)
     {
-        if (watchdog::enabled && bounded) {
-            // Bounded Thumb bodies and fused successors contain no cycles.
-            // The unproved successor dispatch polls outside the entire body.
-            return translate_thumb_block_impl(code, code_size, start_address,
-                siblings, dll_code, bounded, stop_after_store, cache_registers,
-                immutable_code, false);
-        }
-        auto precise = translate_thumb_block_impl(code, code_size, start_address,
-            siblings, dll_code, bounded, stop_after_store, cache_registers,
-            immutable_code, true);
-        const auto maximum = precise.entry_budget_instructions;
-        precise.entry_budget_instructions = 0;
-        if (!thumb_entry_budget || !bounded || !cache_registers || !thumb_direct_memory
-            || !immutable_code || stop_after_store || exit_census::enabled || maximum < 2)
-            return precise;
-        // Bounded Thumb emission exits at every unfused branch. Fusion follows
-        // no cycle, so every path has a static maximum, including call halves
-        // and folded veneers. A successful entry proof covers the whole body.
-        auto full = translate_thumb_block_impl(code, code_size, start_address,
-            siblings, dll_code, bounded, stop_after_store, cache_registers,
-            immutable_code, false);
-        if (full.entry_budget_instructions != maximum
-            || full.end_address != precise.end_address || full.fused_edges != precise.fused_edges
-            || precise.func.outlined_callee || !precise.func.outlined_calls.empty()) return precise;
-        std::vector<std::uint8_t> body;
-        emit w{body};
-        w.load_i32(S::AOT_BUDGET); w.i32_const(maximum);
-        w.op(op_i32_lt_u); w.op(op_if); w.op(type_void);
-        w.state_ptr(); w.op(op_call);
-        const auto call_offset = static_cast<std::uint32_t>(body.size());
-        body.insert(body.end(), {0x80, 0x80, 0x80, 0x80, 0});
-        w.op(op_return); w.op(op_end);
-        const auto offset = static_cast<std::uint32_t>(body.size());
-        for (auto &mark : full.func.sources) mark.offset += offset;
-        if (!full.func.sources.empty())
-            full.func.sources.insert(full.func.sources.begin(), {0, start_address | 1, source_kind::accounting});
-        body.insert(body.end(), full.func.body.begin(), full.func.body.end());
-        full.func.body = std::move(body);
-        precise.func.export_name += "_budget_short";
-        full.func.outlined_calls.push_back({std::make_shared<wasm_func_def>(std::move(precise.func)), call_offset});
-        return full;
+        // Finite bodies complete; the outer successor dispatch polls for yields.
+        return translate_thumb_block_impl(code, code_size, start_address,
+            siblings, dll_code, bounded, stop_after_store, cache_registers, immutable_code);
     }
 }

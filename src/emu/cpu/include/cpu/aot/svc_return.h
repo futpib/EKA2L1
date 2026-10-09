@@ -10,15 +10,15 @@ namespace eka2l1::arm::aot {
     // change the context or mappings; consume only the returned state/view.
     inline std::uint32_t complete_svc_return(ARMul_State *cpu,
             const memory_experiment::direct_view *memory, std::uint32_t request,
-            std::uint32_t expected_pc, std::uint32_t expected_lr, std::uint32_t budget) {
-        if (!budget || cpu->Reg[15] != expected_pc || cpu->TFlag
+            std::uint32_t expected_pc, std::uint32_t expected_lr) {
+        if (cpu->Reg[15] != expected_pc || cpu->TFlag
                 || cpu->Reg[14] != expected_lr || !(expected_lr & 1)) return 0;
 
         // SVC fallthrough has no IRQ boundary before BX. Its outgoing edge
-        // does, including the raw (unaligned) PC on a short-budget exit.
+        // does, including the raw (unaligned) PC on an interrupt or stop.
         cpu->Reg[15] = expected_lr;
         cpu->TFlag = 1;
-        if (budget == 1 || !cpu->NumInstrsToExecute
+        if (!cpu->NumInstrsToExecute
                 || (!cpu->NirqSig && !(cpu->Cpsr & 0x80))) return 1;
         cpu->Reg[15] &= ~1u;
 

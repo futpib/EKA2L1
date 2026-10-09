@@ -1699,7 +1699,7 @@ enum { KEEP_GOING,
 
 static void guest_profile_instruction(ARMul_State *cpu, std::uint32_t pc, unsigned handler, unsigned kind) {
     namespace gp = eka2l1::common::guest_profile;
-    if (!eka2l1::common::performance::counting() || eka2l1::arm::aot::validation_running) return;
+    if (!eka2l1::common::performance::counting()) return;
     if (handler == CMP_BBL_IDX || handler == CMP_B_COND_THUMB_IDX) handler = CMP_IDX;
     const unsigned thumb = cpu->TFlag != 0;
     if (!gp::state.record(kind, thumb, handler)) return;
@@ -1774,8 +1774,8 @@ static int InterpreterTranslateBlock(ARMul_State *cpu, std::size_t &bb_start, st
     // The upstream bulk shortcut does not reproduce state at every instruction
     // boundary and can exceed its quantum. Exact replay and AOT verification
     // require those boundaries; keep scalar execution for those configurations.
-    if (cpu->TFlag && !eka2l1::common::benchmark::enabled()
-        && !eka2l1::arm::aot::validation_running
+    if (cpu->TFlag && cpu->NumInstrsToExecute != 1 && !eka2l1::common::benchmark::enabled()
+
         && !eka2l1::arm::aot::hot_compilation_enabled) {
         loop_accel_inst accel_desc;
         if (analyze_thumb_bulk_loop(cpu, pc_start, accel_desc)) {
@@ -2615,74 +2615,17 @@ DISPATCH : {
 AOT_RESUME:
     if constexpr (Watchdog) if (eka2l1::arm::aot::watchdog::requested()) goto END;
     // SVC fallthrough reaches here without an additional IRQ boundary.
-    // Check if an AOT-compiled function exists for this PC
-    {
-        auto aot_func = ((Watchdog ? !cpu->NumInstrsToExecute : num_instrs >= cpu->NumInstrsToExecute)
-            || (!Watchdog && eka2l1::arm::aot::watchdog::enabled)) ? nullptr : eka2l1::arm::aot::lookup_compiled(cpu);
-        if (!aot_func && eka2l1::arm::aot::hot_compilation_enabled && !eka2l1::arm::aot::validation_running) {
+    // Single-step and native backends retain their interpreter scheduling.
+    // Browser compiled execution returns progress, never instruction counts.
+    if constexpr (Watchdog) {
+        auto aot_func = cpu->NumInstrsToExecute ? eka2l1::arm::aot::lookup_compiled(cpu) : nullptr;
+        if (!aot_func && eka2l1::arm::aot::hot_compilation_enabled)
             eka2l1::arm::aot::observe_hot_pc(cpu);
-        }
         if (aot_func) {
-            link = nullptr; // An interpreted predecessor cannot link across compiled execution.
-            static std::uint64_t aot_dispatch_count = 0;
-            static std::uint64_t aot_instr_count = 0;
-
-            // Snapshot pre/post register state for this dispatch into the
-            // ring buffer so we can print it on crash (see aot_history).
-            auto &rec = eka2l1::arm::aot::history[eka2l1::arm::aot::history_head];
-            if constexpr (Instrumented) if (eka2l1::arm::aot::diagnostics_enabled) {
-                rec.entry_pc = cpu->Reg[15];
-                for (int i = 0; i < 16; i++) rec.regs_before[i] = cpu->Reg[i];
-            }
-
-            cpu->aot_budget = Watchdog ? UINT32_MAX : static_cast<std::uint32_t>(std::min<std::uint64_t>(cpu->NumInstrsToExecute - num_instrs, UINT32_MAX));
-            std::uint32_t instrs = 0, blocks = 1;
-            if (eka2l1::arm::aot::chaining_enabled) {
-                auto run = eka2l1::arm::aot::execute_chain(cpu, aot_func);
-                instrs = run.instructions; blocks = run.blocks;
-            } else {
-                instrs = eka2l1::arm::aot::execute_single(cpu, aot_func);
-            }
-
-            if constexpr (Instrumented) if (eka2l1::arm::aot::diagnostics_enabled) {
-                rec.exit_pc = cpu->Reg[15];
-                rec.instrs = instrs;
-                for (int i = 0; i < 16; i++) rec.regs_after[i] = cpu->Reg[i];
-                eka2l1::arm::aot::history_head =
-                    (eka2l1::arm::aot::history_head + 1) % eka2l1::arm::aot::AOT_HISTORY;
-            }
-
-            if constexpr (Instrumented) if (eka2l1::common::performance::counting()) {
-                eka2l1::common::performance::aot_dispatches += blocks;
-                ++eka2l1::common::performance::compiled_runner_calls;
-                eka2l1::common::performance::aot_instructions += instrs;
-            }
-            if constexpr (Instrumented) if (eka2l1::arm::aot::diagnostics_enabled) {
-                aot_dispatch_count += blocks;
-                aot_instr_count += instrs;
-                // Per-module AOT tracking
-                {
-                    auto *mod = eka2l1::arm::aot::lookup_module(rec.entry_pc);
-                    if (mod) mod->aot_instrs += instrs;
-                }
-                {
-                    static std::uint64_t next_log = 1;
-                    if (aot_dispatch_count == next_log) {
-                        double aot_pct = (aot_instr_count + g_interp_instrs) > 0
-                            ? 100.0 * aot_instr_count / (aot_instr_count + g_interp_instrs) : 0;
-                        fprintf(stderr, "AOT: %llu dispatches, %llu AOT + %llu interp instrs (%.1f%% AOT)\n",
-                            (unsigned long long)aot_dispatch_count,
-                            (unsigned long long)aot_instr_count,
-                            (unsigned long long)g_interp_instrs,
-                            aot_pct);
-                        if (next_log >= 100000) {
-                            eka2l1::arm::aot::dump_module_stats();
-                        }
-                        next_log *= 10;
-                    }
-                }
-            }
-            if constexpr (!Watchdog) num_instrs += instrs;
+            link = nullptr;
+            const auto progress = eka2l1::arm::aot::chaining_enabled
+                ? eka2l1::arm::aot::execute_chain(cpu, aot_func).progress
+                : eka2l1::arm::aot::execute_single(cpu, aot_func);
             if (cpu->aot_exit & eka2l1::arm::aot::svc_pending) {
                 const auto request = cpu->aot_exit;
                 cpu->aot_exit = 0;
@@ -2691,14 +2634,14 @@ AOT_RESUME:
                 const auto return_lr = cpu->Reg[14];
                 if (request & eka2l1::arm::aot::svc_taken) {
                     SAVE_NZCVT;
-                    if constexpr (!Watchdog) cpu->NumInstrsToExecute = num_instrs >= cpu->NumInstrsToExecute ? 0 : cpu->NumInstrsToExecute - num_instrs;
+
                     cpu->RaiseSystemCall(request & 0x00ffffffu);
                     cpu->exmonitor()->clear_exclusive();
                     LOAD_NZCVT;
                     if (current_pc != cpu->Reg[15]) goto DISPATCH;
                 }
                 if (request & eka2l1::arm::aot::svc_page_end) goto DISPATCH;
-                if ((Watchdog ? !cpu->NumInstrsToExecute : num_instrs >= cpu->NumInstrsToExecute)) goto END;
+                if (!cpu->NumInstrsToExecute) goto END;
                 if (previous_thumb != cpu->TFlag) {
                     // DynCom's unchanged-PC fallthrough consumes its previously
                     // decoded instruction stream even if the callback changes T.
@@ -2719,13 +2662,11 @@ AOT_RESUME:
                         && (request & eka2l1::arm::aot::svc_return)) {
                     const auto *memory = reinterpret_cast<const eka2l1::arm::aot::memory_experiment::direct_view *>(
                         cpu->parent()->experimental_pointer);
-                    const auto remaining = static_cast<std::uint32_t>(std::min<std::uint64_t>(
-                        cpu->NumInstrsToExecute - num_instrs, UINT32_MAX));
                     const auto count = eka2l1::arm::aot::complete_svc_return(cpu, memory,
-                        request, current_pc, return_lr, remaining);
+                        request, current_pc, return_lr);
                     if (count) {
-                        if constexpr (!Watchdog) num_instrs += count;
-                        if ((Watchdog ? !cpu->NumInstrsToExecute : num_instrs >= cpu->NumInstrsToExecute)) goto END;
+
+                        if (!cpu->NumInstrsToExecute) goto END;
                         SAVE_NZCVT;
                         goto DISPATCH;
                     }
@@ -2733,13 +2674,13 @@ AOT_RESUME:
                 goto AOT_RESUME;
             }
 
-            if ((Watchdog ? !cpu->NumInstrsToExecute : num_instrs >= cpu->NumInstrsToExecute))
+            if (!cpu->NumInstrsToExecute)
                 goto END;
             if constexpr (Watchdog) if (eka2l1::arm::aot::watchdog::requested()) goto END;
             // A deferred compiled access may next execute in the interpreter.
             // Its exception callback reads packed CPSR through the core API.
             SAVE_NZCVT;
-            if (instrs) goto DISPATCH;
+            if (progress) goto DISPATCH;
         }
     }
 
@@ -2815,14 +2756,15 @@ LOOP_ACCEL_INST : {
     if (iter_left > 1) {
         // Bulk at most iter_left-1 iterations: the last one always runs
         // interpreted so flags, scratch registers and the loop exit come from
-        // real interpretation. Cap by the remaining quantum so blocking /
-        // reschedule behaviour keeps its granularity.
-        const std::uint64_t quantum_rem = (cpu->NumInstrsToExecute > num_instrs)
-            ? (cpu->NumInstrsToExecute - num_instrs)
-            : 0;
-        const std::uint64_t cap = quantum_rem / inst_cream->body_len + 1;
-        const std::uint32_t want = static_cast<std::uint32_t>(
-            std::min<std::uint64_t>(cap, iter_left - 1));
+        // real interpretation. Watchdog execution lets this proved finite loop
+        // finish; native execution retains its scheduling quantum.
+        std::uint32_t want = iter_left - 1;
+        if constexpr (!Watchdog) {
+            const std::uint64_t quantum_rem = (cpu->NumInstrsToExecute > num_instrs)
+                ? (cpu->NumInstrsToExecute - num_instrs) : 0;
+            const std::uint64_t cap = quantum_rem / inst_cream->body_len + 1;
+            want = static_cast<std::uint32_t>(std::min<std::uint64_t>(cap, want));
+        }
         if (want) {
             const std::uint32_t done = run_accel_bulk(cpu, inst_cream, want);
             if (done) {
@@ -5832,8 +5774,10 @@ INIT_INST_LENGTH : {
 // instrumented body whenever they are enabled, and keep its original dynamic
 // counting checks. Normal execution carries no diagnostic branch per dispatch.
 unsigned InterpreterMainLoop(ARMul_State *cpu, std::uint32_t &num_instrs) {
-    if (eka2l1::arm::aot::watchdog::enabled && cpu->NumInstrsToExecute != 1)
+#ifdef __EMSCRIPTEN__
+    if (cpu->NumInstrsToExecute != 1)
         return InterpreterMainLoopImpl<false, true>(cpu, num_instrs);
+#endif
 #if defined(__EMSCRIPTEN__) && !defined(EKA2L1_WASM_DIAGNOSTICS)
     return InterpreterMainLoopImpl<false>(cpu, num_instrs);
 #else

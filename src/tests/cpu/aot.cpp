@@ -1,3 +1,4 @@
+#include <cpu/aot/watchdog.h>
 /*
  * Copyright (c) 2024 EKA2L1 Team.
  *
@@ -986,46 +987,41 @@ TEST_CASE("RAM translation dependencies end after the first store", "[aot]") {
     }
 }
 
-TEST_CASE("Compiled successor chains respect budgets, mode and interrupts", "[aot]") {
+TEST_CASE("Compiled chains yield on watchdog requests and interrupts", "[aot]") {
     using namespace eka2l1::arm;
     aot_test_env env;
     auto cpu = env.make_cpu();
     auto storage = std::make_unique<ARMul_State>(cpu.get(), USER32MODE);
     auto &state = *storage;
     auto &registry = aot::global_registry();
+    struct cleanup {
+        ~cleanup() { aot::watchdog::request=0; aot::global_registry().clear(); }
+    } cleanup;
     registry.clear();
     auto first = +[](ARMul_State *s) -> std::uint32_t {
-        ++s->Reg[0]; s->Reg[15] = 0x1004; s->TFlag = 1; return 1;
+        ++s->Reg[0]; s->Reg[15]=0x1004; s->TFlag=1;
+        if(s->Reg[0]==601)aot::watchdog::request=1;
+        return 1;
     };
     auto next = +[](ARMul_State *s) -> std::uint32_t {
-        ++s->Reg[0]; s->Reg[15] = 0x1000; s->TFlag = 0; return 1;
+        ++s->Reg[0]; s->Reg[15]=0x1000; s->TFlag=0; return 1;
     };
-    registry.register_function(0x1000, first);
-    registry.register_function(0x1005, next);
-    state.Reg[0] = 0; state.Reg[15] = 0x1000;
-    state.NirqSig = 1; state.NumInstrsToExecute = 100; state.aot_budget = 5;
-    auto result = aot::execute_chain(&state, first);
-    REQUIRE(result.instructions == 5);
-    REQUIRE(result.blocks == 5);
-    REQUIRE(state.Reg[0] == 5);
-    REQUIRE(state.TFlag == 1);
-    REQUIRE(state.aot_budget == 1);
-    state.aot_budget = 0;
-    REQUIRE(aot::execute_chain(&state, first).blocks == 0);
-    state.aot_budget = 10;
-    auto zero = +[](ARMul_State *) -> std::uint32_t { return 0; };
-    REQUIRE(aot::execute_chain(&state, zero).instructions == 0);
-    auto interrupt = +[](ARMul_State *s) -> std::uint32_t {
-        s->Reg[15] = 0x1000; s->TFlag = 0; s->NirqSig = 0; s->Cpsr &= ~0x80u; return 1;
+    registry.register_function(0x1000,first);
+    registry.register_function(0x1005,next);
+    state.Reg[0]=0; state.Reg[15]=0x1000;
+    state.NirqSig=1; state.NumInstrsToExecute=1;
+    aot::watchdog::request=0;
+    REQUIRE(aot::execute_chain(&state,first).progress==1);
+    REQUIRE(state.Reg[0]==601); // Neither the old budget nor 512 regions limits a chain.
+    REQUIRE(state.TFlag==1);
+    aot::watchdog::request=0;
+    auto zero=+[](ARMul_State *) -> std::uint32_t { return 0; };
+    REQUIRE(aot::execute_chain(&state,zero).progress==0);
+    auto interrupt=+[](ARMul_State *s) -> std::uint32_t {
+        s->Reg[15]=0x1000; s->TFlag=0; s->NirqSig=0; s->Cpsr &= ~0x80u; return 1;
     };
-    result = aot::execute_chain(&state, interrupt);
-    REQUIRE(result.instructions == 1);
-    REQUIRE(result.blocks == 1);
-    state.NirqSig = 1;
-    state.aot_budget = 600;
-    result = aot::execute_chain(&state, first);
-    REQUIRE(result.blocks == 512); // bounded host runner even with a larger caller budget
-    registry.clear();
+    REQUIRE(aot::execute_chain(&state,interrupt).progress==1);
+    REQUIRE(state.Reg[0]==601);
 }
 
 TEST_CASE("Guest profiling separates decoding and execution without advancing guest state", "[aot]") {

@@ -9,8 +9,7 @@ static bool test_svc_return_hint() {
     } saved;
     thumb_direct_memory=true;compiled_svc_enabled=true;
     unsigned checks=0;
-    for(unsigned mode:{0u,2u})for(unsigned reg=0;reg<10;++reg)for(unsigned shape=0;shape<6;++shape)
-    for(unsigned budget:{0u,1u,2u,3u,4u}) {
+    for(unsigned mode:{0u,2u})for(unsigned reg=0;reg<10;++reg)for(unsigned shape=0;shape<6;++shape) {
         memory_experiment::mode=mode;
         const unsigned base=0x51000,target=shape==5?0x51ffc:0x52000,delta=target-base-4;
         std::vector<std::uint8_t> code(0x1008);
@@ -25,16 +24,16 @@ static bool test_svc_return_hint() {
         alignas(8)std::uint32_t state[256]{};
         state[15]=base;state[state_offsets::TFLAG/4]=1;state[state_offsets::CPSR/4]=48;
         state[state_offsets::NIRQ/4]=1;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=100;
-        state[state_offsets::AOT_BUDGET/4]=budget;
+
         const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
         const auto hint=state[state_offsets::AOT_EXIT/4]&0x1f000000u;
-        const auto expected=mode==2 && reg<9 && shape==0 && budget>=3 ? svc_return|(reg<<svc_return_register_shift) : 0;
+        const auto expected=mode==2 && reg<9 && shape==0 ? svc_return|(reg<<svc_return_register_shift) : 0;
         if(count<0 || hint!=expected) {
-            printf(" FAIL SVC return hint mode=%u reg=%u shape=%u budget=%u got=%x expected=%x\n",mode,reg,shape,budget,hint,expected);return false;
+            printf(" FAIL SVC return hint mode=%u reg=%u shape=%u got=%x expected=%x\n",mode,reg,shape,hint,expected);return false;
         }
         ++checks;
     }
-    printf(" PASS SVC return hint (%u immutable/pattern/backend/budget comparisons)\n",checks);
+    printf(" PASS SVC return hint (%u immutable/pattern/backend comparisons)\n",checks);
 #endif
     return true;
 }
@@ -43,11 +42,11 @@ static bool test_svc_return_state() {
 #ifdef __EMSCRIPTEN__
     namespace memory=memory_experiment;
     struct restore {
-        unsigned mode=memory::mode,budget=entry_budget_mode;
+        unsigned mode=memory::mode;
         bool thumb=thumb_direct_memory;
-        ~restore(){memory::mode=mode;entry_budget_mode=budget;thumb_direct_memory=thumb;}
+        ~restore(){memory::mode=mode;thumb_direct_memory=thumb;}
     } saved;
-    memory::mode=2;thumb_direct_memory=true;entry_budget_mode=2;
+    memory::mode=2;thumb_direct_memory=true;
     test_mem backing;r12l1::exclusive_monitor monitor(1);auto core=make_cpu(backing,monitor);
     auto cpu=std::make_unique<ARMul_State>(core.get(),USER32MODE);
     std::vector<memory::page> pages(1<<20);
@@ -65,7 +64,7 @@ static bool test_svc_return_state() {
         const std::uint16_t pop=0xbd00|(reg<8?1u<<reg:0);
         auto thumb=translate_thumb_block(reinterpret_cast<const std::uint8_t*>(&pop),2,0x1004,nullptr,nullptr,true,false,true);
         const auto thumb_module=build_wasm_module({thumb.func},imports);
-        for(unsigned mapping=0;mapping<13;++mapping)for(unsigned budget:{0u,1u,2u,5u})
+        for(unsigned mapping=0;mapping<13;++mapping)
         for(unsigned irq=0;irq<4;++irq)for(unsigned change=0;change<4;++change)for(unsigned thumb_pc:{0u,1u}) {
             const bool affine=mapping>=9;
             const unsigned sp=mapping==1?0x8011:mapping==2?0x8ffc:mapping==3?0x8ff9:
@@ -90,31 +89,29 @@ static bool test_svc_return_state() {
             cpu->Cpsr=16|(irq==2?0x80:0)|(mapping==5?0x200:0)|0xa0000000;
             cpu->NFlag=1;cpu->ZFlag=0;cpu->CFlag=1;cpu->VFlag=0;cpu->TFlag=change==3;
             cpu->NirqSig=irq==0?1:0;cpu->NumInstrsToExecute=irq==3?0:std::uint64_t(1)<<32;
-            cpu->aot_budget=budget;cpu->aot_tlb=reinterpret_cast<std::uintptr_t>(&view);cpu->aot_exit=0;
+            cpu->aot_tlb=reinterpret_cast<std::uintptr_t>(&view);cpu->aot_exit=0;
             alignas(8)std::uint32_t expected[256]{};
-            constexpr unsigned state_bytes=state_offsets::AOT_SVC_INSTRUCTIONS+4;
+            constexpr unsigned state_bytes=offsetof(ARMul_State,mem_cache_);
             std::memcpy(expected,cpu.get(),state_bytes);
             const unsigned count=complete_svc_return(cpu.get(),mapping==4?nullptr:&view,
-                svc_return|(reg<<svc_return_register_shift),0x2004,0x1005,budget);
+                svc_return|(reg<<svc_return_register_shift),0x2004,0x1005);
             const bool outgoing=irq==0||irq==2;
-            const unsigned want=change||!budget?0:budget>1&&outgoing&&readable?2:1;
+            const unsigned want=change?0:outgoing&&readable?2:1;
             if(count!=want) {
-                printf(" FAIL SVC return progress reg=%u mapping=%u budget=%u irq=%u change=%u got=%u expected=%u\n",reg,mapping,budget,irq,change,count,want);return false;
+                printf(" FAIL SVC return progress reg=%u mapping=%u irq=%u change=%u got=%u expected=%u\n",reg,mapping,irq,change,count,want);return false;
             }
             if(count) {
-                expected[state_offsets::AOT_BUDGET/4]=budget;
                 auto n=js_run_aot_wasm(arm_module.data(),arm_module.size(),reinterpret_cast<std::uint8_t*>(expected),sizeof(expected));
                 if(n!=1)return false;
-                if(budget>1 && outgoing)expected[15]&=~1u;
+                if(outgoing)expected[15]&=~1u;
                 if(count==2) {
-                    expected[state_offsets::AOT_BUDGET/4]=budget-1;g_all_memory_helper_calls=0;
+                    g_all_memory_helper_calls=0;
                     n=js_run_aot_wasm(thumb_module.data(),thumb_module.size(),reinterpret_cast<std::uint8_t*>(expected),sizeof(expected));
                     if(n!=1||g_all_memory_helper_calls)return false;
                 }
-                expected[state_offsets::AOT_BUDGET/4]=budget;
             }
             if(std::memcmp(expected,cpu.get(),state_bytes)) {
-                printf(" FAIL SVC return state reg=%u mapping=%u budget=%u irq=%u change=%u count=%u\n",reg,mapping,budget,irq,change,count);
+                printf(" FAIL SVC return state reg=%u mapping=%u irq=%u change=%u count=%u\n",reg,mapping,irq,change,count);
                 const auto *actual=reinterpret_cast<const unsigned*>(cpu.get());
                 for(unsigned n=0;n<state_bytes/4;++n)if(expected[n]!=actual[n])printf(" state[%u]=%x/%x\n",n,actual[n],expected[n]);
                 return false;
@@ -166,7 +163,7 @@ static bool test_svc_return_runtime() {
     std::vector<memory_experiment::page> pages(1<<20);
     unsigned checks=0;
     for(bool chain:{false,true})for(unsigned action=0;action<12;++action)
-    for(unsigned budget:{1u,2u,3u,4u,5u,6u,7u,8u,16u,32u})for(bool thumb_pc:{false,true}) {
+    for(bool thumb_pc:{false,true}) {
         chaining_enabled=chain;
         std::vector<std::uint32_t> outcomes[2],events[2];
         for(unsigned variant=0;variant<2;++variant) {
@@ -174,6 +171,7 @@ static bool test_svc_return_runtime() {
             auto *cpu=matched_kernel_access::state(*core);
             const unsigned sp=action==9?0x8ffcu:0x8010u;
             const unsigned return_pc=thumb_pc?0x53001u:0x53100u;
+            if(thumb_pc)memory.write16(return_pc&~1u,0xdfff);else memory.write32(return_pc,0xef0000ff);
             memory.write32(sp,0x33445566);memory.write32(sp+4,return_pc);
             memory.write32(0xa010,0x778899aa);memory.write32(0xa014,return_pc);
             bool alias=false,repaired=false;
@@ -202,6 +200,7 @@ static bool test_svc_return_runtime() {
                 snapshot(3,address);repaired=true;return true;
             };
             core->system_call_handler=[&](unsigned number) {
+                if(number==255){core->stop();return;}
                 snapshot(1,number);
                 cpu->Reg[0]=0x1234;core->set_cpsr(core->get_cpsr()^0xa0000000);
                 if(action==1)cpu->Reg[14]=base+9;
@@ -216,13 +215,17 @@ static bool test_svc_return_runtime() {
             for(unsigned reg=0;reg<16;++reg)core->set_reg(reg,0x88776600+reg);
             core->set_pc(base);core->set_reg(13,sp);core->set_cpsr(0x50000030|(action==10?0x80:0));cpu->NirqSig=1;
             global_registry().register_function(base|1,callers[variant]);
-            core->run(budget);
+            core->read_code=[&](unsigned address,unsigned *out) {
+                if(address<base || address>0x53200){core->stop();return false;}
+                *out=memory.read32(address);return true;
+            };
+            core->run(0); // Browser runs until a stop, trap or watchdog request.
             auto &result=outcomes[variant];for(unsigned reg=0;reg<16;++reg)result.push_back(core->get_reg(reg));
             result.push_back(core->get_cpsr());result.push_back(core->get_num_instruction_executed());
             result.push_back(cpu->NirqSig);result.push_back(cpu->NumInstrsToExecute);
         }
         if(outcomes[0]!=outcomes[1] || events[0]!=events[1]) {
-            printf(" FAIL real SVC return chain=%u action=%u budget=%u thumb=%u events=%zu/%zu\n",chain,action,budget,thumb_pc,events[0].size(),events[1].size());
+            printf(" FAIL real SVC return chain=%u action=%u thumb=%u events=%zu/%zu\n",chain,action,thumb_pc,events[0].size(),events[1].size());
             for(unsigned n=0;n<outcomes[0].size();++n)if(outcomes[0][n]!=outcomes[1][n])printf(" result[%u]=%x/%x\n",n,outcomes[0][n],outcomes[1][n]);
             for(unsigned n=0;n<std::min(events[0].size(),events[1].size());++n)if(events[0][n]!=events[1][n])printf(" event[%u]=%x/%x\n",n,events[0][n],events[1][n]);
             return false;

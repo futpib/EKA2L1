@@ -10,8 +10,8 @@ import {ChromeTrace, summarizeProfile, labelGuestProfile} from './chrome-profile
 import {sampleCpuTime, cpuTimeDelta} from './cpu-time.ts';
 import {startNativeProfile, snapshotNativeMetadata, supportedV8} from './native-profile.mjs';
 
-const [assetArg, outputArg, modeArg = '0', samplingArg = '1', endArg = '25000000'] = process.argv.slice(2);
-const frameArg = '100000', inputArg = process.env.EKA2L1_PROFILE_INPUT || fileURLToPath(new URL('../benchmark/snakes.input', import.meta.url)), startArg = process.env.EKA2L1_PROFILE_START_US || '21000000';
+const [assetArg, outputArg, modeArg = '0', samplingArg = '1', endArg = '46000000'] = process.argv.slice(2);
+const frameArg = '100000', inputArg = process.env.EKA2L1_PROFILE_INPUT || fileURLToPath(new URL('../benchmark/watchdog-snakes-countfree.input', import.meta.url)), startArg = process.env.EKA2L1_PROFILE_START_US || '42000000';
 const captureMode = Number(modeArg), sampling = samplingArg === '1', endUs = Number(endArg);
 const traceScope = process.env.EKA2L1_CHROME_TRACE ?? (sampling ? 'window' : 'off');
 if (!['off', 'window', 'run'].includes(traceScope))
@@ -28,8 +28,6 @@ const exitCensus = process.env.EKA2L1_EXIT_CENSUS === "1";
 if(exitCensus && !guestProfile) throw new Error("Exit census requires guest profiling");
 const sparseRom = Number(process.env.EKA2L1_SPARSE_ROM_LOOKUP ?? compilerDefaults.sparseRom);
 if (![0,1].includes(sparseRom)) throw Error('sparseRom must be 0 or 1');
-const entryBudget = Number(process.env.EKA2L1_ENTRY_BUDGET ?? compilerDefaults.entryBudget);
-if (![0,2].includes(entryBudget)) throw Error('Entry budget must be 0 or 2');
 const compiledSvc = Number(process.env.EKA2L1_COMPILED_SVC ?? compilerDefaults.compiledSvc);
 if (![0,1].includes(compiledSvc)) throw Error('Compiled syscall policy must be 0 or 1');
 const thumbMemory = Number(process.env.EKA2L1_THUMB_MEMORY ?? compilerDefaults.thumbMemory);
@@ -169,7 +167,7 @@ try {
   if (diagnosticsAvailable === false && (detailedProfile || guestProfile || exitCensus || aotDiagnostics))
     throw new Error('Custom diagnostics require a build with -DEKA2L1_WASM_DIAGNOSTICS=ON');
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
-  await page.evaluate(async ({entryBudget, sparseRom, compiledSvc, hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
+  await page.evaluate(async ({ sparseRom, compiledSvc, hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
@@ -229,9 +227,6 @@ try {
     call('eka2l1_sparse_rom_lookup_configure', ['number'], [sparseRom]);
     g.sparseRomActual = g.Module._eka2l1_sparse_rom_lookup_report();
     if (g.sparseRomActual !== sparseRom) throw Error('sparseRom readback mismatch');
-    call('eka2l1_entry_budget_configure', ['number'], [entryBudget]);
-    g.entryBudgetActual = g.Module._eka2l1_entry_budget_report();
-    if (g.entryBudgetActual !== entryBudget) throw Error('Entry budget readback mismatch');
     call('eka2l1_compiled_svc_configure', ['number'], [compiledSvc]);
     g.compiledSvcActual = g.Module._eka2l1_compiled_svc_report();
     if (g.compiledSvcActual !== compiledSvc) throw Error('Compiled syscall readback mismatch');
@@ -257,7 +252,6 @@ try {
     if (thumbMemory !== -1 && g.Module._eka2l1_thumb_memory_configure(1 - thumbMemory) !== -1)
       throw Error('Thumb memory policy changed after initialization');
     if (g.Module._eka2l1_sparse_rom_lookup_configure(1-sparseRom) !== -1) throw Error('sparseRom changed after initialization');
-    if (g.Module._eka2l1_entry_budget_configure(2-entryBudget) !== -1) throw Error('Entry budget changed after initialization');
     if (g.Module._eka2l1_compiled_svc_configure(1-compiledSvc) !== -1) throw Error('Compiled syscall policy changed after initialization');
     if (armExclusive !== -1 && g.Module._eka2l1_arm_exclusive_configure(1-armExclusive) !== -1) throw Error('ARM exclusive changed after initialization');
     if(typeof g.Module._eka2l1_unsafe_code_report==='function') {
@@ -284,7 +278,7 @@ try {
       }
     }
     call('eka2l1_run', ['string'], [appUid]);
-  }, {entryBudget, sparseRom, compiledSvc, hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio});
+  }, { sparseRom, compiledSvc, hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio});
   async function waitPhase(phase: number) {
     const deadline = performance.now() + 1800000;
     while (await page.evaluate(() => (window as any).Module._eka2l1_profile_phase()) !== phase) {
@@ -459,7 +453,7 @@ try {
   await page.screenshot({path: path.join(output, 'browser.png')});
   if (failures.length) throw new Error(failures.join('\n'));
 
-  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({watchdog_us: watchdogInterval(), watchdog_requests: await page.evaluate(() => (globalThis as any).ekaWatchdog ? Atomics.load((globalThis as any).ekaWatchdog.control, 1) : 0), entry_budget: await page.evaluate(() => (globalThis as any).entryBudgetActual), sparse_rom_lookup: await page.evaluate(() => (globalThis as any).sparseRomActual), compiled_svc: await page.evaluate(() => (globalThis as any).compiledSvcActual), hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, app_uid: appUid, measurement: measured, warmup_seconds: warmupSeconds,
+  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({watchdog_us: watchdogInterval(), watchdog_requests: await page.evaluate(() => (globalThis as any).ekaWatchdog ? Atomics.load((globalThis as any).ekaWatchdog.control, 1) : 0), sparse_rom_lookup: await page.evaluate(() => (globalThis as any).sparseRomActual), compiled_svc: await page.evaluate(() => (globalThis as any).compiledSvcActual), hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, app_uid: appUid, measurement: measured, warmup_seconds: warmupSeconds,
     purpose: nativeSampling || sampling || monitorCpuStart || traceScope !== 'off' || detailedProfile || guestProfile || aotDiagnostics || monitor || glDiagnostics || !glDiagnosticsSupported || verifyAot || process.env.EKA2L1_COMPILE_CENSUS === '1' ? 'diagnostic' : 'throughput',
     cpu_time: cpuTime,
     chrome_trace: {scope: traceScope, ...traceReport}, diagnostics_available: diagnosticsAvailable,
