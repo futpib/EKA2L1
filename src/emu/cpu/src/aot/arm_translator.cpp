@@ -2578,6 +2578,120 @@ namespace eka2l1::arm::aot {
         return tr;
     }
 
+    // A list scan overwrites its comparison flags on each backedge. Keep the
+    // node values in locals and reconstruct flags only at an observable exit.
+    // Recognize instruction structure and register roles, never an address.
+    static bool summarize_list_scan(translate_result &tr, const std::uint8_t *code,
+            std::size_t size, std::uint32_t pc) {
+        if (!memory_experiment::enabled() || size < 32 || pc > 0xffffffdfu) return false;
+        std::uint32_t words[8]; std::memcpy(words, code, sizeof(words));
+        if ((words[0] & 0xfff00fff) != 0xe5900000 || (words[1] & 0xfff0fff0) != 0xe1500000
+            || (words[2] & 0xfff00fff) != 0xe240000c || (words[3] & 0xfff00000) != 0x18100000
+            || (words[4] & 0xff000000) != 0x0a000000 || (words[5] & 0xfff0f000) != 0xe3500000
+            || (words[6] & 0xfff00fff) != 0x12100001 || words[7] != 0x0afffff8) return false;
+        const unsigned sentinel = (words[0] >> 16) & 15, cursor = (words[0] >> 12) & 15;
+        const unsigned object = (words[2] >> 12) & 15, status = (words[5] >> 16) & 15;
+        const unsigned payload = (words[6] >> 16) & 15, result = (words[6] >> 12) & 15;
+        std::set<unsigned> regs{sentinel, cursor, object, status, payload, result};
+        if (regs.size() != 6 || *regs.rbegin() == 15 || status >= payload || payload >= cursor
+            || (words[1] & 15) != sentinel || ((words[1] >> 16) & 15) != cursor
+            || ((words[2] >> 16) & 15) != cursor || ((words[3] >> 16) & 15) != cursor
+            || (words[3] & 65535) != ((1u << status) | (1u << payload) | (1u << cursor))) return false;
+        const auto displacement = static_cast<std::int32_t>(words[4] << 8) >> 6;
+        const auto empty_pc = pc + 24 + displacement;
+        if (empty_pc >= pc && empty_pc < pc + 32) return false;
+        const unsigned rotation = ((words[5] >> 8) & 15) * 2;
+        const std::uint32_t imm = words[5] & 255;
+        const std::uint32_t magic = rotation ? (imm >> rotation) | (imm << (32 - rotation)) : imm;
+        std::vector<std::uint8_t> prefix;
+        source_marks marks;
+        arm_emit w{prefix}; w.source = {&marks, pc, source_kind::helper};
+        const unsigned first = tr.func.num_prefix_i64_locals + tr.func.num_locals + 1;
+        const unsigned head=first, node=first+1, obj=first+2, stat=first+3, bits=first+4,
+            answer=first+5, count=first+6, budget=first+7, address=first+8,
+            tmp=first+9, diff=first+10, host=arm_emit::HOST;
+        tr.func.num_locals += 11;
+        w.op(op_block); w.op(type_void);
+        auto original = [&] { w.op(op_br_if); leb(prefix, 0); };
+        w.load_i32(S::AOT_BUDGET); w.tee_local(budget); w.i32_const(8); w.op(op_i32_lt_u); original();
+        w.load_i32(S::AOT_EXIT); original();
+        w.load_i32(S::NIRQ); w.op(op_i32_eqz);
+        w.load_i32(S::CPSR); w.i32_const(0x80); w.op(op_i32_and); w.op(op_i32_eqz);
+        w.op(op_i32_and); original();
+        direct_memory_setup(w);
+        w.get_local(arm_emit::M+2); w.op(op_i32_eqz); original();
+        auto load = [&](unsigned base, unsigned offset) {
+            w.get_local(base); w.op(op_i32_load); leb(prefix, 2); leb(prefix, offset);
+        };
+        auto span = [&](unsigned bytes, unsigned alignment) {
+            direct_host(w, address, bytes, false, alignment);
+        };
+        w.load_reg(sentinel); w.tee_local(head); w.set_local(address); span(4,1);
+        w.get_local(host); w.op(op_i32_eqz); original();
+        w.source.pc=pc; w.source.kind=source_kind::guest_memory;
+        load(host, 0); w.set_local(node); w.source.kind=source_kind::helper;
+        w.load_reg(status); w.set_local(stat); w.load_reg(payload); w.set_local(bits);
+        w.load_reg(result); w.set_local(answer); w.i32_const(1); w.set_local(count);
+        auto publish = [&](unsigned next_pc) {
+            w.store_reg(cursor,node); w.store_reg(object,obj); w.store_reg(status,stat);
+            w.store_reg(payload,bits); w.store_reg(result,answer); w.store_i32_const(S::PC,next_pc);
+        };
+        auto cmp_flags = [&](unsigned left, unsigned right) {
+            w.get_local(left); w.get_local(right); w.op(op_i32_sub); w.tee_local(diff);
+            w.i32_const(31); w.op(op_i32_shr_u); w.store_i32_from_stack(S::NFLAG,tmp);
+            w.get_local(diff); w.op(op_i32_eqz); w.store_i32_from_stack(S::ZFLAG,tmp);
+            w.get_local(left); w.get_local(right); w.op(op_i32_ge_u); w.store_i32_from_stack(S::CFLAG,tmp);
+            w.get_local(left); w.get_local(right); w.op(op_i32_xor);
+            w.get_local(left); w.get_local(diff); w.op(op_i32_xor); w.op(op_i32_and);
+            w.i32_const(31); w.op(op_i32_shr_u); w.store_i32_from_stack(S::VFLAG,tmp);
+        };
+        auto final_flags = [&](unsigned z) {
+            w.store_i32_const(S::NFLAG,0); w.store_i32_const(S::ZFLAG,z);
+            w.get_local(stat); w.i32_const(magic); w.op(op_i32_ge_u); w.store_i32_from_stack(S::CFLAG,tmp);
+            w.get_local(stat); w.i32_const(magic); w.op(op_i32_xor);
+            w.get_local(stat); w.get_local(stat); w.i32_const(magic); w.op(op_i32_sub); w.op(op_i32_xor);
+            w.op(op_i32_and); w.i32_const(31); w.op(op_i32_shr_u); w.store_i32_from_stack(S::VFLAG,tmp);
+        };
+        auto finish_count = [&](unsigned extra) {
+            w.get_local(count); if (extra) { w.i32_const(extra); w.op(op_i32_add); } w.ret();
+        };
+        w.op(op_loop); w.op(type_void);
+        w.source.pc=pc+4;
+        w.get_local(node); w.i32_const(12); w.op(op_i32_sub); w.set_local(obj);
+        w.get_local(node); w.get_local(head); w.op(op_i32_eq);
+        w.op(op_if); w.op(type_void);
+        publish(empty_pc); w.store_i32_const(S::NFLAG,0); w.store_i32_const(S::ZFLAG,1);
+        w.store_i32_const(S::CFLAG,1); w.store_i32_const(S::VFLAG,0); finish_count(4); w.op(op_end);
+        w.get_local(node); w.i32_const(8); w.op(op_i32_sub); w.set_local(address); span(12,4);
+        w.get_local(host); w.op(op_i32_eqz);
+        w.op(op_if); w.op(type_void);
+        publish(pc+12); cmp_flags(node,head); finish_count(2); w.op(op_end);
+        w.source.pc=pc+12; w.source.kind=source_kind::guest_memory;
+        load(host,0); w.set_local(stat); load(host,4); w.set_local(bits); load(host,8); w.set_local(node);
+        w.source.kind=source_kind::helper;
+        w.get_local(count); w.i32_const(7); w.op(op_i32_add); w.set_local(count);
+        w.get_local(stat); w.i32_const(magic); w.op(op_i32_ne);
+        w.op(op_if); w.op(type_void);
+        w.get_local(bits); w.i32_const(1); w.op(op_i32_and); w.tee_local(answer);
+        w.op(op_if); w.op(type_void);
+        publish(pc+32); final_flags(0); finish_count(0); w.op(op_end); w.op(op_end);
+        w.get_local(budget); w.get_local(count); w.op(op_i32_sub); w.i32_const(7); w.op(op_i32_lt_u);
+        w.load_i32(S::NIRQ); w.op(op_i32_eqz);
+        w.load_i32(S::CPSR); w.i32_const(0x80); w.op(op_i32_and); w.op(op_i32_eqz);
+        w.op(op_i32_and); w.op(op_i32_or);
+        w.op(op_if); w.op(type_void);
+        publish(pc+4); final_flags(1); finish_count(0); w.op(op_end);
+        w.op(op_br); leb(prefix,0); w.op(op_end); w.op(op_end);
+        const auto offset=static_cast<unsigned>(prefix.size());
+        if(tr.func.outlined_callee)tr.func.outlined_call_offset+=offset;
+        for(auto &call:tr.func.outlined_calls)call.call_offset+=offset;
+        for(auto &mark:tr.func.sources)mark.offset+=offset;
+        tr.func.sources.insert(tr.func.sources.begin(),marks.begin(),marks.end());
+        prefix.insert(prefix.end(),tr.func.body.begin(),tr.func.body.end());tr.func.body=std::move(prefix);
+        tr.resume_points.push_back(pc+32);tr.summarized_helpers=1;
+        return true;
+    }
+
     // Recognize this complete signed divmod algorithm by bytes, independently
     // of its address. Only the out-of-line divide-by-zero destination may vary;
     // that path always executes the original body. Interior entries are untouched.
@@ -2683,6 +2797,8 @@ namespace eka2l1::arm::aot {
         auto precise = translate_arm_block_impl(code, code_size, start_address, siblings,
             dll_code, bounded, stop_after_store, cache_registers, region, leaves,
             defer_memory, true, false, ir_policy);
+        if (bounded && region && cache_registers && precise.complete && !exit_census::enabled
+            && summarize_list_scan(precise, code, code_size, start_address)) return precise;
         if (bounded && region && cache_registers && precise.complete && !exit_census::enabled
             && summarize_division_helper(precise, code, code_size)) return precise;
         if (!entry_budget_mode || !bounded || !region || !cache_registers
