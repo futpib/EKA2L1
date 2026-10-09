@@ -16,6 +16,8 @@ not for the remaining ten hotspots.
 | 5 | ROM lookup, RAM code, Cone/Ws32 and remaining runner work | Native code inspected; independent candidates remain under investigation | No speed claim |
 | 6 | Private runner counters and registry acquisition | Adopted and served on LAN; [full result](RUNNER_LOCALS_RESULTS.md) | Snakes +3.01%, Sky Force +5.84% CPU throughput; 4/4 faster pairs in each |
 
+| 7 | Combined ROM range checks | Not adopted; [full result](ROM_RANGE_RESULTS.md) and [patch](ROM_RANGE_EXPERIMENT.patch) | Snakes +0.02%, Sky Force +0.26%; 2/4 faster pairs in each |
+
 The syscall candidate keeps owning snapshots for stateful callbacks that can
 change their own registration. Built-in bindings use a static bridge with a
 compile-time handler target. Actual warmed V8 code bypasses the owning callable

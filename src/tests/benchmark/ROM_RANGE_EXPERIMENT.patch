@@ -1,0 +1,35 @@
+--- a/src/emu/cpu/include/cpu/aot/aot_registry.h
++++ b/src/emu/cpu/include/cpu/aot/aot_registry.h
+@@ -83,7 +83,9 @@
+         __attribute__((always_inline))
+ #endif
+         aot_func lookup(std::uint32_t arm_address) const {
+-            if (arm_address >= rom_base_ && std::uint64_t(arm_address) - rom_base_ < rom_size_) {
++            // Configuration rejects wrapped extents, so one unsigned range
++            // check also excludes addresses below the ROM base.
++            if (arm_address - rom_base_ < rom_size_) {
+                 const auto offset = arm_address - rom_base_;
+                 const auto &page = rom_pages_[offset >> 12];
+                 return page ? (*page)[offset & 4095] : nullptr;
+--- a/src/emu/cpu/src/aot/aot_registry.cpp
++++ b/src/emu/cpu/src/aot/aot_registry.cpp
+@@ -25,7 +25,7 @@
+     // --- registry ---
+ 
+     void registry::index_rom(std::uint32_t address, aot_func function) {
+-        if (address < rom_base_ || std::uint64_t(address) - rom_base_ >= rom_size_) return;
++        if (address - rom_base_ >= rom_size_) return;
+         const auto offset = address - rom_base_;
+         auto &page = rom_pages_[offset >> 12];
+         if (!page && function) page = std::make_unique<rom_page>();
+--- a/src/emu/cpu/src/aot/aot_runtime.cpp
++++ b/src/emu/cpu/src/aot/aot_runtime.cpp
+@@ -253,7 +253,7 @@
+     if constexpr(!TrustBytes) if (validation_running) return nullptr;
+     const auto pc = cpu->Reg[15], pc_mode = pc | cpu->TFlag;
+     // Existing ROM functions use immutable bytes and need no mapping lookup.
+-    if (!ram_compilation_enabled || (pc >= hot_rom_base && pc - hot_rom_base < hot_rom_size)) {
++    if (!ram_compilation_enabled || (std::uint64_t(pc) - hot_rom_base < hot_rom_size)) {
+         // Trusted-byte chains emit no interval readers. Keep publication for
+         // mutation-compatible execution and diagnostic/reference paths.
+         if constexpr(!TrustBytes) cpu->aot_code_begin = cpu->aot_code_end = 0;
