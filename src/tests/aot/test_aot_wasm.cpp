@@ -2334,7 +2334,7 @@ static bool test_arm_clz() {
 
 // Execute bounded blocks and compare all registers, flags and memory against
 // exactly the same number of DynCom instructions, including partial budgets.
-static bool test_bounded_execution() {
+static bool test_bounded_execution(bool thumb_only = false) {
 #ifdef __EMSCRIPTEN__
     struct restore_thumb { bool saved=thumb_direct_memory; ~restore_thumb(){thumb_direct_memory=saved;} } restore;
     struct program { bool thumb; std::vector<std::uint8_t> bytes; };
@@ -2509,6 +2509,7 @@ static bool test_bounded_execution() {
     std::rotate(programs.begin(), programs.begin() + existing_programs, programs.end());
     int index = 0;
     for (unsigned variant = 0; variant < 9; ++variant) for (const auto &p : programs) {
+        if (thumb_only && !p.thumb) continue;
         if (variant >= 7 && !p.thumb) continue;
         thumb_direct_memory = variant >= 7;
         const bool region = variant >= 4, cache_registers = region || (variant & 2), stop_after_store = variant & 1;
@@ -6440,6 +6441,14 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--region-fusion-only")return test_region_fusion()?0:1;
     if(argc==2 && std::string(argv[1])=="--thumb-entry-budget-only")return test_region_fusion(false,true)?0:1;
     if(argc==2 && std::string(argv[1])=="--thumb-entry-budget-counts")return test_region_fusion(true,true)?0:1;
+    if(argc==2 && std::string(argv[1])=="--bounded-thumb-only") {
+        hotpath_policy=2;
+        return test_bounded_execution(true) && test_thumb_register_exchange()
+            && test_thumb_direct_memory() && test_thumb_transfer_spans()
+            && test_thumb_rom_veneers() && test_thumb_rom_syscalls()
+            && test_thumb_call_boundaries() && test_svc_return_hint()
+            && test_svc_return_state() && test_svc_return_runtime()?0:1;
+    }
     if(argc==2 && std::string(argv[1])=="--list-scan-only")return test_list_scan_summary()?0:1;
     if(argc==2 && std::string(argv[1])=="--loop-budget-only")return test_loop_budget_chunks()?0:1;
     if(argc==2 && std::string(argv[1])=="--sparse-rom-only")return test_sparse_rom_registry() && test_registry_lookup_lifecycle()?0:1;
