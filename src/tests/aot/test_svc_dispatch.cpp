@@ -40,7 +40,7 @@ static void test_registry() {
         const auto *found = registry.find(entry.first);
         require(found != nullptr, "registered binding present");
         observed = 0;
-        found->func(nullptr, nullptr, nullptr);
+        found->invoke(nullptr, nullptr, nullptr);
         const auto actual = observed;
         entry.second.func(nullptr, nullptr, nullptr);
         require(actual == observed, "lookup agrees with original map");
@@ -77,6 +77,44 @@ static void test_registry() {
         require(!lifetime.expired(), "snapshot owns erased callback");
     }
     require(lifetime.expired(), "callback capture released after invocation");
+
+    owner = std::make_shared<unsigned>(23);
+    lifetime = owner;
+    func_map self_erasing{{0x800005, {[&, owner](auto *, auto *, auto *) {
+        registry.clear();
+        require(!lifetime.expired() && *owner == 23, "invoke owns erased callback");
+    }, "self erasing"}}};
+    registry.insert(self_erasing.begin(), self_erasing.end());
+    owner.reset(); self_erasing.clear();
+    registry.find(0x800005)->invoke(nullptr, nullptr, nullptr);
+    require(lifetime.expired(), "invoke releases capture after callback");
+}
+
+static svc_registry *static_registry;
+static unsigned static_calls;
+static void static_callback(eka2l1::kernel_system *, eka2l1::kernel::process *, eka2l1::arm::core *) {
+    ++static_calls;
+    static_registry->clear();
+    func_map nested{{0x800005, {{}, "nested static", +[](eka2l1::kernel_system *, eka2l1::kernel::process *, eka2l1::arm::core *) {
+        ++static_calls;
+        static_registry->clear();
+    }}}};
+    static_registry->insert(nested.begin(), nested.end());
+    static_registry->find(0x800005)->invoke(nullptr, nullptr, nullptr);
+}
+
+static void test_static_registry() {
+    svc_registry registry;
+    static_registry = &registry;
+    for (auto ordinal : {5u, 0x800005u, 0xc10000u}) {
+        func_map entry{{ordinal, {{}, "static", static_callback}}};
+        registry.insert(entry.begin(), entry.end());
+        const auto before = static_calls;
+        registry.find(ordinal)->invoke(nullptr, nullptr, nullptr);
+        require(static_calls == before + 2, "static callbacks survive nested registration and clear");
+        require(!registry.find(ordinal), "static callback may erase its own binding");
+    }
+    static_registry = nullptr;
 }
 
 struct fake_cpu {
@@ -128,6 +166,7 @@ static void test_convention() {
 
 int main() {
     test_registry();
+    test_static_registry();
     test_convention<svc_return_convention::direct>();
     test_convention<svc_return_convention::eka1>();
     test_convention<svc_return_convention::epoc91>();

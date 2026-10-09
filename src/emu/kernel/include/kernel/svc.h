@@ -45,7 +45,7 @@
 
 #define BRIDGE_REGISTER(func_sid, func)                                               \
     {                                                                                 \
-        func_sid, eka2l1::hle::epoc_import_func { eka2l1::hle::bridge(&func), #func } \
+        func_sid, eka2l1::hle::epoc_import_func { eka2l1::hle::bridge(&func), #func, eka2l1::hle::static_bridge<&func>() } \
     }
 
 #define BRIDGE_FUNC(ret, name, ...) ret name(kernel_system *kern, ##__VA_ARGS__)

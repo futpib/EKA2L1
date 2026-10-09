@@ -41,8 +41,21 @@ namespace eka2l1 {
 
 namespace eka2l1::hle {
     struct epoc_import_func {
+        using static_function = void (*)(kernel_system *, kernel::process *, arm::core *);
         std::function<void(kernel_system *, kernel::process *, arm::core *)> func;
         std::string name;
+        static_function static_func = nullptr;
+
+        void invoke(kernel_system *kern, kernel::process *process, arm::core *cpu) const {
+            // A static binding has no captured lifetime. Stateful callbacks
+            // still own a snapshot when they erase or replace registrations.
+            if (const auto entry = static_func) {
+                entry(kern, process, cpu);
+            } else {
+                auto snapshot = func;
+                snapshot(kern, process, cpu);
+            }
+        }
     };
 
     using func_map = std::unordered_map<uint32_t, eka2l1::hle::epoc_import_func>;

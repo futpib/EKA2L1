@@ -1367,15 +1367,11 @@ namespace eka2l1::hle {
             return false;
         }
 
-        // Retain a callable snapshot during invocation, including callbacks
-        // that alter registration. The name is needed only before that call.
-        auto func = res->func;
-
         if (kern_->get_config()->log_svc) {
             LOG_TRACE(KERNEL, "Calling SVC 0x{:x} {}", svcnum, res->name);
         }
 
-        func(kern_, kern_->crr_process(), kern_->get_cpu());
+        res->invoke(kern_, kern_->crr_process(), kern_->get_cpu());
 
         kern_->unlock();
         return true;

@@ -59,5 +59,18 @@ namespace eka2l1 {
                 call(export_fn, layouts, indices(), cpu, pr, data);
             };
         }
+
+        template <auto Export, typename T, typename ret, typename... args>
+        auto static_bridge_impl(ret (*)(T *, args...)) {
+            return +[](T *data, kernel::process *pr, arm::core *cpu) {
+                constexpr args_layout<args...> layouts = lay_out<typename bridge_type<args>::arm_type...>();
+                call(Export, layouts, std::index_sequence_for<args...>(), cpu, pr, data);
+            };
+        }
+
+        template <auto Export>
+        auto static_bridge() {
+            return static_bridge_impl<Export>(Export);
+        }
     }
 }
