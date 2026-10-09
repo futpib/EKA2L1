@@ -36,6 +36,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid #87dacf; outline
 #touch-deck[data-profile="sky-force"][data-mode="stick"].editing #movement-pad { opacity: 1; }
 #touch-deck.editing .touch-cluster::after { content: 'Drag to move'; position: absolute; inset: 40% 0 auto; text-align: center; padding: 5px; background: #102331; color: #bffff3; font-size: 12px; pointer-events: none; }
 #btn-game-menu { position: absolute; top: max(12px, env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right)); width: 44px; height: 44px; border-radius: 50%; border: 1px solid #ffffff30; background: #0005; color: #fffb; font-size: 20px; }
+#fps-counter { position: absolute; top: calc(max(12px, env(safe-area-inset-top)) + 50px); right: max(12px, env(safe-area-inset-right)); padding: 3px 6px; border-radius: 6px; background: #0009; color: #eee; font: 12px monospace; font-variant-numeric: tabular-nums; pointer-events: none; }
 #control-hint { display: none; position: absolute; top: max(66px, env(safe-area-inset-top)); left: 12px; right: 12px; padding: 10px; border-radius: 12px; color: #fff; background: #000b; font-size: 13px; text-align: center; pointer-events: none; }
 #control-hint.editing { display: block; }
 dialog { position: fixed; inset: 0; margin: auto; width: min(420px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto; padding: 24px; border: 1px solid #ffffff20; border-radius: 24px; color: #eef4ff; background: #151b26; box-shadow: 0 20px 80px #000b; }

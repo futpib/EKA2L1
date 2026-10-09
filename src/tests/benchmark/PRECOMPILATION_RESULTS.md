@@ -123,3 +123,10 @@ The measured/deployed emulator WASM SHA-256 is
 `30f6c904c1530707800100f45cb8c015c08750c15975ed22caffaff7b8a9b172`.
 The later FPS overlay is a separate HTML/CSS change and retains this emulator
 binary; it was not present during the four timed windows above.
+
+The overlay was checked in a real Chromium session at 390x844: hidden on the
+picker, visible within the viewport during execution, no horizontal overflow,
+and no pointer interception. Its displayed values matched the presentation
+counter samples in both counting modes. Count-free Snakes was inspected in
+gameplay; the counted overlay check sampled startup. Evidence and screenshots
+are in `fps-smoke/` under the raw artifact directory.

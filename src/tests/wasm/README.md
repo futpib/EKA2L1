@@ -17,6 +17,9 @@ third command-line argument, such as `node serve.ts 8188 Snakes`, selects an
 automatic default. Without it, the page waits for a choice.
 
 Use arrows/WASD to move, Enter/Space to select or fire, and F1/F2 for softkeys.
+During play, the FPS display below the menu button shows emulator presentations
+per second over a rolling window of about two seconds. It updates twice per
+second, includes stalls, and resets its sampling window after a background tab.
 Open **☰** for game selection, sound, full screen and control settings.
 Touch controls overlay the game without a permanent toolbar or control deck.
 Touch uses independent movement/action areas,

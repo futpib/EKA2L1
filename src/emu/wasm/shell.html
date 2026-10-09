@@ -62,6 +62,7 @@
         </div>
         <div id="touch-deck" hidden aria-label="Touch game controls"></div>
         <button id="btn-game-menu" type="button" aria-label="Game options" hidden><span aria-hidden="true">☰</span></button>
+        <span id="fps-counter" hidden title="Emulator frame presentations per second, averaged over two seconds">— FPS</span>
         <div id="control-hint" hidden>Drag controls to move them. Tap ✓ when finished.</div>
     </div>
 
@@ -157,6 +158,25 @@
         }
 
         var _gameRunning = false;
+        var _fpsSamples = [];
+        document.addEventListener('visibilitychange', function() { _fpsSamples = []; });
+        // Use guest presentations and actual elapsed host time. A delayed timer
+        // includes the stall; background tabs start a fresh window on return.
+        setInterval(function() {
+            var display = document.getElementById('fps-counter');
+            display.hidden = !_gameRunning;
+            if (!_gameRunning || document.hidden || !Module.calledRun) {
+                _fpsSamples = [];
+                display.textContent = '— FPS';
+                return;
+            }
+            var now = performance.now(), frames = Module._eka2l1_presentations();
+            if (_fpsSamples.length && frames < _fpsSamples[_fpsSamples.length - 1].frames) _fpsSamples = [];
+            _fpsSamples.push({time: now, frames: frames});
+            while (_fpsSamples.length > 2 && now - _fpsSamples[1].time >= 2000) _fpsSamples.shift();
+            var first = _fpsSamples[0];
+            if (now > first.time) display.textContent = ((frames - first.frames) * 1000 / (now - first.time)).toFixed(1) + ' FPS';
+        }, 500);
         var _inputSources = new Map();
         // S60 softkeys use Device0/Device1 scan codes.
         var _keyScans = {ArrowLeft:14, ArrowRight:15, ArrowUp:16, ArrowDown:17,
