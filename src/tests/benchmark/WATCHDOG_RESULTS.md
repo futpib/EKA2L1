@@ -126,6 +126,32 @@ stay realtime while allowing different amounts of computation between timers.
 See `WATCHDOG_PACED_EVIDENCE.json` for endpoints, configuration and limitations.
 The LAN server was left on its existing build.
 
+### LAN startup regression and recovery
+
+The experiment was subsequently deployed to the LAN launcher, enabling it for
+both games. A user reported Snakes still blank after five minutes. Their log
+showed successful WebGL setup and slow progress through `AknIconSrv` startup,
+not a graphics-initialization failure.
+
+Fresh browser checks against the deployed build reproduced severely delayed
+visible output: approximately 56 seconds for a Snakes splash in Chromium and
+116 seconds in Firefox. With the same WASM and the experiment disabled only in
+a private Chromium test browser, a splash was visible by the 10-second sample.
+These timings include startup and five-second screenshot sampling, differ in
+host load, and do not establish a precise speed ratio. The five-minute user
+case was not reproduced locally.
+
+The LAN service was restored to counted execution by setting
+`EKA2L1_WATCHDOG_US=0`; the WASM build was retained. A fresh live Chromium
+launch, with no browser-side policy override, showed the Snakes splash by the
+10-second sample. Existing tabs require reloading because configuration is
+frozen before initialization. Raw logs, screenshots and the saved service
+configuration are under `/home/claude/.scratch/eka-watchdog/blank-lan`.
+
+The watchdog/virtual-slice mode remains an opt-in experiment with a known paced
+startup regression. The earlier Sky Force-only deployment check was insufficient
+coverage for enabling it across the game picker.
+
 ## Equal-work mechanism check
 
 Two synthetic loops each perform 50 million iterations. The counted and
