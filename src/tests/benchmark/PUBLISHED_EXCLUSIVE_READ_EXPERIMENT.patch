@@ -1,0 +1,204 @@
+diff --git a/src/emu/mem/src/control.cpp b/src/emu/mem/src/control.cpp
+index c2f7265f8..a2ee32a37 100644
+--- a/src/emu/mem/src/control.cpp
++++ b/src/emu/mem/src/control.cpp
+@@ -18,6 +18,9 @@
+  */
+ 
+ #include <cpu/arm_interface.h>
++#include <cpu/aot/memory_experiment.h>
++#include <config/config.h>
++#include <cstring>
+ 
+ #include <mem/control.h>
+ #include <mem/mmu.h>
+@@ -26,6 +29,26 @@
+ #include <mem/model/multiple/control.h>
+ 
+ namespace eka2l1::mem {
++    template<typename T>
++    static bool published_exclusive_read(arm::core *cpu, const vm_address address, T *value) {
++#ifdef __EMSCRIPTEN__
++        using namespace arm::aot::memory_experiment;
++        // Only direct-mode CPU initialization publishes this view. A stale
++        // view uses the MMU until the next publication. Use mapped
++        // pages rather than the unchecked arena so faults retain their behavior.
++        if (!cpu->experimental_pointer || !cpu->experimental_dirty
++            || cpu->experimental_dirty->load(std::memory_order_acquire)
++            || (address & 4095) > 4096 - sizeof(T)) return false;
++        const auto *view = reinterpret_cast<const direct_view *>(cpu->experimental_pointer);
++        const auto host = reinterpret_cast<const page *>(view->pages)[address >> 12].read;
++        if (!host) return false;
++        std::memcpy(value, reinterpret_cast<const void *>(host + (address & 4095)), sizeof(T));
++        return true;
++#else
++        return false;
++#endif
++    }
++
+     control_base::control_base(arm::exclusive_monitor *monitor, page_table_allocator *alloc, config::state *conf,
+         std::size_t psize_bits, const bool mem_map_old)
+         : alloc_(alloc)
+@@ -55,21 +78,25 @@ namespace eka2l1::mem {
+ 
+         if (exclusive_monitor_) {
+             exclusive_monitor_->read_8bit = [this](arm::core *core, const vm_address addr, std::uint8_t *data) {
++                if (!conf_->log_read && published_exclusive_read(core, addr, data)) return true;
+                 mmu_base *mm = get_or_create_mmu(core);
+                 return mm->read_8bit_data(addr, data);
+             };
+ 
+             exclusive_monitor_->read_16bit = [this](arm::core *core, const vm_address addr, std::uint16_t *data) {
++                if (!conf_->log_read && published_exclusive_read(core, addr, data)) return true;
+                 mmu_base *mm = get_or_create_mmu(core);
+                 return mm->read_16bit_data(addr, data);
+             };
+ 
+             exclusive_monitor_->read_32bit = [this](arm::core *core, const vm_address addr, std::uint32_t *data) {
++                if (!conf_->log_read && published_exclusive_read(core, addr, data)) return true;
+                 mmu_base *mm = get_or_create_mmu(core);
+                 return mm->read_32bit_data(addr, data);
+             };
+ 
+             exclusive_monitor_->read_64bit = [this](arm::core *core, const vm_address addr, std::uint64_t *data) {
++                if (!conf_->log_read && published_exclusive_read(core, addr, data)) return true;
+                 mmu_base *mm = get_or_create_mmu(core);
+                 return mm->read_64bit_data(addr, data);
+             };
+diff --git a/src/tests/aot/test_aot_wasm.cpp b/src/tests/aot/test_aot_wasm.cpp
+index ad92df7fd..a377147a6 100644
+--- a/src/tests/aot/test_aot_wasm.cpp
++++ b/src/tests/aot/test_aot_wasm.cpp
+@@ -6350,6 +6350,8 @@ static bool test_memory_implementations() {
+ 
+ #include "svc_return_fixture.h"
+ 
++#include "published_exclusive_fixture.h"
++
+ int main(int argc, char **argv) {
+     // Production module staging logs its result; standalone tests have no sink.
+     eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
+@@ -6385,6 +6387,7 @@ int main(int argc, char **argv) {
+         && test_thumb_direct_memory() && test_invariant_reads(arm_ir_policy::write_budget_chunks)
+         && test_invariant_writes(arm_ir_policy::write_budget_chunks) && test_block_transfer_callback_pc()?0:1;
+     if(argc==2 && std::string(argv[1])=="--arm-memory-only")return test_arm_short_block_memory() && test_cached_callback_state()?0:1;
++    if(argc==2 && std::string(argv[1])=="--published-exclusive-only")return test_published_exclusive_reads()?0:1;
+     if(argc==2 && std::string(argv[1])=="--memory-implementations-only")return test_memory_implementations()?0:1;
+     if(argc==2 && std::string(argv[1])=="--unsafe-code-only")return test_unsafe_code_diagnostic()?0:1;
+     if(argc==2 && std::string(argv[1])=="--branch-veneers-only")return test_branch_veneers()?0:1;
+@@ -7062,6 +7065,7 @@ int main(int argc, char **argv) {
+     if (test_literal_pc_veneers()) passed++; else failed++;
+     if (test_boundary_details()) passed++; else failed++;
+     if (test_list_scan_summary()) passed++; else failed++;
++    if (test_published_exclusive_reads()) passed++; else failed++;
+     if (test_loop_budget_chunks()) passed++; else failed++;
+     if (test_division_sequences()) passed++; else failed++;
+     if (test_inlined_leaves(arm_ir_policy::loop_budget_chunks)) passed++; else failed++;
+diff --git a/src/tests/aot/published_exclusive_fixture.h b/src/tests/aot/published_exclusive_fixture.h
+new file mode 100644
+index 000000000..c383ecdd6
+--- /dev/null
++++ b/src/tests/aot/published_exclusive_fixture.h
+@@ -0,0 +1,102 @@
++static bool test_published_exclusive_reads() {
++#ifdef __EMSCRIPTEN__
++    auto failure=[](unsigned line){printf("FAIL published exclusive fixture line %u\n",line);return false;};
++    using namespace memory_experiment;
++    namespace mem=eka2l1::mem;
++    struct restore {unsigned saved=mode;~restore(){mode=saved;}} saved;
++    mode=2;
++    unsigned checks=0,fast_checks=0;
++    for(auto model:{mem::mem_model_type::multiple,mem::mem_model_type::flexible}) {
++        eka2l1::config::state conf;
++        r12l1::exclusive_monitor monitor(1);
++        mem::basic_page_table_allocator allocator;
++        auto control=mem::make_new_control(&monitor,&allocator,&conf,12,false,model);
++        auto first=mem::make_new_mem_model_process(control.get(),model);
++        auto second=mem::make_new_mem_model_process(control.get(),model);
++        mem::mem_model_process *processes[]={first.get(),second.get()};
++        mem::mem_model_chunk *chunks[2]{};
++        mem::mem_model_chunk_creation_info info{};
++        info.size=0x100000;info.flags=mem::MEM_MODEL_CHUNK_REGION_USER_LOCAL|mem::MEM_MODEL_CHUNK_TYPE_NORMAL;
++        info.perm=prot_read_write;
++        for(unsigned i=0;i<2;++i) {
++            if(processes[i]->create_chunk(chunks[i],info))return failure(__LINE__);
++            chunks[i]->commit(0,8192);
++            if(chunks[i]->committed()!=8192)return failure(__LINE__);
++            auto *bytes=static_cast<std::uint8_t*>(chunks[i]->host_base());
++            for(unsigned n=0;n<8192;++n)bytes[n]=static_cast<std::uint8_t>(n*37+i*79);
++        }
++        auto cpu=std::make_unique<dyncom_core>(&monitor,12);
++        auto *mmu=control->get_or_create_mmu(cpu.get());
++        const auto kernel_space=mmu->current_addr_space();
++        unsigned active=0;
++        auto exercise=[&](const char *phase) {
++            const auto guest=chunks[active]->base(processes[active]);
++            auto width=[&](auto zero) {
++                using T=decltype(zero);
++                for(unsigned offset:{0u,1u,2u,3u,127u,4088u,4090u,4093u,4095u,4096u,5000u,8192u}) {
++                    const auto address=guest+offset;
++                    T expected=static_cast<T>(0x95),actual=expected;
++                    bool reference=false,result=false;
++                    if constexpr(sizeof(T)==1)reference=cpu->read_8bit(address,&expected);
++                    if constexpr(sizeof(T)==2)reference=cpu->read_16bit(address,&expected);
++                    if constexpr(sizeof(T)==4)reference=cpu->read_32bit(address,&expected);
++                    if constexpr(sizeof(T)==8)reference=cpu->read_64bit(address,&expected);
++                    auto *page=control->get_page_info(processes[active]->address_space_id(),address);
++                    const bool fast=!conf.log_read && cpu->experimental_pointer
++                        && !cpu->experimental_dirty->load() && (address&4095)<=4096-sizeof(T)
++                        && page && page->host_addr && (page->perm&prot_read);
++                    cpu->mem_cache()->flush();
++                    if constexpr(sizeof(T)==1)result=monitor.read_8bit(cpu.get(),address,&actual);
++                    if constexpr(sizeof(T)==2)result=monitor.read_16bit(cpu.get(),address,&actual);
++                    if constexpr(sizeof(T)==4)result=monitor.read_32bit(cpu.get(),address,&actual);
++                    if constexpr(sizeof(T)==8)result=monitor.read_64bit(cpu.get(),address,&actual);
++                    if(reference!=result || expected!=actual
++                        || (fast && cpu->mem_cache()->entries[cpu->mem_cache()->index(address)].host_base)) {
++                        printf("FAIL published exclusive read model=%u phase=%s width=%u offset=%u fast=%u result=%u/%u value=%llx/%llx\n",
++                            unsigned(model),phase,unsigned(sizeof(T)),offset,fast,result,reference,
++                            static_cast<unsigned long long>(actual),static_cast<unsigned long long>(expected));return failure(__LINE__);
++                    }
++                    ++checks;fast_checks+=fast;
++                }
++                return true;
++            };
++            return width(std::uint8_t{}) && width(std::uint16_t{}) && width(std::uint32_t{}) && width(std::uint64_t{});
++        };
++        for(active=0;active<2;++active) {
++            if(!mmu->set_current_addr_space(processes[active]->address_space_id()) || !exercise("ASID dirty"))return failure(__LINE__);
++            cpu->publish_memory_view();
++            if(!exercise("ASID published"))return failure(__LINE__);
++        }
++        active=1;
++        const auto guest=chunks[active]->base(processes[active]);
++        auto *page=control->get_page_info(processes[active]->address_space_id(),guest);
++        const auto original=page->host_addr;
++        page->assign(chunks[0]->host_base(),prot_read_write);
++        if(!exercise("remap dirty"))return failure(__LINE__);
++        cpu->publish_memory_view();if(!exercise("remap published"))return failure(__LINE__);
++        page->assign(original,prot_write);cpu->publish_memory_view();
++        if(!exercise("write-only mapping"))return failure(__LINE__);
++        page->clear();if(!exercise("unmapped dirty"))return failure(__LINE__);
++        cpu->publish_memory_view();if(!exercise("unmapped published"))return failure(__LINE__);
++        page->assign(original,prot_read_write);cpu->publish_memory_view();
++        const auto pointer=cpu->experimental_pointer;cpu->experimental_pointer=0;
++        if(!exercise("no view"))return failure(__LINE__);
++        cpu->experimental_pointer=pointer;
++        conf.log_read=true;if(!exercise("read logging"))return failure(__LINE__);conf.log_read=false;
++        // The memory mode is frozen at initialization. A fresh TLB core must
++        // retain the ordinary MMU path, even beside an existing direct core.
++        mode=0;auto tlb_cpu=std::make_unique<dyncom_core>(&monitor,12);
++        auto *tlb_mmu=control->get_or_create_mmu(tlb_cpu.get());
++        if(!tlb_mmu->set_current_addr_space(processes[active]->address_space_id()))return failure(__LINE__);
++        cpu.swap(tlb_cpu);if(!exercise("fresh TLB core"))return failure(__LINE__);cpu.swap(tlb_cpu);
++        mode=2;
++        if(!exercise("restored view"))return failure(__LINE__);
++        if(!mmu->set_current_addr_space(kernel_space)
++            || !tlb_mmu->set_current_addr_space(kernel_space))return failure(__LINE__);
++        first.reset();second.reset();cpu.reset();tlb_cpu.reset();
++    }
++    if(!fast_checks)return failure(__LINE__);
++    printf("PASS %u exclusive read/MMU comparisons, %u proved fast-path calls, both memory models\n",checks,fast_checks);
++#endif
++    return true;
++}
