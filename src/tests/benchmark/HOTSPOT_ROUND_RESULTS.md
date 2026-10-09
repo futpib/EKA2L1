@@ -19,6 +19,7 @@ not for the remaining ten hotspots.
 | 8 | Registry-only ROM range check | Adopted and served on LAN; [full result](ROM_REGISTRY_RANGE_RESULTS.md) | Sky Force +1.47%, 3/4 faster pairs; Snakes +0.01% (flat) |
 | 9 | Packed exclusive-monitor summary | Adopted and served on LAN; [full result](PACKED_MONITOR_RESULTS.md) | Sky Force +3.83%, 4/4 faster pairs; Snakes -0.10% (flat) |
 | 10 | Published-view exclusive reads | Not adopted; [full result](PUBLISHED_EXCLUSIVE_READ_RESULTS.md) and [patch](PUBLISHED_EXCLUSIVE_READ_EXPERIMENT.patch) | Sky Force +0.14%, 2/4 faster pairs despite -0.97% native instructions; Snakes +0.39% |
+| 11 | CPU-owned reservation monitor | Not adopted; [full result](CONFINED_MONITOR_RESULTS.md) and [patch](CONFINED_MONITOR_EXPERIMENT.patch) | Sky Force +0.93%, 2/4 faster pairs; Snakes -0.09% (flat) |
 
 The syscall candidate keeps owning snapshots for stateful callbacks that can
 change their own registration. Built-in bindings use a static bridge with a

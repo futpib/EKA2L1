@@ -1,0 +1,170 @@
+diff --git a/src/emu/cpu/include/cpu/12l1r/exclusive_monitor.h b/src/emu/cpu/include/cpu/12l1r/exclusive_monitor.h
+index f4d1642b6..652e066f8 100644
+--- a/src/emu/cpu/include/cpu/12l1r/exclusive_monitor.h
++++ b/src/emu/cpu/include/cpu/12l1r/exclusive_monitor.h
+@@ -37,7 +37,9 @@ namespace eka2l1::arm::r12l1 {
+          *                              exclusive monitor. Each processor must have a
+          *                              unique id.
+          */
+-        explicit exclusive_monitor(const std::size_t processor_count);
++        // Thread confinement requires serialized calls, including snapshot and
++        // restore. Ownership may move only while no call is in flight.
++        explicit exclusive_monitor(const std::size_t processor_count, bool thread_confined = false);
+ 
+         ~exclusive_monitor() override {
+         }
+@@ -131,6 +133,7 @@ namespace eka2l1::arm::r12l1 {
+         static constexpr vaddress RESERVATION_GRANULE_MASK = 0xFFFF'FFFFUL;
+         static constexpr vaddress INVALID_EXCLUSIVE_ADDRESS = 0xDEAD'DEADUL;
+ 
++        const bool thread_confined_;
+         std::atomic<std::uint8_t> lock_state_{0};
+         // Protected by the monitor lock. Unlock publishes its conservative
+         // value in bit 1; bit 0 denotes the lock itself.
+diff --git a/src/emu/cpu/include/cpu/arm_factory.h b/src/emu/cpu/include/cpu/arm_factory.h
+index cc440fb3b..084f5f819 100644
+--- a/src/emu/cpu/include/cpu/arm_factory.h
++++ b/src/emu/cpu/include/cpu/arm_factory.h
+@@ -62,6 +62,7 @@ namespace eka2l1 {
+          */
+         core_instance create_core(exclusive_monitor *monitor, arm_emulator_type arm_type);
+ 
+-        exclusive_monitor_instance create_exclusive_monitor(arm_emulator_type arm_type, const std::size_t core_count);
++        exclusive_monitor_instance create_exclusive_monitor(arm_emulator_type arm_type, const std::size_t core_count,
++        bool thread_confined = false);
+     }
+ }
+diff --git a/src/emu/cpu/src/12l1r/exclusive_monitor.cpp b/src/emu/cpu/src/12l1r/exclusive_monitor.cpp
+index 8d0f40c2b..50990897b 100644
+--- a/src/emu/cpu/src/12l1r/exclusive_monitor.cpp
++++ b/src/emu/cpu/src/12l1r/exclusive_monitor.cpp
+@@ -20,13 +20,14 @@
+ #include <cpu/12l1r/exclusive_monitor.h>
+ 
+ namespace eka2l1::arm::r12l1 {
+-    exclusive_monitor::exclusive_monitor(const std::size_t processor_count)
++    exclusive_monitor::exclusive_monitor(const std::size_t processor_count, const bool thread_confined)
+         :
+ #if R12L1_ENABLE_FUZZ
+         exclusive_operation_results_(processor_count, false)
+         ,
+ #endif
+-        exclusive_addresses_(processor_count, INVALID_EXCLUSIVE_ADDRESS)
++        thread_confined_(thread_confined)
++        , exclusive_addresses_(processor_count, INVALID_EXCLUSIVE_ADDRESS)
+         , exclusive_values_(processor_count) {
+         unlock();
+     }
+@@ -36,6 +37,7 @@ namespace eka2l1::arm::r12l1 {
+     }
+ 
+     void exclusive_monitor::lock() {
++        if (thread_confined_) return;
+         // A locked monitor is conservatively nonempty until its owner
+         // publishes the actual summary when releasing it.
+         while (lock_state_.exchange(3, std::memory_order_acquire) & 1) {
+@@ -43,6 +45,7 @@ namespace eka2l1::arm::r12l1 {
+     }
+ 
+     void exclusive_monitor::unlock() {
++        if (thread_confined_) return;
+         lock_state_.store(may_have_reservations_ ? 2 : 0, std::memory_order_release);
+     }
+ 
+@@ -66,7 +69,8 @@ namespace eka2l1::arm::r12l1 {
+     }
+ 
+     void exclusive_monitor::clear_exclusive() {
+-        if (!(lock_state_.load(std::memory_order_acquire) & 2)) return;
++        if (thread_confined_ ? !may_have_reservations_
++            : !(lock_state_.load(std::memory_order_acquire) & 2)) return;
+         lock();
+         std::fill(exclusive_addresses_.begin(), exclusive_addresses_.end(), INVALID_EXCLUSIVE_ADDRESS);
+         may_have_reservations_ = false;
+diff --git a/src/emu/cpu/src/arm_factory.cpp b/src/emu/cpu/src/arm_factory.cpp
+index a85ab06fa..0fe5c5ed7 100644
+--- a/src/emu/cpu/src/arm_factory.cpp
++++ b/src/emu/cpu/src/arm_factory.cpp
+@@ -173,7 +173,7 @@ namespace eka2l1::arm {
+         return nullptr;
+     }
+ 
+-    exclusive_monitor_instance create_exclusive_monitor(arm_emulator_type arm_type, const std::size_t core_count) {
++    exclusive_monitor_instance create_exclusive_monitor(arm_emulator_type arm_type, const std::size_t core_count, const bool thread_confined) {
+         // Resolve exactly as create_core does. Its caller passes the same requested
+         // type to both, and a downgraded core must not be paired with a monitor
+         // built for the backend that was asked for. create_core reports the
+@@ -183,11 +183,11 @@ namespace eka2l1::arm {
+             return nullptr;
+ 
+         case arm_emulator_type::dyncom:
+-            return std::make_unique<r12l1::exclusive_monitor>(core_count);
++            return std::make_unique<r12l1::exclusive_monitor>(core_count, thread_confined);
+ 
+ #if EKA2L1_ARCH(ARM)
+         case arm_emulator_type::r12l1:
+-            return std::make_unique<r12l1::exclusive_monitor>(core_count);
++            return std::make_unique<r12l1::exclusive_monitor>(core_count, thread_confined);
+ #elif EKA2L1_CPU_HAS_DYNARMIC
+         case arm_emulator_type::dynarmic:
+             return std::make_unique<dynarmic_exclusive_monitor>(core_count);
+diff --git a/src/emu/system/src/epoc.cpp b/src/emu/system/src/epoc.cpp
+index 4582dc99c..65fb1f928 100644
+--- a/src/emu/system/src/epoc.cpp
++++ b/src/emu/system/src/epoc.cpp
+@@ -647,7 +647,14 @@ namespace eka2l1 {
+         file_system_inst physical_fs = create_physical_filesystem(epocver::epoc94, "");
+         physical_fs_id_ = io_->add_filesystem(physical_fs);
+ 
++#ifdef __EMSCRIPTEN__
++        // The browser frontend runs/steps this CPU only on its emulation worker
++        // and joins it before system destruction. Monitor state has one owner;
++        // guest-memory compare-and-swap remains atomic for other memory users.
++        exmonitor = arm::create_exclusive_monitor(cpu_type, 1, true);
++#else
+         exmonitor = arm::create_exclusive_monitor(cpu_type, 1);
++#endif
+         cpu = arm::create_core(exmonitor.get(), cpu_type);
+ 
+         kern_ = std::make_unique<kernel_system>(parent_, timing_.get(), io_.get(), conf_, app_settings_, &romf_, cpu.get(),
+diff --git a/src/tests/aot/test_exclusive_monitor.cpp b/src/tests/aot/test_exclusive_monitor.cpp
+index 8e5655df2..864b0969f 100644
+--- a/src/tests/aot/test_exclusive_monitor.cpp
++++ b/src/tests/aot/test_exclusive_monitor.cpp
+@@ -14,8 +14,9 @@ static void require(bool ok) {
+ }
+ 
+ static void compare_sequences() {
++    for (bool confined : {false, true})
+     for (unsigned processors : {1u, 2u, 8u}) {
+-        exclusive_monitor monitor(processors);
++        exclusive_monitor monitor(processors, confined);
+         std::vector<exclusive_monitor::reservation_snapshot> reference(processors);
+         for (auto &entry : reference) entry.address = 0xdeaddead;
+         unsigned random = 192837;
+@@ -102,9 +103,25 @@ static void competing_reservations() {
+     require(memory == 6000);
+ }
+ 
++static void confined_handoff() {
++    exclusive_monitor monitor(1, true);
++    for (unsigned i = 0; i < 32; ++i) {
++        std::thread owner([&] {
++            monitor.read_and_mark<unsigned>(0, 0x1000, [&] { return i; });
++        });
++        owner.join();
++        require(monitor.do_exclusive_operation<unsigned>(0, 0x1000,
++            [&](unsigned saved) { return saved == i; }));
++        monitor.clear_exclusive();
++        require(!monitor.do_exclusive_operation<unsigned>(0, 0x1000,
++            [](unsigned) { return true; }));
++    }
++}
++
+ int main() {
+     compare_sequences();
+     cross_thread_clear();
+     competing_reservations();
++    confined_handoff();
+     std::cout << "PASS " << checks << " reservation state and cross-thread clear checks\n";
+ }
