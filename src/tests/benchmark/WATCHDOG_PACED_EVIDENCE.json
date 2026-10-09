@@ -1,0 +1,192 @@
+{
+  "base_commit": "053871127",
+  "change": "Clear requests raised outside CPU execution before starting a watchdog CPU slice",
+  "browser": "Chrome/153.0.8010.52",
+  "gpu": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA-610.57.4.0)",
+  "watchdog_us": 2000,
+  "launch": "startServer preload SkyForce.sis UID 0xa020d913; ordinary startEmulator interactive pacing, no benchmark route",
+  "mode": "count-free, direct memory, stock 5320 ROM/RPKG, Sky Force 1.22",
+  "before": {
+    "last_2ms_sample": {
+      "hostMs": 72517.5149999857,
+      "guestUs": 68040000,
+      "frames": 0,
+      "inputs": 4,
+      "watchdog": 1,
+      "requests": 33284,
+      "audio": {},
+      "device": {
+        "received": 3265440,
+        "sink": {
+          "queued": 480,
+          "dropped": 0,
+          "read": 3265440
+        }
+      }
+    },
+    "period_change": {
+      "hostMs": 73035.9850000143,
+      "guestUs": 68550000,
+      "frames": 0,
+      "intervalUs": 20000
+    },
+    "note": "Changing only period to 20 ms allowed startup; not a performance measurement"
+  },
+  "combat": {
+    "start": {
+      "hostMs": 116829.89999997616,
+      "guestUs": 112310000,
+      "frames": 2163,
+      "inputs": 12,
+      "watchdog": 1,
+      "requests": 52536,
+      "monitor": {
+        "guest_us": 112310000,
+        "instructions": 0,
+        "compiled_functions": 8254,
+        "allocated_bytes": 868607552,
+        "free_bytes": 58133056
+      },
+      "audio": {},
+      "device": {
+        "state": "suspended",
+        "time": 0,
+        "received": 5390400,
+        "sink": {
+          "queued": 480,
+          "dropped": 0,
+          "read": 5390400
+        }
+      }
+    },
+    "end": {
+      "hostMs": 151604.34999990463,
+      "guestUs": 147080000,
+      "frames": 2685,
+      "inputs": 12,
+      "watchdog": 1,
+      "requests": 68079,
+      "monitor": {
+        "guest_us": 147080000,
+        "instructions": 0,
+        "compiled_functions": 8518,
+        "allocated_bytes": 868706408,
+        "free_bytes": 58034200
+      },
+      "audio": {
+        "queued": 4128,
+        "resyncs": 75,
+        "underruns": 0,
+        "dropped": 476192,
+        "played": 1208320,
+        "nonzero": 817269
+      },
+      "device": {
+        "state": "running",
+        "time": 25.578666666666667,
+        "received": 7059840,
+        "sink": {
+          "queued": 0,
+          "dropped": 0,
+          "read": 7059840
+        }
+      }
+    },
+    "host_seconds": 34.77444999992847,
+    "guest_seconds": 34.77,
+    "realtime_ratio": 0.9998720324856762,
+    "presentations": 522,
+    "presentations_per_second": 15.011021022649494,
+    "all_instruction_totals_zero": true
+  },
+  "audio": {
+    "output": "Web Audio sinkId type none; hardware device failed and suspended the context",
+    "start": {
+      "hostMs": 127058.33499991894,
+      "guestUs": 122540000,
+      "frames": 2333,
+      "inputs": 12,
+      "watchdog": 1,
+      "requests": 57232,
+      "monitor": {
+        "guest_us": 122540000,
+        "instructions": 0,
+        "compiled_functions": 8401,
+        "allocated_bytes": 871749192,
+        "free_bytes": 54991416
+      },
+      "audio": {
+        "queued": 4384,
+        "resyncs": 74,
+        "underruns": 0,
+        "dropped": 470400,
+        "played": 45056,
+        "nonzero": 44475
+      },
+      "device": {
+        "state": "running",
+        "time": 1.1413333333333333,
+        "received": 5881440,
+        "sink": {
+          "queued": 0,
+          "dropped": 0,
+          "read": 5881440
+        }
+      }
+    },
+    "end": {
+      "hostMs": 151604.34999990463,
+      "guestUs": 147080000,
+      "frames": 2685,
+      "inputs": 12,
+      "watchdog": 1,
+      "requests": 68079,
+      "monitor": {
+        "guest_us": 147080000,
+        "instructions": 0,
+        "compiled_functions": 8518,
+        "allocated_bytes": 868706408,
+        "free_bytes": 58034200
+      },
+      "audio": {
+        "queued": 4128,
+        "resyncs": 75,
+        "underruns": 0,
+        "dropped": 476192,
+        "played": 1208320,
+        "nonzero": 817269
+      },
+      "device": {
+        "state": "running",
+        "time": 25.578666666666667,
+        "received": 7059840,
+        "sink": {
+          "queued": 0,
+          "dropped": 0,
+          "read": 7059840
+        }
+      }
+    },
+    "host_seconds": 24.546014999985694,
+    "underruns": 0,
+    "resyncs": 1,
+    "dropped_samples": 5792,
+    "note": "No physical speaker playback verified"
+  },
+  "limitations": [
+    "No stock hardware or equal-game-work timing reference",
+    "Host was busy with unrelated work; own full CPU tests overlapped the first capture",
+    "First browser automation ended with a detached-frame error; cause unresolved",
+    "Fresh second run reached menus under greater host load; not a second combat measurement",
+    "A full CPU-suite rerun exited 143 before completion; focused watchdog tests passed on the rebuilt binary"
+  ],
+  "artifacts": "/home/claude/.scratch/eka-watchdog",
+  "screenshots": {
+    "auto-110.png": "5a7040ab339bfca220385cb044a175988658bcdeb283877f8d4fbfda9500fa15",
+    "auto-120.png": "3bb2db98db4193e8237eb80c2b551647e59c152172b0d12eed24d533d3a6fdbf",
+    "loading-later.png": "369e17c949aa881e662bf84c3bdd74fc533276bf3a2f954d0efa9d25e889c60e",
+    "auto-130.png": "af403499da4b8ac5cf47b549f9156248aa10050225c8c69e73b0f989166c263b",
+    "auto-140.png": "4a3c6b4062b331308693b72b49d4992bafdc65bd53df1c2c734927ae6d86f72e"
+  },
+  "build_wasm_sha256": "2dce4aefa6d9fc73e09dc0d14e01b7ad063834f09a2d3f2e66c049d686597353"
+}

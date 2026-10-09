@@ -83,6 +83,49 @@ timer-sensitive interactions remain unverified.
 Sky Force also reaches gameplay with the extended startup route and zero
 instruction totals. Its timing was not compared on equivalent game output.
 
+## Paced Sky Force follow-up
+
+The first ordinary interactive launch exposed a starvation bug. The 2 ms
+watchdog continued requesting yields during host pacing sleeps. On the next
+CPU entry, the pending request could immediately return without guest execution,
+yet the scheduler charged another virtual slice. Sky Force stayed blank with
+zero presentations after more than 68 guest seconds. Changing only the external
+request period to 20 ms allowed startup to progress.
+
+The scheduler now clears requests raised outside guest CPU execution immediately
+before starting a normal CPU slice. Requests raised during execution still reach
+the existing safepoints. This changes the experimental event-clock path only.
+
+With that fix and the original 2 ms watchdog, the actual browser launcher reached
+Stage 1 combat. A 34.77445-second host window advanced 34.77 guest seconds and
+produced 522 presentations: **0.99987x guest-clock realtime, 15.01 presentations
+per second**. Approximately ten-second subwindows ranged from 10.1 to 17.2
+presentations per second; a final four-second segment reached 18.3. Screenshots
+show planes, scrolling scenery, combat and increasing score. Instruction totals
+remained zero. Presentation counts are not an oracle for unique frames or game
+state, and no stock-device frame-rate comparison was made.
+
+The host audio device failed and suspended its Web Audio context. Switching the
+test browser to a silent, clocked Web Audio output allowed the production audio
+worklet to run. Across 24.546 seconds it reported zero new underruns, one resync
+and 5,792 discarded sample frames. This verifies non-silent PCM consumption in
+the worklet, not physical speaker playback or perfectly continuous sound.
+
+These are functional observations on a busy host, not isolated throughput
+measurements. The first capture overlapped CPU tests and ended later with a
+detached Puppeteer frame; its cause remains unresolved. A second fresh launch
+under greater host load reached menus, but its fixed startup inputs no longer
+matched the slower startup and it is not counted as another combat measurement.
+The rebuilt focused watchdog tests passed. An additional full CPU-suite rerun
+exited with status 143 before completion; the earlier full-suite result above
+belongs to the previous revision.
+
+Pacing therefore runs actual Sky Force gameplay after the fix. It does not yet
+establish original-device game speed: the experimental virtual-slice clock can
+stay realtime while allowing different amounts of computation between timers.
+See `WATCHDOG_PACED_EVIDENCE.json` for endpoints, configuration and limitations.
+The LAN server was left on its existing build.
+
 ## Equal-work mechanism check
 
 Two synthetic loops each perform 50 million iterations. The counted and

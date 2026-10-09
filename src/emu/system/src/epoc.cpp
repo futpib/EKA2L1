@@ -827,6 +827,11 @@ namespace eka2l1 {
         if (to_run != nullptr) {
             common::performance::scope run_scope(common::performance::cpu_run);
             if (!should_step) {
+                // Requests raised while pacing or idle do not preempt a CPU
+                // slice that has not started. Otherwise pacing can repeatedly
+                // advance guest time without executing any guest code.
+                if (common::benchmark::event_clock)
+                    arm::aot::watchdog::request.store(0, std::memory_order_relaxed);
                 cpu->run(timing_->deterministic()
                     ? std::min<std::uint32_t>(to_run->get_remaining_screenticks(), 4840)
                     : to_run->get_remaining_screenticks());
