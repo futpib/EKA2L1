@@ -10,8 +10,11 @@ EM_JS(double, fusion_operation_count, (int kind, bool clear), {
 #endif
 
 static bool count_fusion_operations(wasm_func_def &function) {
+    if(function.outlined_callee && !count_fusion_operations(*function.outlined_callee))return false;
+    for(auto &call:function.outlined_calls)if(!count_fusion_operations(*call.callee))return false;
     enum immediate {none,leb,pair,table,float32,float64,unknown};
     const auto &body=function.body;std::vector<std::uint8_t> counted;
+    std::map<unsigned,unsigned> relocated;
     for(std::size_t pos=0;pos<body.size();) {
         const auto begin=pos;const unsigned opcode=body[pos++];
         immediate encoding=unknown;
@@ -34,19 +37,22 @@ static bool count_fusion_operations(wasm_func_def &function) {
         if(category!=wasm_cost::kind::structural) {
             counted.insert(counted.end(),{op_i32_const,static_cast<std::uint8_t>(category),op_call,6});
         }
+        if(opcode==op_call)relocated[begin+1]=counted.size()+1;
         counted.insert(counted.end(),body.begin()+begin,body.begin()+pos);
     }
+    if(function.outlined_callee)function.outlined_call_offset=relocated.at(function.outlined_call_offset);
+    for(auto &call:function.outlined_calls)call.call_offset=relocated.at(call.call_offset);
     function.body=std::move(counted);function.sources.clear();return true;
 }
 
 // Compare whole compiled chains, including observable callback boundaries.
-static bool test_region_fusion(bool instrument = false) {
+static bool test_region_fusion(bool instrument = false, bool budget_proof = false) {
 #ifdef __EMSCRIPTEN__
     using S = state_offsets;
     struct restore {
-        bool direct=thumb_direct_memory, fusion=thumb_region_fusion;
+        bool direct=thumb_direct_memory, fusion=thumb_region_fusion, budget=thumb_entry_budget;
         unsigned mode=memory_experiment::mode, unsafe=eka2l1::common::code_tracking::unsafe_code_mode;
-        ~restore(){thumb_direct_memory=direct;thumb_region_fusion=fusion;
+        ~restore(){thumb_direct_memory=direct;thumb_region_fusion=fusion;thumb_entry_budget=budget;
             memory_experiment::mode=mode;eka2l1::common::code_tracking::unsafe_code_mode=unsafe;
             g_test_mem=nullptr;g_memory_boundary={};}
     } saved;
@@ -60,7 +66,8 @@ static bool test_region_fusion(bool instrument = false) {
         {0x2800,0xd003,0x3801,0xe7fb,0x46c0,0x46c0,0x3301,0x4770},
         {0xf000,0xf804,0x3301,0x4770,0x46c0,0x46c0,0x3001,0x4770},
         {0x2800,0xd002,0x3001,0x4770,0x46c0,0x2b00,0xd002,0x3301,0x4770,0x46c0,0x3401,0x4770},
-        {0x6008,0xe001,0x46c0,0x46c0,0x680a,0x3201,0x600a,0x4770}
+        {0x6008,0xe001,0x46c0,0x46c0,0x680a,0x3201,0x600a,0x4770},
+        {0x2800,0xd002,0x3001,0x4770,0x46c0,0x680a,0x3201,0x600a,0x4770}
     };
     unsigned checks=0,independent=0,selected=0,less=0,equal=0,more=0;std::uint64_t calls[2]{};
     double operations[2][12]{};
@@ -70,9 +77,10 @@ static bool test_region_fusion(bool instrument = false) {
         const code_window rom{reinterpret_cast<const std::uint8_t*>(words.data()),0x1000,static_cast<unsigned>(words.size()*2)};
         std::map<unsigned,std::vector<std::uint8_t>> modules[2];
         for(unsigned variant=0;variant<2;++variant)for(unsigned off=0;off<rom.size;off+=2) {
-            thumb_region_fusion=variant;
+            thumb_region_fusion=budget_proof || variant;
+            thumb_entry_budget=budget_proof ? bool(variant) : saved.budget;
             auto tr=translate_thumb_block(rom.host+off,rom.size-off,rom.base+off,nullptr,nullptr,true,false,true,&rom);
-            selected+=tr.fused_edges;
+            selected+=budget_proof ? bool(tr.entry_budget_instructions) : tr.fused_edges;
             if(instrument && !count_fusion_operations(tr.func))return false;
             modules[variant][rom.base+off]=build_wasm_module({tr.func},imports);
         }
@@ -152,8 +160,8 @@ static bool test_region_fusion(bool instrument = false) {
         printf(" FUSION operations: paths lower=%u equal=%u higher=%u\n",less,equal,more);
         for(unsigned kind=0;kind<12;++kind)printf(" category %u %.0f -> %.0f\n",kind,operations[0][kind],operations[1][kind]);
     }
-    if(!selected || calls[1]>=calls[0])return false;
-    printf(" PASS region fusion (%u chain/state/memory/callback checks; %u independent interpreter checks; calls %llu -> %llu; %u fused edges)\n",checks,independent,static_cast<unsigned long long>(calls[0]),static_cast<unsigned long long>(calls[1]),selected);
+    if(!selected || (budget_proof ? calls[1]!=calls[0] : calls[1]>=calls[0]))return false;
+    printf(" PASS %s (%u chain/state/memory/callback checks; %u independent interpreter checks; calls %llu -> %llu; %u selected sites)\n",budget_proof?"Thumb entry budget":"region fusion",checks,independent,static_cast<unsigned long long>(calls[0]),static_cast<unsigned long long>(calls[1]),selected);
 #endif
     return true;
 }

@@ -4332,7 +4332,30 @@ static bool test_thumb_rom_veneers() {
                 nullptr,nullptr,true,false,true,&partial);
             auto original=translate_thumb_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),base,
                 nullptr,nullptr,true,false,true);
-            if(rejected.func.body!=original.func.body)return false;
+            const auto &precise=rejected.entry_budget_instructions
+                ? *rejected.func.outlined_calls.at(0).callee : rejected.func;
+            if(precise.body!=original.func.body) {
+                printf(" FAIL partial Thumb ROM veneer changed precise call length=%u\n",length);return false;
+            }
+            const auto actual_module=build_wasm_module({rejected.func},imports);
+            const auto expected_module=build_wasm_module({original.func},imports);
+            for(unsigned budget=0;budget<5;++budget) {
+                alignas(8) unsigned states[2][256]{};
+                for(auto &state:states) {
+                    state[14]=0xabc0000e;state[15]=base;
+                    state[state_offsets::CPSR/4]=0x30;state[state_offsets::TFLAG/4]=1;
+                    state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::NIRQ/4]=1;
+                    state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=8;
+                }
+                const auto actual=js_run_aot_wasm(actual_module.data(),actual_module.size(),
+                    reinterpret_cast<std::uint8_t*>(states[0]),sizeof(states[0]));
+                const auto expected=js_run_aot_wasm(expected_module.data(),expected_module.size(),
+                    reinterpret_cast<std::uint8_t*>(states[1]),sizeof(states[1]));
+                if(actual<0 || actual!=expected || std::memcmp(states[0],states[1],sizeof(states[0]))) {
+                    printf(" FAIL partial Thumb ROM veneer length=%u budget=%u counts=%d/%d\n",length,budget,actual,expected);return false;
+                }
+                ++checks;
+            }
         }
     }
     printf(" PASS Thumb ROM veneers (%u full-state budget/mode/runtime-literal/mapping/stop/IRQ checks)\n",checks);
@@ -6415,6 +6438,8 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--division-sequences-only")return test_division_sequences()?0:1;
     if(argc==2 && std::string(argv[1])=="--region-fusion-counts")return test_region_fusion(true)?0:1;
     if(argc==2 && std::string(argv[1])=="--region-fusion-only")return test_region_fusion()?0:1;
+    if(argc==2 && std::string(argv[1])=="--thumb-entry-budget-only")return test_region_fusion(false,true)?0:1;
+    if(argc==2 && std::string(argv[1])=="--thumb-entry-budget-counts")return test_region_fusion(true,true)?0:1;
     if(argc==2 && std::string(argv[1])=="--list-scan-only")return test_list_scan_summary()?0:1;
     if(argc==2 && std::string(argv[1])=="--loop-budget-only")return test_loop_budget_chunks()?0:1;
     if(argc==2 && std::string(argv[1])=="--sparse-rom-only")return test_sparse_rom_registry() && test_registry_lookup_lifecycle()?0:1;
@@ -7068,6 +7093,7 @@ int main(int argc, char **argv) {
     if (test_boundary_details()) passed++; else failed++;
     if (test_list_scan_summary()) passed++; else failed++;
     if (test_region_fusion()) passed++; else failed++;
+    if (test_region_fusion(false,true)) passed++; else failed++;
     if (test_loop_budget_chunks()) passed++; else failed++;
     if (test_division_sequences()) passed++; else failed++;
     if (test_inlined_leaves(arm_ir_policy::loop_budget_chunks)) passed++; else failed++;

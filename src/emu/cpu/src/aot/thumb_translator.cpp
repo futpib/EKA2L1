@@ -99,6 +99,8 @@ namespace eka2l1::arm::aot {
         bool entry_supported = true;
         bool unsupported = false; // set by bail_unsupported()
         unsigned helper_calls = 0;
+        bool precise_budget = true;
+        unsigned required_budget = 0;
         // Number of early-exit bails emitted into the function body.
         // Incremented every time the decoder gives up mid-function and
         // hands control back to the interpreter. Lower is better — high
@@ -710,6 +712,14 @@ namespace eka2l1::arm::aot {
         const std::uint32_t TMP1 = 1, TMP2 = 2, TMP3 = 3, TMP4 = 4;
         const std::uint32_t PC_IDX = 5, ADDR_TMP = 6;
         const std::uint32_t FTMP1 = 7, FTMP2 = 8, DTMP1 = 9;
+        const auto budget_guard = [&](std::uint32_t pc, unsigned count) {
+            w.required_budget = std::max(w.required_budget, count + 1);
+            if (!w.precise_budget) return;
+            source_scope provenance(w.source, source_kind::accounting);
+            w.load_i32(S::AOT_BUDGET); w.i32_const(count);
+            w.op(op_i32_le_u); w.op(op_if); w.op(type_void);
+            w.bail(pc, count, exit_census::guard); w.op(op_end);
+        };
         const auto branch = [&](std::uint32_t target, unsigned count, bool checked = false) {
             std::uint16_t first = 0;
             const bool candidate = fusion && count < 128 && fusion->emitted < 512
@@ -904,12 +914,7 @@ namespace eka2l1::arm::aot {
 
             if (bounded) {
                 w.store_i32_const(S::PC, insn_addr);
-                w.load_i32(S::AOT_BUDGET);
-                w.i32_const(insn_idx);
-                w.op(op_i32_le_u);
-                w.op(op_if); w.op(type_void);
-                w.bail(insn_addr, insn_idx, exit_census::guard);
-                w.op(op_end);
+                budget_guard(insn_addr, insn_idx);
                 // High-register PC operands require pipeline/control-flow semantics.
                 // Keep these rare forms in the interpreter until implemented fully.
                 if ((insn & 0xFC00) == 0x4400 && (insn & 0x0300) != 0x0300
@@ -932,10 +937,7 @@ namespace eka2l1::arm::aot {
                         if (kind == 0xF800 || (kind == 0xE800 && !(suffix & 1))) {
                             w.census_pc = (insn_addr + 2) | 1;
                             w.census_opcode = suffix;
-                            w.load_i32(S::AOT_BUDGET); w.i32_const(insn_idx + 1);
-                            w.op(op_i32_le_u); w.op(op_if); w.op(type_void);
-                            w.bail(insn_addr + 2, insn_idx + 1, exit_census::guard);
-                            w.op(op_end);
+                            budget_guard(insn_addr + 2, insn_idx + 1);
                             // Preserve the outer runner's stop/IRQ boundary. A
                             // preceding callback may have requested either exit.
                             w.load_i32(S::NUM_INSTRS_TO_EXECUTE);
@@ -963,10 +965,7 @@ namespace eka2l1::arm::aot {
                                 w.source.pc = target; w.source.kind = source_kind::guest;
                                 w.census_pc = target; w.census_opcode = veneer;
                                 w.store_i32_const(S::PC, target);
-                                w.load_i32(S::AOT_BUDGET); w.i32_const(insn_idx + 2);
-                                w.op(op_i32_le_u); w.op(op_if); w.op(type_void);
-                                w.bail(target, insn_idx + 2, exit_census::guard);
-                                w.op(op_end);
+                                budget_guard(target, insn_idx + 2);
                                 // Retain the ordinary SVC's single-step fallback. Stop/IRQ
                                 // was checked at the preceding call-half boundary, with no
                                 // intervening callback or memory access.
@@ -1001,10 +1000,7 @@ namespace eka2l1::arm::aot {
                                 w.source.pc = target; w.source.kind = source_kind::guest;
                                 w.census_pc = target; w.census_opcode = veneer;
                                 w.store_i32_const(S::PC, target);
-                                w.load_i32(S::AOT_BUDGET); w.i32_const(insn_idx + 2);
-                                w.op(op_i32_le_u); w.op(op_if); w.op(type_void);
-                                w.bail(target, insn_idx + 2, exit_census::guard);
-                                w.op(op_end);
+                                budget_guard(target, insn_idx + 2);
                                 // The call-half boundary above already checked stop/IRQ;
                                 // no callback or guest memory access intervenes.
                                 const auto literal = (veneer & (1u << 23))
@@ -4477,13 +4473,13 @@ namespace eka2l1::arm::aot {
         if (!count_base) tr.end_address = start_address + decoded_end_offset;
     }
 
-    translate_result translate_thumb_block(
+    static translate_result translate_thumb_block_impl(
         const std::uint8_t *code,
         std::size_t code_size,
         std::uint32_t start_address,
         const sibling_map *siblings,
         const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers,
-        const code_window *immutable_code)
+        const code_window *immutable_code, bool precise_budget)
     {
         // Bounded blocks exit on branches instead of recursively calling siblings.
         // Keep guest-visible instructions (including veneers) in the execution stream.
@@ -4505,6 +4501,7 @@ namespace eka2l1::arm::aot {
         const std::uint32_t DTMP1 = 9;
 
         emit w{result.body};
+        w.precise_budget = precise_budget;
         w.source.marks = &result.sources;
         w.direct_memory = direct_memory;
         w.cache.enabled = bounded && cache_registers;
@@ -4525,6 +4522,48 @@ namespace eka2l1::arm::aot {
         tr.entry_supported = w.entry_supported;
         tr.complete = !w.unsupported;
         tr.bail_count = w.bail_count;
+        tr.entry_budget_instructions = w.required_budget;
         return tr;
+    }
+
+    translate_result translate_thumb_block(
+        const std::uint8_t *code, std::size_t code_size, std::uint32_t start_address,
+        const sibling_map *siblings, const code_window *dll_code, bool bounded,
+        bool stop_after_store, bool cache_registers, const code_window *immutable_code)
+    {
+        auto precise = translate_thumb_block_impl(code, code_size, start_address,
+            siblings, dll_code, bounded, stop_after_store, cache_registers,
+            immutable_code, true);
+        const auto maximum = precise.entry_budget_instructions;
+        precise.entry_budget_instructions = 0;
+        if (!thumb_entry_budget || !bounded || !cache_registers || !thumb_direct_memory
+            || !immutable_code || stop_after_store || exit_census::enabled || maximum < 2)
+            return precise;
+        // Bounded Thumb emission exits at every unfused branch. Fusion follows
+        // no cycle, so every path has a static maximum, including call halves
+        // and folded veneers. A successful entry proof covers the whole body.
+        auto full = translate_thumb_block_impl(code, code_size, start_address,
+            siblings, dll_code, bounded, stop_after_store, cache_registers,
+            immutable_code, false);
+        if (full.entry_budget_instructions != maximum
+            || full.end_address != precise.end_address || full.fused_edges != precise.fused_edges
+            || precise.func.outlined_callee || !precise.func.outlined_calls.empty()) return precise;
+        std::vector<std::uint8_t> body;
+        emit w{body};
+        w.load_i32(S::AOT_BUDGET); w.i32_const(maximum);
+        w.op(op_i32_lt_u); w.op(op_if); w.op(type_void);
+        w.state_ptr(); w.op(op_call);
+        const auto call_offset = static_cast<std::uint32_t>(body.size());
+        body.insert(body.end(), {0x80, 0x80, 0x80, 0x80, 0});
+        w.op(op_return); w.op(op_end);
+        const auto offset = static_cast<std::uint32_t>(body.size());
+        for (auto &mark : full.func.sources) mark.offset += offset;
+        if (!full.func.sources.empty())
+            full.func.sources.insert(full.func.sources.begin(), {0, start_address | 1, source_kind::accounting});
+        body.insert(body.end(), full.func.body.begin(), full.func.body.end());
+        full.func.body = std::move(body);
+        precise.func.export_name += "_budget_short";
+        full.func.outlined_calls.push_back({std::make_shared<wasm_func_def>(std::move(precise.func)), call_offset});
+        return full;
     }
 }
