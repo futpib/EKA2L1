@@ -6,15 +6,17 @@ import crypto from 'node:crypto';
 import puppeteer from 'puppeteer';
 import {PNG} from 'pngjs';
 
-const [url, output] = process.argv.slice(2);
-if (!url || !output) throw Error('Usage: node game-picker.ts URL NEW_OUTPUT');
+const [url, output, onlyGame] = process.argv.slice(2);
+if (!url || !output || (onlyGame && !['snakes','sky-force'].includes(onlyGame))) throw Error('Usage: node game-picker.ts URL NEW_OUTPUT [snakes|sky-force]');
 fs.mkdirSync(output);
 const report: any = {url, started: new Date().toISOString(), games: [], checks: [], errors: []};
 const save = () => fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify(report, null, 2));
 const log = fs.createWriteStream(path.join(output, 'browser.log'));
 const browser = await puppeteer.launch({executablePath: '/usr/bin/chromium', headless: true,
   ignoreDefaultArgs: ['--mute-audio'], args: ['--no-sandbox', '--disable-dev-shm-usage',
-    '--use-gl=angle', '--use-angle=vulkan', '--enable-features=Vulkan', '--enable-gpu', '--ignore-gpu-blocklist']});
+    // Chromium 153's legacy CDP touch injector loses events after same-origin
+    // navigation, including on blank pages. Use its OS-like gesture route.
+    '--use-gl=angle', '--use-angle=vulkan', '--enable-features=Vulkan,SyntheticPointerActions', '--enable-gpu', '--ignore-gpu-blocklist']});
 try {
   report.browser = await browser.version();
   report.gpu = (await (await browser.target().createCDPSession()).send('SystemInfo.getInfo')).gpu;
@@ -36,11 +38,16 @@ try {
   });
   const waitGuest = (us: number) => page.waitForFunction(t => (window as any).Module._eka2l1_guest_time_us() >= t, {timeout: 180000}, us);
   const screenshot = async (name: string, minColors = 64) => {
-    const bytes = await (await page.$('#canvas'))!.screenshot({path: path.join(output, name + '.png')});
-    const png = PNG.sync.read(Buffer.from(bytes)), colors = new Set<number>();
-    for (let i = 0; i < png.data.length; i += 4) colors.add(png.data.readUInt32LE(i));
-    assert.ok(colors.size > minColors, 'Game display is blank or trivial');
-    return crypto.createHash('sha256').update(png.data).digest('hex');
+    // Menu transitions can briefly fade to black. Require a nontrivial frame
+    // within five seconds; persistent blank output remains a failure.
+    for (let attempt=0;attempt<20;attempt++) {
+      const bytes = await (await page.$('#canvas'))!.screenshot({path: path.join(output, name + '.png')});
+      const png = PNG.sync.read(Buffer.from(bytes)), colors = new Set<number>();
+      for (let i = 0; i < png.data.length; i += 4) colors.add(png.data.readUInt32LE(i));
+      if (colors.size > minColors) return crypto.createHash('sha256').update(png.data).digest('hex');
+      await new Promise(resolve=>setTimeout(resolve,250));
+    }
+    throw Error('Game display remains blank or trivial: '+name);
   };
   const choose = async (id: string) => {
     await page.select('#game-select', id);
@@ -49,6 +56,8 @@ try {
   await page.goto(url, {waitUntil: 'domcontentloaded'});
   assert.deepEqual(await page.$$eval('#game-select option', options => options.map(o => (o as HTMLOptionElement).value)), ['snakes', 'sky-force', 'custom']);
   for (const [id, uid] of [['sky-force', '0xa020d913'], ['snakes', '0x2000730f']]) {
+    if (onlyGame && onlyGame!==id) continue;
+    await page.setViewport({width:900,height:800,hasTouch:true});
     await choose(id);
     await page.waitForFunction(() => (window as any)._gameRunning, {timeout: 180000});
     await page.waitForFunction(() => JSON.parse((window as any).Module.ccall(
@@ -87,7 +96,53 @@ try {
     await page.setViewport({width: 390, height: 844, hasTouch: true});
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     await page.screenshot({path: path.join(output, id + '-mobile.png')});
-    await (await page.$('[data-scan="14"]'))!.tap();
+    assert.equal(await page.evaluate(() => (window as any).ekaTouchControls.profile), id);
+    // This route receives the complete active-contact set on each move; adding
+    // or removing a contact does not end the other finger's gesture.
+    const inputSession=await page.createCDPSession();
+    await inputSession.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:5});
+    assert.equal(await page.evaluate(()=>navigator.maxTouchPoints),5);
+    await page.evaluate(() => {
+      (window as any).touchTrace=[];
+      for(const type of ['pointerdown','pointermove','pointerup','pointercancel','lostpointercapture','blur'])
+        window.addEventListener(type,event=>{
+          const trace=(window as any).touchTrace;
+          if(trace.length<100)trace.push({type,target:(event.target as HTMLElement)?.id,pointer:(event as PointerEvent).pointerId,trusted:event.isTrusted});
+        },true);
+    });
+    const touchPoint = await page.$eval('#movement-pad', element => {
+      const r = element.getBoundingClientRect(); return {x:r.x+r.width/2,y:r.y+r.height/2,id:1};
+    });
+    const actionPoint = await page.$eval('#primary-action', element => {
+      const r = element.getBoundingClientRect(); return {x:r.x+r.width/2,y:r.y+r.height/2,id:2};
+    });
+    await inputSession.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[touchPoint]});
+    const moved = {...touchPoint,x:touchPoint.x-40,y:touchPoint.y+(id==='sky-force'?40:0)};
+    await inputSession.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[moved]});
+    await inputSession.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[moved,actionPoint]});
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    report.checks.push({game:id,check:'simultaneous touch movement and action',passed:await page.evaluate(() => {
+      const held=new Set((window as any)._inputSources.values());return held.has(14)&&held.has(167);
+    }),state:await page.evaluate(() => ({sources:[...(window as any)._inputSources],pointers:[...(window as any).ekaTouchControls.pointers],trace:(window as any).touchTrace,focus:document.hasFocus(),visibility:document.visibilityState,touches:navigator.maxTouchPoints}))});
+    save();
+    await page.waitForFunction(() => {
+      const held = new Set((window as any)._inputSources.values()); return held.has(14) && held.has(167);
+    });
+    await new Promise(resolve => setTimeout(resolve,600));
+    await page.screenshot({path:path.join(output,id+'-touch-held.png')});
+    assert.ok(await page.evaluate(() => (window as any).touchTrace.some((event:any)=>event.type==='pointerdown'&&event.trusted)));
+    await inputSession.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[moved]});
+    await page.waitForFunction(() => {
+      const held=new Set((window as any)._inputSources.values());return held.has(14)&&!held.has(167);
+    });
+    await inputSession.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    await page.waitForFunction(() => (window as any)._inputSources.size===0);
+    await inputSession.detach();
+    await page.setViewport({width:844,height:390,hasTouch:true});
+    await page.screenshot({path:path.join(output,id+'-landscape.png')});
+    await page.click('#btn-touch-settings');
+    await page.screenshot({path:path.join(output,id+'-settings.png')});
+    await page.click('#touch-settings [data-close]');
     await page.setViewport({width: 900, height: 800, hasTouch: true});
     await page.focus('#canvas');
     for (let i = 1; i <= 3; i++) {
@@ -96,6 +151,12 @@ try {
     }
     const end = await state(), seconds = (performance.now() - begin) / 1000;
     const last = await screenshot(id + '-gameplay-end');
+    await page.setViewport({width:390,height:844,hasTouch:true});
+    await new Promise(resolve => setTimeout(resolve,250));
+    await page.screenshot({path:path.join(output,id+'-mobile-gameplay.png')});
+    await page.setViewport({width:844,height:390,hasTouch:true});
+    await new Promise(resolve => setTimeout(resolve,250));
+    await page.screenshot({path:path.join(output,id+'-landscape-gameplay.png')});
     assert.notEqual(first, last); assert.ok(end.frames > start.frames + 20);
     assert.ok(end.inputs >= start.inputs + 6);
     // Preserve audio failures while exercising the other game and launcher.

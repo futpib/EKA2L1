@@ -17,7 +17,9 @@ third command-line argument, such as `node serve.ts 8188 Snakes`, selects an
 automatic default. Without it, the page waits for a choice.
 
 Use arrows/WASD to move, Enter/Space to select or fire, and F1/F2 for softkeys.
-Click **Enable sound** for audio. The buttons below the display support touch.
+Click **Enable sound** for audio. Touch uses independent movement/action areas,
+with fixed or floating movement, saved per-game layouts, handedness and an
+expandable phone keypad. See the [touch control guide](TOUCH_CONTROLS.md).
 Sky Force first shows a splash screen and language selection, followed by
 **Start game**, difficulty and ship selection.
 

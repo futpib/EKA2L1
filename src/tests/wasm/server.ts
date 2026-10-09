@@ -16,6 +16,7 @@ export const buildDir = process.env.EKA2L1_WASM_BUILD_DIR
 const MIME_TYPES: Record<string, string> = {
   ".html": "text/html",
   ".js": "application/javascript",
+  ".css": "text/css",
   ".wasm": "application/wasm",
   ".map": "application/json",
   ".ico": "image/x-icon",
@@ -203,7 +204,7 @@ export async function startServer(
   const assets = new Map<string, Asset>();
   const files: Record<string, string> = { ...preloadFiles };
   for (const name of fs.readdirSync(buildDir)) {
-    if (/\.(?:js|wasm|data)$/.test(name)) files['/' + name] = path.join(buildDir, name);
+    if (/\.(?:js|css|wasm|data)$/.test(name)) files['/' + name] = path.join(buildDir, name);
   }
   for (const [url, file] of Object.entries(files)) {
     if (fs.existsSync(file) && fs.statSync(file).isFile()) assets.set(url, await refreshAsset(file));
@@ -273,9 +274,9 @@ export async function startServer(
         let html = fs.readFileSync(file, 'utf8');
         // Install locateFile before either package loading or the async loader.
         html = html.replace(/<head\b[^>]*>/i, tag => tag + assetCacheScript(urls));
-        html = html.replace(/\bsrc=(['"]?)([^'"\s>]+)\1/g, (tag, quote, value) => {
+        html = html.replace(/\b(src|href)=(['"]?)([^'"\s>]+)\2/g, (tag, attribute, quote, value) => {
           const endpoint = '/' + value.replace(/^\//, '');
-          return urls[endpoint] ? 'src="' + urls[endpoint] + '"' : tag;
+          return urls[endpoint] ? attribute + '="' + urls[endpoint] + '"' : tag;
         });
         html = html.replace('</body>', policyScript + autoStartScript + '\n</body>');
         const etag = '"' + crypto.createHash('sha256').update(html).digest('hex') + '"';
