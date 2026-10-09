@@ -51,3 +51,18 @@ if(EMSCRIPTEN)
     target_link_options(test_svc_dispatch PRIVATE "SHELL:-s EXIT_RUNTIME=1")
     set_target_properties(test_svc_dispatch PROPERTIES SUFFIX ".js")
 endif()
+
+add_executable(test_exclusive_monitor test_exclusive_monitor.cpp
+    ../../emu/cpu/src/12l1r/exclusive_monitor.cpp)
+target_include_directories(test_exclusive_monitor PRIVATE
+    ../../emu/cpu/include ../../emu/common/include)
+if(EMSCRIPTEN)
+    target_compile_options(test_exclusive_monitor PRIVATE -pthread)
+    target_link_options(test_exclusive_monitor PRIVATE -pthread)
+    target_link_options(test_exclusive_monitor PRIVATE
+        "SHELL:-s PTHREAD_POOL_SIZE=1" "SHELL:-s EXIT_RUNTIME=1")
+    set_target_properties(test_exclusive_monitor PROPERTIES SUFFIX ".js")
+else()
+    find_package(Threads REQUIRED)
+    target_link_libraries(test_exclusive_monitor PRIVATE Threads::Threads)
+endif()

@@ -64,8 +64,10 @@ namespace eka2l1::arm::r12l1 {
     }
 
     void exclusive_monitor::clear_exclusive() {
+        if (!may_have_reservations_.load(std::memory_order_acquire)) return;
         lock();
         std::fill(exclusive_addresses_.begin(), exclusive_addresses_.end(), INVALID_EXCLUSIVE_ADDRESS);
+        may_have_reservations_.store(false, std::memory_order_release);
         unlock();
     }
 
