@@ -208,8 +208,10 @@ export async function startServer(
   for (const [url, file] of Object.entries(files)) {
     if (fs.existsSync(file) && fs.statSync(file).isFile()) assets.set(url, await refreshAsset(file));
   }
-  const autoStartScript = makeCompilerPolicyScript(options.compilerPolicy ?? compilerPolicyFromEnv())
-    + (options.games?.length ? makeGameLauncherScript(options.games, options.defaultGame) : makeAutoStartScript(appName));
+  const defaultPolicy = options.compilerPolicy ?? compilerPolicyFromEnv();
+  const defaultPolicyScript = makeCompilerPolicyScript(defaultPolicy);
+  const autoStartScript = options.games?.length
+    ? makeGameLauncherScript(options.games, options.defaultGame) : makeAutoStartScript(appName);
   return new Promise((resolve, reject) => {
     const handler: http.RequestListener = (req, res) => {
       void respond(req, res).catch(error => {
@@ -249,6 +251,19 @@ export async function startServer(
       }
       if (!fs.statSync(file).isFile()) { res.writeHead(404).end('Not found'); return; }
       if (file.endsWith('.html')) {
+        let policyScript = defaultPolicyScript;
+        const counting = requestUrl.searchParams.get('counting');
+        if (counting !== null) {
+          if (!['on', 'off'].includes(counting)) {
+            res.writeHead(400).end('Instruction counting must be on or off'); return;
+          }
+          // Each document owns its CPU configuration; switching reloads its
+          // workers and leaves other tabs and the server default unchanged.
+          const policy = { ...defaultPolicy };
+          if (counting === 'on') delete policy.watchdogUs;
+          else policy.watchdogUs = policy.watchdogUs ?? 2000;
+          policyScript = makeCompilerPolicyScript(policy);
+        }
         const urls: Record<string, string> = {};
         for (const [endpoint, asset] of assets) {
           const current = await refreshAsset(asset.file, asset);
@@ -262,7 +277,7 @@ export async function startServer(
           const endpoint = '/' + value.replace(/^\//, '');
           return urls[endpoint] ? 'src="' + urls[endpoint] + '"' : tag;
         });
-        html = html.replace('</body>', autoStartScript + '\n</body>');
+        html = html.replace('</body>', policyScript + autoStartScript + '\n</body>');
         const etag = '"' + crypto.createHash('sha256').update(html).digest('hex') + '"';
         res.setHeader('ETag', etag);
         res.setHeader('Content-Type', 'text/html');

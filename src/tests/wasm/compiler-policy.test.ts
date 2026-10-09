@@ -73,6 +73,30 @@ try {
     }
   }
   assert.equal(new Set(responses.map(r=>r.etag)).size,responses.length);
+  // A session override must affect the served policy and HTML cache identity
+  // without changing the server default used by other tabs.
+  for (const policy of [{compiledSvc:1}, {compiledSvc:1,watchdogUs:3000}]) {
+    const {server,port} = await startServer(0,{},undefined,{compilerPolicy:policy});
+    servers.push(server);
+    const url = `http://127.0.0.1:${port}/`;
+    const policyAt = async (query: string, etag?: string|null) => {
+      const response = await fetch(url + query, {headers:etag?{'If-None-Match':etag}:{}});
+      assert.equal(response.status,200);
+      const html = await response.text();
+      const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]).find(s=>s.includes('window.ekaCompilerPolicy ='))!;
+      const context = vm.createContext({window:{},startEmulator:async()=>{}});
+      vm.runInContext(script,context);
+      return {policy:JSON.parse(JSON.stringify(context.window.ekaCompilerPolicy.requested)),etag:response.headers.get('etag')};
+    };
+    assert.deepEqual((await policyAt('')).policy,policy);
+    const counted = await policyAt('?counting=on');
+    assert.deepEqual(counted.policy,{compiledSvc:1});
+    const countFree = await policyAt('?counting=off',counted.etag);
+    assert.deepEqual(countFree.policy,{compiledSvc:1,watchdogUs:policy.watchdogUs??2000});
+    assert.notEqual(counted.etag,countFree.etag);
+    assert.deepEqual((await policyAt('')).policy,policy);
+    assert.equal((await fetch(url+'?counting=invalid')).status,400);
+  }
   for (const invalid of [-1,5,NaN]) await assert.rejects(startServer(0,{},undefined,{compilerPolicy:{codeCompare:invalid}}),/Invalid compiler policy/);
   for (const policy of [{tlbHash:0},{tlbHash:1},{memoryCache:1},{codeLookup:0},{omitGuardPublication:0}]) await assert.rejects(startServer(0,{},undefined,{compilerPolicy:policy as any}),/Invalid compiler policy/);
   for (const [envName,key,valid,invalid] of [

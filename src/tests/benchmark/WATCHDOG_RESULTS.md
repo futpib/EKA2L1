@@ -275,3 +275,66 @@ platform profile in this evidence belong to this host.
 
 Raw local artifacts are under `/home/claude/.scratch/eka-watchdog`. ROM, game
 bytes and screenshots remain outside Git. Nothing was deployed to the LAN site.
+
+## Paced LAN comparison and counting selector (2026-10-09)
+
+The LAN launcher now offers **Instruction counting: On / Off** beside the game
+selector. **Play** applies the choice by starting a fresh session. The URL keeps
+`counting=on` or `counting=off`; the running status reports the actual mode.
+Other tabs and the server default are unaffected. The HTTP policy tests cover
+both defaults, override isolation, invalid values and policy-dependent ETags.
+Real browser runs exercised both switch directions and checked instruction
+totals, watchdog state/worker, applied configuration and keyboard input.
+
+The following are 30-host-second gameplay observations through
+`https://claude-laptop.lan:8188/`, using headless Chromium 153.0.8010.52 and
+Firefox 156.0 on an i7-10875H. Browser sound output was muted. Each test used a
+fresh profile; owned test browsers ran serially. Screenshots before and after
+each window were visually checked for gameplay. They were captured outside the
+timing window. Rates count presentations, not unique frames.
+
+| # | Browser | Game | Counting on presentations/s | Counting off presentations/s | Counting on guest-time ratio | Counting off guest-time ratio |
+| ---: | --- | --- | ---: | ---: | ---: | ---: |
+| 1 | Chromium | Snakes | 21.18 | 16.00 | 1.000 | 1.000 |
+| 2 | Firefox | Snakes | 21.17 | 16.03 | 1.000 | 1.000 |
+| 3 | Chromium | Sky Force | 25.48 | 32.01 | 0.796 | 1.000 |
+| 4 | Firefox | Sky Force | 21.52 | 31.98 | 0.673 | 1.000 |
+
+These are playability observations, not controlled compiler speedup ratios.
+Counting on uses instruction-driven guest time; counting off uses elapsed host
+time for paced guest timers. A 1x count-free clock alone does not establish
+sufficient CPU throughput or stock-device timing equivalence. Background host
+work continued, without fixed frequency or CPU isolation. Chromium reported
+the NVIDIA Quadro T1000 Vulkan renderer; Firefox exposed a privacy-masked WebGL
+renderer, which does not establish its physical GPU path.
+
+The initial Firefox Sky Force counted run overlapped a separate Rust build and
+measured 13.74 presentations/s at 0.429x guest time. The table uses its repeat
+after that build ended; both observations are retained. The first Firefox
+count-free Sky Force run stayed on ship selection and was rejected as a gameplay
+measurement, despite its 32.00 presentation rate. Its repeat held menu keys for
+600 ms, matching the existing game-picker test's hold duration, and reached
+Stage 1 combat. This final repeat loaded another session's newly deployed touch
+UI, with a larger displayed canvas. All runs used identical emulator WASM,
+loader JS, data, audio and game assets, but this UI difference is an additional
+comparison confound. The raw evidence records each case's asset URLs.
+
+The Firefox Snakes counted measurement, mode assertions and both screenshots
+completed, but an optional subsequent `about:support` GPU diagnostic was rejected
+by Firefox BiDi. Its raw error is retained; that diagnostic was removed from the
+harness. No timing result depends on successful navigation to that page.
+
+ARM-to-WASM compilation is included whenever it happens during the FPS window.
+The repeated Firefox Sky Force runs installed **441** additional translated
+functions with counting on and **220** with counting off. The existing installed
+function counter was added to the harness from the Firefox Sky Force tests
+onward; earlier tests did not retain it. These counts do not measure translation
+duration or rejected attempts. Thus the windows are not certified to be free
+of compilation. Startup ROM translation and menu traversal occur before timing.
+
+Reproduce with `src/tests/wasm/counting-comparison.ts` as documented in the
+[browser launcher README](../wasm/README.md). Full numeric observations,
+rejected-menu evidence, configuration, hashes and local artifact paths are in
+[`COUNTING_BROWSER_COMPARISON.json`](COUNTING_BROWSER_COMPARISON.json).
+The emulator WASM SHA-256 is
+`8ba81e0cbac677d49eaef4f651fa4e208bc4759821e8653703726facb595efbe`.

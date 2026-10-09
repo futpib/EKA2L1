@@ -1,0 +1,1170 @@
+{
+  "date": "2026-10-09",
+  "source_base": "0397f6193",
+  "branch": "wasm-port",
+  "url": "https://claude-laptop.lan:8188/",
+  "build_directory": "/home/claude/.scratch/eka-counting-switch/build",
+  "build_sha256": {
+    "eka2l1.js": "4fb49e99e953c54dc1424f1849bc959f4b74c85c8de60ebb8b8eaa32cf9608c3",
+    "eka2l1.html": "3abe25d0d9f368e9eb6ae411602d0a67354ac6badb15e9f51c216bd3defb4a92",
+    "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+    "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+    "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+    "eka2l1.wasm": "8ba81e0cbac677d49eaef4f651fa4e208bc4759821e8653703726facb595efbe"
+  },
+  "ui_builds": {
+    "original": "/home/claude/.scratch/eka-counting-switch/build",
+    "touch-controls": "/home/claude/.scratch/eka-touch-controls/candidate-build"
+  },
+  "method": {
+    "paced": true,
+    "sound": "Browser output muted; emulator audio generation unchanged",
+    "requested_host_seconds": 30,
+    "fresh_profile_each_case": true,
+    "owned_browsers_run_serially": true,
+    "headless": true,
+    "viewport": [
+      900,
+      800
+    ],
+    "repeat_reason": "Firefox Sky Force counted was repeated after a concurrent Rust build ended; the first count-free run was rejected at visual review because it stayed in ship selection. The count-free repeat holds menu keys 600 ms, as the existing game-picker test does, rather than 100 ms.",
+    "chrome_executable": "/usr/bin/chromium",
+    "chrome_gpu_flags": [
+      "--use-gl=angle",
+      "--use-angle=vulkan",
+      "--enable-features=Vulkan",
+      "--enable-gpu",
+      "--ignore-gpu-blocklist"
+    ],
+    "firefox_executable": "/usr/lib/firefox/firefox",
+    "firefox_prefs": {
+      "webgl.force-enabled": true,
+      "gfx.webrender.all": true
+    },
+    "firefox_display": ":1",
+    "route": "Enter at fixed guest times, wait to 28 s Snakes or 38 s Sky Force, take start screenshot, exercise left/right, wait 2 host seconds, sample for 30 host seconds, take end screenshot",
+    "fps": "Presentation counter delta divided by host elapsed seconds",
+    "mode_validation": "URL and selector, status text, applied policy, actual watchdog state/worker and instruction totals"
+  },
+  "limitations": [
+    "No CPU isolation or fixed-frequency control. Other host workloads, including Android emulator and separate browser tests, continued. A Rust build overlapped the first Firefox Sky Force pair; its counted run is retained alongside a repeat.",
+    "Counting changes guest clock policy as well as execution. Guest clock near 1x in count-free mode does not by itself establish sufficient emulator throughput or stock-device equivalence.",
+    "FPS counts presentations, not unique images. Gameplay was checked in screenshots; output sequences are not equal-work matched.",
+    "Startup/menu traversal and screenshots are outside the FPS window; any ongoing ARM-to-WASM translation and browser compilation inside it are included.",
+    "Compiled-function counter was added from the Firefox Sky Force cases onward. Earlier cases did not retain it; unknown compilation activity is not treated as zero.",
+    "Installed-function counts do not measure translation duration or rejected translation attempts.",
+    "Firefox reports a privacy-masked WebGL renderer, so its physical GPU path is not established by that string.",
+    "The final Firefox Sky Force count-free repeat loaded the concurrently deployed touch-controls UI, with a larger displayed canvas. Its WASM, loader JS, data, audio and game assets are identical to the earlier runs; UI assets are recorded per case. This is an additional comparison confound. No C++/WASM changes were made for the selector."
+  ],
+  "rows": [
+    {
+      "case": "chrome-snakes-on",
+      "started": "2026-10-09T21:45:58.213Z",
+      "browser": "Chrome/153.0.8010.52",
+      "game": "snakes",
+      "counting": "on",
+      "url": "https://claude-laptop.lan:8188/?game=snakes&counting=on",
+      "menu_key_hold_ms": 100,
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "load_before": [
+        4.67,
+        5.58,
+        5.35
+      ],
+      "load_after": [
+        2.53,
+        4.78,
+        5.08
+      ],
+      "policy": {
+        "requested": {
+          "entryBudget": 2,
+          "compiledSvc": 1,
+          "sparseRom": 1,
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "irMode": 17,
+          "predicatedLeaves": 1,
+          "leafFeatures": 224,
+          "executionLimits": [
+            512,
+            32,
+            8,
+            512
+          ],
+          "unsafeCode": 3
+        },
+        "applied": true,
+        "observed": {
+          "entryBudget": 2,
+          "sparseRom": 1,
+          "compiledSvc": 1,
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "predicatedLeaves": 1,
+          "leafFeatures": 224,
+          "unsafeCode": 3,
+          "executionLimits": [
+            512,
+            32,
+            8,
+            512
+          ]
+        }
+      },
+      "assets": {
+        "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+        "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+        "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+        "/eka2l1.data": "/eka2l1.data?v=7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+        "/eka2l1.js": "/eka2l1.js?v=4fb49e99e953c54dc1424f1849bc959f4b74c85c8de60ebb8b8eaa32cf9608c3",
+        "/eka2l1.wasm": "/eka2l1.wasm?v=8ba81e0cbac677d49eaef4f651fa4e208bc4759821e8653703726facb595efbe"
+      },
+      "ui": "original",
+      "watchdog": 0,
+      "watchdog_worker": false,
+      "measurement": {
+        "hostSeconds": 30.1740140175,
+        "guestSeconds": 30.178553,
+        "guestSpeed": 1.0001504268705306,
+        "presentations": 639,
+        "presentationsPerSecond": 21.177162562110553,
+        "instructions": 4936714117,
+        "maxQueryMs": 5.872767000000749
+      },
+      "first_sample": {
+        "hostMs": 41856.974747500004,
+        "queryMs": 2.378967000004195,
+        "guestUs": 30271447,
+        "frames": 629,
+        "instructions": 4091420555,
+        "inputs": 24,
+        "watchdog": 0
+      },
+      "last_sample": {
+        "hostMs": 72030.988765,
+        "queryMs": 2.4149559999932535,
+        "guestUs": 60450000,
+        "frames": 1268,
+        "instructions": 9028134672,
+        "inputs": 24,
+        "watchdog": 0
+      },
+      "measurement_status": "passed",
+      "raw_directory": "/home/claude/.scratch/eka-counting-switch/chrome-snakes-on",
+      "report_sha256": "26383b707fa15e8a5d5c7d77ac9608a655d50d42c6d40e82ed910311f0aaddc6",
+      "screenshot_sha256": {
+        "mobile-picker.png": "5ab480c3ab3d3d3e48183678e52af4663d961b44c46d68d5f65c2de95a8496c1",
+        "gameplay-start.png": "187fe4a43759199c03c5c8a4c397e20045a183982df3a34e0ce159d95550eaa4",
+        "gameplay-end.png": "4ab12669c6a95c94cbb62631e53a6a79405701420e8c7e4d920934fcb2ec7576"
+      },
+      "scene_review": "Start and end screenshots visually confirmed active gameplay",
+      "accepted_gameplay": true
+    },
+    {
+      "case": "chrome-snakes-off",
+      "started": "2026-10-09T21:47:25.946Z",
+      "browser": "Chrome/153.0.8010.52",
+      "game": "snakes",
+      "counting": "off",
+      "url": "https://claude-laptop.lan:8188/?game=snakes&counting=off",
+      "menu_key_hold_ms": 100,
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "load_before": [
+        2.1,
+        4.58,
+        5.01
+      ],
+      "load_after": [
+        1.36,
+        3.87,
+        4.74
+      ],
+      "policy": {
+        "requested": {
+          "entryBudget": 2,
+          "compiledSvc": 1,
+          "sparseRom": 1,
+          "watchdogUs": 2000,
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "irMode": 17,
+          "predicatedLeaves": 1,
+          "leafFeatures": 224,
+          "executionLimits": [
+            512,
+            32,
+            8,
+            512
+          ],
+          "unsafeCode": 3
+        },
+        "applied": true,
+        "observed": {
+          "entryBudget": 2,
+          "sparseRom": 1,
+          "compiledSvc": 1,
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "predicatedLeaves": 1,
+          "leafFeatures": 224,
+          "unsafeCode": 3,
+          "executionLimits": [
+            512,
+            32,
+            8,
+            512
+          ]
+        }
+      },
+      "assets": {
+        "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+        "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+        "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+        "/eka2l1.data": "/eka2l1.data?v=7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+        "/eka2l1.js": "/eka2l1.js?v=4fb49e99e953c54dc1424f1849bc959f4b74c85c8de60ebb8b8eaa32cf9608c3",
+        "/eka2l1.wasm": "/eka2l1.wasm?v=8ba81e0cbac677d49eaef4f651fa4e208bc4759821e8653703726facb595efbe"
+      },
+      "ui": "original",
+      "watchdog": 1,
+      "watchdog_worker": true,
+      "measurement": {
+        "hostSeconds": 30.188312546000002,
+        "guestSeconds": 30.188316,
+        "guestSpeed": 1.0000001144151398,
+        "presentations": 483,
+        "presentationsPerSecond": 15.999569345388874,
+        "instructions": 0,
+        "maxQueryMs": 15.84118199999648
+      },
+      "first_sample": {
+        "hostMs": 36494.699588999996,
+        "queryMs": 1.7266860000017914,
+        "guestUs": 30279953,
+        "frames": 433,
+        "instructions": 0,
+        "inputs": 24,
+        "watchdog": 1
+      },
+      "last_sample": {
+        "hostMs": 66683.012135,
+        "queryMs": 2.3180799999972805,
+        "guestUs": 60468269,
+        "frames": 916,
+        "instructions": 0,
+        "inputs": 24,
+        "watchdog": 1
+      },
+      "measurement_status": "passed",
+      "raw_directory": "/home/claude/.scratch/eka-counting-switch/chrome-snakes-off",
+      "report_sha256": "a45202db30b0944e428cc8352fca63cda1dd7b25e1fcadaaa2b095a599a2986c",
+      "screenshot_sha256": {
+        "mobile-picker.png": "9248ffa75d43bd70f422088c6b03c5688d5f33781bcd3add6e156172ca64ed85",
+        "gameplay-start.png": "17d5ae3e40cca79f2e733b07c8e505fff99b65e04023157122f05664bf3eb30d",
+        "gameplay-end.png": "7696608759786f53df6b6e8ec796a7bbc2163a4615fd7f415613ec2bdfb9057e"
+      },
+      "scene_review": "Start and end screenshots visually confirmed active gameplay",
+      "accepted_gameplay": true
+    },
+    {
+      "case": "firefox-snakes-off",
+      "started": "2026-10-09T21:48:39.613Z",
+      "browser": "firefox/156.0",
+      "game": "snakes",
+      "counting": "off",
+      "url": "https://claude-laptop.lan:8188/?game=snakes&counting=off",
+      "menu_key_hold_ms": 100,
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "renderer": "Intel(R) HD Graphics, or similar",
+      "load_before": [
+        1.39,
+        3.8,
+        4.7
+      ],
+      "load_after": [
+        1.41,
+        3.34,
+        4.48
+      ],
+      "policy": {
+        "requested": {
+          "entryBudget": 2,
+          "compiledSvc": 1,
+          "sparseRom": 1,
+          "watchdogUs": 2000,
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "irMode": 17,
+          "predicatedLeaves": 1,
+          "leafFeatures": 224,
+          "executionLimits": [
+            512,
+            32,
+            8,
+            512
+          ],
+          "unsafeCode": 3
+        },
+        "applied": true,
+        "observed": {
+          "entryBudget": 2,
+          "sparseRom": 1,
+          "compiledSvc": 1,
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "predicatedLeaves": 1,
+          "leafFeatures": 224,
+          "unsafeCode": 3,
+          "executionLimits": [
+            512,
+            32,
+            8,
+            512
+          ]
+        }
+      },
+      "assets": {
+        "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+        "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+        "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+        "/eka2l1.data": "/eka2l1.data?v=7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+        "/eka2l1.js": "/eka2l1.js?v=4fb49e99e953c54dc1424f1849bc959f4b74c85c8de60ebb8b8eaa32cf9608c3",
+        "/eka2l1.wasm": "/eka2l1.wasm?v=8ba81e0cbac677d49eaef4f651fa4e208bc4759821e8653703726facb595efbe"
+      },
+      "ui": "original",
+      "watchdog": 1,
+      "watchdog_worker": true,
+      "measurement": {
+        "hostSeconds": 30.255911792500005,
+        "guestSeconds": 30.256921,
+        "guestSpeed": 1.0000333557126593,
+        "presentations": 485,
+        "presentationsPerSecond": 16.029925104429488,
+        "instructions": 0,
+        "maxQueryMs": 38.045201000000816
+      },
+      "first_sample": {
+        "hostMs": 38994.442465500004,
+        "queryMs": 4.070908999994572,
+        "guestUs": 30390639,
+        "frames": 443,
+        "instructions": 0,
+        "inputs": 24,
+        "watchdog": 1
+      },
+      "last_sample": {
+        "hostMs": 69250.354258,
+        "queryMs": 6.336403999986942,
+        "guestUs": 60647560,
+        "frames": 928,
+        "instructions": 0,
+        "inputs": 24,
+        "watchdog": 1
+      },
+      "measurement_status": "passed",
+      "raw_directory": "/home/claude/.scratch/eka-counting-switch/firefox-snakes-off",
+      "report_sha256": "8d040e753f19bddad62b7a978f8fe326f09c4526e8f8ea2775adf6129ea0bad8",
+      "screenshot_sha256": {
+        "mobile-picker.png": "287804367c9a1256afe10050e85ac0d9beb87b927886b8826cdada5dc46bdcf2",
+        "gameplay-start.png": "299fdfd98e58e078d013067a6b934b9e9c90550683354217683cd172e83c1697",
+        "gameplay-end.png": "ec6e804af25eae077b8417dcb9f48eaf1f16943a57774b410248d78ad6cd9719"
+      },
+      "scene_review": "Start and end screenshots visually confirmed active gameplay",
+      "accepted_gameplay": true
+    },
+    {
+      "case": "firefox-snakes-on",
+      "started": "2026-10-09T21:50:17.615Z",
+      "browser": "firefox/156.0",
+      "game": "snakes",
+      "counting": "on",
+      "url": "https://claude-laptop.lan:8188/?game=snakes&counting=on",
+      "menu_key_hold_ms": 100,
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "renderer": "Intel(R) HD Graphics, or similar",
+      "load_before": [
+        1.31,
+        3.16,
+        4.39
+      ],
+      "load_after": [
+        1.44,
+        2.8,
+        4.17
+      ],
+      "policy": {
+        "requested": {
+          "entryBudget": 2,
+          "compiledSvc": 1,
+          "sparseRom": 1,
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "irMode": 17,
+          "predicatedLeaves": 1,
+          "leafFeatures": 224,
+          "executionLimits": [
+            512,
+            32,
+            8,
+            512
+          ],
+          "unsafeCode": 3
+        },
+        "applied": true,
+        "observed": {
+          "entryBudget": 2,
+          "sparseRom": 1,
+          "compiledSvc": 1,
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "predicatedLeaves": 1,
+          "leafFeatures": 224,
+          "unsafeCode": 3,
+          "executionLimits": [
+            512,
+            32,
+            8,
+            512
+          ]
+        }
+      },
+      "assets": {
+        "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+        "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+        "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+        "/eka2l1.data": "/eka2l1.data?v=7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+        "/eka2l1.js": "/eka2l1.js?v=4fb49e99e953c54dc1424f1849bc959f4b74c85c8de60ebb8b8eaa32cf9608c3",
+        "/eka2l1.wasm": "/eka2l1.wasm?v=8ba81e0cbac677d49eaef4f651fa4e208bc4759821e8653703726facb595efbe"
+      },
+      "ui": "original",
+      "watchdog": 0,
+      "watchdog_worker": false,
+      "measurement": {
+        "hostSeconds": 30.180955314000006,
+        "guestSeconds": 30.174672,
+        "guestSpeed": 0.9997918119577517,
+        "presentations": 639,
+        "presentationsPerSecond": 21.17229204151758,
+        "instructions": 4947549572,
+        "maxQueryMs": 3.4435599999997066
+      },
+      "first_sample": {
+        "hostMs": 43531.2250015,
+        "queryMs": 2.30779099999927,
+        "guestUs": 30340000,
+        "frames": 629,
+        "instructions": 4081468190,
+        "inputs": 24,
+        "watchdog": 0
+      },
+      "last_sample": {
+        "hostMs": 73712.18031550001,
+        "queryMs": 2.5932670000038343,
+        "guestUs": 60514672,
+        "frames": 1268,
+        "instructions": 9029017762,
+        "inputs": 24,
+        "watchdog": 0
+      },
+      "measurement_status": "Timing, mode assertions and both screenshots completed; optional post-window GPU diagnostic navigation was rejected by Firefox BiDi. Raw error retained.",
+      "raw_directory": "/home/claude/.scratch/eka-counting-switch/firefox-snakes-on",
+      "report_sha256": "7823ba32ff9ee3cedaacbc902b5a2e4205b678c9483504860c4926b1921f903f",
+      "screenshot_sha256": {
+        "mobile-picker.png": "3a92385a2e20b111c48eec42631c740cff398447c28369769532b76338b67376",
+        "gameplay-start.png": "a4715dff596251ad5e020c4075972c174006753d6ac114df096d0035814f742f",
+        "gameplay-end.png": "a680139c72497cd051e9f4247d439b3d88221e9cb09e5b149f972159f796c574"
+      },
+      "scene_review": "Start and end screenshots visually confirmed active gameplay",
+      "accepted_gameplay": true
+    },
+    {
+      "case": "chrome-sky-force-off",
+      "started": "2026-10-09T21:52:28.852Z",
+      "browser": "Chrome/153.0.8010.52",
+      "game": "sky-force",
+      "counting": "off",
+      "url": "https://claude-laptop.lan:8188/?game=sky-force&counting=off",
+      "menu_key_hold_ms": 100,
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "load_before": [
+        0.84,
+        2.39,
+        3.94
+      ],
+      "load_after": [
+        1.86,
+        2.39,
+        3.82
+      ],
+      "policy": {
+        "requested": {
+          "entryBudget": 2,
+          "compiledSvc": 1,
+          "sparseRom": 1,
+          "watchdogUs": 2000,
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "irMode": 17,
+          "predicatedLeaves": 1,
+          "leafFeatures": 224,
+          "executionLimits": [
+            512,
+            32,
+            8,
+            512
+          ],
+          "unsafeCode": 3
+        },
+        "applied": true,
+        "observed": {
+          "entryBudget": 2,
+          "sparseRom": 1,
+          "compiledSvc": 1,
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "predicatedLeaves": 1,
+          "leafFeatures": 224,
+          "unsafeCode": 3,
+          "executionLimits": [
+            512,
+            32,
+            8,
+            512
+          ]
+        }
+      },
+      "assets": {
+        "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+        "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+        "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+        "/eka2l1.data": "/eka2l1.data?v=7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+        "/eka2l1.js": "/eka2l1.js?v=4fb49e99e953c54dc1424f1849bc959f4b74c85c8de60ebb8b8eaa32cf9608c3",
+        "/eka2l1.wasm": "/eka2l1.wasm?v=8ba81e0cbac677d49eaef4f651fa4e208bc4759821e8653703726facb595efbe"
+      },
+      "ui": "original",
+      "watchdog": 1,
+      "watchdog_worker": true,
+      "measurement": {
+        "hostSeconds": 30.14373739400001,
+        "guestSeconds": 30.143105,
+        "guestSpeed": 0.9999790207169156,
+        "presentations": 965,
+        "presentationsPerSecond": 32.01328313695034,
+        "instructions": 0,
+        "maxQueryMs": 4.369389999999839
+      },
+      "first_sample": {
+        "hostMs": 46533.866398,
+        "queryMs": 1.5716899999970337,
+        "guestUs": 40304831,
+        "frames": 1188,
+        "instructions": 0,
+        "inputs": 18,
+        "watchdog": 1
+      },
+      "last_sample": {
+        "hostMs": 76677.60379200001,
+        "queryMs": 1.451199999995879,
+        "guestUs": 70447936,
+        "frames": 2153,
+        "instructions": 0,
+        "inputs": 18,
+        "watchdog": 1
+      },
+      "measurement_status": "passed",
+      "raw_directory": "/home/claude/.scratch/eka-counting-switch/chrome-sky-force-off",
+      "report_sha256": "c09ae7273177835a1e905186fe5deea36e847a96f43423197adfca00ee13b779",
+      "screenshot_sha256": {
+        "mobile-picker.png": "ec91be9fd940bb0527441035c9461ea62a8d0fba3fb8bc248b10e59a291a3918",
+        "gameplay-start.png": "135242db41ebf8d70a6219d46222f90314110816e4217844f30094caf9211ba1",
+        "gameplay-end.png": "550c9a82e93d01ea6727d79812a9c1fd0097e9dd2bc5709f01e2a89b0059296c"
+      },
+      "scene_review": "Start and end screenshots visually confirmed active gameplay",
+      "accepted_gameplay": true
+    },
+    {
+      "case": "chrome-sky-force-on",
+      "started": "2026-10-09T21:54:46.112Z",
+      "browser": "Chrome/153.0.8010.52",
+      "game": "sky-force",
+      "counting": "on",
+      "url": "https://claude-laptop.lan:8188/?game=sky-force&counting=on",
+      "menu_key_hold_ms": 100,
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "load_before": [
+        1.47,
+        2.19,
+        3.66
+      ],
+      "load_after": [
+        2.05,
+        2.2,
+        3.53
+      ],
+      "policy": {
+        "requested": {
+          "entryBudget": 2,
+          "compiledSvc": 1,
+          "sparseRom": 1,
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "irMode": 17,
+          "predicatedLeaves": 1,
+          "leafFeatures": 224,
+          "executionLimits": [
+            512,
+            32,
+            8,
+            512
+          ],
+          "unsafeCode": 3
+        },
+        "applied": true,
+        "observed": {
+          "entryBudget": 2,
+          "sparseRom": 1,
+          "compiledSvc": 1,
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "predicatedLeaves": 1,
+          "leafFeatures": 224,
+          "unsafeCode": 3,
+          "executionLimits": [
+            512,
+            32,
+            8,
+            512
+          ]
+        }
+      },
+      "assets": {
+        "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+        "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+        "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+        "/eka2l1.data": "/eka2l1.data?v=7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+        "/eka2l1.js": "/eka2l1.js?v=4fb49e99e953c54dc1424f1849bc959f4b74c85c8de60ebb8b8eaa32cf9608c3",
+        "/eka2l1.wasm": "/eka2l1.wasm?v=8ba81e0cbac677d49eaef4f651fa4e208bc4759821e8653703726facb595efbe"
+      },
+      "ui": "original",
+      "watchdog": 0,
+      "watchdog_worker": false,
+      "measurement": {
+        "hostSeconds": 30.1386463175,
+        "guestSeconds": 23.996443,
+        "guestSpeed": 0.7962017519700766,
+        "presentations": 768,
+        "presentationsPerSecond": 25.4822327422868,
+        "instructions": 8474133508,
+        "maxQueryMs": 2.3148870000004536
+      },
+      "first_sample": {
+        "hostMs": 53274.896946,
+        "queryMs": 1.9703299999964656,
+        "guestUs": 39689429,
+        "frames": 1228,
+        "instructions": 14331685636,
+        "inputs": 18,
+        "watchdog": 0
+      },
+      "last_sample": {
+        "hostMs": 83413.5432635,
+        "queryMs": 1.5576169999985723,
+        "guestUs": 63685872,
+        "frames": 1996,
+        "instructions": 22805819144,
+        "inputs": 18,
+        "watchdog": 0
+      },
+      "measurement_status": "passed",
+      "raw_directory": "/home/claude/.scratch/eka-counting-switch/chrome-sky-force-on",
+      "report_sha256": "efc83e578a202b289f5d6307f8e68c586ad82b506aa367af629cc7505b1379b8",
+      "screenshot_sha256": {
+        "mobile-picker.png": "6949663db1c0175a94622f8ce6c1c7a10d809f84006ef78f2a25445a0996f3d4",
+        "gameplay-start.png": "93704bf4a96db8c16502624f810d5ba19900cd20051cd6e14a0e4feba59ef325",
+        "gameplay-end.png": "a0b9f37e340b5048a8c9c553c4ea422085d14414676c49419b260f163833d8a3"
+      },
+      "scene_review": "Start and end screenshots visually confirmed active gameplay",
+      "accepted_gameplay": true
+    },
+    {
+      "case": "firefox-sky-force-on",
+      "started": "2026-10-09T21:56:21.264Z",
+      "browser": "firefox/156.0",
+      "game": "sky-force",
+      "counting": "on",
+      "url": "https://claude-laptop.lan:8188/?game=sky-force&counting=on",
+      "menu_key_hold_ms": 100,
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "renderer": "Intel(R) HD Graphics, or similar",
+      "load_before": [
+        2.03,
+        2.19,
+        3.52
+      ],
+      "load_after": [
+        9.41,
+        4.59,
+        4.23
+      ],
+      "policy": {
+        "requested": {
+          "entryBudget": 2,
+          "compiledSvc": 1,
+          "sparseRom": 1,
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "irMode": 17,
+          "predicatedLeaves": 1,
+          "leafFeatures": 224,
+          "executionLimits": [
+            512,
+            32,
+            8,
+            512
+          ],
+          "unsafeCode": 3
+        },
+        "applied": true,
+        "observed": {
+          "entryBudget": 2,
+          "sparseRom": 1,
+          "compiledSvc": 1,
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "predicatedLeaves": 1,
+          "leafFeatures": 224,
+          "unsafeCode": 3,
+          "executionLimits": [
+            512,
+            32,
+            8,
+            512
+          ]
+        }
+      },
+      "assets": {
+        "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+        "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+        "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+        "/eka2l1.data": "/eka2l1.data?v=7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+        "/eka2l1.js": "/eka2l1.js?v=4fb49e99e953c54dc1424f1849bc959f4b74c85c8de60ebb8b8eaa32cf9608c3",
+        "/eka2l1.wasm": "/eka2l1.wasm?v=8ba81e0cbac677d49eaef4f651fa4e208bc4759821e8653703726facb595efbe"
+      },
+      "ui": "original",
+      "watchdog": 0,
+      "watchdog_worker": false,
+      "measurement": {
+        "hostSeconds": 30.353649447500008,
+        "guestSeconds": 13.032787,
+        "guestSpeed": 0.4293647464876224,
+        "presentations": 417,
+        "presentationsPerSecond": 13.738051522313572,
+        "instructions": 4624887069,
+        "installedCompiledFunctions": 335,
+        "maxQueryMs": 13.58208699998795
+      },
+      "first_sample": {
+        "hostMs": 75736.0387105,
+        "queryMs": 9.183327000006102,
+        "guestUs": 38503551,
+        "frames": 1190,
+        "instructions": 13908102231,
+        "compiledFunctions": 8866,
+        "inputs": 18,
+        "watchdog": 0
+      },
+      "last_sample": {
+        "hostMs": 106089.688158,
+        "queryMs": 3.887587999997777,
+        "guestUs": 51536338,
+        "frames": 1607,
+        "instructions": 18532989300,
+        "compiledFunctions": 9201,
+        "inputs": 18,
+        "watchdog": 0
+      },
+      "measurement_status": "passed",
+      "raw_directory": "/home/claude/.scratch/eka-counting-switch/firefox-sky-force-on",
+      "report_sha256": "11d634ad69c06dc27199ea4f6e165ca69858ff1125685f778d4bf3d625670128",
+      "screenshot_sha256": {
+        "mobile-picker.png": "acb8a9cb5cae89eceb22ba839afd19fcb01a725e61f3865c1df91d155733e078",
+        "gameplay-start.png": "04aab04bb4a8604ad9aec02b0f8208c82215ab90b07710230c2d789e8627f217",
+        "gameplay-end.png": "ec871536e515b705be1ff605b9effeaa5a6fe3523987a3453e8c38f600fb216d"
+      },
+      "scene_review": "Start and end screenshots visually confirmed active gameplay",
+      "accepted_gameplay": true
+    },
+    {
+      "case": "firefox-sky-force-off",
+      "started": "2026-10-09T21:58:18.484Z",
+      "browser": "firefox/156.0",
+      "game": "sky-force",
+      "counting": "off",
+      "url": "https://claude-laptop.lan:8188/?game=sky-force&counting=off",
+      "menu_key_hold_ms": 100,
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "renderer": "Intel(R) HD Graphics, or similar",
+      "load_before": [
+        10.82,
+        5.12,
+        4.4
+      ],
+      "load_after": [
+        9.88,
+        6.65,
+        5.03
+      ],
+      "policy": {
+        "requested": {
+          "entryBudget": 2,
+          "compiledSvc": 1,
+          "sparseRom": 1,
+          "watchdogUs": 2000,
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "irMode": 17,
+          "predicatedLeaves": 1,
+          "leafFeatures": 224,
+          "executionLimits": [
+            512,
+            32,
+            8,
+            512
+          ],
+          "unsafeCode": 3
+        },
+        "applied": true,
+        "observed": {
+          "entryBudget": 2,
+          "sparseRom": 1,
+          "compiledSvc": 1,
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "predicatedLeaves": 1,
+          "leafFeatures": 224,
+          "unsafeCode": 3,
+          "executionLimits": [
+            512,
+            32,
+            8,
+            512
+          ]
+        }
+      },
+      "assets": {
+        "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+        "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+        "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+        "/eka2l1.data": "/eka2l1.data?v=7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+        "/eka2l1.js": "/eka2l1.js?v=4fb49e99e953c54dc1424f1849bc959f4b74c85c8de60ebb8b8eaa32cf9608c3",
+        "/eka2l1.wasm": "/eka2l1.wasm?v=8ba81e0cbac677d49eaef4f651fa4e208bc4759821e8653703726facb595efbe"
+      },
+      "ui": "original",
+      "watchdog": 1,
+      "watchdog_worker": true,
+      "measurement": {
+        "hostSeconds": 30.215132136999994,
+        "guestSeconds": 30.216,
+        "guestSpeed": 1.000028722793469,
+        "presentations": 967,
+        "presentationsPerSecond": 32.00383157735254,
+        "instructions": 0,
+        "installedCompiledFunctions": 12,
+        "maxQueryMs": 8.858839000000444
+      },
+      "first_sample": {
+        "hostMs": 56865.468085500004,
+        "queryMs": 2.010270999999193,
+        "guestUs": 40358298,
+        "frames": 907,
+        "instructions": 0,
+        "compiledFunctions": 8025,
+        "inputs": 18,
+        "watchdog": 1
+      },
+      "last_sample": {
+        "hostMs": 87080.6002225,
+        "queryMs": 3.8211350000055972,
+        "guestUs": 70574298,
+        "frames": 1874,
+        "instructions": 0,
+        "compiledFunctions": 8037,
+        "inputs": 18,
+        "watchdog": 1
+      },
+      "measurement_status": "Runtime checks passed, but rejected as a gameplay measurement",
+      "raw_directory": "/home/claude/.scratch/eka-counting-switch/firefox-sky-force-off",
+      "report_sha256": "36ce0c95a7023ea95127a6b06d69dbf4f2e4ba9c3ed2ae245d1f2c3ca0b30756",
+      "screenshot_sha256": {
+        "mobile-picker.png": "8ed6fc3bdd4abdbd1da522a8b0371a5bdab847130d1010e855d7fc1a001f53de",
+        "gameplay-start.png": "9572062c752b250dced2fad5bb00bb49b16313265b54d2b365a017263c399acd",
+        "gameplay-end.png": "16587fb23ff9814a4aa4fc90f4bcd7b9c006e09fd910d86215c390059cb8ac29"
+      },
+      "scene_review": "Rejected: both screenshots show ship-selection menu",
+      "accepted_gameplay": false
+    },
+    {
+      "case": "firefox-sky-force-on-repeat",
+      "started": "2026-10-09T22:00:01.159Z",
+      "browser": "firefox/156.0",
+      "game": "sky-force",
+      "counting": "on",
+      "url": "https://claude-laptop.lan:8188/?game=sky-force&counting=on",
+      "menu_key_hold_ms": 100,
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "renderer": "Intel(R) HD Graphics, or similar",
+      "load_before": [
+        8.2,
+        6.44,
+        4.99
+      ],
+      "load_after": [
+        6.39,
+        6.28,
+        5.08
+      ],
+      "policy": {
+        "requested": {
+          "entryBudget": 2,
+          "compiledSvc": 1,
+          "sparseRom": 1,
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "irMode": 17,
+          "predicatedLeaves": 1,
+          "leafFeatures": 224,
+          "executionLimits": [
+            512,
+            32,
+            8,
+            512
+          ],
+          "unsafeCode": 3
+        },
+        "applied": true,
+        "observed": {
+          "entryBudget": 2,
+          "sparseRom": 1,
+          "compiledSvc": 1,
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "predicatedLeaves": 1,
+          "leafFeatures": 224,
+          "unsafeCode": 3,
+          "executionLimits": [
+            512,
+            32,
+            8,
+            512
+          ]
+        }
+      },
+      "assets": {
+        "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+        "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+        "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+        "/eka2l1.data": "/eka2l1.data?v=7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+        "/eka2l1.js": "/eka2l1.js?v=4fb49e99e953c54dc1424f1849bc959f4b74c85c8de60ebb8b8eaa32cf9608c3",
+        "/eka2l1.wasm": "/eka2l1.wasm?v=8ba81e0cbac677d49eaef4f651fa4e208bc4759821e8653703726facb595efbe"
+      },
+      "ui": "original",
+      "watchdog": 0,
+      "watchdog_worker": false,
+      "measurement": {
+        "hostSeconds": 30.197826625499992,
+        "guestSeconds": 20.336808,
+        "guestSpeed": 0.6734527041368918,
+        "presentations": 650,
+        "presentationsPerSecond": 21.524727857438574,
+        "instructions": 7183035599,
+        "installedCompiledFunctions": 441,
+        "maxQueryMs": 7.3466650000045775
+      },
+      "first_sample": {
+        "hostMs": 72586.482736,
+        "queryMs": 2.705310000004829,
+        "guestUs": 39694729,
+        "frames": 1228,
+        "instructions": 14317317973,
+        "compiledFunctions": 8874,
+        "inputs": 18,
+        "watchdog": 0
+      },
+      "last_sample": {
+        "hostMs": 102784.3093615,
+        "queryMs": 4.06246299999475,
+        "guestUs": 60031537,
+        "frames": 1878,
+        "instructions": 21500353572,
+        "compiledFunctions": 9315,
+        "inputs": 18,
+        "watchdog": 0
+      },
+      "measurement_status": "passed",
+      "raw_directory": "/home/claude/.scratch/eka-counting-switch/firefox-sky-force-on-repeat",
+      "report_sha256": "d14a7cce8c8e94dc0e9864b622cf734dcf720ffacd3a3aeaaa624b92ecd4b97c",
+      "screenshot_sha256": {
+        "mobile-picker.png": "acb8a9cb5cae89eceb22ba839afd19fcb01a725e61f3865c1df91d155733e078",
+        "gameplay-start.png": "6d78070232c113509e8e90a811afc137ec89eb3df2c3a6c38eaeade5895a564c",
+        "gameplay-end.png": "364f8b408ad638479513fd71b87a256f1952c4005b6f1c55c1ae257c52fa0af0"
+      },
+      "scene_review": "Start and end screenshots visually confirmed active gameplay",
+      "accepted_gameplay": true
+    },
+    {
+      "case": "firefox-sky-force-off-repeat",
+      "started": "2026-10-09T22:01:51.953Z",
+      "browser": "firefox/156.0",
+      "game": "sky-force",
+      "counting": "off",
+      "url": "https://claude-laptop.lan:8188/?game=sky-force&counting=off",
+      "menu_key_hold_ms": 600,
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "renderer": "Intel(R) HD Graphics, or similar",
+      "load_before": [
+        7.8,
+        6.57,
+        5.18
+      ],
+      "load_after": [
+        3.69,
+        5.63,
+        4.97
+      ],
+      "policy": {
+        "requested": {
+          "entryBudget": 2,
+          "compiledSvc": 1,
+          "sparseRom": 1,
+          "watchdogUs": 2000,
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "irMode": 17,
+          "predicatedLeaves": 1,
+          "leafFeatures": 224,
+          "executionLimits": [
+            512,
+            32,
+            8,
+            512
+          ],
+          "unsafeCode": 3
+        },
+        "applied": true,
+        "observed": {
+          "entryBudget": 2,
+          "sparseRom": 1,
+          "compiledSvc": 1,
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "predicatedLeaves": 1,
+          "leafFeatures": 224,
+          "unsafeCode": 3,
+          "executionLimits": [
+            512,
+            32,
+            8,
+            512
+          ]
+        }
+      },
+      "assets": {
+        "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+        "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+        "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+        "/eka2l1.data": "/eka2l1.data?v=7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+        "/eka2l1.js": "/eka2l1.js?v=4fb49e99e953c54dc1424f1849bc959f4b74c85c8de60ebb8b8eaa32cf9608c3",
+        "/eka2l1.wasm": "/eka2l1.wasm?v=8ba81e0cbac677d49eaef4f651fa4e208bc4759821e8653703726facb595efbe",
+        "/touch-controls.css": "/touch-controls.css?v=acf751272a8ca95fefc0c116d12b585c97ad93de27969e365263d562a57bd621",
+        "/touch-controls.js": "/touch-controls.js?v=fd454ba69c76ce7813bf4c6489f18eab05d27ac248a4359a67bb86fee2940bfc"
+      },
+      "ui": "touch-controls",
+      "watchdog": 1,
+      "watchdog_worker": true,
+      "measurement": {
+        "hostSeconds": 30.171762223000005,
+        "guestSeconds": 30.171619,
+        "guestSpeed": 0.9999952530780619,
+        "presentations": 965,
+        "presentationsPerSecond": 31.98354782420956,
+        "instructions": 0,
+        "installedCompiledFunctions": 220,
+        "maxQueryMs": 7.740568000001076
+      },
+      "first_sample": {
+        "hostMs": 50180.3538375,
+        "queryMs": 2.0023050000017975,
+        "guestUs": 40326001,
+        "frames": 1175,
+        "instructions": 0,
+        "compiledFunctions": 8421,
+        "inputs": 18,
+        "watchdog": 1
+      },
+      "last_sample": {
+        "hostMs": 80352.1160605,
+        "queryMs": 2.0697110000037355,
+        "guestUs": 70497620,
+        "frames": 2140,
+        "instructions": 0,
+        "compiledFunctions": 8641,
+        "inputs": 18,
+        "watchdog": 1
+      },
+      "measurement_status": "passed",
+      "raw_directory": "/home/claude/.scratch/eka-counting-switch/firefox-sky-force-off-repeat",
+      "report_sha256": "3d236d44539a5eeb04c103d508dde09d114bfc0f251f0c600beb1f8222234686",
+      "screenshot_sha256": {
+        "mobile-picker.png": "13609907fcbd901bc6e2e919800bcc0391e03d24133448fdd311ebb8a518b9de",
+        "gameplay-start.png": "a2c5a1812a1b707ec2a489ad0b01390f0b0a6d4800858cc0c9af2748892e3157",
+        "gameplay-end.png": "d194b8217f7eba8181959a888c22a9c3ed3da24665efbb9858ef4cc6449ade8c"
+      },
+      "scene_review": "Start and end screenshots visually confirmed active gameplay",
+      "accepted_gameplay": true
+    }
+  ]
+}

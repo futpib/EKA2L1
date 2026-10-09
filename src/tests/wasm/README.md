@@ -2,11 +2,17 @@
 
 Build `eka2l1_wasm` following the [browser build instructions](../benchmark/README.md),
 then run `npm ci --ignore-scripts` and `npm run serve -- 8188` in this directory.
-Choose **Sky Force** or **Snakes** and press **Play**. **Load my own files** opens
+Choose **Sky Force** or **Snakes**, select **Instruction counting: On / Off**, and
+press **Play**. Play applies both settings in a fresh session. The running status
+shows the active mode. The choice stays in the URL when switching games or
+reloading, and does not affect other tabs or devices. **Load my own files** opens
 the ROM/RPKG/SIS upload controls. Each launch reloads the page and starts a fresh
 session; saves are not persisted. Changing the dropdown alone does not stop play.
 
-Direct links use `?game=sky-force`, `?game=snakes` or `?game=custom`. An optional
+Direct links use `?game=sky-force`, `?game=snakes` or `?game=custom`. Add
+`&counting=on` for the original instruction-counting mode or `&counting=off`
+for count-free execution. Without this option, the server's default applies.
+An optional
 third command-line argument, such as `node serve.ts 8188 Snakes`, selects an
 automatic default. Without it, the page waits for a choice.
 
@@ -39,10 +45,14 @@ The existing HTTPS host/certificate and compiler-policy environment variables
 still apply; see [LAN setup](../benchmark/REALTIME_PLAYABILITY.md#lan-https-launcher).
 The local launcher is at <https://claude-laptop.lan:8188/>.
 
-`EKA2L1_WATCHDOG_US=2000` enables the experimental count-free CPU runner and
-virtual event clock. A separate worker requests yields every 2 ms of host time;
-statically proved finite regions finish without polling. This preserves unpaced
-execution but changes guest timing. It is disabled by default and incompatible
+`EKA2L1_WATCHDOG_US=2000` sets count-free execution as the launcher default.
+The UI can override it for an individual session. Turning counting off uses this
+request interval, or 2 ms when no interval is configured. A separate worker
+requests yields; statically proved finite regions finish without polling.
+Paced count-free play advances guest timers from elapsed host time, while
+unpaced runs retain their event clock. Counting on restores instruction-driven
+guest time. The switch therefore compares both execution and timing policies.
+Count-free execution is disabled by default and incompatible
 with instruction verification/diagnostics. See [watchdog results and limitations](../benchmark/WATCHDOG_RESULTS.md).
 For output-based benchmark comparisons, `EKA2L1_BENCHMARK_START_FRAME=/path/to/frame.png`
 makes `benchmark.ts` wait for that exact image before capturing its frame sequence.
@@ -101,6 +111,25 @@ checks finish, then cause the complete check to exit unsuccessfully. Device
 clock and PCM-queue state are included to distinguish browser output failures
 from missing emulator samples. Performance and audio underruns are reported,
 not hidden behind a boot-success assertion.
+
+To measure one paced counting-mode combination through the launcher:
+
+```sh
+node counting-comparison.ts https://claude-laptop.lan:8188/ /absolute/path/to/new-results chrome snakes on 30
+```
+
+The last arguments select `chrome` / `firefox`, `snakes` / `sky-force`, counting
+`on` / `off`, and the measurement duration in host seconds. Run combinations
+serially with fresh output directories. Firefox needs working WebGL (on this
+Linux host, the existing `DISPLAY` and `XAUTHORITY` are supplied). The script
+uses an isolated browser profile that accepts the local HTTPS certificate.
+It exercises the mode selector and Play button, checks the runtime mode and
+instruction totals, and samples presentations and guest time with sound muted.
+It also records installed compiled-function counts; any ARM-to-WASM translation
+during the window is included in elapsed time, rather than subtracted from FPS.
+Screenshots are taken outside the measurement window; inspect them to confirm
+gameplay. The result is paced playability, including the selected clock policy,
+not an isolated measurement of instruction-counting overhead.
 
 Current compatibility, performance limits and screenshots are recorded in
 [Sky Force results](../benchmark/SKY_FORCE_RESULTS.md).

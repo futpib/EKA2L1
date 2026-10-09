@@ -29,8 +29,12 @@
     <script src="audio.js"></script>
     <form id="game-picker" hidden>
         <label>Game: <select id="game-select" aria-label="Game"></select></label>
+        <label>Instruction counting: <select id="instruction-counting" aria-label="Instruction counting">
+            <option value="off">Off</option>
+            <option value="on">On</option>
+        </select></label>
         <button type="submit" id="btn-play">Play</button>
-        <span>Starting a game begins a new session.</span>
+        <span>Play applies settings and starts a new session.</span>
     </form>
     <div id="controls">
         <label>ROM: <input type="file" id="rom-file"></label>
@@ -192,6 +196,8 @@
         async function configureGameLauncher(games, defaultGame) {
             var picker = document.getElementById('game-picker');
             var select = document.getElementById('game-select');
+            var counting = document.getElementById('instruction-counting');
+            counting.value = window.ekaCompilerPolicy.requested.watchdogUs ? 'off' : 'on';
             for (var game of games) select.add(new Option(game.title, game.id));
             select.add(new Option('Load my own files', 'custom'));
             var requested = new URL(location.href).searchParams.get('game');
@@ -204,6 +210,7 @@
                 _releaseInputs();
                 var url = new URL(location.href);
                 url.searchParams.set('game', select.value);
+                url.searchParams.set('counting', counting.value);
                 // Reload releases the previous workers, audio and guest memory.
                 location.assign(url.href);
             });
@@ -227,11 +234,17 @@
                 }
                 document.getElementById('app-name').value = selected.uid;
                 await startEmulator();
-                if (_gameRunning) Module.setStatus('Running: ' + selected.title + ' · Arrows/WASD to move, Enter to select · Use Enable sound for audio');
+                if (_gameRunning) setRunningStatus(selected.title);
             } catch (error) {
                 Module.setStatus('Error: ' + error.message);
                 Module.printErr(String(error));
             }
+        }
+
+        function setRunningStatus(title) {
+            var counting = Module._eka2l1_watchdog_report() ? 'Off' : 'On';
+            Module.setStatus('Running: ' + title + ' · Instruction counting: ' + counting
+                + ' · Arrows/WASD to move, Enter to select · Use Enable sound for audio');
         }
 
         async function startEmulator() {
@@ -250,7 +263,7 @@
                 window.ekaUnsafeCode = Module.ccall('eka2l1_unsafe_code_report', 'number', [], []);
                 if (![0,1,2,3].includes(window.ekaUnsafeCode))
                     throw new Error('Executable-byte policy readback failed');
-                // Live play uses the same virtual clock and compiled CPU as replay.
+                // Live play selects pacing before starting the compiled CPU.
                 if (Module.ccall('eka2l1_live_configure', 'number', [], []) !== 0)
                     throw new Error('Live configuration failed');
                 // Initialize
@@ -317,7 +330,7 @@
                     EkaAudio.attach(Module);
                     document.getElementById('game-controls').hidden = false;
                     Module.canvas.focus();
-                    Module.setStatus('Running: ' + appName + ' · Arrows/WASD to move, Enter to select · Use Enable sound for audio');
+                    setRunningStatus(appName);
                 }
             } catch(e) {
                 Module.setStatus('Error: ' + e.message);
