@@ -1,0 +1,31 @@
+{
+  "binary_revision": "6ac9cbc58",
+  "backend": "dynarmic",
+  "benchmark_mode": false,
+  "display": ":0 hardware accelerated Xorg",
+  "game": "Snakes 0.6.0.19 A3",
+  "device": "Nokia 5320d-1 RM-409 05.01",
+  "start_monotonic": 873880.956951518,
+  "end_monotonic": 873910.957058092,
+  "seconds": 30.00010657403618,
+  "swaps": 480,
+  "presentations_per_second": 15.999943160715956,
+  "ten_second_windows": [
+    16.0,
+    16.0,
+    16.0
+  ],
+  "drawable_ids": [
+    2097188
+  ],
+  "binary_sha256": "6860f5ba59d2a371927eae183a9e41f32b9b3d2d96dfebd26401aaac36278d19",
+  "assets": {
+    "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+    "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+    "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+  },
+  "renderer": "name of display: :0\ndisplay: :0  screen: 0\ndirect rendering: Yes\nExtended renderer info (GLX_MESA_query_renderer):\n    Vendor: Intel (0x8086)\n    Device: Mesa Intel(R) UHD Graphics (CML GT2) (0x9bc4)\n    Version: 26.2.2\n    Accelerated: yes\n    Video memory: 64056MB\n    Unified memory: yes\n    Preferred profile: core (0x1)\n    Max core profile version: 4.6\n    Max compat profile version: 4.6\n    Max GLES1 profile version: 1.1\n    Max GLES[23] profile version: 3.2\nOpenGL vendor string: Intel\nOpenGL renderer string: Mesa Intel(R) UHD Graphics (CML GT2)\nOpenGL core profile version string: 4.6 (Core Profile) Mesa 26.2.2-arch1.1\nOpenGL core profile shading language version string: 4.60\nOpenGL core profile context flags: (none)\nOpenGL core profile profile mask: core profile\n\nOpenGL version string: 4.6 (Compatibility Profile) Mesa 26.2.2-arch1.1\nOpenGL shading language version string: 4.60\nOpenGL context flags: (none)\nOpenGL profile mask: compatibility profile\n\nOpenGL ES profile version string: OpenGL ES 3.2 Mesa 26.2.2-arch1.1\nOpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.20\n\n",
+  "method": "Normal native Qt paced execution, default Dynarmic backend, no EKA2L1 benchmark environment. LD_PRELOAD logs CLOCK_MONOTONIC timestamps at glXSwapBuffers for the game drawable. No pixel readback during the timed window. Endpoint screenshots show Level 1 gameplay. Fresh Nokia 5320 installation with stock Snakes SIS. A private PipeWire null sink supplies normal audio callbacks.",
+  "limitations": "This is the existing native reference binary at 6ac9cbc58, not a rebuild of current wasm-port or a physical phone. Presentation rate does not establish exact frame sequence or original phone timing. Qt status bar displayed 17 FPS, whereas the independently timed buffer swaps were 16 FPS.",
+  "raw_artifacts": "/home/claude/.scratch/eka-qt-paced-reference"
+}

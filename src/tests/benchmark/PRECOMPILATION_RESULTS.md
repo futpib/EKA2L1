@@ -130,3 +130,33 @@ and no pointer interception. Its displayed values matched the presentation
 counter samples in both counting modes. Count-free Snakes was inspected in
 gameplay; the counted overlay check sampled startup. Evidence and screenshots
 are in `fps-smoke/` under the raw artifact directory.
+
+## Native Qt paced reference
+
+The existing Qt reference binary (`6ac9cbc58`, default Dynarmic CPU backend)
+measured **480 presentations in 30.000107 seconds: 15.99994 presentations/s**
+during Snakes Level 1 gameplay. Each consecutive ten-second segment measured
+16.00. This used normal paced execution, hardware-accelerated Intel OpenGL on
+native Xorg, and the same stock Nokia 5320 ROM/RPKG and Snakes 0.6.0.19 A3 SIS
+as the browser. Benchmark mode was disabled.
+
+A temporary preload wrapper recorded monotonic timestamps at `glXSwapBuffers`
+for the game drawable, without pixel readback during the window. Both endpoint
+screenshots show gameplay. Qt's own status bar displayed 17 FPS; the independent
+wall-time measurement above counts actual buffer-swap calls. A private PipeWire
+null sink supplied normal audio callbacks after the host audio connection
+blocked the first launch. That stalled launch is excluded.
+
+Counting-off browser execution matches this native presentation cadence.
+Counting-on's 21.19 presentations/s is about 32% above it. Together with the
+user's observed faster gameplay, this makes guest timing/scheduling the next
+thing to investigate; reporting a 1x guest clock does not establish equivalent
+game speed. This measurement does not establish the precise cause or original
+physical-phone timing, and uses the existing reference binary rather than a
+rebuild of the current branch.
+
+[Machine-readable evidence](QT_PACED_REFERENCE.json) records the binary/asset
+hashes, renderer, window and counts. Raw swap timestamps, preload source, logs
+and screenshots are under `/home/claude/.scratch/eka-qt-paced-reference/`.
+The test processes were stopped, the original VT restored, and the temporary
+X authentication copy removed. The LAN deployment was unchanged.
