@@ -16,8 +16,8 @@ class EkaTouchControls {
                 </div>
             </div>
             <div class="touch-zone" id="action-zone"><div class="touch-cluster" id="action-group">
-                <button type="button" data-scan="164" aria-label="Left softkey">Left key</button>
-                <button type="button" data-scan="165" aria-label="Right softkey">Right key</button>
+                    <button type="button" data-scan="164" aria-label="Left softkey" title="Left softkey">L</button>
+                    <button type="button" data-scan="165" aria-label="Right softkey" title="Right softkey">R</button>
                 <button type="button" id="primary-action" data-scan="167">Select</button>
             </div></div>`;
         document.body.insertAdjacentHTML('beforeend', `
@@ -39,6 +39,8 @@ class EkaTouchControls {
                 <div class="key-grid"></div><div class="dialog-actions"><button data-close>Close</button></div></dialog>`);
         this.settings = document.getElementById('touch-settings');
         this.keypad = document.getElementById('phone-keypad');
+        this.menu = document.getElementById('session-panel');
+        this.menuButton = document.getElementById('btn-game-menu');
         this.moveZone = document.getElementById('move-zone'); this.pad = document.getElementById('movement-pad');
         this.actionZone = document.getElementById('action-zone'); this.actions = document.getElementById('action-group');
         this.primary = document.getElementById('primary-action'); this.knob = document.getElementById('stick-knob');
@@ -51,11 +53,30 @@ class EkaTouchControls {
             this.open(this.settings);
         };
         document.getElementById('btn-keypad').onclick = () => { this.setEditing(false); this.open(this.keypad); };
-        for (const dialog of [this.settings, this.keypad]) {
+        this.menuButton.onclick = () => {
+            if (this.editing) this.setEditing(false); else this.open(this.menu);
+        };
+        const fullscreen = document.getElementById('btn-fullscreen');
+        fullscreen.hidden = !document.fullscreenEnabled;
+        fullscreen.onclick = async () => {
+            try {
+                if (document.fullscreenElement) await document.exitFullscreen();
+                else await document.documentElement.requestFullscreen();
+                this.menu.close();
+            } catch (_) { fullscreen.textContent = 'Full screen unavailable'; }
+        };
+        document.addEventListener('fullscreenchange', () => {
+            fullscreen.textContent = document.fullscreenElement ? 'Exit full screen' : 'Full screen';
+        });
+        for (const dialog of [this.settings, this.keypad, this.menu]) {
             for (const button of dialog.querySelectorAll('[data-close]')) button.onclick = () => dialog.close();
             dialog.addEventListener('close', () => { this.releaseAll(); document.getElementById('canvas').focus(); });
-            dialog.addEventListener('cancel', () => this.releaseAll());
+            dialog.addEventListener('cancel', event => {
+                this.releaseAll();
+                if (dialog === this.menu && !window._gameRunning) event.preventDefault();
+            });
         }
+        for (const area of [this.deck, this.keypad]) area.addEventListener('contextmenu', event => event.preventDefault());
         this.settings.querySelectorAll('[data-pref]').forEach(input => input.addEventListener('input', () => {
             this.releaseAll();
             this.prefs[input.dataset.pref] = input.type === 'checkbox' ? input.checked
@@ -93,11 +114,12 @@ class EkaTouchControls {
         }
         new ResizeObserver(() => { this.releaseAll(); this.layout(); }).observe(this.deck);
         this.configure('');
+        this.menu.showModal();
     }
     clamp(value,min,max) { return Math.min(max,Math.max(min,value)); }
     defaults() {
-        return {mode:this.profile==='sky-force'?'stick':'pad', directions:this.profile==='snakes'?4:8,
-            size:156,gap:12,opacity:.85,leftHanded:false,action:167,latch:false,move:{x:.5,y:.65},buttons:{x:.5,y:.65}};
+        return {mode:this.profile==='snakes'?'pad':'stick', directions:this.profile==='snakes'?4:8,
+            size:132,gap:12,opacity:.55,leftHanded:false,action:167,latch:false,move:{x:.25,y:.75},buttons:{x:.75,y:.75}};
     }
     configure(app) {
         this.releaseAll();
@@ -122,21 +144,35 @@ class EkaTouchControls {
         this.fillSettings(); this.layout();
     }
     save() { try { localStorage.setItem(this.storageKey,JSON.stringify(this.prefs)); } catch (_) {} }
+    startGame(app) {
+        this.configure(app); this.menu.close();
+        this.menu.querySelector('[data-close]').hidden=false;
+        this.menuButton.hidden=false;
+        document.getElementById('session-title').textContent=this.profile==='snakes'?'Snakes':this.profile==='sky-force'?'Sky Force':'Game options';
+    }
     fillSettings() {
         for (const input of this.settings.querySelectorAll('[data-pref]')) {
             if (input.type==='checkbox') input.checked=this.prefs[input.dataset.pref]; else input.value=this.prefs[input.dataset.pref];
         }
     }
-    open(dialog) { this.releaseAll(); dialog.showModal(); }
-    get modalOpen() { return this.settings.open || this.keypad.open; }
+    open(dialog) {
+        this.releaseAll();
+        if (dialog!==this.menu) this.menu.close();
+        dialog.showModal();
+    }
+    get modalOpen() { return this.settings.open || this.keypad.open || this.menu.open; }
     setEditing(value) {
         this.releaseAll(); this.editing=value; this.deck.classList.toggle('editing',value);
         document.getElementById('btn-touch-settings').textContent=value?'Done moving':'Controls';
-        document.getElementById('control-hint').textContent=value?'Drag each group within its area. Changes save automatically.':'Slide to change direction · Move and act together';
+        this.menuButton.innerHTML=value?'✓':'<span aria-hidden="true">☰</span>';
+        this.menuButton.setAttribute('aria-label',value?'Finish moving controls':'Game options');
+        document.getElementById('control-hint').classList.toggle('editing',value);
     }
     layout() {
         if (!this.prefs) return;
         const p=this.prefs, root=document.documentElement;
+        this.deck.dataset.profile=this.profile; this.deck.dataset.mode=p.mode;
+        this.deck.classList.toggle('left-handed',p.leftHanded);
         root.style.setProperty('--control-size',p.size+'px'); root.style.setProperty('--control-gap',p.gap+'px'); root.style.setProperty('--control-opacity',p.opacity);
         this.moveZone.style.order=p.leftHanded?2:0; this.moveZone.dataset.mode=p.mode;
         this.moveZone.style.overflow=p.mode==='stick'?'hidden':'visible';
@@ -147,7 +183,12 @@ class EkaTouchControls {
         }
         this.primary.dataset.scan=p.action;
         const label=p.action===167?(this.profile==='sky-force'?'Fire / OK':'Select'):({141:'5',146:'0',133:'*',127:'#'})[p.action];
-        this.primary.textContent=p.latch?label+' ⏻':label;
+        this.primary.innerHTML=p.action===167
+            ? (this.profile==='sky-force'
+                ? '<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="9"/><path d="M16 2v8m0 12v8M2 16h8m12 0h8"/></svg>'
+                : '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="m8 16 6 6 11-13"/></svg>')
+            : '<span>'+label+'</span>';
+        this.primary.classList.toggle('hold-mode',p.latch);
         this.primary.setAttribute('aria-label',label+(p.latch?' — tap to hold or release':''));
         if (p.latch) this.primary.setAttribute('aria-pressed',String(this.owned.has('touch:latch')));
         else this.primary.removeAttribute('aria-pressed');

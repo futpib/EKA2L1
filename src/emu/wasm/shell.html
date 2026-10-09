@@ -28,6 +28,9 @@
 </head>
 <body>
     <script src="audio.js"></script>
+    <dialog id="session-panel" aria-labelledby="session-title">
+    <button class="dialog-close" data-close aria-label="Back to game" hidden>×</button>
+    <h1 id="session-title">Play</h1>
     <form id="game-picker" hidden>
         <label>Game: <select id="game-select" aria-label="Game"></select></label>
         <label>Instruction counting: <select id="instruction-counting" aria-label="Instruction counting">
@@ -44,20 +47,23 @@
         <label>App: <input type="text" id="app-name" placeholder="App name or UID" size="20"></label>
         <button id="btn-start" onclick="startEmulator()">Start</button>
     </div>
+    <div id="game-controls" hidden aria-label="Game options">
+        <button id="btn-sound" type="button" disabled aria-pressed="false" onclick="EkaAudio.toggle()">Enable sound</button>
+        <button id="btn-touch-settings" type="button">Touch controls</button>
+        <button id="btn-keypad" type="button">Phone keypad</button>
+        <button id="btn-fullscreen" type="button">Full screen</button>
+    </div>
+    <div id="status" role="status">Ready</div>
+    <details id="log-panel"><summary>Diagnostics</summary><div id="log" role="log"></div></details>
+    </dialog>
     <div id="play-surface">
         <div id="canvas-container">
             <canvas id="canvas" tabindex="0" aria-label="Game display" width="360" height="640" oncontextmenu="event.preventDefault()"></canvas>
         </div>
         <div id="touch-deck" hidden aria-label="Touch game controls"></div>
+        <button id="btn-game-menu" type="button" aria-label="Game options" hidden><span aria-hidden="true">☰</span></button>
+        <div id="control-hint" hidden>Drag controls to move them. Tap ✓ when finished.</div>
     </div>
-    <div id="control-hint" hidden>Slide to change direction · Move and act together</div>
-    <div id="game-controls" hidden aria-label="Game controls">
-        <button id="btn-sound" type="button" disabled aria-pressed="false" onclick="EkaAudio.toggle()">Enable sound</button>
-        <button id="btn-touch-settings" type="button">Controls</button>
-        <button id="btn-keypad" type="button">Keypad</button>
-    </div>
-    <div id="status">Ready</div>
-    <details id="log-panel"><summary>Log</summary><div id="log" role="log"></div></details>
 
     <script>
         var Module = window.Module || {async: true};
@@ -323,7 +329,7 @@
                     }
                     _gameRunning = true;
                     EkaAudio.attach(Module);
-                    window.ekaTouchControls.configure(appName);
+                    window.ekaTouchControls.startGame(appName);
                     document.getElementById('play-surface').classList.add('playing');
                     document.getElementById('touch-deck').hidden = false;
                     document.getElementById('control-hint').hidden = false;

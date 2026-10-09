@@ -1,29 +1,34 @@
 # Browser touch controls
 
-The default layout is a general-purpose game controller with large independent
-movement and action areas. It supports simultaneous touches, sliding between
-directions without lifting, keyboard/touch ownership of the same key, and visible
-pressed states. Portrait controls sit below the game; landscape controls sit
-beside it. The game display scales to fit while retaining its original aspect
-ratio and resolution.
+The game occupies the viewport and retains its original aspect ratio without
+cropping. Translucent thumb controls float over it or in the available letterbox
+space; the layout does not reserve a control deck or persistent toolbars.
+**☰** opens the launcher, sound, full screen, controls, phone keypad and diagnostics.
+The game keeps running while this menu is open.
 
-Snakes starts with a fixed four-way pad. Sky Force starts with a floating
-eight-way stick and a **Fire / OK** action. Other apps get a fixed eight-way pad
-and **Select**. Both movement styles are available in every profile. The floating
-stick starts at the initial touch and has a neutral zone; direction hysteresis
-prevents small finger movements from rapidly switching sectors. These are digital
-guest key inputs, not direct manipulation of a game's character position.
+Snakes starts with a fixed four-way pad. Other apps get a floating eight-way stick
+and a Select action. Sky Force also uses eight directions, but its movement area
+covers the play surface and the stick only appears while touching it. Its action
+button maps to Fire / OK. Both movement styles remain available in every profile.
+The floating stick starts at the initial touch and has a neutral zone; direction
+hysteresis prevents small finger movements from rapidly switching sectors.
+These controls send the original guest keys. In particular, Sky Force steering
+is a floating digital stick, not finger-following ship positioning.
 
-**Controls** opens settings for movement style, four/eight directions, size,
+The input layer supports simultaneous movement/action, sliding between directions
+without lifting, keyboard/touch ownership of the same key, and visible pressed
+states. The small L/R buttons send the original left/right softkeys.
+
+**☰ → Touch controls** opens settings for movement style, four/eight directions, size,
 spacing, opacity, handedness and action-key mapping. **Move controls** lets the
-player drag each group within its area; **Done moving** returns to play. **Reset**
+player drag each group within its area; the onscreen **✓** returns to play. **Reset**
 restores the current game's preset. Settings are stored locally per app, including
 apps launched from custom files. Unsupported or malformed saved values fall back
 to usable defaults; blocked storage does not prevent play.
 
 The optional action hold mode toggles on each tap. It starts released, and releases
 on focus loss, hidden pages, opening dialogs, layout changes or game changes.
-**Keypad** exposes the numeric phone keys, star/hash, softkeys and Clear. Softkeys
+**Phone keypad** exposes the numeric phone keys, star/hash, softkeys and Clear. Softkeys
 are labelled by position because their meaning is controlled by the guest game.
 Enter remains Select; Space uses the configured action key.
 
@@ -48,7 +53,7 @@ portrait/landscape captures, settings and the custom-file launcher. Inspect the
 saved gameplay captures. The report retains audio failures separately; a failing
 audio check must not be described as a complete E2E pass.
 
-### Live verification, 2026-10-09
+### Initial control-deck verification, 2026-10-09
 
 The controls are served at <https://claude-laptop.lan:8188/>. The browser input
 contract, asset-cache and compiler-policy tests pass. Layout bounds pass at
@@ -86,3 +91,44 @@ The deployed WASM is unchanged from the preceding launcher build, SHA-256
 `8ba81e0cbac677d49eaef4f651fa4e208bc4759821e8653703726facb595efbe`.
 The frontend was staged with the existing runtime and verified against the source
 HTML, JavaScript and CSS; no C++ rebuild or runtime-performance change is claimed.
+
+### Visual references for the overlay revision
+
+The presentation was compared with actual gameplay screenshots, rather than
+inferring appearance from feature lists:
+
+- [Brawl Stars](https://minireview.io/shooter/brawl-stars): translucent control rings
+  over the playfield, with distinct movement and attack controls.
+- [Dead Cells on iOS](https://noescapevg.com/review-dead-cells-ios-is-the-perfect-mobile-roguelike/):
+  a thumbstick and action icons around the screen edges, without a separate panel.
+- [Sky Force Reloaded](https://minireview.io/arcade/sky-force-reloaded) and
+  [the developer's screenshots](https://www.idreams.pl/pl/our-products/show/product/77-Sky-Force-Reloaded):
+  a largely unobstructed portrait playfield with minimal visible controls.
+
+These examples guide layout and visual weight; screenshots alone do not establish
+input behavior. The original Symbian games retain their key-based input and
+fixed screen aspect ratio. The generic layout receives the same overlay design
+and customization as the presets.
+
+### Overlay revision verification, 2026-10-09
+
+The browser contract checks pass, including the full viewport at 390×844, hidden
+launcher during play, Sky Force gestures outside the old pad area, handedness,
+editing and the existing multi-touch/storage/layout cases. Hardware-rendered
+staging integration passed gameplay, movement/action ownership, switching,
+portrait/landscape captures and the custom launcher for both real games. Sky Force
+advanced from 823 to 1,853 frames and 10 to 20 consumed inputs; Snakes from 213 to
+559 frames and 20 to 28 inputs. Gameplay screenshots were inspected.
+
+Audio remains a limitation: both non-silent output checks failed, and this run's
+Snakes mute check also failed while the existing audio handler awaited resuming
+a suspended AudioContext. The full integration command remains failing; the
+revision does not claim to fix browser audio.
+
+After deployment, a separate live browser check passed both games, navigation,
+menu open/close, full-viewport geometry and consumed simultaneous touch input.
+A generic-profile screenshot was also captured using the real emulator.
+The served HTML and asset hashes match the tested files, and the runtime bytes
+and service settings were preserved. Evidence is in `overlay-staged-games2/`,
+`overlay-live-smoke.json`, `overlay-deployment.json` and `overlay-unit3.log` under
+`/home/claude/.scratch/eka-touch-controls/`.

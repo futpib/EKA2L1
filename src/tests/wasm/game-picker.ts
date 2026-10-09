@@ -49,7 +49,12 @@ try {
     }
     throw Error('Game display remains blank or trivial: '+name);
   };
+  const openMenu = async () => {
+    if (!await page.$eval('#session-panel',e=>(e as HTMLDialogElement).open)) await page.click('#btn-game-menu');
+  };
+  const closeMenu = () => page.click('#session-panel [data-close]');
   const choose = async (id: string) => {
+    await openMenu();
     await page.select('#game-select', id);
     await Promise.all([page.waitForNavigation({waitUntil: 'domcontentloaded'}), page.click('#btn-play')]);
   };
@@ -87,8 +92,10 @@ try {
       }
       await waitGuest(23000000);
     }
+    await openMenu();
     await page.click('#btn-sound');
     await page.waitForFunction(() => (window as any).EkaAudio.context?.state === 'running' && !(window as any).EkaAudio.muted);
+    await closeMenu();
     const start = await state(), begin = performance.now();
     const first = await screenshot(id + '-gameplay-start');
     await page.keyboard.press('ArrowLeft', {delay: 600});
@@ -140,6 +147,7 @@ try {
     await inputSession.detach();
     await page.setViewport({width:844,height:390,hasTouch:true});
     await page.screenshot({path:path.join(output,id+'-landscape.png')});
+    await openMenu();
     await page.click('#btn-touch-settings');
     await page.screenshot({path:path.join(output,id+'-settings.png')});
     await page.click('#touch-settings [data-close]');
@@ -162,6 +170,7 @@ try {
     // Preserve audio failures while exercising the other game and launcher.
     // The final assertion still fails the complete integration check.
     report.checks.push({game: id, check: 'non-silent browser audio', passed: end.audio.nonzero > 0});
+    await openMenu();
     await page.click('#btn-sound');
     await page.waitForFunction(() => !(window as any).EkaAudio.busy, {timeout: 5000}).catch(() => {});
     report.checks.push({game: id, check: 'sound toggle returns to muted',
