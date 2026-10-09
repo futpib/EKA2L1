@@ -36,12 +36,14 @@ namespace eka2l1::arm::r12l1 {
     }
 
     void exclusive_monitor::lock() {
-        while (is_locked_.test_and_set(std::memory_order_acquire)) {
+        // A locked monitor is conservatively nonempty until its owner
+        // publishes the actual summary when releasing it.
+        while (lock_state_.exchange(3, std::memory_order_acquire) & 1) {
         }
     }
 
     void exclusive_monitor::unlock() {
-        is_locked_.clear(std::memory_order_release);
+        lock_state_.store(may_have_reservations_ ? 2 : 0, std::memory_order_release);
     }
 
     bool exclusive_monitor::check_and_clear(const std::size_t processor_id, vaddress address) {
@@ -64,10 +66,10 @@ namespace eka2l1::arm::r12l1 {
     }
 
     void exclusive_monitor::clear_exclusive() {
-        if (!may_have_reservations_.load(std::memory_order_acquire)) return;
+        if (!(lock_state_.load(std::memory_order_acquire) & 2)) return;
         lock();
         std::fill(exclusive_addresses_.begin(), exclusive_addresses_.end(), INVALID_EXCLUSIVE_ADDRESS);
-        may_have_reservations_.store(false, std::memory_order_release);
+        may_have_reservations_ = false;
         unlock();
     }
 

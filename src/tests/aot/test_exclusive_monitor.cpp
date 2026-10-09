@@ -79,8 +79,32 @@ static void cross_thread_clear() {
     clearer.join();
 }
 
+static void competing_reservations() {
+    exclusive_monitor monitor(2);
+    unsigned memory = 0;
+    auto increment = [&](unsigned processor) {
+        for (unsigned i = 0; i < 3000; ++i) {
+            for (;;) {
+                const unsigned saved = monitor.read_and_mark<unsigned>(processor, 0x1000, [&] { return memory; });
+                if ((i & 31) == 0) std::this_thread::yield();
+                if (monitor.do_exclusive_operation<unsigned>(processor, 0x1000, [&](unsigned expected) {
+                    if (memory != expected || expected != saved) return false;
+                    memory = expected + 1;
+                    return true;
+                })) break;
+            }
+            if ((i & 15) == 0) monitor.clear_exclusive();
+        }
+    };
+    std::thread peer([&] { increment(1); });
+    increment(0);
+    peer.join();
+    require(memory == 6000);
+}
+
 int main() {
     compare_sequences();
     cross_thread_clear();
+    competing_reservations();
     std::cout << "PASS " << checks << " reservation state and cross-thread clear checks\n";
 }

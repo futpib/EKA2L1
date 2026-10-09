@@ -52,7 +52,7 @@ namespace eka2l1::arm::r12l1 {
             const vaddress masked_address = address & RESERVATION_GRANULE_MASK;
 
             lock();
-            may_have_reservations_.store(true, std::memory_order_release);
+            may_have_reservations_ = true;
             exclusive_addresses_[processor_id] = masked_address;
             const T value = op();
             std::memcpy(exclusive_values_[processor_id].data(), &value, sizeof(T));
@@ -101,7 +101,7 @@ namespace eka2l1::arm::r12l1 {
             unlock(); return result;
         }
         void restore(std::size_t processor_id, const reservation_snapshot &value) {
-            lock(); may_have_reservations_.store(true, std::memory_order_release);
+            lock(); may_have_reservations_ = true;
             exclusive_addresses_.at(processor_id) = value.address;
             exclusive_values_.at(processor_id) = value.value; unlock();
         }
@@ -131,10 +131,10 @@ namespace eka2l1::arm::r12l1 {
         static constexpr vaddress RESERVATION_GRANULE_MASK = 0xFFFF'FFFFUL;
         static constexpr vaddress INVALID_EXCLUSIVE_ADDRESS = 0xDEAD'DEADUL;
 
-        std::atomic_flag is_locked_;
-        // Only a complete clear resets this conservative summary. Individual
-        // invalidations can leave it set without changing reservation semantics.
-        std::atomic<bool> may_have_reservations_{false};
+        std::atomic<std::uint8_t> lock_state_{0};
+        // Protected by the monitor lock. Unlock publishes its conservative
+        // value in bit 1; bit 0 denotes the lock itself.
+        bool may_have_reservations_ = false;
 
         using exclusive_value_array = std::array<std::uint64_t, 2>;
 
