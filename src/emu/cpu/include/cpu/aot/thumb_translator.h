@@ -77,6 +77,10 @@ namespace eka2l1::arm::aot {
     };
 
     struct translate_result {
+        // Statically known dispatcher destinations, tagged with Thumb bit 0.
+        std::vector<std::uint32_t> dispatch_entries;
+        // Addresses of statically known word literal loads (discovery only).
+        std::vector<std::uint32_t> literal_refs;
         std::vector<code_dependency> dependencies;
         wasm_func_def func;
         bool entry_supported = true;

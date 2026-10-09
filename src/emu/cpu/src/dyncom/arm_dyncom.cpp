@@ -42,6 +42,7 @@ namespace eka2l1::arm {
     }
 
     void dyncom_core::run(const std::uint32_t instruction_count) {
+        aot::prepare_compiled_code(*this);
         publish_memory_view();
         ticks_executed_ = 0;
         if (aot::watchdog::enabled) {

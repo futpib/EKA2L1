@@ -37,6 +37,9 @@
 #include <unordered_map>
 #include <cstdlib>
 #include <cstddef>
+#include <chrono>
+#include <mutex>
+#include <unordered_set>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
@@ -47,6 +50,13 @@ namespace eka2l1::arm::aot {
 static_assert(offsetof(ARMul_State, NumInstrsToExecute) == state_offsets::NUM_INSTRS_TO_EXECUTE);
 static_assert(offsetof(ARMul_State, aot_svc_instructions) == state_offsets::AOT_SVC_INSTRUCTIONS);
 #endif
+compilation_counters compilation;
+struct compilation_timer {
+    std::atomic<std::uint64_t> &total;
+    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+    ~compilation_timer() { total.fetch_add(std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::steady_clock::now() - start).count(), std::memory_order_relaxed); }
+};
 static std::atomic<std::uint64_t> completed_function_count{0};
 std::uint64_t compiled_function_count() { return completed_function_count.load(std::memory_order_relaxed); }
 
@@ -206,6 +216,33 @@ static std::uint64_t hot_dispatches = 0;
 static std::uint32_t hot_compiled = 0;
 static std::unordered_map<std::uint32_t, unsigned> hot_counts;
 static std::vector<wasm_func_def> hot_pending;
+struct precompile_image {
+    std::uint32_t space, base, size;
+    std::vector<std::uint32_t> entries;
+};
+static std::mutex precompile_mutex;
+static std::vector<precompile_image> precompile_images;
+static std::atomic<bool> precompile_pending{false};
+
+void queue_precompile_image(std::uint32_t space, std::uint32_t base,
+        const std::uint8_t *bytes, std::uint32_t size, std::vector<std::uint32_t> entries) {
+#ifdef __EMSCRIPTEN__
+    if (!hot_compilation_enabled || !bytes || !size || std::uint64_t(base) + size > 0x100000000ull) return;
+    // Function pointers in literal pools/vtables find non-exported callbacks.
+    // These are candidates only: never execute them, and validate executable
+    // mappings again on the worker. No guest pointer survives this callback.
+    const bool rom_image = base - hot_rom_base < hot_rom_size;
+    for (std::uint32_t i = 0; !rom_image && i + 4 <= size; i += 4) {
+        std::uint32_t target; std::memcpy(&target, bytes + i, 4);
+        const auto pc = target & ~1u;
+        if ((pc - base < size || pc - hot_rom_base < hot_rom_size)
+            && ((target & 1) || !(pc & 3))) entries.push_back(target);
+    }
+    const std::lock_guard<std::mutex> lock(precompile_mutex);
+    precompile_images.push_back({space, base, size, std::move(entries)});
+    precompile_pending.store(true, std::memory_order_release);
+#endif
+}
 
 static void flush_hot_blocks() {
     if (hot_pending.empty()) return;
@@ -213,7 +250,10 @@ static void flush_hot_blocks() {
         {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
         {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
     if (arm_exclusive_memory) imports.push_back({"env","arm_exclusive",2,false});
-    auto bytes = build_wasm_module(hot_pending, imports);
+    auto bytes = [&] {
+        compilation_timer timer{compilation.emission_us};
+        return build_wasm_module(hot_pending, imports);
+    }();
     stage_aot_module(std::move(bytes), "hot-rom");
     instantiate_staged_modules();
     hot_pending.clear();
@@ -224,6 +264,10 @@ void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32
     global_registry().configure_rom_index(base, size, sparse_rom_lookup_enabled);
     hot_compilation_enabled = enabled;
     completed_function_count = 0;
+    compilation.translation_us = 0; compilation.emission_us = 0; compilation.installation_us = 0;
+    compilation.eager_functions = 0; compilation.eager_passes = 0;
+    { const std::lock_guard<std::mutex> lock(precompile_mutex);
+      precompile_images.clear(); precompile_pending = false; }
     hot_dispatches = 0; hot_compiled = 0; hot_counts.clear(); hot_pending.clear();
     ram_cache = {}; ram_counts.clear();
     const char *ram = std::getenv("EKA2L1_AOT_RAM");
@@ -460,44 +504,62 @@ std::uint32_t execute_single(ARMul_State *cpu, aot_func function) {
     return count;
 }
 
-void observe_hot_pc(ARMul_State *cpu) {
 #ifdef __EMSCRIPTEN__
-    if (!hot_compilation_enabled || validation_running) return;
-    const auto pc = cpu->Reg[15], key = pc | cpu->TFlag;
-    ++hot_dispatches;
-    if (hot_dispatches & 31) return;
-    if ((hot_dispatches & 8191) == 0) flush_hot_blocks();
+static void discover_successors(core &cpu, const translate_result &tr, bool thumb,
+        std::vector<std::uint32_t> &successors) {
+    successors.insert(successors.end(), tr.dispatch_entries.begin(), tr.dispatch_entries.end());
+    for (auto address : tr.resume_points) successors.push_back(address | (thumb ? 1u : 0u));
+    // Literal loads find import veneers and address-taken callbacks that direct
+    // branch decoding alone misses. Values are candidates, never folded into
+    // generated code; the worklist checks loaded executable image bounds.
+    for (auto address : tr.literal_refs) {
+        const auto offset = std::uint64_t(address) - hot_rom_base;
+        const std::uint8_t *bytes = nullptr;
+        core::code_mapping view;
+        if (address >= hot_rom_base && offset + 4 <= hot_rom_size) bytes = hot_rom + offset;
+        else if (cpu.resolve_code && cpu.resolve_code(address, view) && view.size >= 4)
+            bytes = view.bytes;
+        if (bytes) {
+            std::uint32_t target; std::memcpy(&target, bytes, 4);
+            successors.push_back(target);
+        }
+    }
+}
+
+static void compile_at(core &cpu, std::uint32_t key, std::vector<std::uint32_t> *successors = nullptr) {
+    const auto pc = key & ~1u;
+    const bool thumb = key & 1;
     if (pc < hot_rom_base || pc - hot_rom_base >= hot_rom_size) {
-        if (!ram_compilation_enabled || !cpu->parent()->resolve_code) return;
+        if (!ram_compilation_enabled || !cpu.resolve_code) return;
         if (ram_cache.versions() >= 16384) {
             if ((common::guest_profile::enabled && common::performance::counting())) common::guest_profile::state.event("ram_capacity",key);
             return;
         }
         core::code_mapping view;
-        if (!cpu->parent()->resolve_code(pc, view)) return;
-        if (ram_cache.find(key, *cpu->parent())) return; // compiled or awaiting instantiation
+        if (!cpu.resolve_code(pc, view)) return;
+        if (ram_cache.find(key, cpu)) return; // compiled or awaiting instantiation
         const auto identity = validated_code_cache::key(view.address_space, key);
-        if (ram_counts.size() >= 131072 && !ram_counts.count(identity)) return;
+        if (!successors && ram_counts.size() >= 131072 && !ram_counts.count(identity)) return;
         auto &count = ram_counts[identity];
-        if (++count % 8) {
+        if (!successors && ++count % 8) {
             if ((common::guest_profile::enabled && common::performance::counting())) common::guest_profile::state.event("candidate_threshold",key,view.address_space);
             return;
         }
         const auto size = std::min(std::size_t(chaining_enabled ? primary_window_bytes : 256), view.size);
         leaf_resolver leaves = [&](std::uint32_t target) {
             core::code_mapping leaf;
-            if (!cpu->parent()->resolve_code(target, leaf) || leaf.address_space != view.address_space)
+            if (!cpu.resolve_code(target, leaf) || leaf.address_space != view.address_space)
                 return std::vector<std::uint8_t>{};
             const auto bytes = std::min(std::size_t(leaf_instruction_limit*4), leaf.size);
             return std::vector<std::uint8_t>(leaf.bytes, leaf.bytes + bytes);
         };
         const code_window immutable_code{hot_rom, hot_rom_base, hot_rom_size};
-        auto translate = [&] {return cpu->TFlag ? translate_thumb_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled, &immutable_code)
+        auto translate = [&] {return thumb ? translate_thumb_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled, &immutable_code)
                             : translate_arm_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled, region_enabled, &leaves, defer_memory_enabled, ir_policy);};
-        auto tr = translate();
+        auto tr = [&] { compilation_timer timer{compilation.translation_us}; return translate(); }();
         if (tr.func.body.empty() || !tr.entry_supported) {
             // Cache rejection against these exact bytes; retry only after mutation.
-            ram_cache.insert(key, view, std::min(size, std::size_t(cpu->TFlag ? 2 : 4))).rejected = true;
+            ram_cache.insert(key, view, std::min(size, std::size_t(thumb ? 2 : 4))).rejected = true;
             if ((common::guest_profile::enabled && common::performance::counting())) common::guest_profile::state.event("compile_rejected",key,view.address_space);
             return;
         }
@@ -510,11 +572,11 @@ void observe_hot_pc(ARMul_State *cpu) {
             exit_census::compile_site(key,static_cast<unsigned>(tr.dependencies.size()),"inline_dependencies");
         }
         const auto consumed = std::clamp(std::size_t(tr.end_address - pc),
-            std::size_t(cpu->TFlag ? 2 : 4), size);
+            std::size_t(thumb ? 2 : 4), size);
         auto &entry = ram_cache.insert(key, view, consumed);
         for (const auto &dependency : tr.dependencies) {
             core::code_mapping leaf;
-            if (!cpu->parent()->resolve_code(dependency.address, leaf)
+            if (!cpu.resolve_code(dependency.address, leaf)
                 || leaf.address_space != view.address_space || leaf.size < dependency.bytes.size()
                 || (!common::code_tracking::skip_code_scans()
                     && !equal_code_bytes(leaf.bytes, dependency.bytes.data(), dependency.bytes.size()))) {
@@ -524,27 +586,82 @@ void observe_hot_pc(ARMul_State *cpu) {
             validated_code_cache::add_dependency(entry, dependency.address, leaf.bytes, dependency.bytes);
         }
         tr.func.export_name = "r_" + std::to_string(entry.version) + "_pc_" + std::to_string(pc);
+        if (successors) {
+            discover_successors(cpu, tr, thumb, *successors);
+            ++compilation.eager_functions;
+        }
         hot_pending.push_back(std::move(tr.func));
         if (common::performance::counting()) ++common::performance::ram_blocks_compiled;
         if (hot_pending.size() >= 32) flush_hot_blocks();
         return;
     }
-    if (hot_compiled >= 4096) return;
-    if (hot_counts.size() >= 65536 && !hot_counts.count(key)) return;
+    if (global_registry().lookup(key)) return;
+    if (!successors && hot_compiled >= 4096) return;
+    if (!successors && hot_counts.size() >= 65536 && !hot_counts.count(key)) return;
     auto &count = hot_counts[key];
     if (count >= 8) return; // one attempt per immutable entry
-    if (++count != 8) return;
+    if (successors) count = 8;
+    else if (++count != 8) return;
     const auto offset = pc - hot_rom_base;
     const auto size = std::min(chaining_enabled ? primary_window_bytes : 128u, hot_rom_size - offset);
     const code_window immutable_code{hot_rom, hot_rom_base, hot_rom_size};
-    auto translate = [&] {return cpu->TFlag ? translate_thumb_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled, &immutable_code)
+    auto translate = [&] {return thumb ? translate_thumb_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled, &immutable_code)
                         : translate_arm_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled, region_enabled, nullptr, defer_memory_enabled, ir_policy);};
-    auto tr = translate();
+    auto tr = [&] { compilation_timer timer{compilation.translation_us}; return translate(); }();
     if (tr.func.body.empty() || !tr.entry_supported) return;
     tr.func.export_name = "f_" + std::to_string(key);
+    if (successors) {
+        discover_successors(cpu, tr, thumb, *successors);
+        ++compilation.eager_functions;
+    }
     hot_pending.push_back(std::move(tr.func));
     if (hot_pending.size() >= 32) flush_hot_blocks();
-    ++hot_compiled;
+    if (!successors) ++hot_compiled;
+}
+#endif
+
+void prepare_compiled_code(core &cpu) {
+#ifdef __EMSCRIPTEN__
+    if (!hot_compilation_enabled || validation_running || !precompile_pending.load(std::memory_order_acquire)) return;
+    std::vector<precompile_image> images;
+    {
+        const std::lock_guard<std::mutex> lock(precompile_mutex);
+        for (auto &image : precompile_images) {
+            if (image.space == cpu.code_address_space || image.base - hot_rom_base < hot_rom_size) {
+                images.push_back({image.space, image.base, image.size, std::move(image.entries)});
+            }
+        }
+        precompile_pending = std::any_of(precompile_images.begin(), precompile_images.end(),
+            [](const auto &image) { return !image.entries.empty(); });
+    }
+    std::vector<std::uint32_t> pending;
+    for (auto &image : images) pending.insert(pending.end(), image.entries.begin(), image.entries.end());
+    if (pending.empty()) return;
+    instantiate_staged_modules();
+    const auto begin = std::chrono::steady_clock::now();
+    const auto before = compilation.eager_functions.load();
+    std::unordered_set<std::uint32_t> visited;
+    for (std::size_t i = 0; i < pending.size(); ++i) {
+        const auto key = pending[i], pc = key & ~1u;
+        if ((!((key & 1) || !(pc & 3))) || !visited.insert(key).second) continue;
+        if (std::none_of(images.begin(), images.end(), [&](const auto &image) { return pc - image.base < image.size; })) continue;
+        compile_at(cpu, key, &pending);
+    }
+    flush_hot_blocks();
+    ++compilation.eager_passes;
+    fprintf(stderr, "AOT: precompiled %llu regions before execution in space %u (%.1f ms)\n",
+        static_cast<unsigned long long>(compilation.eager_functions.load() - before), cpu.code_address_space,
+        std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - begin).count());
+#endif
+}
+
+void observe_hot_pc(ARMul_State *cpu) {
+#ifdef __EMSCRIPTEN__
+    if (!hot_compilation_enabled || validation_running) return;
+    ++hot_dispatches;
+    if (hot_dispatches & 31) return;
+    if ((hot_dispatches & 8191) == 0) flush_hot_blocks();
+    compile_at(*cpu->parent(), cpu->Reg[15] | cpu->TFlag);
 #endif
 }
 
@@ -720,6 +837,7 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
     const std::string &dll_name)
 {
     if (wasm_bytes.empty()) return 0;
+    compilation_timer timer{compilation.installation_us};
 
     const bool verify = verification_stride() != 0;
     const bool experimental = memory_experiment::mode != 0;

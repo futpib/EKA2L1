@@ -91,6 +91,8 @@ namespace eka2l1::arm::aot {
         std::vector<std::uint8_t> &b;
         state_local_cache cache;
         source_emission source;
+        std::vector<std::uint32_t> *dispatch_entries = nullptr;
+        bool successor_thumb = true;
         bool direct_memory = false;
         static constexpr unsigned ADDRESS = 7, VALUE = 8, HOST = 9, ENTRY = 10, SPAN_HOST = 11;
         static constexpr unsigned M=12;
@@ -323,6 +325,8 @@ namespace eka2l1::arm::aot {
 
         // Bail: set PC, return instruction count (normal control flow exit)
         void bail(std::uint32_t pc, std::uint32_t instr_count, unsigned why=exit_census::control) {
+            if (dispatch_entries && (why == exit_census::control || why == exit_census::source_end))
+                dispatch_entries->push_back(pc | (successor_thumb ? 1u : 0u));
             store_i32_const(S::PC, static_cast<std::int32_t>(pc));
             i32_const(watchdog::enabled ? (!instr_count || why == exit_census::unsupported ? 0 : 1)
                 : static_cast<std::int32_t>(instr_count));
@@ -1146,7 +1150,9 @@ namespace eka2l1::arm::aot {
                         }
                         // Set PC to target and bail — interpreter re-dispatches.
                         // Use w.bail() so bail_count is tracked correctly.
+                        w.successor_thumb = !is_blx;
                         branch(target, insn_idx + 1);
+                        w.successor_thumb = true;
                         // Resume point at next_pc: when control returns from
                         // the external callee via BX LR, we want to dispatch
                         // back into AOT instead of the interpreter. Only
@@ -4276,6 +4282,7 @@ namespace eka2l1::arm::aot {
                 // Effective address = (PC & ~3) + 4 + imm8*4
                 // But we don't track exact PC in WASM. Use the known instruction address.
                 std::uint32_t effective_addr = ((insn_addr + 4) & ~3u) + imm8 * 4;
+                tr.literal_refs.push_back(effective_addr);
                 // Read from this fixed ROM address
                 w.state_ptr();
                 w.i32_const(static_cast<std::int32_t>(effective_addr));
@@ -4503,6 +4510,7 @@ namespace eka2l1::arm::aot {
         const std::uint32_t DTMP1 = 9;
 
         emit w{result.body};
+        w.dispatch_entries = &tr.dispatch_entries;
         w.precise_budget = precise_budget;
         w.source.marks = &result.sources;
         w.direct_memory = direct_memory;

@@ -471,6 +471,11 @@ const char *eka2l1_monitor_report() {
     out << "{\"guest_us\":" << common::benchmark::virtual_us.load()
         << ",\"instructions\":" << common::benchmark::instructions.load()
         << ",\"compiled_functions\":" << arm::aot::compiled_function_count()
+        << ",\"aot_translation_us\":" << arm::aot::compilation.translation_us.load()
+        << ",\"aot_emission_us\":" << arm::aot::compilation.emission_us.load()
+        << ",\"aot_installation_us\":" << arm::aot::compilation.installation_us.load()
+        << ",\"aot_eager_functions\":" << arm::aot::compilation.eager_functions.load()
+        << ",\"aot_eager_passes\":" << arm::aot::compilation.eager_passes.load()
         << ",\"allocated_bytes\":" << heap.uordblks
         << ",\"free_bytes\":" << heap.fordblks << "}";
     result = out.str();

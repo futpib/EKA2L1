@@ -14,7 +14,7 @@ if (!baseUrl || !output || !['chrome','firefox'].includes(family)
 fs.mkdirSync(output);
 const report: any = {started:new Date().toISOString(), family, game, counting,
   durationSeconds:Number(duration), sound:'muted', cpu:os.cpus()[0]?.model,
-  menuKeyHoldMs:game === 'sky-force' ? 600 : 100,
+  menuKeyHoldMs:600,
   requiresSceneReview:true, loadBefore:os.loadavg(), samples:[], errors:[]};
 const save = () => fs.writeFileSync(path.join(output,'report.json'),JSON.stringify(report,null,2));
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve,ms));
@@ -32,6 +32,24 @@ try {
   if (family === 'chrome') report.gpu = (await (await browser.target().createCDPSession()).send('SystemInfo.getInfo')).gpu;
   const page = await browser.newPage();
   await page.setViewport({width:900,height:800});
+  await page.evaluateOnNewDocument(() => {
+    const g=window as any;
+    g.ekaFrameProbe={first:null,frames:[],last:0};
+    const observe=() => {
+      const m=g.Module, probe=g.ekaFrameProbe;
+      if(m?.calledRun && m._eka2l1_presentations) {
+        const count=m._eka2l1_presentations();
+        if(count!==probe.last) {
+          const sample={ms:performance.now(),count};
+          if(!probe.first) probe.first={...sample,monitor:JSON.parse(m.ccall('eka2l1_monitor_report','string',[],[]))};
+          if(probe.frames.length<32768)probe.frames.push(sample);
+          probe.last=count;
+        }
+      }
+      requestAnimationFrame(observe);
+    };
+    requestAnimationFrame(observe);
+  });
   page.on('console',m => fs.appendFileSync(path.join(output,'browser.log'),m.text()+'\n'));
   page.on('pageerror',e => report.errors.push(String(e)));
   page.on('requestfailed',r => {
@@ -71,13 +89,19 @@ try {
   assert.ok(report.launch.secure && report.launch.isolated && report.launch.policy.applied);
   assert.ok(report.launch.status.includes('Instruction counting: '+(counting === 'on' ? 'On' : 'Off')));
   const waitGuest = (us: number) => page.waitForFunction(t => (window as any).Module._eka2l1_guest_time_us() >= t,{timeout:180000},us);
-  const inputs = game === 'snakes' ? [2,4,6,8,10,12,14,16,18,20] : [8,12,16,20,24,28,32];
-  for (const second of inputs) {
-    await waitGuest(second*1000000);
+  // Loading can pause guest execution for compilation. Absolute deadlines can
+  // then send several key pairs before the game consumes any of them. Start
+  // after a presentation and space presses from the current guest clock.
+  await page.waitForFunction(() => (window as any).Module._eka2l1_presentations()>0,{timeout:180000});
+  for (let i=0;i<(game === 'snakes' ? 10 : 7);++i) {
+    const now=await page.evaluate(() => (window as any).Module._eka2l1_guest_time_us());
+    await waitGuest(now+(game === 'snakes' ? 2 : 4)*1000000);
     await page.focus('#canvas');
     await page.keyboard.press('Enter',{delay:report.menuKeyHoldMs});
+    await page.screenshot({path:path.join(output,`menu-${i}.png`)});
   }
-  await waitGuest((game === 'snakes' ? 28 : 38)*1000000);
+  const afterMenus=await page.evaluate(() => (window as any).Module._eka2l1_guest_time_us());
+  await waitGuest(afterMenus+8000000);
   await page.screenshot({path:path.join(output,'gameplay-start.png')});
   const inputBefore = await page.evaluate(() => (window as any).Module._eka2l1_input_consumed());
   await page.focus('#canvas');
@@ -92,6 +116,7 @@ try {
       const monitor = JSON.parse(g.Module.ccall('eka2l1_monitor_report','string',[],[]));
       return {guestUs:g.Module._eka2l1_guest_time_us(),frames:g.Module._eka2l1_presentations(),
         instructions:monitor.instructions,compiledFunctions:monitor.compiled_functions,
+        compilation:monitor,browserMs:performance.now(),
         inputs:g.Module._eka2l1_input_consumed(),watchdog:g.Module._eka2l1_watchdog_report()};
     });
     const after = performance.now();
@@ -113,6 +138,12 @@ try {
     instructions:last.instructions-first.instructions,
     installedCompiledFunctions:last.compiledFunctions-first.compiledFunctions,
     maxQueryMs:Math.max(...report.samples.map((s:any) => s.queryMs))};
+  report.frameProbe=await page.evaluate(() => (window as any).ekaFrameProbe);
+  const frameTimes=report.frameProbe.frames.filter((f:any) => f.ms>=first.browserMs && f.ms<=last.browserMs);
+  report.measurement.maxObservedFrameGapMs=frameTimes.length>1
+    ? Math.max(...frameTimes.slice(1).map((f:any,i:number) => f.ms-frameTimes[i].ms)) : null;
+  report.measurement.compilationUs=Object.fromEntries(
+    ['aot_translation_us','aot_emission_us','aot_installation_us'].map(k => [k,last.compilation[k]-first.compilation[k]]));
   report.loadAfter = os.loadavg();
   assert.ok(report.measurement.presentations > 0);
   if (counting === 'on') assert.ok(report.measurement.instructions > 0);

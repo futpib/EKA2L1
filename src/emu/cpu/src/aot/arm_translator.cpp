@@ -62,6 +62,8 @@ namespace eka2l1::arm::aot {
         std::vector<std::uint8_t> &b;
         state_local_cache cache;
         source_emission source;
+        std::vector<std::uint32_t> *dispatch_entries = nullptr;
+        bool successor_thumb = false;
         bool region = false;
         bool direct_block_memory = false;
         bool defer_memory = false, restartable_access = false;
@@ -359,6 +361,8 @@ namespace eka2l1::arm::aot {
         }
 
         void bail(std::uint32_t pc, std::uint32_t instr_count, unsigned why=exit_census::control) {
+            if (dispatch_entries && (why == exit_census::control || why == exit_census::source_end))
+                dispatch_entries->push_back(pc | (successor_thumb ? 1u : 0u));
             store_i32_const(S::PC, static_cast<std::int32_t>(pc));
             if (watchdog::enabled) i32_const(why == exit_census::unsupported
                 || why == exit_census::memory || why == exit_census::status ? 0 : 1);
@@ -889,6 +893,7 @@ namespace eka2l1::arm::aot {
         const std::uint32_t TMP_CARRY = 8;
 
         arm_emit w{result.body};
+        w.dispatch_entries = &tr.dispatch_entries;
         w.source.marks = &result.sources;
         w.region = region && bounded;
         w.direct_block_memory = direct_blocks;
@@ -2422,6 +2427,7 @@ namespace eka2l1::arm::aot {
                     if (rn == 15) {
                         std::uint32_t base = insn_addr + 8;
                         std::uint32_t addr = up ? base + imm12 : base - imm12;
+                        if (load && preindex && !byte && !writeback) tr.literal_refs.push_back(addr);
                         w.i32_const(static_cast<std::int32_t>(addr));
                     } else {
                         w.load_reg(rn);

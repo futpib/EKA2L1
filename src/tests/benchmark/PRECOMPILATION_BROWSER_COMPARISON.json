@@ -1,0 +1,791 @@
+{
+  "date": "2026-10-09",
+  "source_base": "c94d502ab",
+  "url": "https://claude-laptop.lan:8188/",
+  "artifact_root": "/home/claude/.scratch/eka-precompile",
+  "bundle_sha256": {
+    "eka2l1.js": "68a38e06cd8bc08574be1fa74bbdee49b4eb8663023cca9ca61384cbfe07baef",
+    "touch-controls.js": "95ed7d7f131bb23a3f0c02faf44ef74e628cc8d85cb27599a37e2ffc53f6c648",
+    "touch-controls.css": "1640ecbee8ee506de1e6270f2e2691b7fbb275f994a0e5ecd60deff2f017a239",
+    "eka2l1.html": "0790bb0ad910abce03a44de9945f408d03622ac3815a730df0efc3d1f6f29bff",
+    "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+    "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+    "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+    "eka2l1.wasm": "30f6c904c1530707800100f45cb8c015c08750c15975ed22caffaff7b8a9b172"
+  },
+  "validation": {
+    "ordinary": {
+      "artifact": "/home/claude/.scratch/eka-precompile/full-suite.log",
+      "sha256": "f274e7b1a9f8fda36974758a975c8e4635db8151b5f61611d87770edf6165510",
+      "tail": [
+        " PASS pointer lifetimes (5832 independent interpreter state/flags/memory/count comparisons)",
+        "",
+        "186 passed, 0 failed"
+      ]
+    },
+    "preparation": {
+      "artifact": "/home/claude/.scratch/eka-precompile/precompile-v2-test.log",
+      "sha256": "4798c91ffaedb1b703b79e0af933d71dc945e785cc8a2807f2242218311167aa",
+      "tail": [
+        "AOT: precompiled 1 regions before execution in space 2 (0.5 ms)",
+        "AOT: precompiled 1 regions before execution in space 1 (0.2 ms)",
+        "PASS eager preparation: exits, literal veneers/callbacks, Thumb, process isolation, late loads, no guest execution"
+      ]
+    },
+    "watchdog": {
+      "artifact": "/home/claude/.scratch/eka-precompile/watchdog-test.log",
+      "sha256": "fdb9bf02ec9bdfcace267a7e9aa168241abe17e820e24006392e33d6b3f90302",
+      "tail": [
+        "TEST_MEMORY_DEFAULT 2",
+        "TEST_ENTRY_BUDGET_DEFAULT 2",
+        "PASS watchdog: finite ARM/Thumb, static loop proof, proof rejection, external atomic interrupt (1 progress status)"
+      ]
+    }
+  },
+  "runs": [
+    {
+      "started": "2026-10-09T22:40:23.503Z",
+      "game": "snakes",
+      "counting": "on",
+      "family": "chrome",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "sound": "muted",
+      "loadBefore": [
+        4.83,
+        6.99,
+        6.03
+      ],
+      "loadAfter": [
+        4.6,
+        6.32,
+        5.88
+      ],
+      "url": "https://claude-laptop.lan:8188/?game=snakes&counting=on",
+      "launch": {
+        "policy": {
+          "requested": {
+            "entryBudget": 2,
+            "compiledSvc": 1,
+            "sparseRom": 1,
+            "hotpath": 2,
+            "thumbMemory": 1,
+            "irMode": 17,
+            "predicatedLeaves": 1,
+            "leafFeatures": 224,
+            "executionLimits": [
+              512,
+              32,
+              8,
+              512
+            ],
+            "unsafeCode": 3
+          },
+          "applied": true,
+          "observed": {
+            "entryBudget": 2,
+            "sparseRom": 1,
+            "compiledSvc": 1,
+            "hotpath": 2,
+            "thumbMemory": 1,
+            "predicatedLeaves": 1,
+            "leafFeatures": 224,
+            "unsafeCode": 3,
+            "executionLimits": [
+              512,
+              32,
+              8,
+              512
+            ]
+          }
+        },
+        "assets": {
+          "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+          "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+          "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+          "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+          "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+          "/eka2l1.data": "/eka2l1.data?v=7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+          "/eka2l1.js": "/eka2l1.js?v=68a38e06cd8bc08574be1fa74bbdee49b4eb8663023cca9ca61384cbfe07baef",
+          "/eka2l1.wasm": "/eka2l1.wasm?v=30f6c904c1530707800100f45cb8c015c08750c15975ed22caffaff7b8a9b172",
+          "/touch-controls.css": "/touch-controls.css?v=1640ecbee8ee506de1e6270f2e2691b7fbb275f994a0e5ecd60deff2f017a239",
+          "/touch-controls.js": "/touch-controls.js?v=95ed7d7f131bb23a3f0c02faf44ef74e628cc8d85cb27599a37e2ffc53f6c648"
+        },
+        "secure": true,
+        "isolated": true,
+        "selected": "on",
+        "watchdog": 0,
+        "worker": false,
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+        "status": "Running: Snakes \u00b7 Instruction counting: On \u00b7 Arrows/WASD to move, Enter to select \u00b7 Use Enable sound for audio"
+      },
+      "measurement": {
+        "hostSeconds": 30.201370551499988,
+        "guestSeconds": 30.204622,
+        "guestSpeed": 1.000107658971783,
+        "presentations": 640,
+        "presentationsPerSecond": 21.19109127543265,
+        "instructions": 4939142082,
+        "installedCompiledFunctions": 586,
+        "maxQueryMs": 13.475621999998111,
+        "maxObservedFrameGapMs": 90.05000007152557,
+        "compilationUs": {
+          "aot_translation_us": 196303,
+          "aot_emission_us": 5645,
+          "aot_installation_us": 26240
+        },
+        "compilationTotalMs": 228.188,
+        "compilationPercent": 0.755555114993504
+      },
+      "passed": true,
+      "errors": [],
+      "artifact_directory": "/home/claude/.scratch/eka-precompile/chrome-snakes-on",
+      "scenes_reviewed": true,
+      "scene": "Snakes Level 1 gameplay",
+      "first_presentation": {
+        "ms": 14186.169999957085,
+        "count": 1,
+        "monitor": {
+          "guest_us": 82853,
+          "instructions": 35260932,
+          "compiled_functions": 20029,
+          "aot_translation_us": 4758568,
+          "aot_emission_us": 130618,
+          "aot_installation_us": 430350,
+          "aot_eager_functions": 13667,
+          "aot_eager_passes": 8,
+          "allocated_bytes": 665175984,
+          "free_bytes": 76621392
+        }
+      },
+      "window_start": {
+        "hostMs": 62434.88632400001,
+        "queryMs": 2.2773139999990235,
+        "guestUs": 36915378,
+        "frames": 771,
+        "instructions": 5291612491,
+        "compiledFunctions": 45560,
+        "compilation": {
+          "guest_us": 36915268,
+          "instructions": 5291612491,
+          "compiled_functions": 45560,
+          "aot_translation_us": 10178335,
+          "aot_emission_us": 253065,
+          "aot_installation_us": 1074276,
+          "aot_eager_functions": 35485,
+          "aot_eager_passes": 12,
+          "allocated_bytes": 879328352,
+          "free_bytes": 63926688
+        },
+        "browserMs": 60539.75499999523,
+        "inputs": 24,
+        "watchdog": 0
+      },
+      "window_end": {
+        "hostMs": 92636.2568755,
+        "queryMs": 2.521695000003092,
+        "guestUs": 67120000,
+        "frames": 1411,
+        "instructions": 10230754573,
+        "compiledFunctions": 46146,
+        "compilation": {
+          "guest_us": 67120000,
+          "instructions": 10230754573,
+          "compiled_functions": 46146,
+          "aot_translation_us": 10374638,
+          "aot_emission_us": 258710,
+          "aot_installation_us": 1100516,
+          "aot_eager_functions": 35485,
+          "aot_eager_passes": 12,
+          "allocated_bytes": 880634056,
+          "free_bytes": 62620984
+        },
+        "browserMs": 90741.22000002861,
+        "inputs": 24,
+        "watchdog": 0
+      },
+      "preparation_log": [
+        "AOT: precompiled 13626 regions before execution in space 1 (2847.7 ms)",
+        "AOT: precompiled 3 regions before execution in space 2 (0.7 ms)",
+        "AOT: precompiled 3 regions before execution in space 1 (3.9 ms)",
+        "AOT: precompiled 3 regions before execution in space 1 (0.7 ms)",
+        "AOT: precompiled 8 regions before execution in space 1 (2.2 ms)",
+        "AOT: precompiled 8 regions before execution in space 1 (1.7 ms)",
+        "AOT: precompiled 8 regions before execution in space 1 (2.0 ms)",
+        "AOT: precompiled 8 regions before execution in space 1 (1.5 ms)",
+        "AOT: precompiled 0 regions before execution in space 2 (0.3 ms)",
+        "AOT: precompiled 6069 regions before execution in space 1 (1478.0 ms)",
+        "AOT: precompiled 15746 regions before execution in space 1 (3202.4 ms)",
+        "AOT: precompiled 3 regions before execution in space 3 (1.2 ms)"
+      ],
+      "report_sha256": "d5042a0e131a96001bb4b98f9c6f757500fc845a21b55164023d4d5f5226191d"
+    },
+    {
+      "started": "2026-10-09T22:42:08.325Z",
+      "game": "snakes",
+      "counting": "off",
+      "family": "chrome",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "sound": "muted",
+      "loadBefore": [
+        6.01,
+        6.57,
+        5.97
+      ],
+      "loadAfter": [
+        3.62,
+        5.74,
+        5.73
+      ],
+      "url": "https://claude-laptop.lan:8188/?game=snakes&counting=off",
+      "launch": {
+        "policy": {
+          "requested": {
+            "entryBudget": 2,
+            "compiledSvc": 1,
+            "sparseRom": 1,
+            "watchdogUs": 2000,
+            "hotpath": 2,
+            "thumbMemory": 1,
+            "irMode": 17,
+            "predicatedLeaves": 1,
+            "leafFeatures": 224,
+            "executionLimits": [
+              512,
+              32,
+              8,
+              512
+            ],
+            "unsafeCode": 3
+          },
+          "applied": true,
+          "observed": {
+            "entryBudget": 2,
+            "sparseRom": 1,
+            "compiledSvc": 1,
+            "hotpath": 2,
+            "thumbMemory": 1,
+            "predicatedLeaves": 1,
+            "leafFeatures": 224,
+            "unsafeCode": 3,
+            "executionLimits": [
+              512,
+              32,
+              8,
+              512
+            ]
+          }
+        },
+        "assets": {
+          "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+          "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+          "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+          "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+          "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+          "/eka2l1.data": "/eka2l1.data?v=7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+          "/eka2l1.js": "/eka2l1.js?v=68a38e06cd8bc08574be1fa74bbdee49b4eb8663023cca9ca61384cbfe07baef",
+          "/eka2l1.wasm": "/eka2l1.wasm?v=30f6c904c1530707800100f45cb8c015c08750c15975ed22caffaff7b8a9b172",
+          "/touch-controls.css": "/touch-controls.css?v=1640ecbee8ee506de1e6270f2e2691b7fbb275f994a0e5ecd60deff2f017a239",
+          "/touch-controls.js": "/touch-controls.js?v=95ed7d7f131bb23a3f0c02faf44ef74e628cc8d85cb27599a37e2ffc53f6c648"
+        },
+        "secure": true,
+        "isolated": true,
+        "selected": "off",
+        "watchdog": 1,
+        "worker": true,
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+        "status": "Running: Snakes \u00b7 Instruction counting: Off \u00b7 Arrows/WASD to move, Enter to select \u00b7 Use Enable sound for audio"
+      },
+      "measurement": {
+        "hostSeconds": 30.186038140999997,
+        "guestSeconds": 30.18687,
+        "guestSpeed": 1.0000275577403075,
+        "presentations": 483,
+        "presentationsPerSecond": 16.000774853059244,
+        "instructions": 0,
+        "installedCompiledFunctions": 60,
+        "maxQueryMs": 9.434433000002173,
+        "maxObservedFrameGapMs": 83.47499990463257,
+        "compilationUs": {
+          "aot_translation_us": 6076,
+          "aot_emission_us": 194,
+          "aot_installation_us": 1478
+        },
+        "compilationTotalMs": 7.748,
+        "compilationPercent": 0.025667495561387792
+      },
+      "passed": true,
+      "errors": [],
+      "artifact_directory": "/home/claude/.scratch/eka-precompile/chrome-snakes-off",
+      "scenes_reviewed": true,
+      "scene": "Snakes Level 1 gameplay",
+      "first_presentation": {
+        "ms": 8958.354999899864,
+        "count": 1,
+        "monitor": {
+          "guest_us": 1820833,
+          "instructions": 0,
+          "compiled_functions": 19989,
+          "aot_translation_us": 2084867,
+          "aot_emission_us": 63732,
+          "aot_installation_us": 321969,
+          "aot_eager_functions": 13659,
+          "aot_eager_passes": 7,
+          "allocated_bytes": 663587936,
+          "free_bytes": 61694368
+        }
+      },
+      "window_start": {
+        "hostMs": 50764.104290999996,
+        "queryMs": 1.963421999993443,
+        "guestUs": 38181973,
+        "frames": 528,
+        "instructions": 0,
+        "compiledFunctions": 44408,
+        "compilation": {
+          "guest_us": 38181973,
+          "instructions": 0,
+          "compiled_functions": 44408,
+          "aot_translation_us": 4879891,
+          "aot_emission_us": 133327,
+          "aot_installation_us": 841046,
+          "aot_eager_functions": 35511,
+          "aot_eager_passes": 12,
+          "allocated_bytes": 878114880,
+          "free_bytes": 48625088
+        },
+        "browserMs": 49385.40499997139,
+        "inputs": 24,
+        "watchdog": 1
+      },
+      "window_end": {
+        "hostMs": 80950.142432,
+        "queryMs": 2.3297220000094967,
+        "guestUs": 68368843,
+        "frames": 1011,
+        "instructions": 0,
+        "compiledFunctions": 44468,
+        "compilation": {
+          "guest_us": 68367733,
+          "instructions": 0,
+          "compiled_functions": 44468,
+          "aot_translation_us": 4885967,
+          "aot_emission_us": 133521,
+          "aot_installation_us": 842524,
+          "aot_eager_functions": 35511,
+          "aot_eager_passes": 12,
+          "allocated_bytes": 878189080,
+          "free_bytes": 48550888
+        },
+        "browserMs": 79571.5799999237,
+        "inputs": 24,
+        "watchdog": 1
+      },
+      "preparation_log": [
+        "AOT: precompiled 13626 regions before execution in space 1 (1496.5 ms)",
+        "AOT: precompiled 3 regions before execution in space 1 (0.5 ms)",
+        "AOT: precompiled 3 regions before execution in space 1 (0.6 ms)",
+        "AOT: precompiled 3 regions before execution in space 1 (0.6 ms)",
+        "AOT: precompiled 8 regions before execution in space 1 (1.6 ms)",
+        "AOT: precompiled 8 regions before execution in space 1 (1.9 ms)",
+        "AOT: precompiled 8 regions before execution in space 1 (1.8 ms)",
+        "AOT: precompiled 8 regions before execution in space 1 (1.2 ms)",
+        "AOT: precompiled 0 regions before execution in space 2 (0.3 ms)",
+        "AOT: precompiled 6081 regions before execution in space 1 (881.0 ms)",
+        "AOT: precompiled 15760 regions before execution in space 1 (2033.5 ms)",
+        "AOT: precompiled 3 regions before execution in space 1 (0.5 ms)"
+      ],
+      "report_sha256": "d473c250b3daff792c46669a46ea0bec67d634629d289d5d189e349a36333cde"
+    },
+    {
+      "started": "2026-10-09T22:43:39.608Z",
+      "game": "sky-force",
+      "counting": "on",
+      "family": "chrome",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "sound": "muted",
+      "loadBefore": [
+        5.22,
+        6,
+        5.81
+      ],
+      "loadAfter": [
+        4.7,
+        5.53,
+        5.66
+      ],
+      "url": "https://claude-laptop.lan:8188/?game=sky-force&counting=on",
+      "launch": {
+        "policy": {
+          "requested": {
+            "entryBudget": 2,
+            "compiledSvc": 1,
+            "sparseRom": 1,
+            "hotpath": 2,
+            "thumbMemory": 1,
+            "irMode": 17,
+            "predicatedLeaves": 1,
+            "leafFeatures": 224,
+            "executionLimits": [
+              512,
+              32,
+              8,
+              512
+            ],
+            "unsafeCode": 3
+          },
+          "applied": true,
+          "observed": {
+            "entryBudget": 2,
+            "sparseRom": 1,
+            "compiledSvc": 1,
+            "hotpath": 2,
+            "thumbMemory": 1,
+            "predicatedLeaves": 1,
+            "leafFeatures": 224,
+            "unsafeCode": 3,
+            "executionLimits": [
+              512,
+              32,
+              8,
+              512
+            ]
+          }
+        },
+        "assets": {
+          "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+          "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+          "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+          "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+          "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+          "/eka2l1.data": "/eka2l1.data?v=7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+          "/eka2l1.js": "/eka2l1.js?v=68a38e06cd8bc08574be1fa74bbdee49b4eb8663023cca9ca61384cbfe07baef",
+          "/eka2l1.wasm": "/eka2l1.wasm?v=30f6c904c1530707800100f45cb8c015c08750c15975ed22caffaff7b8a9b172",
+          "/touch-controls.css": "/touch-controls.css?v=1640ecbee8ee506de1e6270f2e2691b7fbb275f994a0e5ecd60deff2f017a239",
+          "/touch-controls.js": "/touch-controls.js?v=95ed7d7f131bb23a3f0c02faf44ef74e628cc8d85cb27599a37e2ffc53f6c648"
+        },
+        "secure": true,
+        "isolated": true,
+        "selected": "on",
+        "watchdog": 0,
+        "worker": false,
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+        "status": "Running: Sky Force \u00b7 Instruction counting: On \u00b7 Arrows/WASD to move, Enter to select \u00b7 Use Enable sound for audio"
+      },
+      "measurement": {
+        "hostSeconds": 30.195695607,
+        "guestSeconds": 26.168912,
+        "guestSpeed": 0.8666437872666027,
+        "presentations": 837,
+        "presentationsPerSecond": 27.7191825912421,
+        "instructions": 9191449966,
+        "installedCompiledFunctions": 349,
+        "maxQueryMs": 13.631469999992987,
+        "maxObservedFrameGapMs": 167.58499991893768,
+        "compilationUs": {
+          "aot_translation_us": 77393,
+          "aot_emission_us": 7277,
+          "aot_installation_us": 84864
+        },
+        "compilationTotalMs": 169.534,
+        "compilationPercent": 0.5614508842800046
+      },
+      "passed": true,
+      "errors": [],
+      "artifact_directory": "/home/claude/.scratch/eka-precompile/chrome-sky-force-on",
+      "scenes_reviewed": true,
+      "scene": "Sky Force Stage 1 combat",
+      "first_presentation": {
+        "ms": 12176.959999918938,
+        "count": 1,
+        "monitor": {
+          "guest_us": 82882,
+          "instructions": 35274902,
+          "compiled_functions": 18785,
+          "aot_translation_us": 3624228,
+          "aot_emission_us": 118921,
+          "aot_installation_us": 375999,
+          "aot_eager_functions": 12234,
+          "aot_eager_passes": 9,
+          "allocated_bytes": 664720880,
+          "free_bytes": 77076496
+        }
+      },
+      "window_start": {
+        "hostMs": 74597.413669,
+        "queryMs": 2.004103999992367,
+        "guestUs": 42688964,
+        "frames": 1324,
+        "instructions": 15397407563,
+        "compiledFunctions": 42296,
+        "compilation": {
+          "guest_us": 42688895,
+          "instructions": 15397407563,
+          "compiled_functions": 42296,
+          "aot_translation_us": 8406325,
+          "aot_emission_us": 237294,
+          "aot_installation_us": 1032015,
+          "aot_eager_functions": 34266,
+          "aot_eager_passes": 12,
+          "allocated_bytes": 877685824,
+          "free_bytes": 65569216
+        },
+        "browserMs": 73147.53499996662,
+        "inputs": 18,
+        "watchdog": 0
+      },
+      "window_end": {
+        "hostMs": 104793.109276,
+        "queryMs": 2.1301819999935105,
+        "guestUs": 68857876,
+        "frames": 2161,
+        "instructions": 24588857529,
+        "compiledFunctions": 42645,
+        "compilation": {
+          "guest_us": 68857844,
+          "instructions": 24588857529,
+          "compiled_functions": 42645,
+          "aot_translation_us": 8483718,
+          "aot_emission_us": 244571,
+          "aot_installation_us": 1116879,
+          "aot_eager_functions": 34266,
+          "aot_eager_passes": 12,
+          "allocated_bytes": 877844264,
+          "free_bytes": 65410776
+        },
+        "browserMs": 103343.23999989033,
+        "inputs": 18,
+        "watchdog": 0
+      },
+      "preparation_log": [
+        "AOT: precompiled 12193 regions before execution in space 1 (2183.3 ms)",
+        "AOT: precompiled 3 regions before execution in space 2 (0.9 ms)",
+        "AOT: precompiled 3 regions before execution in space 1 (4.5 ms)",
+        "AOT: precompiled 3 regions before execution in space 1 (1.6 ms)",
+        "AOT: precompiled 8 regions before execution in space 1 (2.7 ms)",
+        "AOT: precompiled 8 regions before execution in space 1 (1.8 ms)",
+        "AOT: precompiled 8 regions before execution in space 1 (2.5 ms)",
+        "AOT: precompiled 8 regions before execution in space 1 (1.8 ms)",
+        "AOT: precompiled 0 regions before execution in space 2 (0.0 ms)",
+        "AOT: precompiled 6254 regions before execution in space 1 (1741.6 ms)",
+        "AOT: precompiled 15775 regions before execution in space 1 (3220.6 ms)",
+        "AOT: precompiled 3 regions before execution in space 3 (0.6 ms)"
+      ],
+      "report_sha256": "09355f7e0172ba046f32403e8c816e963da99490a59db972907e2d58788775a5"
+    },
+    {
+      "started": "2026-10-09T22:45:43.802Z",
+      "game": "sky-force",
+      "counting": "off",
+      "family": "chrome",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "sound": "muted",
+      "loadBefore": [
+        4.35,
+        5.4,
+        5.61
+      ],
+      "loadAfter": [
+        4.98,
+        5.47,
+        5.62
+      ],
+      "url": "https://claude-laptop.lan:8188/?game=sky-force&counting=off",
+      "launch": {
+        "policy": {
+          "requested": {
+            "entryBudget": 2,
+            "compiledSvc": 1,
+            "sparseRom": 1,
+            "watchdogUs": 2000,
+            "hotpath": 2,
+            "thumbMemory": 1,
+            "irMode": 17,
+            "predicatedLeaves": 1,
+            "leafFeatures": 224,
+            "executionLimits": [
+              512,
+              32,
+              8,
+              512
+            ],
+            "unsafeCode": 3
+          },
+          "applied": true,
+          "observed": {
+            "entryBudget": 2,
+            "sparseRom": 1,
+            "compiledSvc": 1,
+            "hotpath": 2,
+            "thumbMemory": 1,
+            "predicatedLeaves": 1,
+            "leafFeatures": 224,
+            "unsafeCode": 3,
+            "executionLimits": [
+              512,
+              32,
+              8,
+              512
+            ]
+          }
+        },
+        "assets": {
+          "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+          "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+          "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+          "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+          "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+          "/eka2l1.data": "/eka2l1.data?v=7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+          "/eka2l1.js": "/eka2l1.js?v=68a38e06cd8bc08574be1fa74bbdee49b4eb8663023cca9ca61384cbfe07baef",
+          "/eka2l1.wasm": "/eka2l1.wasm?v=30f6c904c1530707800100f45cb8c015c08750c15975ed22caffaff7b8a9b172",
+          "/touch-controls.css": "/touch-controls.css?v=1640ecbee8ee506de1e6270f2e2691b7fbb275f994a0e5ecd60deff2f017a239",
+          "/touch-controls.js": "/touch-controls.js?v=95ed7d7f131bb23a3f0c02faf44ef74e628cc8d85cb27599a37e2ffc53f6c648"
+        },
+        "secure": true,
+        "isolated": true,
+        "selected": "off",
+        "watchdog": 1,
+        "worker": true,
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+        "status": "Running: Sky Force \u00b7 Instruction counting: Off \u00b7 Arrows/WASD to move, Enter to select \u00b7 Use Enable sound for audio"
+      },
+      "measurement": {
+        "hostSeconds": 30.15222672850001,
+        "guestSeconds": 30.152224,
+        "guestSpeed": 0.9999999095091704,
+        "presentations": 965,
+        "presentationsPerSecond": 32.00426982355761,
+        "instructions": 0,
+        "installedCompiledFunctions": 34,
+        "maxQueryMs": 5.521105000007083,
+        "maxObservedFrameGapMs": 52.55999994277954,
+        "compilationUs": {
+          "aot_translation_us": 4833,
+          "aot_emission_us": 180,
+          "aot_installation_us": 1210
+        },
+        "compilationTotalMs": 6.223,
+        "compilationPercent": 0.020638608405388496
+      },
+      "passed": true,
+      "errors": [],
+      "artifact_directory": "/home/claude/.scratch/eka-precompile/chrome-sky-force-off",
+      "scenes_reviewed": true,
+      "scene": "Sky Force Stage 1 combat",
+      "first_presentation": {
+        "ms": 8408.594999909401,
+        "count": 1,
+        "monitor": {
+          "guest_us": 1546389,
+          "instructions": 0,
+          "compiled_functions": 18713,
+          "aot_translation_us": 1906903,
+          "aot_emission_us": 57073,
+          "aot_installation_us": 258126,
+          "aot_eager_functions": 12226,
+          "aot_eager_passes": 7,
+          "allocated_bytes": 664156552,
+          "free_bytes": 61125752
+        }
+      },
+      "window_start": {
+        "hostMs": 56386.942567499995,
+        "queryMs": 2.1939970000021276,
+        "guestUs": 44691261,
+        "frames": 1264,
+        "instructions": 0,
+        "compiledFunctions": 41701,
+        "compilation": {
+          "guest_us": 44691261,
+          "instructions": 0,
+          "compiled_functions": 41701,
+          "aot_translation_us": 4524267,
+          "aot_emission_us": 111405,
+          "aot_installation_us": 747802,
+          "aot_eager_functions": 34265,
+          "aot_eager_passes": 12,
+          "allocated_bytes": 877149840,
+          "free_bytes": 49590128
+        },
+        "browserMs": 55007.62000000477,
+        "inputs": 18,
+        "watchdog": 1
+      },
+      "window_end": {
+        "hostMs": 86539.16929600001,
+        "queryMs": 2.4029299999965588,
+        "guestUs": 74843485,
+        "frames": 2229,
+        "instructions": 0,
+        "compiledFunctions": 41735,
+        "compilation": {
+          "guest_us": 74843485,
+          "instructions": 0,
+          "compiled_functions": 41735,
+          "aot_translation_us": 4529100,
+          "aot_emission_us": 111585,
+          "aot_installation_us": 749012,
+          "aot_eager_functions": 34265,
+          "aot_eager_passes": 12,
+          "allocated_bytes": 877245288,
+          "free_bytes": 49494680
+        },
+        "browserMs": 85159.94499993324,
+        "inputs": 18,
+        "watchdog": 1
+      },
+      "preparation_log": [
+        "AOT: precompiled 12193 regions before execution in space 1 (1180.4 ms)",
+        "AOT: precompiled 3 regions before execution in space 1 (0.5 ms)",
+        "AOT: precompiled 3 regions before execution in space 1 (0.5 ms)",
+        "AOT: precompiled 3 regions before execution in space 1 (0.7 ms)",
+        "AOT: precompiled 8 regions before execution in space 1 (1.2 ms)",
+        "AOT: precompiled 8 regions before execution in space 1 (0.8 ms)",
+        "AOT: precompiled 8 regions before execution in space 1 (1.3 ms)",
+        "AOT: precompiled 8 regions before execution in space 1 (0.7 ms)",
+        "AOT: precompiled 0 regions before execution in space 2 (0.0 ms)",
+        "AOT: precompiled 6255 regions before execution in space 1 (718.4 ms)",
+        "AOT: precompiled 15773 regions before execution in space 1 (2229.4 ms)",
+        "AOT: precompiled 3 regions before execution in space 1 (0.6 ms)"
+      ],
+      "report_sha256": "2143f33a1279a451963d399f3beded5a2fd7da443a4b339eb2dd562ebf1b671b"
+    }
+  ],
+  "earlier_trials": [
+    {
+      "directory": "/home/claude/.scratch/eka-precompile/snakes-off-v1",
+      "disposition": "Rejected: probe called an Emscripten stub before runtime initialization."
+    },
+    {
+      "directory": "/home/claude/.scratch/eka-precompile/snakes-off-v1b",
+      "disposition": "Valid gameplay, rejected implementation: broad ROM export/pointer sweep installed 255694 functions before timing; excessive startup and memory."
+    },
+    {
+      "directory": "/home/claude/.scratch/eka-precompile/snakes-off-v2",
+      "disposition": "Rejected: preview server was not yet listening."
+    },
+    {
+      "directory": "/home/claude/.scratch/eka-precompile/snakes-off-v2b",
+      "disposition": "Rejected: help animation, not gameplay."
+    },
+    {
+      "directory": "/home/claude/.scratch/eka-precompile/snakes-off-v2c",
+      "disposition": "Valid preview gameplay with old touch UI; final table uses deployed bundle."
+    },
+    {
+      "directory": "/home/claude/.scratch/eka-precompile/sky-force-on-preview",
+      "disposition": "Valid preview gameplay with old touch UI; final table uses deployed bundle."
+    }
+  ]
+}

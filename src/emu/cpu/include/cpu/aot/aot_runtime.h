@@ -21,12 +21,14 @@
 
 #include <common/diagnostics.h>
 #include <cstdint>
+#include <atomic>
 #include <memory>
 #include <cpu/aot/aot_registry.h>
 #include <vector>
 #include <string>
 
 struct ARMul_State;
+namespace eka2l1::arm { class core; }
 
 namespace eka2l1::arm::aot {
     // Generated SVC returns a pending trap to the outer loop, where the exact
@@ -56,6 +58,17 @@ namespace eka2l1::arm::aot {
     void invalidate_ram_code(std::uint32_t address, std::size_t size);
     void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32_t size, bool enabled);
     void observe_hot_pc(ARMul_State *cpu);
+    // Loader notifications contain relocated entry points, never retained guest
+    // pointers. Translation/installation happens on the owning CPU worker.
+    void queue_precompile_image(std::uint32_t space, std::uint32_t base,
+        const std::uint8_t *bytes, std::uint32_t size, std::vector<std::uint32_t> entries);
+    void prepare_compiled_code(core &cpu);
+    struct compilation_counters {
+        std::atomic<std::uint64_t> translation_us{0}, emission_us{0}, installation_us{0};
+        std::atomic<std::uint64_t> eager_functions{0}, eager_passes{0};
+    };
+    extern compilation_counters compilation;
+
     extern bool validation_running;
     void validation_begin(ARMul_State *cpu);
     void validation_end(ARMul_State *cpu, std::uint32_t count);

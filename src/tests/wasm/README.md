@@ -129,11 +129,23 @@ Linux host, the existing `DISPLAY` and `XAUTHORITY` are supplied). The script
 uses an isolated browser profile that accepts the local HTTPS certificate.
 It exercises the mode selector and Play button, checks the runtime mode and
 instruction totals, and samples presentations and guest time with sound muted.
-It also records installed compiled-function counts; any ARM-to-WASM translation
-during the window is included in elapsed time, rather than subtracted from FPS.
+It also records installed compiled-function counts and elapsed microseconds in
+EKA2L1 translation, module emission and synchronous installation. Compilation
+during the window remains included in FPS. The first presentation snapshot and
+RAF-observed frame gaps separate startup from the measured window; a first
+presentation need not contain a visible game image. Menu presses start after
+that presentation and use relative guest-time waits, so a loading pause cannot
+collapse several input deadlines together. Menu screenshots are retained too.
 Screenshots are taken outside the measurement window; inspect them to confirm
 gameplay. The result is paced playability, including the selected clock policy,
 not an isolated measurement of instruction-counting overhead.
+
+Loaded ARM/Thumb images now queue preparation before their next CPU run, after
+relocation and import patching. The worker follows known entries, direct exits
+and literal references in loaded executable images. Later library loads get
+the same treatment; targets only discovered at runtime retain hot compilation.
+This shifts work into loading, with additional startup time and code memory.
+See [early compilation results](../benchmark/PRECOMPILATION_RESULTS.md).
 
 Current compatibility, performance limits and screenshots are recorded in
 [Sky Force results](../benchmark/SKY_FORCE_RESULTS.md).

@@ -27,6 +27,9 @@
 #include <cpu/aot/thumb_translator.h>
 #include <cpu/aot/wasm_emitter.h>
 #include <kernel/kernel.h>
+#include <kernel/codeseg.h>
+#include <kernel/process.h>
+#include <mem/process.h>
 #include <mem/mem.h>
 #include <loader/rom.h>
 #include <common/log.h>
@@ -130,6 +133,24 @@ namespace eka2l1::arm::aot {
 
         const char *hot_env = std::getenv("EKA2L1_AOT_HOT");
         configure_hot_rom(rom_host, rom_base, rom_size, hot_env && hot_env[0] == '1');
+#ifdef __EMSCRIPTEN__
+        if (hot_compilation_enabled) {
+            sys->get_kernel_system()->register_codeseg_loaded_callback(
+                [](const std::string &, kernel::process *process, kernel::codeseg *image) {
+                    if (!process || !process->get_mem_model()) return;
+                    std::uint8_t *bytes = nullptr;
+                    const auto base = image->get_code_run_addr(process, &bytes);
+                    // RAM images contain the application's imports/callbacks.
+                    // ROM libraries are reached through these references and
+                    // direct calls, not every unused export in each DLL.
+                    auto entries = image->is_rom() ? std::vector<std::uint32_t>{}
+                                                  : image->get_export_table(process);
+                    entries.push_back(image->get_entry_point(process));
+                    queue_precompile_image(process->get_mem_model()->address_space_id(), base,
+                        bytes, std::min(image->get_code_size(), image->get_text_size()), std::move(entries));
+                });
+        }
+#endif
         const code_window immutable_code{rom_host, rom_base, rom_size};
         const auto eager_start = std::chrono::steady_clock::now();
         std::vector<wasm_func_def> all_funcs;
@@ -304,6 +325,10 @@ namespace eka2l1::arm::aot {
 
         const auto emission_start = std::chrono::steady_clock::now();
         auto wasm_bytes = build_wasm_module(all_funcs, imports);
+        compilation.translation_us.fetch_add(std::chrono::duration_cast<std::chrono::microseconds>(
+            emission_start - eager_start).count(), std::memory_order_relaxed);
+        compilation.emission_us.fetch_add(std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::steady_clock::now() - emission_start).count(), std::memory_order_relaxed);
         fprintf(stderr, "AOT: scan_translate_ms=%.3f emit_ms=%.3f bytes=%zu functions=%zu\n",
             std::chrono::duration<double, std::milli>(emission_start - eager_start).count(),
             std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - emission_start).count(),

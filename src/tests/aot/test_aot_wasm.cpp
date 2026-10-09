@@ -6379,6 +6379,57 @@ static bool test_memory_implementations() {
 
 #include "test_watchdog.inc"
 
+// Eager preparation must follow known exits without running guest code, keep
+// ARM/Thumb tags, defer another process's RAM and reject changed mappings.
+static bool test_precompile() {
+    test_mem mem; r12l1::exclusive_monitor mon(1); auto cpu=make_cpu(mem,mon);
+    setenv("EKA2L1_AOT_RAM","1",1); setenv("EKA2L1_AOT_CHAIN","1",1);
+    setenv("EKA2L1_AOT_REGION","1",1);
+    const unsigned rom=0x80000, ram=0x1000;
+    mem.write32(rom,0xea0000fe); // B rom+0x400, beyond the source window
+    mem.write32(rom+0x400,0xe3a0002a); mem.write32(rom+0x404,0xe12fff1e);
+    mem.write32(rom+0x800,0xe59ff000); // LDR pc,[pc,#0]: literal import veneer
+    mem.write32(rom+0x808,(rom+0xc00)|1);
+    mem.write16(rom+0xc00,0x4901); // LDR r1,[pc,#4]: address-taken callback
+    mem.write16(rom+0xc02,0x4770);
+    mem.write32(rom+0xc08,rom+0xe00);
+    mem.write32(rom+0xe00,0xe12fff1e);
+    mem.write16(ram,0x2007); mem.write16(ram+2,0x4770); // MOVS r0,#7; BX lr
+    cpu->code_address_space=1;
+    cpu->resolve_code=[&](unsigned pc,core::code_mapping &view) {
+        if(pc<ram || pc>=ram+0x1000)return false;
+        view={cpu->code_address_space,mem.data.data()+pc,0x1000-(pc&0xfff)};return true;
+    };
+    global_registry().clear();
+    configure_hot_rom(mem.data.data()+rom,rom,0x1000,true);
+    queue_precompile_image(1,rom,mem.data.data()+rom,0x1000,{rom,rom+0x800});
+    queue_precompile_image(2,ram,mem.data.data()+ram,4,{ram|1});
+    core::thread_context before{},after{};cpu->save_context(before);
+    prepare_compiled_code(*cpu);cpu->save_context(after);
+    if(std::memcmp(&before,&after,sizeof(before)) || !global_registry().lookup(rom)
+        || !global_registry().lookup(rom+0x400) || !global_registry().lookup((rom+0xc00)|1)
+        || !global_registry().lookup(rom+0xe00) || compiled_function_count()!=5)return false;
+    auto owned_state=std::make_unique<ARMul_State>(cpu.get(),USER32MODE);
+    auto &state=*owned_state;state.Reg[15]=ram;state.TFlag=1;
+    if(lookup_compiled(&state))return false;
+    cpu->code_address_space=2;prepare_compiled_code(*cpu);
+    auto fn=lookup_compiled(&state);if(!fn || compiled_function_count()!=6)return false;
+    state.Reg[14]=0x2001;state.aot_budget=10;state.NumInstrsToExecute=10;state.NirqSig=1;
+    if(fn(&state)!=2 || state.Reg[0]!=7 || state.Reg[15]!=0x2000)return false;
+    // Same guest PC in another address space cannot reuse this translation.
+    cpu->code_address_space=1;state.Reg[15]=ram;if(lookup_compiled(&state))return false;
+    // A later loader event must also prepare before that process executes.
+    mem.write16(ram+4,0x2009);mem.write16(ram+6,0x4770);
+    queue_precompile_image(1,ram+4,mem.data.data()+ram+4,4,{(ram+4)|1});
+    prepare_compiled_code(*cpu);state.Reg[15]=ram+4;
+    fn=lookup_compiled(&state);if(!fn)return false;
+    state.aot_budget=10;if(fn(&state)!=2 || state.Reg[0]!=9)return false;
+    global_registry().clear();configure_hot_rom(nullptr,0,0,false);
+    unsetenv("EKA2L1_AOT_RAM");unsetenv("EKA2L1_AOT_CHAIN");unsetenv("EKA2L1_AOT_REGION");
+    printf("PASS eager preparation: exits, literal veneers/callbacks, Thumb, process isolation, late loads, no guest execution\n");
+    return true;
+}
+
 int main(int argc, char **argv) {
     // Production module staging logs its result; standalone tests have no sink.
     eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
@@ -6411,6 +6462,7 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--emit-memory-probes") {emit_memory_probes();return 0;}
 #endif
     if(argc==2 && std::string(argv[1])=="--watchdog-kernels") return benchmark_watchdog_kernels()?0:1;
+    if(argc==2 && std::string(argv[1])=="--precompile-only") return test_precompile()?0:1;
     if(argc==2 && std::string(argv[1])=="--watchdog-only") return test_watchdog()?0:1;
     if(argc==2 && std::string(argv[1])=="--shared-spans-only")return test_thumb_transfer_spans()
         && test_thumb_direct_memory() && test_invariant_reads(arm_ir_policy::write_budget_chunks)

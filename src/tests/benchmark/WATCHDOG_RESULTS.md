@@ -338,3 +338,9 @@ rejected-menu evidence, configuration, hashes and local artifact paths are in
 [`COUNTING_BROWSER_COMPARISON.json`](COUNTING_BROWSER_COMPARISON.json).
 The emulator WASM SHA-256 is
 `8ba81e0cbac677d49eaef4f651fa4e208bc4759821e8653703726facb595efbe`.
+
+The [early-compilation follow-up](PRECOMPILATION_RESULTS.md) repeats the four
+Chrome combinations with loader-driven preparation and compilation timing.
+Snakes remains 21.19/16.00 presentations/s on this host, while measured
+compilation occupies only 0.756%/0.026% of those windows. These rates do not rank
+input latency or playability on other devices.
