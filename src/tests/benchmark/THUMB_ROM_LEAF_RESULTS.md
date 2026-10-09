@@ -15,7 +15,7 @@ This prototype emits eligible immutable helper bodies inside the caller.
 | 1 | Snakes | 7.1006 → 7.0838 | +0.24% | +0.28% | -0.05% | 2/4 |
 | 2 | Sky Force | 22.0232 → 22.5390 | -2.29% | -2.12% | -1.24% | 1/4 |
 
-The prototype does not earn adoption: Sky Force loses 2.29% CPU throughput, with three of four pairs slower, despite 1.24% fewer native instructions. Snakes is effectively flat (+0.24%, mixed pairs). A single-budget-proof follow-up will test whether removing the surviving per-instruction guards makes this approach worthwhile.
+The prototype does not earn adoption: Sky Force loses 2.29% CPU throughput, with three of four pairs slower, despite 1.24% fewer native instructions. Snakes is effectively flat (+0.24%, mixed pairs). The [single-budget-proof follow-up](THUMB_LEAF_BUDGET_RESULTS.md) records the subsequent result.
 
 Control is `536ea5af3`, including the previous syscall-return continuation.
 These are incremental measurements. Four fresh launches per build per game
