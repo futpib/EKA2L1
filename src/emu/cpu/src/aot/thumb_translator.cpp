@@ -102,6 +102,7 @@ namespace eka2l1::arm::aot {
         bool direct_memory_used = false;
         bool entry_supported = true;
         bool unsupported = false; // set by bail_unsupported()
+        bool finite_loop = false;
         unsigned helper_calls = 0;
         // Number of early-exit bails emitted into the function body.
         // Incremented every time the decoder gives up mid-function and
@@ -178,6 +179,13 @@ namespace eka2l1::arm::aot {
 
         // Call imported function (index relative to imports)
         void slow_call(std::uint32_t func_idx) {
+            if (finite_loop) {
+                // A callback could change the counter or mappings and invalidate
+                // the termination proof. Exit before this scalar access instead;
+                // the interpreter services it with the exact pre-instruction state.
+                bail(census_pc & ~1u, 0, exit_census::memory);
+                return;
+            }
             ++helper_calls;
             source_scope provenance(source, source_kind::helper);
             cache.barrier_at(b.size());
@@ -830,6 +838,41 @@ namespace eka2l1::arm::aot {
         unsigned emitted = 0;
     };
 
+    // Recognize one straight-line body ending in SUBS Rn,#1 / BNE entry.
+    // Excluding every other write to Rn proves termination for all initial
+    // values, including unsigned wraparound. Calls and other control flow are
+    // deliberately excluded. Scalar memory misses leave before any callback.
+    static std::size_t finite_thumb_loop_size(const std::uint8_t *code, std::size_t size) {
+        unsigned written = 0;
+        const auto halfword = [&](std::size_t i) { return code[i] | (code[i + 1] << 8); };
+        for (std::size_t i = 0; i + 3 < size && i < 256; i += 2) {
+            const auto op = halfword(i), next = halfword(i + 2);
+            const bool immediate8 = (op & 0xf8ff) == 0x3801;
+            const bool immediate3 = (op & 0xffc0) == 0x1e40 && ((op >> 3) & 7) == (op & 7);
+            if ((immediate8 || immediate3) && (next & 0xff00) == 0xd100
+                    && static_cast<int>(i) + 6 + static_cast<std::int8_t>(next) * 2 == 0) {
+                const auto counter = immediate8 ? ((op >> 8) & 7) : (op & 7);
+                if (written & (1u << counter)) return 0;
+                return i + 4;
+            }
+            unsigned writes = 0;
+            if ((op & 0xe000) == 0) { // shifts and three-operand add/subtract
+                writes = 1u << (op & 7);
+            } else if ((op & 0xe000) == 0x2000) { // immediate ALU, excluding CMP
+                if ((op & 0xf800) != 0x2800) writes = 1u << ((op >> 8) & 7);
+            } else if ((op & 0xfc00) == 0x4000) {
+                const auto alu = (op >> 6) & 15;
+                if (alu != 8 && alu != 10 && alu != 11) writes = 1u << (op & 7);
+            } else if ((op & 0xf000) == 0x5000) { // scalar register-offset memory
+                if (((op >> 9) & 7) >= 3) writes = 1u << (op & 7);
+            } else if ((op & 0xe000) == 0x6000 || (op & 0xf000) == 0x8000) {
+                if (op & 0x0800) writes = 1u << (op & 7);
+            } else return 0;
+            written |= writes;
+        }
+        return 0;
+    }
+
     static void emit_thumb_block(translate_result &tr, emit &w,
         const std::uint8_t *code, std::size_t code_size, std::uint32_t start_address,
         const sibling_map *siblings, const code_window *dll_code, bool bounded,
@@ -1000,7 +1043,7 @@ namespace eka2l1::arm::aot {
         // loop (typically at a terminator like POP {PC}).
         std::uint32_t decoded_end_offset = 0;
         for (std::size_t i = 0; i + 1 < code_size; i += 2) {
-            if (bounded && stop_after_store && w.memory_write) break;
+            if (bounded && stop_after_store && w.memory_write && !w.finite_loop) break;
             // Skip unreachable offsets. `reachable` is the CFG closure
             // from offset 0, so anything not in it is either the middle
             // halfword of a wide insn or literal-pool data past the
@@ -3864,7 +3907,10 @@ namespace eka2l1::arm::aot {
                 // been closed.
                 auto fwd_it = fwd_idx.find(target);
                 bool is_fwd = (fwd_it != fwd_idx.end()) && (target > insn_addr);
-                if (is_fwd) {
+                if (w.finite_loop && target == start_address) {
+                    emit_cond();
+                    w.op(op_br_if); leb(result.body, 0);
+                } else if (is_fwd) {
                     if (!emit_cond()) { w.bail_unsupported(insn_addr, insn_idx); insn_idx++; continue; }
                     std::uint32_t depth = fwd_it->second - closed_count;
                     w.op(op_br_if); leb(result.body, depth);
@@ -4615,6 +4661,13 @@ namespace eka2l1::arm::aot {
         // Locals: 0=state_ptr(param), 1=tmp1, 2=tmp2, 3=tmp3, 4=tmp4, 5=pc_idx, 6=addr_tmp
         //         7=ftmp1(f32), 8=ftmp2(f32), 9=dtmp1(f64)
         const bool direct_memory = bounded && cache_registers && thumb_direct_memory;
+        const auto loop_size = direct_memory && stop_after_store
+            && common::code_tracking::skip_code_write_guards()
+            ? finite_thumb_loop_size(code, code_size) : 0;
+        if (loop_size) {
+            code_size = loop_size;
+            tr.proved_terminating_loops = 1;
+        }
         result.num_locals = memory_experiment::enabled() ? 14 : direct_memory ? 11 : 6;
         result.num_f32_locals = 2;
         result.num_f64_locals = 1;
@@ -4627,6 +4680,7 @@ namespace eka2l1::arm::aot {
         w.dispatch_entries = &tr.dispatch_entries;
         w.source.marks = &result.sources;
         w.direct_memory = direct_memory;
+        w.finite_loop = loop_size != 0;
         w.cache.enabled = bounded && cache_registers;
         // Keep repeated PC, endian and TLB accesses in locals. Slow
         // callbacks still publish/reload the complete cached state.

@@ -1,0 +1,4052 @@
+{
+  "source_base": "610a7bb8e",
+  "baseline_wasm_sha256": "3d0bb2ee382bcef42c641ba1d609e019e65233b75310eabfd265fcd65b4b60ff",
+  "candidate_wasm_sha256": "0897120710c85c17e04762902fa34d471d98cf5160b79ad4bdeff27497bf0010",
+  "raw_directory": "/home/claude/.scratch/eka-asphalt-perf-20261010",
+  "scene": "Arcade / Single Race / Volkswagen Golf GTI Mk V / San Francisco; no steering, car at first outside barrier after 20 seconds warm-up",
+  "order": "ABBA",
+  "summary": {
+    "baseline_mean_fps": 39.918952440522744,
+    "candidate_mean_fps": 49.30592366000321,
+    "throughput_gain_percent": 23.515074032733164
+  },
+  "runs": [
+    {
+      "run": "baseline-a1",
+      "game": "asphalt-2",
+      "label": "race",
+      "edition": "1.0.1, N95 8GB, original Gameloft-signed S60v3 release",
+      "url": "http://127.0.0.1:8191/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.93,
+        2.57,
+        3.61
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 20.0915,
+      "frames": 817,
+      "fps": 40.663962372147424,
+      "guestSeconds": 133.88,
+      "guestSpeed": 6.663514421521539,
+      "compiledFunctions": 221,
+      "compilationUs": {
+        "aot_translation_us": 17659,
+        "aot_emission_us": 534,
+        "aot_installation_us": 3116
+      },
+      "errors": [],
+      "samples": [
+        {
+          "ms": 43667.66500008106,
+          "guest": 219580000,
+          "frames": 1452,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 219590000,
+            "instructions": 0,
+            "compiled_functions": 44265,
+            "aot_translation_us": 7080958,
+            "aot_emission_us": 277269,
+            "aot_installation_us": 655112,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877909608,
+            "free_bytes": 88094232
+          }
+        },
+        {
+          "ms": 44170.50500011444,
+          "guest": 222780000,
+          "frames": 1469,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 222780000,
+            "instructions": 0,
+            "compiled_functions": 44280,
+            "aot_translation_us": 7082048,
+            "aot_emission_us": 277309,
+            "aot_installation_us": 655361,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877915728,
+            "free_bytes": 88088112
+          }
+        },
+        {
+          "ms": 44672.85000002384,
+          "guest": 226060000,
+          "frames": 1489,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 226060000,
+            "instructions": 0,
+            "compiled_functions": 44280,
+            "aot_translation_us": 7082758,
+            "aot_emission_us": 277309,
+            "aot_installation_us": 655361,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877930576,
+            "free_bytes": 88073264
+          }
+        },
+        {
+          "ms": 45174.82000005245,
+          "guest": 229400000,
+          "frames": 1509,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 229400000,
+            "instructions": 0,
+            "compiled_functions": 44280,
+            "aot_translation_us": 7083664,
+            "aot_emission_us": 277309,
+            "aot_installation_us": 655361,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877952528,
+            "free_bytes": 88051312
+          }
+        },
+        {
+          "ms": 45676.58500003815,
+          "guest": 232720000,
+          "frames": 1529,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 232720000,
+            "instructions": 0,
+            "compiled_functions": 44312,
+            "aot_translation_us": 7085234,
+            "aot_emission_us": 277369,
+            "aot_installation_us": 655690,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877913880,
+            "free_bytes": 88089960
+          }
+        },
+        {
+          "ms": 46179.0300000906,
+          "guest": 236093750,
+          "frames": 1549,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 236093750,
+            "instructions": 0,
+            "compiled_functions": 44314,
+            "aot_translation_us": 7085592,
+            "aot_emission_us": 277384,
+            "aot_installation_us": 655885,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 879156096,
+            "free_bytes": 86847744
+          }
+        },
+        {
+          "ms": 46681.49500000477,
+          "guest": 239421875,
+          "frames": 1569,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 239421875,
+            "instructions": 0,
+            "compiled_functions": 44314,
+            "aot_translation_us": 7085920,
+            "aot_emission_us": 277384,
+            "aot_installation_us": 655885,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 879172464,
+            "free_bytes": 86831376
+          }
+        },
+        {
+          "ms": 47183.795000076294,
+          "guest": 242640000,
+          "frames": 1590,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 242650000,
+            "instructions": 0,
+            "compiled_functions": 44314,
+            "aot_translation_us": 7086660,
+            "aot_emission_us": 277384,
+            "aot_installation_us": 655885,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877955688,
+            "free_bytes": 88048152
+          }
+        },
+        {
+          "ms": 47685.79000008106,
+          "guest": 245970000,
+          "frames": 1610,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 245980000,
+            "instructions": 0,
+            "compiled_functions": 44338,
+            "aot_translation_us": 7087227,
+            "aot_emission_us": 277444,
+            "aot_installation_us": 656180,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877927336,
+            "free_bytes": 88076504
+          }
+        },
+        {
+          "ms": 48188.11500000954,
+          "guest": 249340000,
+          "frames": 1631,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 249350000,
+            "instructions": 0,
+            "compiled_functions": 44338,
+            "aot_translation_us": 7088185,
+            "aot_emission_us": 277444,
+            "aot_installation_us": 656180,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877961416,
+            "free_bytes": 88042424
+          }
+        },
+        {
+          "ms": 48690.700000047684,
+          "guest": 252700000,
+          "frames": 1651,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 252700000,
+            "instructions": 0,
+            "compiled_functions": 44338,
+            "aot_translation_us": 7088814,
+            "aot_emission_us": 277444,
+            "aot_installation_us": 656180,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877985048,
+            "free_bytes": 88018792
+          }
+        },
+        {
+          "ms": 49193.10000002384,
+          "guest": 256078125,
+          "frames": 1672,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 256078125,
+            "instructions": 0,
+            "compiled_functions": 44338,
+            "aot_translation_us": 7089350,
+            "aot_emission_us": 277444,
+            "aot_installation_us": 656180,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878003696,
+            "free_bytes": 88000144
+          }
+        },
+        {
+          "ms": 49695.49500000477,
+          "guest": 259310000,
+          "frames": 1691,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 259310000,
+            "instructions": 0,
+            "compiled_functions": 44374,
+            "aot_translation_us": 7089826,
+            "aot_emission_us": 277533,
+            "aot_installation_us": 656730,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877925664,
+            "free_bytes": 88078176
+          }
+        },
+        {
+          "ms": 50197.7800000906,
+          "guest": 262609375,
+          "frames": 1711,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 262610000,
+            "instructions": 0,
+            "compiled_functions": 44374,
+            "aot_translation_us": 7090391,
+            "aot_emission_us": 277533,
+            "aot_installation_us": 656730,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 879178488,
+            "free_bytes": 86825352
+          }
+        },
+        {
+          "ms": 50700.10500001907,
+          "guest": 265960000,
+          "frames": 1732,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 265970000,
+            "instructions": 0,
+            "compiled_functions": 44374,
+            "aot_translation_us": 7090952,
+            "aot_emission_us": 277533,
+            "aot_installation_us": 656730,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877967392,
+            "free_bytes": 88036448
+          }
+        },
+        {
+          "ms": 51202.47000002861,
+          "guest": 269340000,
+          "frames": 1752,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 269340000,
+            "instructions": 0,
+            "compiled_functions": 44374,
+            "aot_translation_us": 7091527,
+            "aot_emission_us": 277533,
+            "aot_installation_us": 656730,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877990016,
+            "free_bytes": 88013824
+          }
+        },
+        {
+          "ms": 51704.920000076294,
+          "guest": 272770000,
+          "frames": 1773,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 272770000,
+            "instructions": 0,
+            "compiled_functions": 44406,
+            "aot_translation_us": 7092179,
+            "aot_emission_us": 277598,
+            "aot_installation_us": 657080,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877936352,
+            "free_bytes": 88067488
+          }
+        },
+        {
+          "ms": 52207.21500003338,
+          "guest": 276100000,
+          "frames": 1793,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 276110000,
+            "instructions": 0,
+            "compiled_functions": 44406,
+            "aot_translation_us": 7092373,
+            "aot_emission_us": 277598,
+            "aot_installation_us": 657080,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877937464,
+            "free_bytes": 88066376
+          }
+        },
+        {
+          "ms": 52708.97500002384,
+          "guest": 279468750,
+          "frames": 1813,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 279468750,
+            "instructions": 0,
+            "compiled_functions": 44410,
+            "aot_translation_us": 7092778,
+            "aot_emission_us": 277623,
+            "aot_installation_us": 657284,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 879177496,
+            "free_bytes": 86826344
+          }
+        },
+        {
+          "ms": 53211.38000011444,
+          "guest": 282760000,
+          "frames": 1834,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 282760000,
+            "instructions": 0,
+            "compiled_functions": 44410,
+            "aot_translation_us": 7093131,
+            "aot_emission_us": 277623,
+            "aot_installation_us": 657284,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877952744,
+            "free_bytes": 88051096
+          }
+        },
+        {
+          "ms": 53713.75500011444,
+          "guest": 286070000,
+          "frames": 1855,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 286070000,
+            "instructions": 0,
+            "compiled_functions": 44410,
+            "aot_translation_us": 7093430,
+            "aot_emission_us": 277623,
+            "aot_installation_us": 657284,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877956024,
+            "free_bytes": 88047816
+          }
+        },
+        {
+          "ms": 54216.200000047684,
+          "guest": 289480000,
+          "frames": 1876,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 289480000,
+            "instructions": 0,
+            "compiled_functions": 44410,
+            "aot_translation_us": 7093539,
+            "aot_emission_us": 277623,
+            "aot_installation_us": 657284,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877958280,
+            "free_bytes": 88045560
+          }
+        },
+        {
+          "ms": 54718.63000011444,
+          "guest": 292890000,
+          "frames": 1897,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 292890000,
+            "instructions": 0,
+            "compiled_functions": 44410,
+            "aot_translation_us": 7093981,
+            "aot_emission_us": 277623,
+            "aot_installation_us": 657284,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877972360,
+            "free_bytes": 88031480
+          }
+        },
+        {
+          "ms": 55221.020000100136,
+          "guest": 296280000,
+          "frames": 1918,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 296280000,
+            "instructions": 0,
+            "compiled_functions": 44435,
+            "aot_translation_us": 7094170,
+            "aot_emission_us": 277678,
+            "aot_installation_us": 657584,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877954008,
+            "free_bytes": 88049832
+          }
+        },
+        {
+          "ms": 55723.27500009537,
+          "guest": 299550000,
+          "frames": 1938,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 299560000,
+            "instructions": 0,
+            "compiled_functions": 44435,
+            "aot_translation_us": 7094447,
+            "aot_emission_us": 277678,
+            "aot_installation_us": 657584,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877951304,
+            "free_bytes": 88052536
+          }
+        },
+        {
+          "ms": 56225.74000000954,
+          "guest": 302940000,
+          "frames": 1958,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 302950000,
+            "instructions": 0,
+            "compiled_functions": 44435,
+            "aot_translation_us": 7094963,
+            "aot_emission_us": 277678,
+            "aot_installation_us": 657584,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 880419200,
+            "free_bytes": 85584640
+          }
+        },
+        {
+          "ms": 56728.360000014305,
+          "guest": 306270000,
+          "frames": 1979,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 306270000,
+            "instructions": 0,
+            "compiled_functions": 44435,
+            "aot_translation_us": 7095131,
+            "aot_emission_us": 277678,
+            "aot_installation_us": 657584,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877965960,
+            "free_bytes": 88037880
+          }
+        },
+        {
+          "ms": 57230.69500005245,
+          "guest": 309620000,
+          "frames": 2000,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 309630000,
+            "instructions": 0,
+            "compiled_functions": 44435,
+            "aot_translation_us": 7095398,
+            "aot_emission_us": 277678,
+            "aot_installation_us": 657584,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877974136,
+            "free_bytes": 88029704
+          }
+        },
+        {
+          "ms": 57732.93000006676,
+          "guest": 313010000,
+          "frames": 2021,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 313010000,
+            "instructions": 0,
+            "compiled_functions": 44435,
+            "aot_translation_us": 7095701,
+            "aot_emission_us": 277678,
+            "aot_installation_us": 657584,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877993928,
+            "free_bytes": 88009912
+          }
+        },
+        {
+          "ms": 58235.25,
+          "guest": 316350000,
+          "frames": 2041,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 316360000,
+            "instructions": 0,
+            "compiled_functions": 44435,
+            "aot_translation_us": 7096059,
+            "aot_emission_us": 277678,
+            "aot_installation_us": 657584,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877988520,
+            "free_bytes": 88015320
+          }
+        },
+        {
+          "ms": 58737.705000042915,
+          "guest": 319630000,
+          "frames": 2061,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 319640000,
+            "instructions": 0,
+            "compiled_functions": 44464,
+            "aot_translation_us": 7096263,
+            "aot_emission_us": 277738,
+            "aot_installation_us": 657908,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877941536,
+            "free_bytes": 88062304
+          }
+        },
+        {
+          "ms": 59239.890000104904,
+          "guest": 323010000,
+          "frames": 2082,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 323020000,
+            "instructions": 0,
+            "compiled_functions": 44464,
+            "aot_translation_us": 7096605,
+            "aot_emission_us": 277738,
+            "aot_installation_us": 657908,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877952800,
+            "free_bytes": 88051040
+          }
+        },
+        {
+          "ms": 59742.2800000906,
+          "guest": 326280000,
+          "frames": 2102,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 326290000,
+            "instructions": 0,
+            "compiled_functions": 44464,
+            "aot_translation_us": 7097009,
+            "aot_emission_us": 277738,
+            "aot_installation_us": 657908,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877963696,
+            "free_bytes": 88040144
+          }
+        },
+        {
+          "ms": 60244.51000010967,
+          "guest": 329700000,
+          "frames": 2123,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 329710000,
+            "instructions": 0,
+            "compiled_functions": 44464,
+            "aot_translation_us": 7097178,
+            "aot_emission_us": 277738,
+            "aot_installation_us": 657908,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877966520,
+            "free_bytes": 88037320
+          }
+        },
+        {
+          "ms": 60746.43500006199,
+          "guest": 333090000,
+          "frames": 2144,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 333100000,
+            "instructions": 0,
+            "compiled_functions": 44464,
+            "aot_translation_us": 7097397,
+            "aot_emission_us": 277738,
+            "aot_installation_us": 657908,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877976184,
+            "free_bytes": 88027656
+          }
+        },
+        {
+          "ms": 61248.75500011444,
+          "guest": 336546875,
+          "frames": 2164,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 336546875,
+            "instructions": 0,
+            "compiled_functions": 44464,
+            "aot_translation_us": 7097654,
+            "aot_emission_us": 277738,
+            "aot_installation_us": 657908,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 879220456,
+            "free_bytes": 86783384
+          }
+        },
+        {
+          "ms": 61751.205000042915,
+          "guest": 339940000,
+          "frames": 2185,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 339940000,
+            "instructions": 0,
+            "compiled_functions": 44464,
+            "aot_translation_us": 7097698,
+            "aot_emission_us": 277738,
+            "aot_installation_us": 657908,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877989216,
+            "free_bytes": 88014624
+          }
+        },
+        {
+          "ms": 62252.49500000477,
+          "guest": 343300000,
+          "frames": 2206,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 343300000,
+            "instructions": 0,
+            "compiled_functions": 44464,
+            "aot_translation_us": 7097832,
+            "aot_emission_us": 277738,
+            "aot_installation_us": 657908,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877995680,
+            "free_bytes": 88008160
+          }
+        },
+        {
+          "ms": 62754.700000047684,
+          "guest": 346700000,
+          "frames": 2227,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 346710000,
+            "instructions": 0,
+            "compiled_functions": 44486,
+            "aot_translation_us": 7098188,
+            "aot_emission_us": 277803,
+            "aot_installation_us": 658228,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877952560,
+            "free_bytes": 88051280
+          }
+        },
+        {
+          "ms": 63256.63000011444,
+          "guest": 350120000,
+          "frames": 2248,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 350120000,
+            "instructions": 0,
+            "compiled_functions": 44486,
+            "aot_translation_us": 7098348,
+            "aot_emission_us": 277803,
+            "aot_installation_us": 658228,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877958080,
+            "free_bytes": 88045760
+          }
+        },
+        {
+          "ms": 63759.16500008106,
+          "guest": 353460000,
+          "frames": 2269,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 353460000,
+            "instructions": 0,
+            "compiled_functions": 44486,
+            "aot_translation_us": 7098617,
+            "aot_emission_us": 277803,
+            "aot_installation_us": 658228,
+            "aot_eager_functions": 30708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877974888,
+            "free_bytes": 88028952
+          }
+        }
+      ]
+    },
+    {
+      "run": "candidate-b1",
+      "game": "asphalt-2",
+      "label": "race",
+      "edition": "1.0.1, N95 8GB, original Gameloft-signed S60v3 release",
+      "url": "http://127.0.0.1:8190/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.81,
+        2.43,
+        3.5
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 20.086994999885558,
+      "frames": 972,
+      "fps": 48.389517695680105,
+      "guestSeconds": 140.96,
+      "guestSpeed": 7.017475734962004,
+      "compiledFunctions": 147,
+      "compilationUs": {
+        "aot_translation_us": 13848,
+        "aot_emission_us": 404,
+        "aot_installation_us": 2389
+      },
+      "errors": [],
+      "samples": [
+        {
+          "ms": 44064.610000014305,
+          "guest": 257920000,
+          "frames": 2347,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 257920000,
+            "instructions": 0,
+            "compiled_functions": 44450,
+            "aot_translation_us": 7290863,
+            "aot_emission_us": 279022,
+            "aot_installation_us": 688114,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878017328,
+            "free_bytes": 87986512
+          }
+        },
+        {
+          "ms": 44567.37000000477,
+          "guest": 261250000,
+          "frames": 2367,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 261250000,
+            "instructions": 0,
+            "compiled_functions": 44456,
+            "aot_translation_us": 7291303,
+            "aot_emission_us": 279057,
+            "aot_installation_us": 688384,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878021424,
+            "free_bytes": 87982416
+          }
+        },
+        {
+          "ms": 45069.94499993324,
+          "guest": 264550000,
+          "frames": 2386,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 264550000,
+            "instructions": 0,
+            "compiled_functions": 44456,
+            "aot_translation_us": 7292314,
+            "aot_emission_us": 279057,
+            "aot_installation_us": 688384,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878050712,
+            "free_bytes": 87953128
+          }
+        },
+        {
+          "ms": 45572.544999957085,
+          "guest": 267910000,
+          "frames": 2406,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 267910000,
+            "instructions": 0,
+            "compiled_functions": 44456,
+            "aot_translation_us": 7293065,
+            "aot_emission_us": 279057,
+            "aot_installation_us": 688384,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878068104,
+            "free_bytes": 87935736
+          }
+        },
+        {
+          "ms": 46074.889999985695,
+          "guest": 271180000,
+          "frames": 2426,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 271190000,
+            "instructions": 0,
+            "compiled_functions": 44456,
+            "aot_translation_us": 7293601,
+            "aot_emission_us": 279057,
+            "aot_installation_us": 688384,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878084712,
+            "free_bytes": 87919128
+          }
+        },
+        {
+          "ms": 46577.18999993801,
+          "guest": 274510000,
+          "frames": 2446,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 274510000,
+            "instructions": 0,
+            "compiled_functions": 44488,
+            "aot_translation_us": 7294567,
+            "aot_emission_us": 279151,
+            "aot_installation_us": 688828,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878035336,
+            "free_bytes": 87968504
+          }
+        },
+        {
+          "ms": 47079.75499999523,
+          "guest": 277800000,
+          "frames": 2467,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 277810000,
+            "instructions": 0,
+            "compiled_functions": 44494,
+            "aot_translation_us": 7295153,
+            "aot_emission_us": 279180,
+            "aot_installation_us": 689168,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878029520,
+            "free_bytes": 87974320
+          }
+        },
+        {
+          "ms": 47582.20999991894,
+          "guest": 281150000,
+          "frames": 2487,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 281150000,
+            "instructions": 0,
+            "compiled_functions": 44494,
+            "aot_translation_us": 7295477,
+            "aot_emission_us": 279180,
+            "aot_installation_us": 689168,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878035088,
+            "free_bytes": 87968752
+          }
+        },
+        {
+          "ms": 48084.77499997616,
+          "guest": 284490000,
+          "frames": 2507,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 284490000,
+            "instructions": 0,
+            "compiled_functions": 44494,
+            "aot_translation_us": 7295706,
+            "aot_emission_us": 279180,
+            "aot_installation_us": 689168,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878042688,
+            "free_bytes": 87961152
+          }
+        },
+        {
+          "ms": 48586.83499991894,
+          "guest": 287810000,
+          "frames": 2527,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 287820000,
+            "instructions": 0,
+            "compiled_functions": 44494,
+            "aot_translation_us": 7296409,
+            "aot_emission_us": 279180,
+            "aot_installation_us": 689168,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878061368,
+            "free_bytes": 87942472
+          }
+        },
+        {
+          "ms": 49088.979999899864,
+          "guest": 291080000,
+          "frames": 2548,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 291090000,
+            "instructions": 0,
+            "compiled_functions": 44494,
+            "aot_translation_us": 7297104,
+            "aot_emission_us": 279180,
+            "aot_installation_us": 689168,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878084752,
+            "free_bytes": 87919088
+          }
+        },
+        {
+          "ms": 49591.33999991417,
+          "guest": 294620000,
+          "frames": 2573,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 294620000,
+            "instructions": 0,
+            "compiled_functions": 44518,
+            "aot_translation_us": 7297374,
+            "aot_emission_us": 279239,
+            "aot_installation_us": 689483,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878053928,
+            "free_bytes": 87949912
+          }
+        },
+        {
+          "ms": 50093.66499996185,
+          "guest": 298090000,
+          "frames": 2596,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 298100000,
+            "instructions": 0,
+            "compiled_functions": 44518,
+            "aot_translation_us": 7297940,
+            "aot_emission_us": 279239,
+            "aot_installation_us": 689483,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878054320,
+            "free_bytes": 87949520
+          }
+        },
+        {
+          "ms": 50595.46499991417,
+          "guest": 301690000,
+          "frames": 2622,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 301690000,
+            "instructions": 0,
+            "compiled_functions": 44518,
+            "aot_translation_us": 7298552,
+            "aot_emission_us": 279239,
+            "aot_installation_us": 689483,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878068184,
+            "free_bytes": 87935656
+          }
+        },
+        {
+          "ms": 51097.65499997139,
+          "guest": 305190000,
+          "frames": 2647,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 305190000,
+            "instructions": 0,
+            "compiled_functions": 44518,
+            "aot_translation_us": 7299004,
+            "aot_emission_us": 279239,
+            "aot_installation_us": 689483,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 880843400,
+            "free_bytes": 85160440
+          }
+        },
+        {
+          "ms": 51599.97499990463,
+          "guest": 308810000,
+          "frames": 2673,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 308810000,
+            "instructions": 0,
+            "compiled_functions": 44518,
+            "aot_translation_us": 7299253,
+            "aot_emission_us": 279239,
+            "aot_installation_us": 689483,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878093824,
+            "free_bytes": 87910016
+          }
+        },
+        {
+          "ms": 52102.169999957085,
+          "guest": 312370000,
+          "frames": 2699,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 312370000,
+            "instructions": 0,
+            "compiled_functions": 44550,
+            "aot_translation_us": 7299585,
+            "aot_emission_us": 279308,
+            "aot_installation_us": 689818,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878041480,
+            "free_bytes": 87962360
+          }
+        },
+        {
+          "ms": 52603.794999957085,
+          "guest": 315950000,
+          "frames": 2725,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 315950000,
+            "instructions": 0,
+            "compiled_functions": 44550,
+            "aot_translation_us": 7299980,
+            "aot_emission_us": 279308,
+            "aot_installation_us": 689818,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878044896,
+            "free_bytes": 87958944
+          }
+        },
+        {
+          "ms": 53106.03499996662,
+          "guest": 319460000,
+          "frames": 2752,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 319470000,
+            "instructions": 0,
+            "compiled_functions": 44550,
+            "aot_translation_us": 7300528,
+            "aot_emission_us": 279308,
+            "aot_installation_us": 689818,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878073984,
+            "free_bytes": 87929856
+          }
+        },
+        {
+          "ms": 53608.03499996662,
+          "guest": 323000000,
+          "frames": 2778,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 323000000,
+            "instructions": 0,
+            "compiled_functions": 44550,
+            "aot_translation_us": 7300697,
+            "aot_emission_us": 279308,
+            "aot_installation_us": 689818,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878074256,
+            "free_bytes": 87929584
+          }
+        },
+        {
+          "ms": 54109.49000000954,
+          "guest": 326560000,
+          "frames": 2803,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 326570000,
+            "instructions": 0,
+            "compiled_functions": 44550,
+            "aot_translation_us": 7300832,
+            "aot_emission_us": 279308,
+            "aot_installation_us": 689818,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878077632,
+            "free_bytes": 87926208
+          }
+        },
+        {
+          "ms": 54611.30999994278,
+          "guest": 330120000,
+          "frames": 2829,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 330120000,
+            "instructions": 0,
+            "compiled_functions": 44550,
+            "aot_translation_us": 7301011,
+            "aot_emission_us": 279308,
+            "aot_installation_us": 689818,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878084928,
+            "free_bytes": 87918912
+          }
+        },
+        {
+          "ms": 55113.77499997616,
+          "guest": 333718750,
+          "frames": 2855,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 333720000,
+            "instructions": 0,
+            "compiled_functions": 44550,
+            "aot_translation_us": 7301156,
+            "aot_emission_us": 279308,
+            "aot_installation_us": 689818,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 879317304,
+            "free_bytes": 86686536
+          }
+        },
+        {
+          "ms": 55616.22499990463,
+          "guest": 337340000,
+          "frames": 2881,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 337343750,
+            "instructions": 0,
+            "compiled_functions": 44574,
+            "aot_translation_us": 7301339,
+            "aot_emission_us": 279372,
+            "aot_installation_us": 690193,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 879273504,
+            "free_bytes": 86730336
+          }
+        },
+        {
+          "ms": 56118.579999923706,
+          "guest": 340930000,
+          "frames": 2907,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 340930000,
+            "instructions": 0,
+            "compiled_functions": 44574,
+            "aot_translation_us": 7301339,
+            "aot_emission_us": 279372,
+            "aot_installation_us": 690193,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878044832,
+            "free_bytes": 87959008
+          }
+        },
+        {
+          "ms": 56620.72499990463,
+          "guest": 344590000,
+          "frames": 2933,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 344590000,
+            "instructions": 0,
+            "compiled_functions": 44574,
+            "aot_translation_us": 7301682,
+            "aot_emission_us": 279372,
+            "aot_installation_us": 690193,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878060616,
+            "free_bytes": 87943224
+          }
+        },
+        {
+          "ms": 57123,
+          "guest": 348180000,
+          "frames": 2958,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 348190000,
+            "instructions": 0,
+            "compiled_functions": 44574,
+            "aot_translation_us": 7301866,
+            "aot_emission_us": 279372,
+            "aot_installation_us": 690193,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878053168,
+            "free_bytes": 87950672
+          }
+        },
+        {
+          "ms": 57625.24000000954,
+          "guest": 351850000,
+          "frames": 2984,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 351850000,
+            "instructions": 0,
+            "compiled_functions": 44574,
+            "aot_translation_us": 7301946,
+            "aot_emission_us": 279372,
+            "aot_installation_us": 690193,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878054616,
+            "free_bytes": 87949224
+          }
+        },
+        {
+          "ms": 58127.15999996662,
+          "guest": 355500000,
+          "frames": 3010,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 355500000,
+            "instructions": 0,
+            "compiled_functions": 44574,
+            "aot_translation_us": 7302205,
+            "aot_emission_us": 279372,
+            "aot_installation_us": 690193,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878068520,
+            "free_bytes": 87935320
+          }
+        },
+        {
+          "ms": 58629.40999996662,
+          "guest": 359190000,
+          "frames": 3036,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 359190000,
+            "instructions": 0,
+            "compiled_functions": 44574,
+            "aot_translation_us": 7302495,
+            "aot_emission_us": 279372,
+            "aot_installation_us": 690193,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878090136,
+            "free_bytes": 87913704
+          }
+        },
+        {
+          "ms": 59131.389999985695,
+          "guest": 362843750,
+          "frames": 3061,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 362850000,
+            "instructions": 0,
+            "compiled_functions": 44574,
+            "aot_translation_us": 7302649,
+            "aot_emission_us": 279372,
+            "aot_installation_us": 690193,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 879318448,
+            "free_bytes": 86685392
+          }
+        },
+        {
+          "ms": 59632.75499999523,
+          "guest": 366440000,
+          "frames": 3087,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 366450000,
+            "instructions": 0,
+            "compiled_functions": 44574,
+            "aot_translation_us": 7302921,
+            "aot_emission_us": 279372,
+            "aot_installation_us": 690193,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878082584,
+            "free_bytes": 87921256
+          }
+        },
+        {
+          "ms": 60134.449999928474,
+          "guest": 370120000,
+          "frames": 3113,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 370120000,
+            "instructions": 0,
+            "compiled_functions": 44597,
+            "aot_translation_us": 7303189,
+            "aot_emission_us": 279426,
+            "aot_installation_us": 690503,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878047672,
+            "free_bytes": 87956168
+          }
+        },
+        {
+          "ms": 60636.83499991894,
+          "guest": 373765625,
+          "frames": 3139,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 373765625,
+            "instructions": 0,
+            "compiled_functions": 44597,
+            "aot_translation_us": 7303398,
+            "aot_emission_us": 279426,
+            "aot_installation_us": 690503,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 879294376,
+            "free_bytes": 86709464
+          }
+        },
+        {
+          "ms": 61139.17999994755,
+          "guest": 377360000,
+          "frames": 3165,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 377360000,
+            "instructions": 0,
+            "compiled_functions": 44597,
+            "aot_translation_us": 7303537,
+            "aot_emission_us": 279426,
+            "aot_installation_us": 690503,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878057392,
+            "free_bytes": 87946448
+          }
+        },
+        {
+          "ms": 61641.49500000477,
+          "guest": 381050000,
+          "frames": 3191,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 381050000,
+            "instructions": 0,
+            "compiled_functions": 44597,
+            "aot_translation_us": 7303646,
+            "aot_emission_us": 279426,
+            "aot_installation_us": 690503,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878066800,
+            "free_bytes": 87937040
+          }
+        },
+        {
+          "ms": 62143.389999985695,
+          "guest": 384630000,
+          "frames": 3217,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 384630000,
+            "instructions": 0,
+            "compiled_functions": 44597,
+            "aot_translation_us": 7303888,
+            "aot_emission_us": 279426,
+            "aot_installation_us": 690503,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878073552,
+            "free_bytes": 87930288
+          }
+        },
+        {
+          "ms": 62645.4699999094,
+          "guest": 388180000,
+          "frames": 3242,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 388180000,
+            "instructions": 0,
+            "compiled_functions": 44597,
+            "aot_translation_us": 7304131,
+            "aot_emission_us": 279426,
+            "aot_installation_us": 690503,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878080552,
+            "free_bytes": 87923288
+          }
+        },
+        {
+          "ms": 63147.71499991417,
+          "guest": 391770000,
+          "frames": 3268,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 391770000,
+            "instructions": 0,
+            "compiled_functions": 44597,
+            "aot_translation_us": 7304210,
+            "aot_emission_us": 279426,
+            "aot_installation_us": 690503,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878081448,
+            "free_bytes": 87922392
+          }
+        },
+        {
+          "ms": 63649.99500000477,
+          "guest": 395300000,
+          "frames": 3293,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 395300000,
+            "instructions": 0,
+            "compiled_functions": 44597,
+            "aot_translation_us": 7304478,
+            "aot_emission_us": 279426,
+            "aot_installation_us": 690503,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878087744,
+            "free_bytes": 87916096
+          }
+        },
+        {
+          "ms": 64151.604999899864,
+          "guest": 398880000,
+          "frames": 3319,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 398880000,
+            "instructions": 0,
+            "compiled_functions": 44597,
+            "aot_translation_us": 7304711,
+            "aot_emission_us": 279426,
+            "aot_installation_us": 690503,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878096208,
+            "free_bytes": 87907632
+          }
+        }
+      ]
+    },
+    {
+      "run": "candidate-b2",
+      "game": "asphalt-2",
+      "label": "race",
+      "edition": "1.0.1, N95 8GB, original Gameloft-signed S60v3 release",
+      "url": "http://127.0.0.1:8190/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.67,
+        2.29,
+        3.38
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 20.090664999961852,
+      "frames": 1009,
+      "fps": 50.22232962432631,
+      "guestSeconds": 142.6,
+      "guestSpeed": 7.097823790316087,
+      "compiledFunctions": 185,
+      "compilationUs": {
+        "aot_translation_us": 14163,
+        "aot_emission_us": 445,
+        "aot_installation_us": 2313
+      },
+      "errors": [],
+      "samples": [
+        {
+          "ms": 43628.25499999523,
+          "guest": 256180000,
+          "frames": 2300,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 256190000,
+            "instructions": 0,
+            "compiled_functions": 44445,
+            "aot_translation_us": 7078597,
+            "aot_emission_us": 277110,
+            "aot_installation_us": 671086,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878024408,
+            "free_bytes": 87979432
+          }
+        },
+        {
+          "ms": 44131.30999994278,
+          "guest": 259515625,
+          "frames": 2320,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 259515625,
+            "instructions": 0,
+            "compiled_functions": 44445,
+            "aot_translation_us": 7079248,
+            "aot_emission_us": 277110,
+            "aot_installation_us": 671086,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 879274528,
+            "free_bytes": 86729312
+          }
+        },
+        {
+          "ms": 44633.69499993324,
+          "guest": 262750000,
+          "frames": 2339,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 262750000,
+            "instructions": 0,
+            "compiled_functions": 44445,
+            "aot_translation_us": 7079779,
+            "aot_emission_us": 277110,
+            "aot_installation_us": 671086,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878050208,
+            "free_bytes": 87953632
+          }
+        },
+        {
+          "ms": 45135.75,
+          "guest": 266060000,
+          "frames": 2359,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 266070000,
+            "instructions": 0,
+            "compiled_functions": 44445,
+            "aot_translation_us": 7080644,
+            "aot_emission_us": 277110,
+            "aot_installation_us": 671086,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878080464,
+            "free_bytes": 87923376
+          }
+        },
+        {
+          "ms": 45638.31999993324,
+          "guest": 269360000,
+          "frames": 2379,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 269360000,
+            "instructions": 0,
+            "compiled_functions": 44477,
+            "aot_translation_us": 7081021,
+            "aot_emission_us": 277189,
+            "aot_installation_us": 671451,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878016920,
+            "free_bytes": 87986920
+          }
+        },
+        {
+          "ms": 46139.919999957085,
+          "guest": 272760000,
+          "frames": 2401,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 272760000,
+            "instructions": 0,
+            "compiled_functions": 44477,
+            "aot_translation_us": 7081995,
+            "aot_emission_us": 277189,
+            "aot_installation_us": 671451,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878047496,
+            "free_bytes": 87956344
+          }
+        },
+        {
+          "ms": 46642.34500002861,
+          "guest": 276360000,
+          "frames": 2427,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 276360000,
+            "instructions": 0,
+            "compiled_functions": 44477,
+            "aot_translation_us": 7082641,
+            "aot_emission_us": 277189,
+            "aot_installation_us": 671451,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878067640,
+            "free_bytes": 87936200
+          }
+        },
+        {
+          "ms": 47144.84000003338,
+          "guest": 279900000,
+          "frames": 2453,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 279900000,
+            "instructions": 0,
+            "compiled_functions": 44504,
+            "aot_translation_us": 7083148,
+            "aot_emission_us": 277253,
+            "aot_installation_us": 671775,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878013248,
+            "free_bytes": 87990592
+          }
+        },
+        {
+          "ms": 47647.35500001907,
+          "guest": 283490000,
+          "frames": 2479,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 283500000,
+            "instructions": 0,
+            "compiled_functions": 44504,
+            "aot_translation_us": 7083825,
+            "aot_emission_us": 277253,
+            "aot_installation_us": 671775,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878039616,
+            "free_bytes": 87964224
+          }
+        },
+        {
+          "ms": 48149.87000000477,
+          "guest": 287020000,
+          "frames": 2504,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 287030000,
+            "instructions": 0,
+            "compiled_functions": 44504,
+            "aot_translation_us": 7084386,
+            "aot_emission_us": 277253,
+            "aot_installation_us": 671775,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878045800,
+            "free_bytes": 87958040
+          }
+        },
+        {
+          "ms": 48652.40999996662,
+          "guest": 290640000,
+          "frames": 2530,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 290640000,
+            "instructions": 0,
+            "compiled_functions": 44504,
+            "aot_translation_us": 7084655,
+            "aot_emission_us": 277253,
+            "aot_installation_us": 671775,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878051976,
+            "free_bytes": 87951864
+          }
+        },
+        {
+          "ms": 49154.799999952316,
+          "guest": 294250000,
+          "frames": 2556,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 294260000,
+            "instructions": 0,
+            "compiled_functions": 44535,
+            "aot_translation_us": 7085345,
+            "aot_emission_us": 277328,
+            "aot_installation_us": 672109,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878020088,
+            "free_bytes": 87983752
+          }
+        },
+        {
+          "ms": 49657.25499999523,
+          "guest": 297850000,
+          "frames": 2582,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 297850000,
+            "instructions": 0,
+            "compiled_functions": 44535,
+            "aot_translation_us": 7085762,
+            "aot_emission_us": 277328,
+            "aot_installation_us": 672109,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878039896,
+            "free_bytes": 87963944
+          }
+        },
+        {
+          "ms": 50159.52999997139,
+          "guest": 301437500,
+          "frames": 2608,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 301437500,
+            "instructions": 0,
+            "compiled_functions": 44535,
+            "aot_translation_us": 7085940,
+            "aot_emission_us": 277328,
+            "aot_installation_us": 672109,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878037992,
+            "free_bytes": 87965848
+          }
+        },
+        {
+          "ms": 50661.36500000954,
+          "guest": 305010000,
+          "frames": 2633,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 305010000,
+            "instructions": 0,
+            "compiled_functions": 44535,
+            "aot_translation_us": 7086384,
+            "aot_emission_us": 277328,
+            "aot_installation_us": 672109,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 879282864,
+            "free_bytes": 86720976
+          }
+        },
+        {
+          "ms": 51164.014999985695,
+          "guest": 308600000,
+          "frames": 2659,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 308609375,
+            "instructions": 0,
+            "compiled_functions": 44535,
+            "aot_translation_us": 7086776,
+            "aot_emission_us": 277328,
+            "aot_installation_us": 672109,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 879286504,
+            "free_bytes": 86717336
+          }
+        },
+        {
+          "ms": 51666.38499999046,
+          "guest": 312200000,
+          "frames": 2686,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 312200000,
+            "instructions": 0,
+            "compiled_functions": 44563,
+            "aot_translation_us": 7087337,
+            "aot_emission_us": 277382,
+            "aot_installation_us": 672399,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878038024,
+            "free_bytes": 87965816
+          }
+        },
+        {
+          "ms": 52168.199999928474,
+          "guest": 315760000,
+          "frames": 2712,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 315760000,
+            "instructions": 0,
+            "compiled_functions": 44563,
+            "aot_translation_us": 7087534,
+            "aot_emission_us": 277382,
+            "aot_installation_us": 672399,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878033552,
+            "free_bytes": 87970288
+          }
+        },
+        {
+          "ms": 52670.46500003338,
+          "guest": 319330000,
+          "frames": 2738,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 319330000,
+            "instructions": 0,
+            "compiled_functions": 44563,
+            "aot_translation_us": 7087734,
+            "aot_emission_us": 277382,
+            "aot_installation_us": 672399,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878036520,
+            "free_bytes": 87967320
+          }
+        },
+        {
+          "ms": 53172.38499999046,
+          "guest": 322870000,
+          "frames": 2764,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 322880000,
+            "instructions": 0,
+            "compiled_functions": 44563,
+            "aot_translation_us": 7088058,
+            "aot_emission_us": 277382,
+            "aot_installation_us": 672399,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878046752,
+            "free_bytes": 87957088
+          }
+        },
+        {
+          "ms": 53674.81499993801,
+          "guest": 326440000,
+          "frames": 2790,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 326440000,
+            "instructions": 0,
+            "compiled_functions": 44563,
+            "aot_translation_us": 7088439,
+            "aot_emission_us": 277382,
+            "aot_installation_us": 672399,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878056320,
+            "free_bytes": 87947520
+          }
+        },
+        {
+          "ms": 54177.03499996662,
+          "guest": 330100000,
+          "frames": 2817,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 330100000,
+            "instructions": 0,
+            "compiled_functions": 44563,
+            "aot_translation_us": 7088785,
+            "aot_emission_us": 277382,
+            "aot_installation_us": 672399,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878078816,
+            "free_bytes": 87925024
+          }
+        },
+        {
+          "ms": 54678.98000001907,
+          "guest": 333690000,
+          "frames": 2843,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 333690000,
+            "instructions": 0,
+            "compiled_functions": 44563,
+            "aot_translation_us": 7088870,
+            "aot_emission_us": 277382,
+            "aot_installation_us": 672399,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878072080,
+            "free_bytes": 87931760
+          }
+        },
+        {
+          "ms": 55181.28499996662,
+          "guest": 337300000,
+          "frames": 2869,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 337300000,
+            "instructions": 0,
+            "compiled_functions": 44586,
+            "aot_translation_us": 7089232,
+            "aot_emission_us": 277441,
+            "aot_installation_us": 672724,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878043696,
+            "free_bytes": 87960144
+          }
+        },
+        {
+          "ms": 55683.699999928474,
+          "guest": 340910000,
+          "frames": 2895,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 340910000,
+            "instructions": 0,
+            "compiled_functions": 44586,
+            "aot_translation_us": 7089590,
+            "aot_emission_us": 277441,
+            "aot_installation_us": 672724,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878047096,
+            "free_bytes": 87956744
+          }
+        },
+        {
+          "ms": 56185.17999994755,
+          "guest": 344570000,
+          "frames": 2921,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 344580000,
+            "instructions": 0,
+            "compiled_functions": 44586,
+            "aot_translation_us": 7089863,
+            "aot_emission_us": 277441,
+            "aot_installation_us": 672724,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878053960,
+            "free_bytes": 87949880
+          }
+        },
+        {
+          "ms": 56687.35500001907,
+          "guest": 348230000,
+          "frames": 2947,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 348240000,
+            "instructions": 0,
+            "compiled_functions": 44586,
+            "aot_translation_us": 7089958,
+            "aot_emission_us": 277441,
+            "aot_installation_us": 672724,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878059952,
+            "free_bytes": 87943888
+          }
+        },
+        {
+          "ms": 57189.44499993324,
+          "guest": 351870000,
+          "frames": 2973,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 351880000,
+            "instructions": 0,
+            "compiled_functions": 44586,
+            "aot_translation_us": 7090318,
+            "aot_emission_us": 277441,
+            "aot_installation_us": 672724,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878060544,
+            "free_bytes": 87943296
+          }
+        },
+        {
+          "ms": 57691.72000002861,
+          "guest": 355460000,
+          "frames": 2999,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 355470000,
+            "instructions": 0,
+            "compiled_functions": 44586,
+            "aot_translation_us": 7090522,
+            "aot_emission_us": 277441,
+            "aot_installation_us": 672724,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878067408,
+            "free_bytes": 87936432
+          }
+        },
+        {
+          "ms": 58194.125,
+          "guest": 359078125,
+          "frames": 3023,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 359080000,
+            "instructions": 0,
+            "compiled_functions": 44586,
+            "aot_translation_us": 7090719,
+            "aot_emission_us": 277441,
+            "aot_installation_us": 672724,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 879304208,
+            "free_bytes": 86699632
+          }
+        },
+        {
+          "ms": 58696.43499994278,
+          "guest": 362720000,
+          "frames": 3049,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 362720000,
+            "instructions": 0,
+            "compiled_functions": 44586,
+            "aot_translation_us": 7090803,
+            "aot_emission_us": 277441,
+            "aot_installation_us": 672724,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878072192,
+            "free_bytes": 87931648
+          }
+        },
+        {
+          "ms": 59198.84000003338,
+          "guest": 366360000,
+          "frames": 3076,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 366360000,
+            "instructions": 0,
+            "compiled_functions": 44610,
+            "aot_translation_us": 7090878,
+            "aot_emission_us": 277495,
+            "aot_installation_us": 673034,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878027560,
+            "free_bytes": 87976280
+          }
+        },
+        {
+          "ms": 59701.25,
+          "guest": 369990000,
+          "frames": 3103,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 369990000,
+            "instructions": 0,
+            "compiled_functions": 44610,
+            "aot_translation_us": 7090947,
+            "aot_emission_us": 277495,
+            "aot_installation_us": 673034,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878038592,
+            "free_bytes": 87965248
+          }
+        },
+        {
+          "ms": 60203.47000002861,
+          "guest": 373560000,
+          "frames": 3129,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 373570000,
+            "instructions": 0,
+            "compiled_functions": 44610,
+            "aot_translation_us": 7091275,
+            "aot_emission_us": 277495,
+            "aot_installation_us": 673034,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878041496,
+            "free_bytes": 87962344
+          }
+        },
+        {
+          "ms": 60705.62999999523,
+          "guest": 377190000,
+          "frames": 3155,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 377200000,
+            "instructions": 0,
+            "compiled_functions": 44610,
+            "aot_translation_us": 7091509,
+            "aot_emission_us": 277495,
+            "aot_installation_us": 673034,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878054512,
+            "free_bytes": 87949328
+          }
+        },
+        {
+          "ms": 61207.74500000477,
+          "guest": 380850000,
+          "frames": 3181,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 380850000,
+            "instructions": 0,
+            "compiled_functions": 44610,
+            "aot_translation_us": 7091956,
+            "aot_emission_us": 277495,
+            "aot_installation_us": 673034,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878075648,
+            "free_bytes": 87928192
+          }
+        },
+        {
+          "ms": 61709.924999952316,
+          "guest": 384500000,
+          "frames": 3207,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 384510000,
+            "instructions": 0,
+            "compiled_functions": 44610,
+            "aot_translation_us": 7092115,
+            "aot_emission_us": 277495,
+            "aot_installation_us": 673034,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878071784,
+            "free_bytes": 87932056
+          }
+        },
+        {
+          "ms": 62212.18499994278,
+          "guest": 388030000,
+          "frames": 3232,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 388040000,
+            "instructions": 0,
+            "compiled_functions": 44610,
+            "aot_translation_us": 7092209,
+            "aot_emission_us": 277495,
+            "aot_installation_us": 673034,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878074416,
+            "free_bytes": 87929424
+          }
+        },
+        {
+          "ms": 62714.40499997139,
+          "guest": 391650000,
+          "frames": 3258,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 391650000,
+            "instructions": 0,
+            "compiled_functions": 44610,
+            "aot_translation_us": 7092567,
+            "aot_emission_us": 277495,
+            "aot_installation_us": 673034,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878085784,
+            "free_bytes": 87918056
+          }
+        },
+        {
+          "ms": 63216.56999993324,
+          "guest": 395270000,
+          "frames": 3284,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 395270000,
+            "instructions": 0,
+            "compiled_functions": 44630,
+            "aot_translation_us": 7092567,
+            "aot_emission_us": 277555,
+            "aot_installation_us": 673399,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878045640,
+            "free_bytes": 87958200
+          }
+        },
+        {
+          "ms": 63718.919999957085,
+          "guest": 398780000,
+          "frames": 3309,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 398780000,
+            "instructions": 0,
+            "compiled_functions": 44630,
+            "aot_translation_us": 7092760,
+            "aot_emission_us": 277555,
+            "aot_installation_us": 673399,
+            "aot_eager_functions": 30711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878034648,
+            "free_bytes": 87969192
+          }
+        }
+      ]
+    },
+    {
+      "run": "baseline-a2",
+      "game": "asphalt-2",
+      "label": "race",
+      "edition": "1.0.1, N95 8GB, original Gameloft-signed S60v3 release",
+      "url": "http://127.0.0.1:8191/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.61,
+        2.14,
+        3.25
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 20.089884999990463,
+      "frames": 787,
+      "fps": 39.173942508898065,
+      "guestSeconds": 132.45,
+      "guestSpeed": 6.592869994032463,
+      "compiledFunctions": 222,
+      "compilationUs": {
+        "aot_translation_us": 18175,
+        "aot_emission_us": 523,
+        "aot_installation_us": 2993
+      },
+      "errors": [],
+      "samples": [
+        {
+          "ms": 44518.66000008583,
+          "guest": 228890000,
+          "frames": 1606,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 228900000,
+            "instructions": 0,
+            "compiled_functions": 44257,
+            "aot_translation_us": 6777252,
+            "aot_emission_us": 259833,
+            "aot_installation_us": 620545,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877978968,
+            "free_bytes": 88024872
+          }
+        },
+        {
+          "ms": 45020.675000071526,
+          "guest": 232230000,
+          "frames": 1627,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 232230000,
+            "instructions": 0,
+            "compiled_functions": 44260,
+            "aot_translation_us": 6778637,
+            "aot_emission_us": 259852,
+            "aot_installation_us": 620759,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878008368,
+            "free_bytes": 87995472
+          }
+        },
+        {
+          "ms": 45522.51999998093,
+          "guest": 235530000,
+          "frames": 1647,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 235530000,
+            "instructions": 0,
+            "compiled_functions": 44260,
+            "aot_translation_us": 6779459,
+            "aot_emission_us": 259852,
+            "aot_installation_us": 620759,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878034872,
+            "free_bytes": 87968968
+          }
+        },
+        {
+          "ms": 46023.9050000906,
+          "guest": 238900000,
+          "frames": 1668,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 238910000,
+            "instructions": 0,
+            "compiled_functions": 44303,
+            "aot_translation_us": 6780542,
+            "aot_emission_us": 259951,
+            "aot_installation_us": 621344,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877987072,
+            "free_bytes": 88016768
+          }
+        },
+        {
+          "ms": 46525.87000000477,
+          "guest": 242260000,
+          "frames": 1688,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 242260000,
+            "instructions": 0,
+            "compiled_functions": 44303,
+            "aot_translation_us": 6781322,
+            "aot_emission_us": 259951,
+            "aot_installation_us": 621344,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877999944,
+            "free_bytes": 88003896
+          }
+        },
+        {
+          "ms": 47027.360000014305,
+          "guest": 245500000,
+          "frames": 1708,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 245500000,
+            "instructions": 0,
+            "compiled_functions": 44303,
+            "aot_translation_us": 6781998,
+            "aot_emission_us": 259951,
+            "aot_installation_us": 621344,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878027992,
+            "free_bytes": 87975848
+          }
+        },
+        {
+          "ms": 47529.65000009537,
+          "guest": 248860000,
+          "frames": 1728,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 248860000,
+            "instructions": 0,
+            "compiled_functions": 44303,
+            "aot_translation_us": 6782667,
+            "aot_emission_us": 259951,
+            "aot_installation_us": 621344,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 879275712,
+            "free_bytes": 86728128
+          }
+        },
+        {
+          "ms": 48032.02500009537,
+          "guest": 252240000,
+          "frames": 1749,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 252240000,
+            "instructions": 0,
+            "compiled_functions": 44332,
+            "aot_translation_us": 6783146,
+            "aot_emission_us": 260015,
+            "aot_installation_us": 621664,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877998368,
+            "free_bytes": 88005472
+          }
+        },
+        {
+          "ms": 48534.35500001907,
+          "guest": 255620000,
+          "frames": 1769,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 255620000,
+            "instructions": 0,
+            "compiled_functions": 44332,
+            "aot_translation_us": 6783935,
+            "aot_emission_us": 260015,
+            "aot_installation_us": 621664,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878024984,
+            "free_bytes": 87978856
+          }
+        },
+        {
+          "ms": 49036.7800000906,
+          "guest": 258980000,
+          "frames": 1790,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 258990000,
+            "instructions": 0,
+            "compiled_functions": 44332,
+            "aot_translation_us": 6784521,
+            "aot_emission_us": 260015,
+            "aot_installation_us": 621664,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878041640,
+            "free_bytes": 87962200
+          }
+        },
+        {
+          "ms": 49538.50999999046,
+          "guest": 262340000,
+          "frames": 1810,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 262340000,
+            "instructions": 0,
+            "compiled_functions": 44363,
+            "aot_translation_us": 6785050,
+            "aot_emission_us": 260085,
+            "aot_installation_us": 621984,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877994952,
+            "free_bytes": 88008888
+          }
+        },
+        {
+          "ms": 50040.764999985695,
+          "guest": 265700000,
+          "frames": 1831,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 265700000,
+            "instructions": 0,
+            "compiled_functions": 44363,
+            "aot_translation_us": 6785825,
+            "aot_emission_us": 260085,
+            "aot_installation_us": 621984,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878017168,
+            "free_bytes": 87986672
+          }
+        },
+        {
+          "ms": 50543.170000076294,
+          "guest": 269060000,
+          "frames": 1851,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 269060000,
+            "instructions": 0,
+            "compiled_functions": 44363,
+            "aot_translation_us": 6786153,
+            "aot_emission_us": 260085,
+            "aot_installation_us": 621984,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878032280,
+            "free_bytes": 87971560
+          }
+        },
+        {
+          "ms": 51045.54000008106,
+          "guest": 272400000,
+          "frames": 1871,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 272400000,
+            "instructions": 0,
+            "compiled_functions": 44363,
+            "aot_translation_us": 6786357,
+            "aot_emission_us": 260085,
+            "aot_installation_us": 621984,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878032720,
+            "free_bytes": 87971120
+          }
+        },
+        {
+          "ms": 51547.89499998093,
+          "guest": 275730000,
+          "frames": 1891,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 275740000,
+            "instructions": 0,
+            "compiled_functions": 44385,
+            "aot_translation_us": 6786615,
+            "aot_emission_us": 260139,
+            "aot_installation_us": 622278,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 879228536,
+            "free_bytes": 86775304
+          }
+        },
+        {
+          "ms": 52049.425000071526,
+          "guest": 279110000,
+          "frames": 1912,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 279110000,
+            "instructions": 0,
+            "compiled_functions": 44385,
+            "aot_translation_us": 6787358,
+            "aot_emission_us": 260139,
+            "aot_installation_us": 622278,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878020280,
+            "free_bytes": 87983560
+          }
+        },
+        {
+          "ms": 52551.33500003815,
+          "guest": 282520000,
+          "frames": 1932,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 282520000,
+            "instructions": 0,
+            "compiled_functions": 44385,
+            "aot_translation_us": 6787657,
+            "aot_emission_us": 260139,
+            "aot_installation_us": 622278,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878022776,
+            "free_bytes": 87981064
+          }
+        },
+        {
+          "ms": 53053.74500000477,
+          "guest": 285880000,
+          "frames": 1953,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 285890000,
+            "instructions": 0,
+            "compiled_functions": 44385,
+            "aot_translation_us": 6788526,
+            "aot_emission_us": 260139,
+            "aot_installation_us": 622278,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878049640,
+            "free_bytes": 87954200
+          }
+        },
+        {
+          "ms": 53556.08500003815,
+          "guest": 289260000,
+          "frames": 1974,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 289260000,
+            "instructions": 0,
+            "compiled_functions": 44417,
+            "aot_translation_us": 6789255,
+            "aot_emission_us": 260203,
+            "aot_installation_us": 622598,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878010664,
+            "free_bytes": 87993176
+          }
+        },
+        {
+          "ms": 54058.38499999046,
+          "guest": 292590000,
+          "frames": 1995,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 292590000,
+            "instructions": 0,
+            "compiled_functions": 44425,
+            "aot_translation_us": 6789633,
+            "aot_emission_us": 260232,
+            "aot_installation_us": 622823,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878015424,
+            "free_bytes": 87988416
+          }
+        },
+        {
+          "ms": 54560.56500005722,
+          "guest": 295950000,
+          "frames": 2016,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 295960000,
+            "instructions": 0,
+            "compiled_functions": 44425,
+            "aot_translation_us": 6790166,
+            "aot_emission_us": 260232,
+            "aot_installation_us": 622823,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878019504,
+            "free_bytes": 87984336
+          }
+        },
+        {
+          "ms": 55062.60500001907,
+          "guest": 299290000,
+          "frames": 2037,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 299290000,
+            "instructions": 0,
+            "compiled_functions": 44425,
+            "aot_translation_us": 6790668,
+            "aot_emission_us": 260232,
+            "aot_installation_us": 622823,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878033784,
+            "free_bytes": 87970056
+          }
+        },
+        {
+          "ms": 55564.875,
+          "guest": 302590000,
+          "frames": 2058,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 302600000,
+            "instructions": 0,
+            "compiled_functions": 44425,
+            "aot_translation_us": 6790896,
+            "aot_emission_us": 260232,
+            "aot_installation_us": 622823,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878032632,
+            "free_bytes": 87971208
+          }
+        },
+        {
+          "ms": 56067.28500008583,
+          "guest": 305990000,
+          "frames": 2079,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 305990000,
+            "instructions": 0,
+            "compiled_functions": 44425,
+            "aot_translation_us": 6790986,
+            "aot_emission_us": 260232,
+            "aot_installation_us": 622823,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878047992,
+            "free_bytes": 87955848
+          }
+        },
+        {
+          "ms": 56569.29000008106,
+          "guest": 309280000,
+          "frames": 2099,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 309280000,
+            "instructions": 0,
+            "compiled_functions": 44425,
+            "aot_translation_us": 6791206,
+            "aot_emission_us": 260232,
+            "aot_installation_us": 622823,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 881116056,
+            "free_bytes": 84887784
+          }
+        },
+        {
+          "ms": 57071.75,
+          "guest": 312630000,
+          "frames": 2120,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 312640000,
+            "instructions": 0,
+            "compiled_functions": 44425,
+            "aot_translation_us": 6791618,
+            "aot_emission_us": 260232,
+            "aot_installation_us": 622823,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878052224,
+            "free_bytes": 87951616
+          }
+        },
+        {
+          "ms": 57574.050000071526,
+          "guest": 315950000,
+          "frames": 2140,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 315960000,
+            "instructions": 0,
+            "compiled_functions": 44454,
+            "aot_translation_us": 6791846,
+            "aot_emission_us": 260291,
+            "aot_installation_us": 623143,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878010832,
+            "free_bytes": 87993008
+          }
+        },
+        {
+          "ms": 58076.43000006676,
+          "guest": 319260000,
+          "frames": 2161,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 319260000,
+            "instructions": 0,
+            "compiled_functions": 44454,
+            "aot_translation_us": 6792083,
+            "aot_emission_us": 260291,
+            "aot_installation_us": 623143,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878019872,
+            "free_bytes": 87983968
+          }
+        },
+        {
+          "ms": 58578.85000002384,
+          "guest": 322680000,
+          "frames": 2182,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 322680000,
+            "instructions": 0,
+            "compiled_functions": 44454,
+            "aot_translation_us": 6792123,
+            "aot_emission_us": 260291,
+            "aot_installation_us": 623143,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878028672,
+            "free_bytes": 87975168
+          }
+        },
+        {
+          "ms": 59080.800000071526,
+          "guest": 325990000,
+          "frames": 2202,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 326000000,
+            "instructions": 0,
+            "compiled_functions": 44454,
+            "aot_translation_us": 6792386,
+            "aot_emission_us": 260291,
+            "aot_installation_us": 623143,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 879253216,
+            "free_bytes": 86750624
+          }
+        },
+        {
+          "ms": 59582.55500006676,
+          "guest": 329310000,
+          "frames": 2223,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 329320000,
+            "instructions": 0,
+            "compiled_functions": 44454,
+            "aot_translation_us": 6792629,
+            "aot_emission_us": 260291,
+            "aot_installation_us": 623143,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878026776,
+            "free_bytes": 87977064
+          }
+        },
+        {
+          "ms": 60084.97500002384,
+          "guest": 332730000,
+          "frames": 2244,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 332730000,
+            "instructions": 0,
+            "compiled_functions": 44454,
+            "aot_translation_us": 6793095,
+            "aot_emission_us": 260291,
+            "aot_installation_us": 623143,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878049392,
+            "free_bytes": 87954448
+          }
+        },
+        {
+          "ms": 60587.420000076294,
+          "guest": 336040000,
+          "frames": 2264,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 336040000,
+            "instructions": 0,
+            "compiled_functions": 44454,
+            "aot_translation_us": 6793269,
+            "aot_emission_us": 260291,
+            "aot_installation_us": 623143,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 880812664,
+            "free_bytes": 85191176
+          }
+        },
+        {
+          "ms": 61089.735000014305,
+          "guest": 339440000,
+          "frames": 2285,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 339450000,
+            "instructions": 0,
+            "compiled_functions": 44479,
+            "aot_translation_us": 6793489,
+            "aot_emission_us": 260356,
+            "aot_installation_us": 623538,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878011992,
+            "free_bytes": 87991848
+          }
+        },
+        {
+          "ms": 61591.98000001907,
+          "guest": 342630000,
+          "frames": 2302,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 342630000,
+            "instructions": 0,
+            "compiled_functions": 44479,
+            "aot_translation_us": 6793639,
+            "aot_emission_us": 260356,
+            "aot_installation_us": 623538,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878015304,
+            "free_bytes": 87988536
+          }
+        },
+        {
+          "ms": 62094.795000076294,
+          "guest": 345730000,
+          "frames": 2317,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 345730000,
+            "instructions": 0,
+            "compiled_functions": 44479,
+            "aot_translation_us": 6793859,
+            "aot_emission_us": 260356,
+            "aot_installation_us": 623538,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878021736,
+            "free_bytes": 87982104
+          }
+        },
+        {
+          "ms": 62597.48000001907,
+          "guest": 348890625,
+          "frames": 2331,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 348900000,
+            "instructions": 0,
+            "compiled_functions": 44479,
+            "aot_translation_us": 6794252,
+            "aot_emission_us": 260356,
+            "aot_installation_us": 623538,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 879265808,
+            "free_bytes": 86738032
+          }
+        },
+        {
+          "ms": 63100.455000042915,
+          "guest": 351920000,
+          "frames": 2346,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 351930000,
+            "instructions": 0,
+            "compiled_functions": 44479,
+            "aot_translation_us": 6794457,
+            "aot_emission_us": 260356,
+            "aot_installation_us": 623538,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878033000,
+            "free_bytes": 87970840
+          }
+        },
+        {
+          "ms": 63603.22000002861,
+          "guest": 355010000,
+          "frames": 2361,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 355010000,
+            "instructions": 0,
+            "compiled_functions": 44479,
+            "aot_translation_us": 6794909,
+            "aot_emission_us": 260356,
+            "aot_installation_us": 623538,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878045608,
+            "free_bytes": 87958232
+          }
+        },
+        {
+          "ms": 64105.875,
+          "guest": 358160000,
+          "frames": 2377,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 358160000,
+            "instructions": 0,
+            "compiled_functions": 44479,
+            "aot_translation_us": 6795248,
+            "aot_emission_us": 260356,
+            "aot_installation_us": 623538,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878051904,
+            "free_bytes": 87951936
+          }
+        },
+        {
+          "ms": 64608.545000076294,
+          "guest": 361340000,
+          "frames": 2393,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 361350000,
+            "instructions": 0,
+            "compiled_functions": 44479,
+            "aot_translation_us": 6795427,
+            "aot_emission_us": 260356,
+            "aot_installation_us": 623538,
+            "aot_eager_functions": 30715,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878056184,
+            "free_bytes": 87947656
+          }
+        }
+      ]
+    }
+  ],
+  "profiles": [
+    {
+      "capture": "baseline-profile",
+      "purpose": "Diagnostic only; not the adoption timing screen",
+      "worker": "worker-13",
+      "top_frames": [
+        {
+          "node_id": 8,
+          "name": "eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=3d0bb2ee382bcef42c641ba1d609e019e65233b75310eabfd265fcd65b4b60ff",
+          "guest": null,
+          "self_us": 7281722,
+          "self_percent": 47.26809576432612
+        },
+        {
+          "node_id": 10,
+          "name": "eka2l1::arm::aot::validated_code_cache::lookup_trusted_uncached(unsigned int, eka2l1::arm::core&)",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=3d0bb2ee382bcef42c641ba1d609e019e65233b75310eabfd265fcd65b4b60ff",
+          "guest": null,
+          "self_us": 520306,
+          "self_percent": 3.3774804688717124
+        },
+        {
+          "node_id": 24,
+          "name": "resampler_basic_direct_single",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=3d0bb2ee382bcef42c641ba1d609e019e65233b75310eabfd265fcd65b4b60ff",
+          "guest": null,
+          "self_us": 478414,
+          "self_percent": 3.1055454694637223
+        },
+        {
+          "node_id": 28,
+          "name": "r_2727_pc_1879054788",
+          "url": "wasm://wasm/0003cb5e",
+          "guest": {
+            "pc": "0x700019c4",
+            "entry_key": 1879054788,
+            "version": 2727
+          },
+          "self_us": 347915,
+          "self_percent": 2.258432763272962
+        },
+        {
+          "node_id": 9,
+          "name": "r_2730_pc_1879054812",
+          "url": "wasm://wasm/93816ed2",
+          "guest": {
+            "pc": "0x700019dc",
+            "entry_key": 1879054812,
+            "version": 2730
+          },
+          "self_us": 279984,
+          "self_percent": 1.8174698957855138
+        },
+        {
+          "node_id": 35,
+          "name": "r_2728_pc_1879054796",
+          "url": "wasm://wasm/6d46a012",
+          "guest": {
+            "pc": "0x700019cc",
+            "entry_key": 1879054796,
+            "version": 2728
+          },
+          "self_us": 270801,
+          "self_percent": 1.7578599678860682
+        },
+        {
+          "node_id": 27,
+          "name": "r_2729_pc_1879054806",
+          "url": "wasm://wasm/e64069ea",
+          "guest": {
+            "pc": "0x700019d6",
+            "entry_key": 1879054806,
+            "version": 2729
+          },
+          "self_us": 254759,
+          "self_percent": 1.6537259742714645
+        },
+        {
+          "node_id": 33,
+          "name": "r_4181_pc_1879067758",
+          "url": "wasm://wasm/00042bc2",
+          "guest": {
+            "pc": "0x70004c6e",
+            "entry_key": 1879067758,
+            "version": 4181
+          },
+          "self_us": 236725,
+          "self_percent": 1.5366612416417573
+        },
+        {
+          "node_id": 15,
+          "name": "r_3685_pc_1879075536",
+          "url": "wasm://wasm/75f628ea",
+          "guest": {
+            "pc": "0x70006ad0",
+            "entry_key": 1879075536,
+            "version": 3685
+          },
+          "self_us": 197271,
+          "self_percent": 1.2805521165906055
+        },
+        {
+          "node_id": 143,
+          "name": "r_2731_pc_1879054818",
+          "url": "wasm://wasm/e1330eb6",
+          "guest": {
+            "pc": "0x700019e2",
+            "entry_key": 1879054818,
+            "version": 2731
+          },
+          "self_us": 192629,
+          "self_percent": 1.2504193402311121
+        },
+        {
+          "node_id": 40,
+          "name": "r_3678_pc_1879260160",
+          "url": "wasm://wasm/00011be6",
+          "guest": {
+            "pc": "0x70033c00",
+            "entry_key": 1879260160,
+            "version": 3678
+          },
+          "self_us": 154822,
+          "self_percent": 1.00500144367287
+        },
+        {
+          "node_id": 7,
+          "name": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=3d0bb2ee382bcef42c641ba1d609e019e65233b75310eabfd265fcd65b4b60ff",
+          "guest": null,
+          "self_us": 153471,
+          "self_percent": 0.9962316502946547
+        },
+        {
+          "node_id": 16,
+          "name": "r_3742_pc_1879075496",
+          "url": "wasm://wasm/00015bde",
+          "guest": {
+            "pc": "0x70006aa8",
+            "entry_key": 1879075496,
+            "version": 3742
+          },
+          "self_us": 121638,
+          "self_percent": 0.789592988112029
+        },
+        {
+          "node_id": 88,
+          "name": "r_3772_pc_1879076336",
+          "url": "wasm://wasm/0001eb56",
+          "guest": {
+            "pc": "0x70006df0",
+            "entry_key": 1879076336,
+            "version": 3772
+          },
+          "self_us": 118401,
+          "self_percent": 0.7685805372124859
+        },
+        {
+          "node_id": 113,
+          "name": "r_3839_pc_1879152802",
+          "url": "wasm://wasm/af335166",
+          "guest": {
+            "pc": "0x700198a2",
+            "entry_key": 1879152802,
+            "version": 3839
+          },
+          "self_us": 107208,
+          "self_percent": 0.6959230262706918
+        },
+        {
+          "node_id": 49,
+          "name": "r_4315_pc_1879067792",
+          "url": "wasm://wasm/00032b4a",
+          "guest": {
+            "pc": "0x70004c90",
+            "entry_key": 1879067792,
+            "version": 4315
+          },
+          "self_us": 102659,
+          "self_percent": 0.6663939440519638
+        },
+        {
+          "node_id": 117,
+          "name": "r_3743_pc_1879075474",
+          "url": "wasm://wasm/00015bde",
+          "guest": {
+            "pc": "0x70006a92",
+            "entry_key": 1879075474,
+            "version": 3743
+          },
+          "self_us": 101105,
+          "self_percent": 0.6563064096998199
+        },
+        {
+          "node_id": 124,
+          "name": "r_3684_pc_1879075514",
+          "url": "wasm://wasm/75f628ea",
+          "guest": {
+            "pc": "0x70006aba",
+            "entry_key": 1879075514,
+            "version": 3684
+          },
+          "self_us": 95017,
+          "self_percent": 0.6167871631516522
+        },
+        {
+          "node_id": 56,
+          "name": "r_3766_pc_1879077010",
+          "url": "wasm://wasm/da0805e6",
+          "guest": {
+            "pc": "0x70007092",
+            "entry_key": 1879077010,
+            "version": 3766
+          },
+          "self_us": 91281,
+          "self_percent": 0.5925355361634861
+        },
+        {
+          "node_id": 43,
+          "name": "r_4393_pc_1879277220",
+          "url": "wasm://wasm/0001de2e",
+          "guest": {
+            "pc": "0x70037ea4",
+            "entry_key": 1879277220,
+            "version": 4393
+          },
+          "self_us": 90115,
+          "self_percent": 0.5849666397319546
+        }
+      ],
+      "measurement": {
+        "game": "asphalt-2",
+        "label": "profile-gameplay",
+        "edition": "1.0.1, N95 8GB, original Gameloft-signed S60v3 release",
+        "url": "https://claude-laptop.lan:8188/?game=custom",
+        "browser": "Chrome/153.0.8010.52",
+        "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+        "load": [
+          3.1,
+          3.3,
+          4.86
+        ],
+        "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+        "sound": "browser muted; guest audio remains enabled",
+        "seconds": 15.081075000047683,
+        "frames": 421,
+        "fps": 27.91578186559439,
+        "guestSeconds": 90.31,
+        "guestSpeed": 5.988299905657552,
+        "compiledFunctions": 163,
+        "compilationUs": {
+          "aot_translation_us": 14971,
+          "aot_emission_us": 536,
+          "aot_installation_us": 3285
+        },
+        "errors": []
+      },
+      "sampled_dispatch_ms_per_frame": 17.298769596199524,
+      "sampled_pixel_regions_ms_per_frame": 3.358228028503563
+    },
+    {
+      "capture": "candidate-profile",
+      "purpose": "Diagnostic only; not the adoption timing screen",
+      "worker": "worker-13",
+      "top_frames": [
+        {
+          "node_id": 8,
+          "name": "eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))",
+          "url": "http://127.0.0.1:8190/eka2l1.wasm?v=9cd9275a4ccd72b37b78fe90c7d06f8252c6092a863b5908cd705c1227a6c9bd",
+          "guest": null,
+          "self_us": 7184447,
+          "self_percent": 46.85483041028425
+        },
+        {
+          "node_id": 14,
+          "name": "eka2l1::arm::aot::validated_code_cache::lookup_trusted_uncached(unsigned int, eka2l1::arm::core&)",
+          "url": "http://127.0.0.1:8190/eka2l1.wasm?v=9cd9275a4ccd72b37b78fe90c7d06f8252c6092a863b5908cd705c1227a6c9bd",
+          "guest": null,
+          "self_us": 434666,
+          "self_percent": 2.834762608049947
+        },
+        {
+          "node_id": 24,
+          "name": "resampler_basic_direct_single",
+          "url": "http://127.0.0.1:8190/eka2l1.wasm?v=9cd9275a4ccd72b37b78fe90c7d06f8252c6092a863b5908cd705c1227a6c9bd",
+          "guest": null,
+          "self_us": 390080,
+          "self_percent": 2.5439859527732174
+        },
+        {
+          "node_id": 33,
+          "name": "r_2733_pc_1879054788",
+          "url": "wasm://wasm/f6454b8a",
+          "guest": {
+            "pc": "0x700019c4",
+            "entry_key": 1879054788,
+            "version": 2733
+          },
+          "self_us": 361243,
+          "self_percent": 2.3559195999222093
+        },
+        {
+          "node_id": 9,
+          "name": "r_2734_pc_1879054796",
+          "url": "wasm://wasm/25d1a8ba",
+          "guest": {
+            "pc": "0x700019cc",
+            "entry_key": 1879054796,
+            "version": 2734
+          },
+          "self_us": 283111,
+          "self_percent": 1.8463658918057277
+        },
+        {
+          "node_id": 10,
+          "name": "r_2735_pc_1879054806",
+          "url": "wasm://wasm/7345521e",
+          "guest": {
+            "pc": "0x700019d6",
+            "entry_key": 1879054806,
+            "version": 2735
+          },
+          "self_us": 258759,
+          "self_percent": 1.6875493774447419
+        },
+        {
+          "node_id": 53,
+          "name": "r_2736_pc_1879054812",
+          "url": "wasm://wasm/25b164fe",
+          "guest": {
+            "pc": "0x700019dc",
+            "entry_key": 1879054812,
+            "version": 2736
+          },
+          "self_us": 255554,
+          "self_percent": 1.666647318947413
+        },
+        {
+          "node_id": 7,
+          "name": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+          "url": "http://127.0.0.1:8190/eka2l1.wasm?v=9cd9275a4ccd72b37b78fe90c7d06f8252c6092a863b5908cd705c1227a6c9bd",
+          "guest": null,
+          "self_us": 212393,
+          "self_percent": 1.3851640906156735
+        },
+        {
+          "node_id": 26,
+          "name": "r_4292_pc_1879260160",
+          "url": "wasm://wasm/ae5e06c6",
+          "guest": {
+            "pc": "0x70033c00",
+            "entry_key": 1879260160,
+            "version": 4292
+          },
+          "self_us": 194407,
+          "self_percent": 1.2678647383120971
+        },
+        {
+          "node_id": 62,
+          "name": "r_4522_pc_1879067758",
+          "url": "wasm://wasm/0002594e",
+          "guest": {
+            "pc": "0x70004c6e",
+            "entry_key": 1879067758,
+            "version": 4522
+          },
+          "self_us": 192253,
+          "self_percent": 1.2538169897931433
+        },
+        {
+          "node_id": 85,
+          "name": "r_2737_pc_1879054818",
+          "url": "wasm://wasm/4cd2af7e",
+          "guest": {
+            "pc": "0x700019e2",
+            "entry_key": 1879054818,
+            "version": 2737
+          },
+          "self_us": 169064,
+          "self_percent": 1.1025852161598932
+        },
+        {
+          "node_id": 146,
+          "name": "r_4296_pc_1879075536",
+          "url": "wasm://wasm/ae5e06c6",
+          "guest": {
+            "pc": "0x70006ad0",
+            "entry_key": 1879075536,
+            "version": 4296
+          },
+          "self_us": 161674,
+          "self_percent": 1.0543898301083292
+        },
+        {
+          "node_id": 93,
+          "name": "r_4355_pc_1879075496",
+          "url": "wasm://wasm/614eb476",
+          "guest": {
+            "pc": "0x70006aa8",
+            "entry_key": 1879075496,
+            "version": 4355
+          },
+          "self_us": 134294,
+          "self_percent": 0.8758255987021288
+        },
+        {
+          "node_id": 50,
+          "name": "r_4366_pc_1879077170",
+          "url": "wasm://wasm/00014256",
+          "guest": {
+            "pc": "0x70007132",
+            "entry_key": 1879077170,
+            "version": 4366
+          },
+          "self_us": 134136,
+          "self_percent": 0.8747951696092808
+        },
+        {
+          "node_id": 25,
+          "name": "r_4290_pc_1879075514",
+          "url": "wasm://wasm/4bab5b5e",
+          "guest": {
+            "pc": "0x70006aba",
+            "entry_key": 1879075514,
+            "version": 4290
+          },
+          "self_us": 129878,
+          "self_percent": 0.8470257577273377
+        },
+        {
+          "node_id": 42,
+          "name": "r_4714_pc_1879067802",
+          "url": "wasm://wasm/00030336",
+          "guest": {
+            "pc": "0x70004c9a",
+            "entry_key": 1879067802,
+            "version": 4714
+          },
+          "self_us": 122657,
+          "self_percent": 0.7999325395029341
+        },
+        {
+          "node_id": 32,
+          "name": "r_4403_pc_1879152802",
+          "url": "wasm://wasm/e61c0956",
+          "guest": {
+            "pc": "0x700198a2",
+            "entry_key": 1879152802,
+            "version": 4403
+          },
+          "self_us": 113922,
+          "self_percent": 0.742965462755923
+        },
+        {
+          "node_id": 51,
+          "name": "r_4639_pc_1879067796",
+          "url": "wasm://wasm/000281d2",
+          "guest": {
+            "pc": "0x70004c94",
+            "entry_key": 1879067796,
+            "version": 4639
+          },
+          "self_us": 104611,
+          "self_percent": 0.6822418850122002
+        },
+        {
+          "node_id": 27,
+          "name": "r_4367_pc_1879277120",
+          "url": "wasm://wasm/00014256",
+          "guest": {
+            "pc": "0x70037e40",
+            "entry_key": 1879277120,
+            "version": 4367
+          },
+          "self_us": 101381,
+          "self_percent": 0.6611767839368887
+        },
+        {
+          "node_id": 95,
+          "name": "r_4371_pc_1879076336",
+          "url": "wasm://wasm/00017e86",
+          "guest": {
+            "pc": "0x70006df0",
+            "entry_key": 1879076336,
+            "version": 4371
+          },
+          "self_us": 99289,
+          "self_percent": 0.647533381011331
+        }
+      ],
+      "measurement": {
+        "game": "asphalt-2",
+        "label": "profile-gameplay",
+        "edition": "1.0.1, N95 8GB, original Gameloft-signed S60v3 release",
+        "url": "http://127.0.0.1:8190/?game=custom",
+        "browser": "Chrome/153.0.8010.52",
+        "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+        "load": [
+          2.1,
+          2.68,
+          4.01
+        ],
+        "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+        "sound": "browser muted; guest audio remains enabled",
+        "seconds": 15.06775,
+        "frames": 419,
+        "fps": 27.80773506329744,
+        "guestSeconds": 91.9,
+        "guestSpeed": 6.099118979276933,
+        "compiledFunctions": 265,
+        "compilationUs": {
+          "aot_translation_us": 26246,
+          "aot_emission_us": 955,
+          "aot_installation_us": 5388
+        },
+        "errors": []
+      },
+      "sampled_dispatch_ms_per_frame": 17.14665155131265,
+      "sampled_pixel_regions_ms_per_frame": 3.372904534606205
+    },
+    {
+      "capture": "candidate-v2-profile",
+      "purpose": "Diagnostic only; not the adoption timing screen",
+      "worker": "worker-13",
+      "top_frames": [
+        {
+          "node_id": 8,
+          "name": "eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))",
+          "url": "http://127.0.0.1:8190/eka2l1.wasm?v=0897120710c85c17e04762902fa34d471d98cf5160b79ad4bdeff27497bf0010",
+          "guest": null,
+          "self_us": 6775265,
+          "self_percent": 44.16245673144768
+        },
+        {
+          "node_id": 20,
+          "name": "eka2l1::arm::aot::validated_code_cache::lookup_trusted_uncached(unsigned int, eka2l1::arm::core&)",
+          "url": "http://127.0.0.1:8190/eka2l1.wasm?v=0897120710c85c17e04762902fa34d471d98cf5160b79ad4bdeff27497bf0010",
+          "guest": null,
+          "self_us": 577333,
+          "self_percent": 3.7631655193024756
+        },
+        {
+          "node_id": 19,
+          "name": "r_2727_pc_1879054788",
+          "url": "wasm://wasm/64e57cbe",
+          "guest": {
+            "pc": "0x700019c4",
+            "entry_key": 1879054788,
+            "version": 2727
+          },
+          "self_us": 557273,
+          "self_percent": 3.6324106511116607
+        },
+        {
+          "node_id": 18,
+          "name": "resampler_basic_direct_single",
+          "url": "http://127.0.0.1:8190/eka2l1.wasm?v=0897120710c85c17e04762902fa34d471d98cf5160b79ad4bdeff27497bf0010",
+          "guest": null,
+          "self_us": 385087,
+          "self_percent": 2.5100697869888475
+        },
+        {
+          "node_id": 9,
+          "name": "r_3999_pc_1879075514",
+          "url": "wasm://wasm/fa88b98a",
+          "guest": {
+            "pc": "0x70006aba",
+            "entry_key": 1879075514,
+            "version": 3999
+          },
+          "self_us": 329690,
+          "self_percent": 2.1489816796525285
+        },
+        {
+          "node_id": 77,
+          "name": "r_4315_pc_1879067758",
+          "url": "wasm://wasm/0002598e",
+          "guest": {
+            "pc": "0x70004c6e",
+            "entry_key": 1879067758,
+            "version": 4315
+          },
+          "self_us": 244937,
+          "self_percent": 1.5965456206407573
+        },
+        {
+          "node_id": 38,
+          "name": "r_3994_pc_1879260160",
+          "url": "wasm://wasm/b4b557a6",
+          "guest": {
+            "pc": "0x70033c00",
+            "entry_key": 1879260160,
+            "version": 3994
+          },
+          "self_us": 219624,
+          "self_percent": 1.4315507064576023
+        },
+        {
+          "node_id": 10,
+          "name": "r_3998_pc_1879075536",
+          "url": "wasm://wasm/fa88b98a",
+          "guest": {
+            "pc": "0x70006ad0",
+            "entry_key": 1879075536,
+            "version": 3998
+          },
+          "self_us": 218453,
+          "self_percent": 1.4239179073224357
+        },
+        {
+          "node_id": 7,
+          "name": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+          "url": "http://127.0.0.1:8190/eka2l1.wasm?v=0897120710c85c17e04762902fa34d471d98cf5160b79ad4bdeff27497bf0010",
+          "guest": null,
+          "self_us": 165939,
+          "self_percent": 1.081621738420519
+        },
+        {
+          "node_id": 76,
+          "name": "r_4061_pc_1879077170",
+          "url": "wasm://wasm/0001b046",
+          "guest": {
+            "pc": "0x70007132",
+            "entry_key": 1879077170,
+            "version": 4061
+          },
+          "self_us": 165797,
+          "self_percent": 1.0806961556048114
+        },
+        {
+          "node_id": 65,
+          "name": "r_4048_pc_1879075496",
+          "url": "wasm://wasm/00016386",
+          "guest": {
+            "pc": "0x70006aa8",
+            "entry_key": 1879075496,
+            "version": 4048
+          },
+          "self_us": 160728,
+          "self_percent": 1.047655456359585
+        },
+        {
+          "node_id": 56,
+          "name": "r_4070_pc_1879077202",
+          "url": "wasm://wasm/00011d0a",
+          "guest": {
+            "pc": "0x70007152",
+            "entry_key": 1879077202,
+            "version": 4070
+          },
+          "self_us": 155256,
+          "self_percent": 1.011987927010625
+        },
+        {
+          "node_id": 143,
+          "name": "r_4063_pc_1879277120",
+          "url": "wasm://wasm/0001b046",
+          "guest": {
+            "pc": "0x70037e40",
+            "entry_key": 1879277120,
+            "version": 4063
+          },
+          "self_us": 154175,
+          "self_percent": 1.0049417648713292
+        },
+        {
+          "node_id": 71,
+          "name": "r_4095_pc_1879152802",
+          "url": "wasm://wasm/173f387a",
+          "guest": {
+            "pc": "0x700198a2",
+            "entry_key": 1879152802,
+            "version": 4095
+          },
+          "self_us": 142695,
+          "self_percent": 0.9301129569535549
+        },
+        {
+          "node_id": 83,
+          "name": "r_4392_pc_1879067796",
+          "url": "wasm://wasm/000228b2",
+          "guest": {
+            "pc": "0x70004c94",
+            "entry_key": 1879067796,
+            "version": 4392
+          },
+          "self_us": 132113,
+          "self_percent": 0.8611374826168052
+        },
+        {
+          "node_id": 106,
+          "name": "r_4464_pc_1879067792",
+          "url": "wasm://wasm/00026992",
+          "guest": {
+            "pc": "0x70004c90",
+            "entry_key": 1879067792,
+            "version": 4464
+          },
+          "self_us": 128793,
+          "self_percent": 0.8394970956580063
+        },
+        {
+          "node_id": 63,
+          "name": "r_4516_pc_1879067814",
+          "url": "wasm://wasm/00025d46",
+          "guest": {
+            "pc": "0x70004ca6",
+            "entry_key": 1879067814,
+            "version": 4516
+          },
+          "self_us": 126762,
+          "self_percent": 0.8262586541178495
+        },
+        {
+          "node_id": 93,
+          "name": "r_4064_pc_1879076336",
+          "url": "wasm://wasm/0001b046",
+          "guest": {
+            "pc": "0x70006df0",
+            "entry_key": 1879076336,
+            "version": 4064
+          },
+          "self_us": 123584,
+          "self_percent": 0.8055438499747584
+        },
+        {
+          "node_id": 57,
+          "name": "r_4484_pc_1879067802",
+          "url": "wasm://wasm/000212d6",
+          "guest": {
+            "pc": "0x70004c9a",
+            "entry_key": 1879067802,
+            "version": 4484
+          },
+          "self_us": 119409,
+          "self_percent": 0.7783304115551845
+        },
+        {
+          "node_id": 33,
+          "name": "r_4434_pc_1879277220",
+          "url": "wasm://wasm/000364fa",
+          "guest": {
+            "pc": "0x70037ea4",
+            "entry_key": 1879277220,
+            "version": 4434
+          },
+          "self_us": 116194,
+          "self_percent": 0.7573744344249018
+        }
+      ],
+      "measurement": {
+        "game": "asphalt-2",
+        "label": "profile-gameplay",
+        "edition": "1.0.1, N95 8GB, original Gameloft-signed S60v3 release",
+        "url": "http://127.0.0.1:8190/?game=custom",
+        "browser": "Chrome/153.0.8010.52",
+        "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+        "load": [
+          2.98,
+          2.89,
+          3.81
+        ],
+        "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+        "sound": "browser muted; guest audio remains enabled",
+        "seconds": 15.068205000042916,
+        "frames": 582,
+        "fps": 38.62437496691493,
+        "guestSeconds": 98.43,
+        "guestSpeed": 6.532297642600407,
+        "compiledFunctions": 147,
+        "compilationUs": {
+          "aot_translation_us": 12731,
+          "aot_emission_us": 393,
+          "aot_installation_us": 2188
+        },
+        "errors": []
+      },
+      "sampled_dispatch_ms_per_frame": 11.64134879725086,
+      "sampled_pixel_regions_ms_per_frame": 0.9575137457044673
+    }
+  ],
+  "validation": {
+    "aot_tests_passed": 183,
+    "aot_tests_failed": 0,
+    "new_interpreter_comparisons": 224,
+    "lan_paced": {
+      "url": "https://claude-laptop.lan:8188/?game=asphalt-2",
+      "status": {
+        "status": "Running: Asphalt: Urban GT 2 \u00b7 Arrows/WASD to move, Enter to select \u00b7 Use Enable sound for audio",
+        "running": true,
+        "frames": 1687,
+        "monitor": "{\"guest_us\":136590644,\"instructions\":0,\"compiled_functions\":43886,\"aot_translation_us\":6599472,\"aot_emission_us\":264683,\"aot_installation_us\":674420,\"aot_eager_functions\":30710,\"aot_eager_passes\":12,\"allocated_bytes\":877925496,\"free_bytes\":88078344}"
+      },
+      "errors": [],
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA-610.57.4.0)",
+      "wasm": [
+        "https://claude-laptop.lan:8188/eka2l1.wasm?v=0897120710c85c17e04762902fa34d471d98cf5160b79ad4bdeff27497bf0010"
+      ]
+    }
+  }
+}
