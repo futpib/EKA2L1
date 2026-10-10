@@ -69,7 +69,15 @@ Chrome 153 / V8 15.3, ordinary tiering, ABBA/BAAB, isolated CPU 7 and sibling
 15, requested 2.4 GHz; measured 2394.38–2394.42 MHz. Hardware counters ran for
 100% of each interval. All rows, including the slower first control, are kept.
 Debugger attachment and module capture happen after timing. Compilation is
-outside the timing windows. Host settings were restored.
+intended to finish before the timing windows. Host settings were restored.
+
+The later [target-table investigation](INDIRECT_TARGET_TABLE_RESULTS.md) found
+that this driver's short warmup did not guarantee completed V8 tiering. Its
+corrected single-build off/on verification of the retained eight-target fusion
+measures **+36.57% CPU throughput and -15.99% native instructions**, with both
+root TurboFan installations verified before timing. This confirms the retained
+renderer benefit; the older 34.29% figure above remains a historical observation
+whose original tiering exclusion was not verified.
 
 The fixture uses the registry's ROM lookup path for its captured game code;
 the game normally uses RAM lookup. It establishes a runtime improvement for

@@ -169,7 +169,7 @@ extern "C" EMSCRIPTEN_KEEPALIVE int tile_call_benchmark(unsigned variant, unsign
 }
 
 #include "tile_call_image.inc"
-extern "C" EMSCRIPTEN_KEEPALIVE int tile_row_benchmark(unsigned variant, unsigned iterations) {
+static int tile_rows(unsigned variant, unsigned iterations, unsigned blend) {
     if(!eka2l1::log::filterings) {
         eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
         eka2l1::log::filterings->reset_all(spdlog::level::off);
@@ -179,10 +179,11 @@ extern "C" EMSCRIPTEN_KEEPALIVE int tile_row_benchmark(unsigned variant, unsigne
     static r12l1::exclusive_monitor monitor(1);
     static auto core=make_cpu(memory,monitor);
     static memory_experiment::view view;
-    static aot_func entries[2][3]{};
+    static aot_func entries[2][5]{};
     static std::uintptr_t pointer=0;
     static bool ready=false;
-    const unsigned pcs[]={0x70020df8,0x70020e8c,0x700032bc};
+    const unsigned pcs[]={0x70020df8,0x70020e8c,0x700032bc,0x70003bc4,0x70003cb4};
+    const unsigned callee_sizes[]={61*4,60*4,54*4};
     auto word=[&](unsigned address)->unsigned&{return arena[(address-0x400000)/4];};
     if(!ready) {
         hotpath_policy=2;memory_experiment::mode=2;
@@ -210,16 +211,16 @@ extern "C" EMSCRIPTEN_KEEPALIVE int tile_row_benchmark(unsigned variant, unsigne
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
         for(unsigned v=0;v<2;++v) {
             arm_indirect_calls=v;std::vector<wasm_func_def> functions;
-            for(unsigned n=0;n<3;++n) {
-                const auto bytes=n==2?fb+pcs[n]-0x70003290:cb+pcs[n]-0x70020df8;
-                auto tr=translate_arm_block(bytes,n==2?61*4:std::min<std::size_t>(512,sizeof(tile_caller)-(pcs[n]-0x70020df8)),pcs[n],nullptr,nullptr,true,false,true,true,
-                    n==2?nullptr:&resolve,true,arm_ir_policy::write_spans);
+            for(unsigned n=0;n<5;++n) {
+                const auto bytes=n>=2?fb+pcs[n]-0x70003290:cb+pcs[n]-0x70020df8;
+                auto tr=translate_arm_block(bytes,n>=2?callee_sizes[n-2]:std::min<std::size_t>(512,sizeof(tile_caller)-(pcs[n]-0x70020df8)),pcs[n],nullptr,nullptr,true,false,true,true,
+                    n>=2?nullptr:&resolve,true,arm_ir_policy::write_spans);
                 if(!n && (v?!tr.stack_calls:tr.stack_calls))return -1;
                 if(!n)printf(" ROW_VARIANT %u BYTES %zu CALLEES %u\n",v,tr.func.body.size(),tr.stack_calls);
                 functions.push_back(std::move(tr.func));
             }
             stage_aot_module(build_wasm_module(functions,imports),"tile-row-benchmark");instantiate_staged_modules();
-            for(unsigned n=0;n<3;++n)if(!(entries[v][n]=global_registry().lookup(pcs[n])))return -2;
+            for(unsigned n=0;n<5;++n)if(!(entries[v][n]=global_registry().lookup(pcs[n])))return -2;
         }
         for(unsigned n=0;n<8;++n)word(0x420020+n*4)=0x12345678;
         for(unsigned n=0;n<8;++n)word(0x440000+n*4)=(0x2001+n*2)<<16 | (0x2000+n*2);
@@ -232,7 +233,10 @@ extern "C" EMSCRIPTEN_KEEPALIVE int tile_row_benchmark(unsigned variant, unsigne
             static_cast<unsigned>(reinterpret_cast<std::uintptr_t>(arena.data())),3});ready=true;
     }
     if(variant>1||!iterations)return -3;
-    for(unsigned n=0;n<3;++n)global_registry().register_function(pcs[n],entries[variant][n]);
+    word(0x410008)=blend<<8;word(0x430000)=blend?0x8000:0;
+    for(unsigned row=0;row<8;++row)for(unsigned pixel=0;pixel<64;++pixel)
+        word(0x450000+row*512+pixel*4)=blend==5?0xffffffffu:0;
+    for(unsigned n=0;n<5;++n)global_registry().register_function(pcs[n],entries[variant][n]);
     auto *cpu=matched_kernel_access::state(*core);g_test_mem=&memory;g_all_memory_helper_calls=0;
     for(unsigned repeat=0;repeat<iterations;++repeat) {
         cpu->Reset();for(auto &reg:cpu->Reg)reg=0;
@@ -247,9 +251,27 @@ extern "C" EMSCRIPTEN_KEEPALIVE int tile_row_benchmark(unsigned variant, unsigne
     g_test_mem=nullptr;
     for(unsigned row=0;row<8;++row)for(unsigned tile=0;tile<16;++tile)for(unsigned pair=0;pair<4;++pair) {
         const unsigned lo=8-pair*2,hi=lo-1;
-        if(word(0x450000+row*512+tile*16+pair*4)!=((0x2000+hi)<<16 | (0x2000+lo)))return -5;
+        auto expected=[&](unsigned nibble) {
+            if(!blend)return 0x2000+nibble;
+            unsigned pixel=0;
+            for(unsigned shift:{0u,6u,11u}) {
+                const auto amount=std::min<std::uint64_t>(31,std::uint64_t(((0x2000+nibble)>>shift)&31)*iterations);
+                pixel|=unsigned(blend==5?31-amount:amount)<<shift;
+            }
+            return pixel;
+        };
+        if(word(0x450000+row*512+tile*16+pair*4)!=(expected(hi)<<16 | expected(lo)))return -5;
     }
     return 0;
 }
 
+extern "C" EMSCRIPTEN_KEEPALIVE int tile_row_benchmark(unsigned variant, unsigned iterations) {
+    return tile_rows(variant,iterations,0);
+}
+extern "C" EMSCRIPTEN_KEEPALIVE int tile_add_row_benchmark(unsigned variant, unsigned iterations) {
+    return tile_rows(variant,iterations,4);
+}
+extern "C" EMSCRIPTEN_KEEPALIVE int tile_sub_row_benchmark(unsigned variant, unsigned iterations) {
+    return tile_rows(variant,iterations,5);
+}
 #endif

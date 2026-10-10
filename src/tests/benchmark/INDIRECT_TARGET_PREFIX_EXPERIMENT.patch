@@ -1,0 +1,42 @@
+--- a/src/emu/cpu/src/aot/arm_translator.cpp
++++ b/src/emu/cpu/src/aot/arm_translator.cpp
+@@ -1572,23 +1572,27 @@
+                     return true;
+                 };
+                 w.op(op_block); w.op(type_void); // successful continuation
+-                // Preserve the original first-target path outside the table's
+-                // merge graph. A single fast case keeps total lookup work O(1).
+-                w.get_local(target_local); w.i32_const(callees.front().code.address); w.op(op_i32_eq);
+-                w.op(op_if); w.op(type_void);
+-                if (emit_callee(0)) { w.op(op_br); leb(result.body, 1); }
+-                w.op(op_end);
++                // Keep a fixed small prefix on the original branch layout;
++                // larger target sets use one indexed jump after that prefix.
++                // The prefix length does not grow with the number of targets.
++                const unsigned first = std::min(count, 8u);
++                for (unsigned n = 0; n < first; ++n) {
++                    w.get_local(target_local); w.i32_const(callees[n].code.address); w.op(op_i32_eq);
++                    w.op(op_if); w.op(type_void);
++                    if (emit_callee(n)) { w.op(op_br); leb(result.body, 1); }
++                    w.op(op_end);
++                }
+                 w.op(op_block); w.op(type_void); // ordinary BLX fallback
+-                for (unsigned n = 1; n < count; ++n) { w.op(op_block); w.op(type_void); }
+-                if (count > 2) {
+-                    const auto table = make_indirect_target_table(callees, 1);
++                for (unsigned n = first; n < count; ++n) { w.op(op_block); w.op(type_void); }
++                if (count > first + 1) {
++                    const auto table = make_indirect_target_table(callees, first);
+                     w.get_local(target_local); w.i32_const(table.multiplier); w.op(op_i32_mul);
+                     w.i32_const(table.shift); w.op(op_i32_shr_u);
+                     w.op(op_br_table); leb(result.body, static_cast<unsigned>(table.slots.size()));
+                     for (auto slot : table.slots) leb(result.body, slot);
+-                    leb(result.body, count - 1);
+-                }
+-                for (unsigned n = 1; n < count; ++n) {
++                    leb(result.body, count - first);
++                }
++                for (unsigned n = first; n < count; ++n) {
+                     w.op(op_end);
+                     w.get_local(target_local); w.i32_const(callees[n].code.address); w.op(op_i32_ne);
+                     w.op(op_br_if); leb(result.body, count - n - 1);

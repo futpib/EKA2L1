@@ -1,0 +1,3369 @@
+{
+  "baseline": {
+    "commit": "a290e3a689b56f8b0ace959a4d637a8d3ac4be70",
+    "wasm_sha256": "556c7cc6899b0bf7d31534ed3fa27983ddbd5f78a7c9b98586029deddb7c9954"
+  },
+  "decision": "Archive; no runtime/default/LAN change. Constant-time lookup works but no established net runtime benefit.",
+  "comparisons": [
+    {
+      "layout": "separated",
+      "workload": "tile",
+      "path": "/home/claude/.scratch/eka-indirect-table-20261010/separated-tile",
+      "baseline_cpu_seconds": 0.5315389065000005,
+      "candidate_cpu_seconds": 0.5555438329999999,
+      "cpu_throughput_percent": -4.320977945227122,
+      "native_instructions_percent": 0.0020332205728390562,
+      "paired_cpu_percent": [
+        -3.8836673003326716,
+        -4.70984682185901,
+        -4.3386059037055835,
+        -4.351764805482827
+      ],
+      "jit_roots": [
+        {
+          "pid": 3883034,
+          "tid": 3883034,
+          "timestamp": 913616445398000,
+          "address": 45891746685696,
+          "size": 236352,
+          "id": 8297,
+          "name": "JS:f_1879182840-6-turbofan",
+          "sha256": "26b5ed668df8a5dd402e325521a7ab2c83ea4d0bc04782c4bfc8997f236afce3"
+        },
+        {
+          "pid": 3883034,
+          "tid": 3883034,
+          "timestamp": 913616645151000,
+          "address": 45891747581568,
+          "size": 332672,
+          "id": 8302,
+          "name": "JS:f_1879182840-6-turbofan",
+          "sha256": "81d3f3274dfd6203a2b43cefe8c7fe7864dc90f1cc03bc2dd185681689164220"
+        }
+      ],
+      "optimized_before_measurement": true,
+      "report": {
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/153.0.8010.52",
+          "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "jsVersion": "15.3.76.13"
+        },
+        "pid": 3883034,
+        "renderers": [
+          {
+            "type": "renderer",
+            "id": 3883034,
+            "cpuTime": 1.24,
+            "delta": 0.97
+          },
+          {
+            "type": "renderer",
+            "id": 3882882,
+            "cpuTime": 0.53,
+            "delta": 0.07
+          },
+          {
+            "type": "renderer",
+            "id": 3883110,
+            "cpuTime": 0.03,
+            "delta": 0
+          },
+          {
+            "type": "renderer",
+            "id": 3882911,
+            "cpuTime": 0.05,
+            "delta": 0
+          }
+        ],
+        "iterations": 100000,
+        "entry": "tile_row_benchmark",
+        "builds": [
+          "/home/claude/.scratch/eka-indirect-table-20261010/control-test",
+          "/home/claude/.scratch/eka-indirect-table-20261010/separated-test"
+        ],
+        "fullWarmups": [
+          {
+            "variant": 0,
+            "status": 0,
+            "milliseconds": 568.710000038147
+          },
+          {
+            "variant": 1,
+            "status": 0,
+            "milliseconds": 549.3799999952316
+          },
+          {
+            "variant": 0,
+            "status": 0,
+            "milliseconds": 536.2050000429153
+          },
+          {
+            "variant": 1,
+            "status": 0,
+            "milliseconds": 559.5700000524521
+          }
+        ],
+        "wasm_sha256": [
+          "dc4d6f6eb435446b624588ebef5812db2426e6a9badfd7e978b82f9c3a70f1d1",
+          "2db90682a634d102a3e0c10cff8e491e8f643ef0ea463566de65876e80e99902"
+        ],
+        "comparison": "enabled policies in separate builds",
+        "rows": [
+          {
+            "variant": 0,
+            "cpu_seconds": 0.5349838,
+            "status": 0,
+            "milliseconds": 535.3499999046326,
+            "mhz": 2394.362804203488,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93223848,
+                  "user_cycles": {
+                    "raw": 1280566683,
+                    "time_enabled_ns": 535727115,
+                    "time_running_ns": 535727115,
+                    "running_fraction": 1,
+                    "scaled": 1280566683
+                  },
+                  "user_instructions": {
+                    "raw": 5125857354,
+                    "time_enabled_ns": 535727115,
+                    "time_running_ns": 535727115,
+                    "running_fraction": 1,
+                    "scaled": 5125857354
+                  },
+                  "user_reference_cycles": {
+                    "raw": 1232238336,
+                    "time_enabled_ns": 535727115,
+                    "time_running_ns": 535727115,
+                    "running_fraction": 1,
+                    "scaled": 1232238336
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913618626195370,
+              "enable_begin_ns": 913618655835801,
+              "enable_end_ns": 913618655884528,
+              "disable_begin_ns": 913619193510138,
+              "disable_end_ns": 913619193574598
+            }
+          },
+          {
+            "variant": 1,
+            "cpu_seconds": 0.5566003040000003,
+            "status": 0,
+            "milliseconds": 556.9950000047684,
+            "mhz": 2394.385402091442,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93223848,
+                  "user_cycles": {
+                    "raw": 1332403944,
+                    "time_enabled_ns": 557255391,
+                    "time_running_ns": 557255391,
+                    "running_fraction": 1,
+                    "scaled": 1332403944
+                  },
+                  "user_instructions": {
+                    "raw": 5125935716,
+                    "time_enabled_ns": 557255391,
+                    "time_running_ns": 557255391,
+                    "running_fraction": 1,
+                    "scaled": 5125935716
+                  },
+                  "user_reference_cycles": {
+                    "raw": 1282107168,
+                    "time_enabled_ns": 557255391,
+                    "time_running_ns": 557255391,
+                    "running_fraction": 1,
+                    "scaled": 1282107168
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913619197857030,
+              "enable_begin_ns": 913619198341758,
+              "enable_end_ns": 913619198394304,
+              "disable_begin_ns": 913619756950707,
+              "disable_end_ns": 913619757003905
+            }
+          },
+          {
+            "variant": 1,
+            "cpu_seconds": 0.5569297259999999,
+            "status": 0,
+            "milliseconds": 557.0750000476837,
+            "mhz": 2394.4038078912317,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93223848,
+                  "user_cycles": {
+                    "raw": 1333245643,
+                    "time_enabled_ns": 557399422,
+                    "time_running_ns": 557399422,
+                    "running_fraction": 1,
+                    "scaled": 1333245643
+                  },
+                  "user_instructions": {
+                    "raw": 5126000229,
+                    "time_enabled_ns": 557399422,
+                    "time_running_ns": 557399422,
+                    "running_fraction": 1,
+                    "scaled": 5126000229
+                  },
+                  "user_reference_cycles": {
+                    "raw": 1282907232,
+                    "time_enabled_ns": 557399422,
+                    "time_running_ns": 557399422,
+                    "running_fraction": 1,
+                    "scaled": 1282907232
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913619759126301,
+              "enable_begin_ns": 913619759489657,
+              "enable_end_ns": 913619759535102,
+              "disable_begin_ns": 913620318058427,
+              "disable_end_ns": 913620318116013
+            }
+          },
+          {
+            "variant": 0,
+            "cpu_seconds": 0.5306991890000008,
+            "status": 0,
+            "milliseconds": 530.7949999570847,
+            "mhz": 2394.412950380229,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93223848,
+                  "user_cycles": {
+                    "raw": 1270517713,
+                    "time_enabled_ns": 531047868,
+                    "time_running_ns": 531047868,
+                    "running_fraction": 1,
+                    "scaled": 1270517713
+                  },
+                  "user_instructions": {
+                    "raw": 5125838960,
+                    "time_enabled_ns": 531047868,
+                    "time_running_ns": 531047868,
+                    "running_fraction": 1,
+                    "scaled": 5125838960
+                  },
+                  "user_reference_cycles": {
+                    "raw": 1222543008,
+                    "time_enabled_ns": 531047868,
+                    "time_running_ns": 531047868,
+                    "running_fraction": 1,
+                    "scaled": 1222543008
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913620320382338,
+              "enable_begin_ns": 913620320743595,
+              "enable_end_ns": 913620320784334,
+              "disable_begin_ns": 913620853124226,
+              "disable_end_ns": 913620853184478
+            }
+          },
+          {
+            "variant": 1,
+            "cpu_seconds": 0.5545376909999993,
+            "status": 0,
+            "milliseconds": 554.5999999046326,
+            "mhz": 2394.4085139270724,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93223848,
+                  "user_cycles": {
+                    "raw": 1327538497,
+                    "time_enabled_ns": 554920589,
+                    "time_running_ns": 554920589,
+                    "running_fraction": 1,
+                    "scaled": 1327538497
+                  },
+                  "user_instructions": {
+                    "raw": 5125974600,
+                    "time_enabled_ns": 554920589,
+                    "time_running_ns": 554920589,
+                    "running_fraction": 1,
+                    "scaled": 5125974600
+                  },
+                  "user_reference_cycles": {
+                    "raw": 1277413056,
+                    "time_enabled_ns": 554920589,
+                    "time_running_ns": 554920589,
+                    "running_fraction": 1,
+                    "scaled": 1277413056
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913620855622206,
+              "enable_begin_ns": 913620856003991,
+              "enable_end_ns": 913620856050502,
+              "disable_begin_ns": 913621412183728,
+              "disable_end_ns": 913621412233257
+            }
+          },
+          {
+            "variant": 0,
+            "cpu_seconds": 0.5304784860000007,
+            "status": 0,
+            "milliseconds": 530.5950000286102,
+            "mhz": 2394.419828681564,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93223848,
+                  "user_cycles": {
+                    "raw": 1269968152,
+                    "time_enabled_ns": 530821894,
+                    "time_running_ns": 530821894,
+                    "running_fraction": 1,
+                    "scaled": 1269968152
+                  },
+                  "user_instructions": {
+                    "raw": 5125838759,
+                    "time_enabled_ns": 530821894,
+                    "time_running_ns": 530821894,
+                    "running_fraction": 1,
+                    "scaled": 5125838759
+                  },
+                  "user_reference_cycles": {
+                    "raw": 1222010688,
+                    "time_enabled_ns": 530821894,
+                    "time_running_ns": 530821894,
+                    "running_fraction": 1,
+                    "scaled": 1222010688
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913621414440992,
+              "enable_begin_ns": 913621414814118,
+              "enable_end_ns": 913621414857860,
+              "disable_begin_ns": 913621946970543,
+              "disable_end_ns": 913621947025679
+            }
+          },
+          {
+            "variant": 0,
+            "cpu_seconds": 0.5299941510000004,
+            "status": 0,
+            "milliseconds": 530.1200000047684,
+            "mhz": 2394.407455226625,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93223848,
+                  "user_cycles": {
+                    "raw": 1268724379,
+                    "time_enabled_ns": 530389295,
+                    "time_running_ns": 530389295,
+                    "running_fraction": 1,
+                    "scaled": 1268724379
+                  },
+                  "user_instructions": {
+                    "raw": 5125897047,
+                    "time_enabled_ns": 530389295,
+                    "time_running_ns": 530389295,
+                    "running_fraction": 1,
+                    "scaled": 5125897047
+                  },
+                  "user_reference_cycles": {
+                    "raw": 1220820192,
+                    "time_enabled_ns": 530389295,
+                    "time_running_ns": 530389295,
+                    "running_fraction": 1,
+                    "scaled": 1220820192
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913621949407559,
+              "enable_begin_ns": 913621949769900,
+              "enable_end_ns": 913621949818593,
+              "disable_begin_ns": 913622481541542,
+              "disable_end_ns": 913622481589218
+            }
+          },
+          {
+            "variant": 1,
+            "cpu_seconds": 0.554107611,
+            "status": 0,
+            "milliseconds": 554.2850000858307,
+            "mhz": 2394.4146289899822,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93223848,
+                  "user_cycles": {
+                    "raw": 1326544913,
+                    "time_enabled_ns": 554530701,
+                    "time_running_ns": 554530701,
+                    "running_fraction": 1,
+                    "scaled": 1326544913
+                  },
+                  "user_instructions": {
+                    "raw": 5125938455,
+                    "time_enabled_ns": 554530701,
+                    "time_running_ns": 554530701,
+                    "running_fraction": 1,
+                    "scaled": 5125938455
+                  },
+                  "user_reference_cycles": {
+                    "raw": 1276453728,
+                    "time_enabled_ns": 554530701,
+                    "time_running_ns": 554530701,
+                    "running_fraction": 1,
+                    "scaled": 1276453728
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913622483981429,
+              "enable_begin_ns": 913622484341945,
+              "enable_end_ns": 913622484388329,
+              "disable_begin_ns": 913623040143817,
+              "disable_end_ns": 913623040201442
+            }
+          }
+        ]
+      }
+    },
+    {
+      "layout": "separated",
+      "workload": "add",
+      "path": "/home/claude/.scratch/eka-indirect-table-20261010/separated-add",
+      "baseline_cpu_seconds": 2.3906341584999993,
+      "candidate_cpu_seconds": 2.3082611357499996,
+      "cpu_throughput_percent": 3.5686180161429215,
+      "native_instructions_percent": -1.0561346433515917,
+      "paired_cpu_percent": [
+        2.3034276261536757,
+        2.212250906013491,
+        5.936113904922968,
+        3.7742911159950765
+      ],
+      "jit_roots": [
+        {
+          "pid": 3884112,
+          "tid": 3884112,
+          "timestamp": 913624586207000,
+          "address": 6596173389824,
+          "size": 236352,
+          "id": 8301,
+          "name": "JS:f_1879182840-6-turbofan",
+          "sha256": "2fb48554905a01bbf93016600bbc67d9adfa852c3e617b143597eff3d781d278"
+        },
+        {
+          "pid": 3884112,
+          "tid": 3884112,
+          "timestamp": 913624800267000,
+          "address": 6596173631488,
+          "size": 332672,
+          "id": 8302,
+          "name": "JS:f_1879182840-6-turbofan",
+          "sha256": "3c2ce5f58ab50baf3b1b38600aafa31abde9f7bfd485675d26b3286965cd60f6"
+        }
+      ],
+      "optimized_before_measurement": true,
+      "report": {
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/153.0.8010.52",
+          "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "jsVersion": "15.3.76.13"
+        },
+        "pid": 3884112,
+        "renderers": [
+          {
+            "type": "renderer",
+            "id": 3884112,
+            "cpuTime": 1.22,
+            "delta": 1
+          },
+          {
+            "type": "renderer",
+            "id": 3884045,
+            "cpuTime": 0.46,
+            "delta": 0.08000000000000002
+          },
+          {
+            "type": "renderer",
+            "id": 3884129,
+            "cpuTime": 0.02,
+            "delta": 0
+          },
+          {
+            "type": "renderer",
+            "id": 3884056,
+            "cpuTime": 0.04,
+            "delta": 0
+          }
+        ],
+        "iterations": 100000,
+        "entry": "tile_add_row_benchmark",
+        "builds": [
+          "/home/claude/.scratch/eka-indirect-table-20261010/control-test",
+          "/home/claude/.scratch/eka-indirect-table-20261010/separated-test"
+        ],
+        "fullWarmups": [
+          {
+            "variant": 0,
+            "status": 0,
+            "milliseconds": 2329.1299999952316
+          },
+          {
+            "variant": 1,
+            "status": 0,
+            "milliseconds": 2279.7949999570847
+          },
+          {
+            "variant": 0,
+            "status": 0,
+            "milliseconds": 2321.9049999713898
+          },
+          {
+            "variant": 1,
+            "status": 0,
+            "milliseconds": 2270.7900000810623
+          }
+        ],
+        "wasm_sha256": [
+          "dc4d6f6eb435446b624588ebef5812db2426e6a9badfd7e978b82f9c3a70f1d1",
+          "2db90682a634d102a3e0c10cff8e491e8f643ef0ea463566de65876e80e99902"
+        ],
+        "comparison": "enabled policies in separate builds",
+        "rows": [
+          {
+            "variant": 0,
+            "cpu_seconds": 2.3208768719999995,
+            "status": 0,
+            "milliseconds": 2321.960000038147,
+            "mhz": 2394.4136016080365,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93224671,
+                  "user_cycles": {
+                    "raw": 5555767657,
+                    "time_enabled_ns": 2322644545,
+                    "time_running_ns": 2322644545,
+                    "running_fraction": 1,
+                    "scaled": 5555767657
+                  },
+                  "user_instructions": {
+                    "raw": 21791744737,
+                    "time_enabled_ns": 2322644545,
+                    "time_running_ns": 2322644545,
+                    "running_fraction": 1,
+                    "scaled": 21791744737
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5345980608,
+                    "time_enabled_ns": 2322644545,
+                    "time_running_ns": 2322644545,
+                    "running_fraction": 1,
+                    "scaled": 5345980608
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913633753280251,
+              "enable_begin_ns": 913633785827718,
+              "enable_end_ns": 913633785881585,
+              "disable_begin_ns": 913636109939799,
+              "disable_end_ns": 913636109992457
+            }
+          },
+          {
+            "variant": 1,
+            "cpu_seconds": 2.268620833,
+            "status": 0,
+            "milliseconds": 2270.1299999952316,
+            "mhz": 2394.4140264796624,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93224671,
+                  "user_cycles": {
+                    "raw": 5431107567,
+                    "time_enabled_ns": 2270253492,
+                    "time_running_ns": 2270253492,
+                    "running_fraction": 1,
+                    "scaled": 5431107567
+                  },
+                  "user_instructions": {
+                    "raw": 21561199941,
+                    "time_enabled_ns": 2270253492,
+                    "time_running_ns": 2270253492,
+                    "running_fraction": 1,
+                    "scaled": 21561199941
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5226026784,
+                    "time_enabled_ns": 2270253492,
+                    "time_running_ns": 2270253492,
+                    "running_fraction": 1,
+                    "scaled": 5226026784
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913636115087913,
+              "enable_begin_ns": 913636115468604,
+              "enable_end_ns": 913636115508715,
+              "disable_begin_ns": 913638387172193,
+              "disable_end_ns": 913638387224259
+            }
+          },
+          {
+            "variant": 1,
+            "cpu_seconds": 2.269811568999998,
+            "status": 0,
+            "milliseconds": 2271.3849999904633,
+            "mhz": 2394.4112496943017,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93224671,
+                  "user_cycles": {
+                    "raw": 5433864918,
+                    "time_enabled_ns": 2271570309,
+                    "time_running_ns": 2271570309,
+                    "running_fraction": 1,
+                    "scaled": 5433864918
+                  },
+                  "user_instructions": {
+                    "raw": 21561200088,
+                    "time_enabled_ns": 2271570309,
+                    "time_running_ns": 2271570309,
+                    "running_fraction": 1,
+                    "scaled": 21561200088
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5228686080,
+                    "time_enabled_ns": 2271570309,
+                    "time_running_ns": 2271570309,
+                    "running_fraction": 1,
+                    "scaled": 5228686080
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913638391234963,
+              "enable_begin_ns": 913638391658172,
+              "enable_end_ns": 913638391705790,
+              "disable_begin_ns": 913640664571239,
+              "disable_end_ns": 913640664623524
+            }
+          },
+          {
+            "variant": 0,
+            "cpu_seconds": 2.3200254959999995,
+            "status": 0,
+            "milliseconds": 2321.4900000095367,
+            "mhz": 2394.415649182727,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93224671,
+                  "user_cycles": {
+                    "raw": 5554242975,
+                    "time_enabled_ns": 2321700989,
+                    "time_running_ns": 2321700989,
+                    "running_fraction": 1,
+                    "scaled": 5554242975
+                  },
+                  "user_instructions": {
+                    "raw": 21791213617,
+                    "time_enabled_ns": 2321700989,
+                    "time_running_ns": 2321700989,
+                    "running_fraction": 1,
+                    "scaled": 21791213617
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5344508928,
+                    "time_enabled_ns": 2321700989,
+                    "time_running_ns": 2321700989,
+                    "running_fraction": 1,
+                    "scaled": 5344508928
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913640668613689,
+              "enable_begin_ns": 913640668985249,
+              "enable_end_ns": 913640669027557,
+              "disable_begin_ns": 913642991882665,
+              "disable_end_ns": 913642991941164
+            }
+          },
+          {
+            "variant": 1,
+            "cpu_seconds": 2.3051748869999997,
+            "status": 0,
+            "milliseconds": 2308.3249999284744,
+            "mhz": 2394.385735253013,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93224671,
+                  "user_cycles": {
+                    "raw": 5518123314,
+                    "time_enabled_ns": 2308522162,
+                    "time_running_ns": 2308522162,
+                    "running_fraction": 1,
+                    "scaled": 5518123314
+                  },
+                  "user_instructions": {
+                    "raw": 21561204317,
+                    "time_enabled_ns": 2308522162,
+                    "time_running_ns": 2308522162,
+                    "running_fraction": 1,
+                    "scaled": 21561204317
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5309819520,
+                    "time_enabled_ns": 2308522162,
+                    "time_running_ns": 2308522162,
+                    "running_fraction": 1,
+                    "scaled": 5309819520
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913642995951384,
+              "enable_begin_ns": 913642996377341,
+              "enable_end_ns": 913642996422095,
+              "disable_begin_ns": 913645306537850,
+              "disable_end_ns": 913645306602575
+            }
+          },
+          {
+            "variant": 0,
+            "cpu_seconds": 2.442012693999999,
+            "status": 0,
+            "milliseconds": 2446.9049999713898,
+            "mhz": 2394.351604328526,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93224671,
+                  "user_cycles": {
+                    "raw": 5845120168,
+                    "time_enabled_ns": 2447161717,
+                    "time_running_ns": 2447161717,
+                    "running_fraction": 1,
+                    "scaled": 5845120168
+                  },
+                  "user_instructions": {
+                    "raw": 21791212942,
+                    "time_enabled_ns": 2447161717,
+                    "time_running_ns": 2447161717,
+                    "running_fraction": 1,
+                    "scaled": 21791212942
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5624552736,
+                    "time_enabled_ns": 2447161717,
+                    "time_running_ns": 2447161717,
+                    "running_fraction": 1,
+                    "scaled": 5624552736
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913645312600340,
+              "enable_begin_ns": 913645313172875,
+              "enable_end_ns": 913645313229131,
+              "disable_begin_ns": 913647762535077,
+              "disable_end_ns": 913647762606096
+            }
+          },
+          {
+            "variant": 0,
+            "cpu_seconds": 2.479621571999999,
+            "status": 0,
+            "milliseconds": 2484.6849999427795,
+            "mhz": 2394.355546474166,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93224671,
+                  "user_cycles": {
+                    "raw": 5935171627,
+                    "time_enabled_ns": 2484915748,
+                    "time_running_ns": 2484915748,
+                    "running_fraction": 1,
+                    "scaled": 5935171627
+                  },
+                  "user_instructions": {
+                    "raw": 21791216829,
+                    "time_enabled_ns": 2484915748,
+                    "time_running_ns": 2484915748,
+                    "running_fraction": 1,
+                    "scaled": 21791216829
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5711196672,
+                    "time_enabled_ns": 2484915748,
+                    "time_running_ns": 2484915748,
+                    "running_fraction": 1,
+                    "scaled": 5711196672
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913647767676152,
+              "enable_begin_ns": 913647768229172,
+              "enable_end_ns": 913647768279441,
+              "disable_begin_ns": 913650255407567,
+              "disable_end_ns": 913650255476132
+            }
+          },
+          {
+            "variant": 1,
+            "cpu_seconds": 2.3894372540000006,
+            "status": 0,
+            "milliseconds": 2394.2599999904633,
+            "mhz": 2394.3516790898984,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93224671,
+                  "user_cycles": {
+                    "raw": 5719422973,
+                    "time_enabled_ns": 2394551077,
+                    "time_running_ns": 2394551077,
+                    "running_fraction": 1,
+                    "scaled": 5719422973
+                  },
+                  "user_instructions": {
+                    "raw": 21561199918,
+                    "time_enabled_ns": 2394551077,
+                    "time_running_ns": 2394551077,
+                    "running_fraction": 1,
+                    "scaled": 21561199918
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5503598592,
+                    "time_enabled_ns": 2394551077,
+                    "time_running_ns": 2394551077,
+                    "running_fraction": 1,
+                    "scaled": 5503598592
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913650260917314,
+              "enable_begin_ns": 913650261491328,
+              "enable_end_ns": 913650261538269,
+              "disable_begin_ns": 913652658165274,
+              "disable_end_ns": 913652658226044
+            }
+          }
+        ]
+      }
+    },
+    {
+      "layout": "separated",
+      "workload": "sub",
+      "path": "/home/claude/.scratch/eka-indirect-table-20261010/separated-sub",
+      "baseline_cpu_seconds": 2.284911999499999,
+      "candidate_cpu_seconds": 2.200371367750001,
+      "cpu_throughput_percent": 3.8421074273678135,
+      "native_instructions_percent": 1.107460232878954,
+      "paired_cpu_percent": [
+        10.028673495927531,
+        1.5452885596149546,
+        1.2492106140868708,
+        2.587653121358424
+      ],
+      "jit_roots": [
+        {
+          "pid": 3889048,
+          "tid": 3889048,
+          "timestamp": 913655785298000,
+          "address": 38412276178944,
+          "size": 236352,
+          "id": 8305,
+          "name": "JS:f_1879182840-6-turbofan",
+          "sha256": "579a4d67cd06892894e27911e1bc87dc7bf0b9423dd4cb86883aabf35bccbfde"
+        },
+        {
+          "pid": 3889048,
+          "tid": 3889048,
+          "timestamp": 913656151395000,
+          "address": 38412276420608,
+          "size": 332672,
+          "id": 8306,
+          "name": "JS:f_1879182840-6-turbofan",
+          "sha256": "fae4680796627dba2bca645683a0572d762cf78881fa3542206d7e72b1aced14"
+        }
+      ],
+      "optimized_before_measurement": true,
+      "report": {
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/153.0.8010.52",
+          "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "jsVersion": "15.3.76.13"
+        },
+        "pid": 3889048,
+        "renderers": [
+          {
+            "type": "renderer",
+            "id": 3889048,
+            "cpuTime": 1.86,
+            "delta": 1.56
+          },
+          {
+            "type": "renderer",
+            "id": 3888956,
+            "cpuTime": 0.66,
+            "delta": 0.010000000000000009
+          },
+          {
+            "type": "renderer",
+            "id": 3889071,
+            "cpuTime": 0.03,
+            "delta": 0
+          },
+          {
+            "type": "renderer",
+            "id": 3888996,
+            "cpuTime": 0.06,
+            "delta": 0
+          }
+        ],
+        "iterations": 100000,
+        "entry": "tile_sub_row_benchmark",
+        "builds": [
+          "/home/claude/.scratch/eka-indirect-table-20261010/control-test",
+          "/home/claude/.scratch/eka-indirect-table-20261010/separated-test"
+        ],
+        "fullWarmups": [
+          {
+            "variant": 0,
+            "status": 0,
+            "milliseconds": 2399.8300000429153
+          },
+          {
+            "variant": 1,
+            "status": 0,
+            "milliseconds": 2283.6349999904633
+          },
+          {
+            "variant": 0,
+            "status": 0,
+            "milliseconds": 2352.899999976158
+          },
+          {
+            "variant": 1,
+            "status": 0,
+            "milliseconds": 2248.3649998903275
+          }
+        ],
+        "wasm_sha256": [
+          "dc4d6f6eb435446b624588ebef5812db2426e6a9badfd7e978b82f9c3a70f1d1",
+          "2db90682a634d102a3e0c10cff8e491e8f643ef0ea463566de65876e80e99902"
+        ],
+        "comparison": "enabled policies in separate builds",
+        "rows": [
+          {
+            "variant": 0,
+            "cpu_seconds": 2.4112865790000004,
+            "status": 0,
+            "milliseconds": 2415.979999899864,
+            "mhz": 2394.343053308385,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93227723,
+                  "user_cycles": {
+                    "raw": 5771478432,
+                    "time_enabled_ns": 2416187421,
+                    "time_running_ns": 2416187421,
+                    "running_fraction": 1,
+                    "scaled": 5771478432
+                  },
+                  "user_instructions": {
+                    "raw": 20551210183,
+                    "time_enabled_ns": 2416187421,
+                    "time_running_ns": 2416187421,
+                    "running_fraction": 1,
+                    "scaled": 20551210183
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5553709728,
+                    "time_enabled_ns": 2416187421,
+                    "time_running_ns": 2416187421,
+                    "running_fraction": 1,
+                    "scaled": 5553709728
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913665105968710,
+              "enable_begin_ns": 913665176434408,
+              "enable_end_ns": 913665176493711,
+              "disable_begin_ns": 913667597061720,
+              "disable_end_ns": 913667597112835
+            }
+          },
+          {
+            "variant": 1,
+            "cpu_seconds": 2.1915074519999997,
+            "status": 0,
+            "milliseconds": 2193.829999923706,
+            "mhz": 2394.3846740497156,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93227723,
+                  "user_cycles": {
+                    "raw": 5246228512,
+                    "time_enabled_ns": 2194099802,
+                    "time_running_ns": 2194099802,
+                    "running_fraction": 1,
+                    "scaled": 5246228512
+                  },
+                  "user_instructions": {
+                    "raw": 20778806352,
+                    "time_enabled_ns": 2194099802,
+                    "time_running_ns": 2194099802,
+                    "running_fraction": 1,
+                    "scaled": 20778806352
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5048190720,
+                    "time_enabled_ns": 2194099802,
+                    "time_running_ns": 2194099802,
+                    "running_fraction": 1,
+                    "scaled": 5048190720
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913667602659301,
+              "enable_begin_ns": 913667603111762,
+              "enable_end_ns": 913667603158391,
+              "disable_begin_ns": 913669798814852,
+              "disable_end_ns": 913669798870649
+            }
+          },
+          {
+            "variant": 1,
+            "cpu_seconds": 2.2132074160000013,
+            "status": 0,
+            "milliseconds": 2216.8450000286102,
+            "mhz": 2394.3654946047327,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93227723,
+                  "user_cycles": {
+                    "raw": 5297872260,
+                    "time_enabled_ns": 2217066377,
+                    "time_running_ns": 2217066377,
+                    "running_fraction": 1,
+                    "scaled": 5297872260
+                  },
+                  "user_instructions": {
+                    "raw": 20778806413,
+                    "time_enabled_ns": 2217066377,
+                    "time_running_ns": 2217066377,
+                    "running_fraction": 1,
+                    "scaled": 20778806413
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5097925824,
+                    "time_enabled_ns": 2217066377,
+                    "time_running_ns": 2217066377,
+                    "running_fraction": 1,
+                    "scaled": 5097925824
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913669802901915,
+              "enable_begin_ns": 913669803284364,
+              "enable_end_ns": 913669803328090,
+              "disable_begin_ns": 913672022103521,
+              "disable_end_ns": 913672022168981
+            }
+          },
+          {
+            "variant": 0,
+            "cpu_seconds": 2.247407856999999,
+            "status": 0,
+            "milliseconds": 2250.5899999141693,
+            "mhz": 2394.3604272333146,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93227723,
+                  "user_cycles": {
+                    "raw": 5379885451,
+                    "time_enabled_ns": 2250842173,
+                    "time_running_ns": 2250842173,
+                    "running_fraction": 1,
+                    "scaled": 5379885451
+                  },
+                  "user_instructions": {
+                    "raw": 20551208054,
+                    "time_enabled_ns": 2250842173,
+                    "time_running_ns": 2250842173,
+                    "running_fraction": 1,
+                    "scaled": 20551208054
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5176854720,
+                    "time_enabled_ns": 2250842173,
+                    "time_running_ns": 2250842173,
+                    "running_fraction": 1,
+                    "scaled": 5176854720
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913672026948205,
+              "enable_begin_ns": 913672027509971,
+              "enable_end_ns": 913672027557197,
+              "disable_begin_ns": 913674280174905,
+              "disable_end_ns": 913674280247478
+            }
+          },
+          {
+            "variant": 1,
+            "cpu_seconds": 2.210794456000002,
+            "status": 0,
+            "milliseconds": 2214.180000066757,
+            "mhz": 2394.358097288694,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93227723,
+                  "user_cycles": {
+                    "raw": 5292183259,
+                    "time_enabled_ns": 2214462974,
+                    "time_running_ns": 2214462974,
+                    "running_fraction": 1,
+                    "scaled": 5292183259
+                  },
+                  "user_instructions": {
+                    "raw": 20778806355,
+                    "time_enabled_ns": 2214462974,
+                    "time_running_ns": 2214462974,
+                    "running_fraction": 1,
+                    "scaled": 20778806355
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5092467264,
+                    "time_enabled_ns": 2214462974,
+                    "time_running_ns": 2214462974,
+                    "running_fraction": 1,
+                    "scaled": 5092467264
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913674284761534,
+              "enable_begin_ns": 913674285341881,
+              "enable_end_ns": 913674285392140,
+              "disable_begin_ns": 913676501565805,
+              "disable_end_ns": 913676501621470
+            }
+          },
+          {
+            "variant": 0,
+            "cpu_seconds": 2.2384119349999985,
+            "status": 0,
+            "milliseconds": 2241.1150000095367,
+            "mhz": 2394.3721129290157,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93227723,
+                  "user_cycles": {
+                    "raw": 5358527670,
+                    "time_enabled_ns": 2241441159,
+                    "time_running_ns": 2241441159,
+                    "running_fraction": 1,
+                    "scaled": 5358527670
+                  },
+                  "user_instructions": {
+                    "raw": 20551209425,
+                    "time_enabled_ns": 2241441159,
+                    "time_running_ns": 2241441159,
+                    "running_fraction": 1,
+                    "scaled": 20551209425
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5156277792,
+                    "time_enabled_ns": 2241441159,
+                    "time_running_ns": 2241441159,
+                    "running_fraction": 1,
+                    "scaled": 5156277792
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913676506220737,
+              "enable_begin_ns": 913676506757617,
+              "enable_end_ns": 913676506806662,
+              "disable_begin_ns": 913678749749889,
+              "disable_end_ns": 913678749811272
+            }
+          },
+          {
+            "variant": 0,
+            "cpu_seconds": 2.242541626999998,
+            "status": 0,
+            "milliseconds": 2245.5449999570847,
+            "mhz": 2394.3677223350705,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93227723,
+                  "user_cycles": {
+                    "raw": 5368200268,
+                    "time_enabled_ns": 2245755652,
+                    "time_running_ns": 2245755652,
+                    "running_fraction": 1,
+                    "scaled": 5368200268
+                  },
+                  "user_instructions": {
+                    "raw": 20551214821,
+                    "time_enabled_ns": 2245755652,
+                    "time_running_ns": 2245755652,
+                    "running_fraction": 1,
+                    "scaled": 20551214821
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5165594784,
+                    "time_enabled_ns": 2245755652,
+                    "time_running_ns": 2245755652,
+                    "running_fraction": 1,
+                    "scaled": 5165594784
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913678754750593,
+              "enable_begin_ns": 913678755251042,
+              "enable_end_ns": 913678755264165,
+              "disable_begin_ns": 913681002787809,
+              "disable_end_ns": 913681002843178
+            }
+          },
+          {
+            "variant": 1,
+            "cpu_seconds": 2.1859761470000016,
+            "status": 0,
+            "milliseconds": 2187.9550000429153,
+            "mhz": 2394.3949544482275,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93227723,
+                  "user_cycles": {
+                    "raw": 5233067199,
+                    "time_enabled_ns": 2188198381,
+                    "time_running_ns": 2188198381,
+                    "running_fraction": 1,
+                    "scaled": 5233067199
+                  },
+                  "user_instructions": {
+                    "raw": 20778809303,
+                    "time_enabled_ns": 2188198381,
+                    "time_running_ns": 2188198381,
+                    "running_fraction": 1,
+                    "scaled": 20778809303
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5035504608,
+                    "time_enabled_ns": 2188198381,
+                    "time_running_ns": 2188198381,
+                    "running_fraction": 1,
+                    "scaled": 5035504608
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913681006892213,
+              "enable_begin_ns": 913681007391115,
+              "enable_end_ns": 913681007443097,
+              "disable_begin_ns": 913683196989124,
+              "disable_end_ns": 913683197050627
+            }
+          }
+        ]
+      }
+    },
+    {
+      "layout": "prefix",
+      "workload": "tile",
+      "path": "/home/claude/.scratch/eka-indirect-table-20261010/prefix-tile",
+      "baseline_cpu_seconds": 0.546026462,
+      "candidate_cpu_seconds": 0.5432572737499999,
+      "cpu_throughput_percent": 0.5097379057412255,
+      "native_instructions_percent": -0.05979583764758045,
+      "paired_cpu_percent": [
+        0.4624287736701316,
+        3.9296204680589586,
+        1.924681365697123,
+        -4.008285871141326
+      ],
+      "jit_roots": [
+        {
+          "pid": 3902379,
+          "tid": 3902379,
+          "timestamp": 913771362651000,
+          "address": 48682494665472,
+          "size": 236352,
+          "id": 8297,
+          "name": "JS:f_1879182840-6-turbofan",
+          "sha256": "b2e495555205308e312f6c163da3b6f9c5e21810a1aa752a3fd0e5f7eac52c9d"
+        },
+        {
+          "pid": 3902379,
+          "tid": 3902379,
+          "timestamp": 913771686967000,
+          "address": 48682495560960,
+          "size": 327360,
+          "id": 8302,
+          "name": "JS:f_1879182840-6-turbofan",
+          "sha256": "57144f73cc224bb108fbeb537cb95ddaade30eb206906d94d3edb0f83c6159bd"
+        }
+      ],
+      "optimized_before_measurement": true,
+      "report": {
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/153.0.8010.52",
+          "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "jsVersion": "15.3.76.13"
+        },
+        "pid": 3902379,
+        "renderers": [
+          {
+            "type": "renderer",
+            "id": 3902379,
+            "cpuTime": 1.24,
+            "delta": 0.98
+          },
+          {
+            "type": "renderer",
+            "id": 3902287,
+            "cpuTime": 0.51,
+            "delta": 0.10000000000000003
+          },
+          {
+            "type": "renderer",
+            "id": 3902392,
+            "cpuTime": 0.03,
+            "delta": 0
+          },
+          {
+            "type": "renderer",
+            "id": 3902317,
+            "cpuTime": 0.05,
+            "delta": 0
+          }
+        ],
+        "iterations": 100000,
+        "entry": "tile_row_benchmark",
+        "builds": [
+          "/home/claude/.scratch/eka-indirect-table-20261010/control-test",
+          "/home/claude/.scratch/eka-indirect-table-20261010/prefix-test"
+        ],
+        "fullWarmups": [
+          {
+            "variant": 0,
+            "status": 0,
+            "milliseconds": 586.0499999523163
+          },
+          {
+            "variant": 1,
+            "status": 0,
+            "milliseconds": 547.1349999904633
+          },
+          {
+            "variant": 0,
+            "status": 0,
+            "milliseconds": 561.960000038147
+          },
+          {
+            "variant": 1,
+            "status": 0,
+            "milliseconds": 537.3650000095367
+          }
+        ],
+        "wasm_sha256": [
+          "dc4d6f6eb435446b624588ebef5812db2426e6a9badfd7e978b82f9c3a70f1d1",
+          "08a6b9141be0729b1c053f41fce0f16e634fb783265083e2e74c6a55b9280637"
+        ],
+        "comparison": "enabled policies in separate builds",
+        "rows": [
+          {
+            "variant": 0,
+            "cpu_seconds": 0.5372083110000001,
+            "status": 0,
+            "milliseconds": 537.1750000715256,
+            "mhz": 2394.414952651571,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93239342,
+                  "user_cycles": {
+                    "raw": 1286039872,
+                    "time_enabled_ns": 537603106,
+                    "time_running_ns": 537603106,
+                    "running_fraction": 1,
+                    "scaled": 1286039872
+                  },
+                  "user_instructions": {
+                    "raw": 5125856490,
+                    "time_enabled_ns": 537603106,
+                    "time_running_ns": 537603106,
+                    "running_fraction": 1,
+                    "scaled": 5125856490
+                  },
+                  "user_reference_cycles": {
+                    "raw": 1237478016,
+                    "time_enabled_ns": 537603106,
+                    "time_running_ns": 537603106,
+                    "running_fraction": 1,
+                    "scaled": 1237478016
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913773580575789,
+              "enable_begin_ns": 913773602582108,
+              "enable_end_ns": 913773602610159,
+              "disable_begin_ns": 913774142341038,
+              "disable_end_ns": 913774142394741
+            }
+          },
+          {
+            "variant": 1,
+            "cpu_seconds": 0.5347355399999998,
+            "status": 0,
+            "milliseconds": 534.8999999761581,
+            "mhz": 2394.4148616665607,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93239342,
+                  "user_cycles": {
+                    "raw": 1280084215,
+                    "time_enabled_ns": 535146046,
+                    "time_running_ns": 535146046,
+                    "running_fraction": 1,
+                    "scaled": 1280084215
+                  },
+                  "user_instructions": {
+                    "raw": 5122635910,
+                    "time_enabled_ns": 535146046,
+                    "time_running_ns": 535146046,
+                    "running_fraction": 1,
+                    "scaled": 5122635910
+                  },
+                  "user_reference_cycles": {
+                    "raw": 1231747296,
+                    "time_enabled_ns": 535146046,
+                    "time_running_ns": 535146046,
+                    "running_fraction": 1,
+                    "scaled": 1231747296
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913774145854277,
+              "enable_begin_ns": 913774146226245,
+              "enable_end_ns": 913774146276161,
+              "disable_begin_ns": 913774682759557,
+              "disable_end_ns": 913774682805061
+            }
+          },
+          {
+            "variant": 1,
+            "cpu_seconds": 0.5347061420000001,
+            "status": 0,
+            "milliseconds": 534.789999961853,
+            "mhz": 2394.4129361504724,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93239342,
+                  "user_cycles": {
+                    "raw": 1280059441,
+                    "time_enabled_ns": 535099586,
+                    "time_running_ns": 535099586,
+                    "running_fraction": 1,
+                    "scaled": 1280059441
+                  },
+                  "user_instructions": {
+                    "raw": 5122700473,
+                    "time_enabled_ns": 535099586,
+                    "time_running_ns": 535099586,
+                    "running_fraction": 1,
+                    "scaled": 5122700473
+                  },
+                  "user_reference_cycles": {
+                    "raw": 1231724448,
+                    "time_enabled_ns": 535099586,
+                    "time_running_ns": 535099586,
+                    "running_fraction": 1,
+                    "scaled": 1231724448
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913774684996743,
+              "enable_begin_ns": 913774685378879,
+              "enable_end_ns": 913774685419090,
+              "disable_begin_ns": 913775221755511,
+              "disable_end_ns": 913775221806955
+            }
+          },
+          {
+            "variant": 0,
+            "cpu_seconds": 0.5557180640000006,
+            "status": 0,
+            "milliseconds": 556.7200000286102,
+            "mhz": 2394.400116100769,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93239342,
+                  "user_cycles": {
+                    "raw": 1330213474,
+                    "time_enabled_ns": 556394497,
+                    "time_running_ns": 556394497,
+                    "running_fraction": 1,
+                    "scaled": 1330213474
+                  },
+                  "user_instructions": {
+                    "raw": 5125838414,
+                    "time_enabled_ns": 556394497,
+                    "time_running_ns": 556394497,
+                    "running_fraction": 1,
+                    "scaled": 5125838414
+                  },
+                  "user_reference_cycles": {
+                    "raw": 1279991520,
+                    "time_enabled_ns": 556394497,
+                    "time_running_ns": 556394497,
+                    "running_fraction": 1,
+                    "scaled": 1279991520
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913776421814352,
+              "enable_begin_ns": 913776469079976,
+              "enable_end_ns": 913776469123406,
+              "disable_begin_ns": 913777027745788,
+              "disable_end_ns": 913777027789767
+            }
+          },
+          {
+            "variant": 1,
+            "cpu_seconds": 0.5364431839999995,
+            "status": 0,
+            "milliseconds": 536.5499999523163,
+            "mhz": 2394.4098015561517,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93239342,
+                  "user_cycles": {
+                    "raw": 1284177048,
+                    "time_enabled_ns": 536853129,
+                    "time_running_ns": 536853129,
+                    "running_fraction": 1,
+                    "scaled": 1284177048
+                  },
+                  "user_instructions": {
+                    "raw": 5122650708,
+                    "time_enabled_ns": 536853129,
+                    "time_running_ns": 536853129,
+                    "running_fraction": 1,
+                    "scaled": 5122650708
+                  },
+                  "user_reference_cycles": {
+                    "raw": 1235688192,
+                    "time_enabled_ns": 536853129,
+                    "time_running_ns": 536853129,
+                    "running_fraction": 1,
+                    "scaled": 1235688192
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913777029982112,
+              "enable_begin_ns": 913777030359904,
+              "enable_end_ns": 913777030404798,
+              "disable_begin_ns": 913777568544053,
+              "disable_end_ns": 913777568597842
+            }
+          },
+          {
+            "variant": 0,
+            "cpu_seconds": 0.5467680059999998,
+            "status": 0,
+            "milliseconds": 548.204999923706,
+            "mhz": 2394.358554351549,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93239342,
+                  "user_cycles": {
+                    "raw": 1308712589,
+                    "time_enabled_ns": 548514776,
+                    "time_running_ns": 548514776,
+                    "running_fraction": 1,
+                    "scaled": 1308712589
+                  },
+                  "user_instructions": {
+                    "raw": 5125838598,
+                    "time_enabled_ns": 548514776,
+                    "time_running_ns": 548514776,
+                    "running_fraction": 1,
+                    "scaled": 5125838598
+                  },
+                  "user_reference_cycles": {
+                    "raw": 1259324256,
+                    "time_enabled_ns": 548514776,
+                    "time_running_ns": 548514776,
+                    "running_fraction": 1,
+                    "scaled": 1259324256
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913779444222170,
+              "enable_begin_ns": 913779509175011,
+              "enable_end_ns": 913779509228554,
+              "disable_begin_ns": 913780065409810,
+              "disable_end_ns": 913780065486543
+            }
+          },
+          {
+            "variant": 0,
+            "cpu_seconds": 0.5444114669999998,
+            "status": 0,
+            "milliseconds": 545.1200000047684,
+            "mhz": 2394.3621307266158,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93239342,
+                  "user_cycles": {
+                    "raw": 1302993415,
+                    "time_enabled_ns": 545550137,
+                    "time_running_ns": 545550137,
+                    "running_fraction": 1,
+                    "scaled": 1302993415
+                  },
+                  "user_instructions": {
+                    "raw": 5125851821,
+                    "time_enabled_ns": 545550137,
+                    "time_running_ns": 545550137,
+                    "running_fraction": 1,
+                    "scaled": 5125851821
+                  },
+                  "user_reference_cycles": {
+                    "raw": 1253819040,
+                    "time_enabled_ns": 545550137,
+                    "time_running_ns": 545550137,
+                    "running_fraction": 1,
+                    "scaled": 1253819040
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913780068867316,
+              "enable_begin_ns": 913780069430977,
+              "enable_end_ns": 913780069479153,
+              "disable_begin_ns": 913780616875930,
+              "disable_end_ns": 913780616938091
+            }
+          },
+          {
+            "variant": 1,
+            "cpu_seconds": 0.5671442290000002,
+            "status": 0,
+            "milliseconds": 567.5449999570847,
+            "mhz": 2394.3525273086416,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93239342,
+                  "user_cycles": {
+                    "raw": 1357165004,
+                    "time_enabled_ns": 568365847,
+                    "time_running_ns": 568365847,
+                    "running_fraction": 1,
+                    "scaled": 1357165004
+                  },
+                  "user_instructions": {
+                    "raw": 5123138061,
+                    "time_enabled_ns": 568365847,
+                    "time_running_ns": 568365847,
+                    "running_fraction": 1,
+                    "scaled": 5123138061
+                  },
+                  "user_reference_cycles": {
+                    "raw": 1305951456,
+                    "time_enabled_ns": 568365847,
+                    "time_running_ns": 568365847,
+                    "running_fraction": 1,
+                    "scaled": 1305951456
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913780620795074,
+              "enable_begin_ns": 913780621394280,
+              "enable_end_ns": 913780621441268,
+              "disable_begin_ns": 913781191398143,
+              "disable_end_ns": 913781191458349
+            }
+          }
+        ],
+        "tiering": {
+          "optimizedRoots": [
+            {
+              "pid": 3902379,
+              "tid": 3902379,
+              "timestamp": 913771362651000,
+              "address": 48682494665472,
+              "size": 236352,
+              "id": 8297,
+              "name": "JS:f_1879182840-6-turbofan",
+              "sha256": "b2e495555205308e312f6c163da3b6f9c5e21810a1aa752a3fd0e5f7eac52c9d"
+            },
+            {
+              "pid": 3902379,
+              "tid": 3902379,
+              "timestamp": 913771686967000,
+              "address": 48682495560960,
+              "size": 327360,
+              "id": 8302,
+              "name": "JS:f_1879182840-6-turbofan",
+              "sha256": "57144f73cc224bb108fbeb537cb95ddaade30eb206906d94d3edb0f83c6159bd"
+            }
+          ],
+          "finishedBeforeMeasurement": true,
+          "verification": "Offline jit_records after driver rejected a truncated unrelated final JIT event; no timing rerun or excluded rows."
+        }
+      }
+    },
+    {
+      "layout": "prefix",
+      "workload": "add",
+      "path": "/home/claude/.scratch/eka-indirect-table-20261010/prefix-add",
+      "baseline_cpu_seconds": 2.3539949922500005,
+      "candidate_cpu_seconds": 2.380550473,
+      "cpu_throughput_percent": -1.1155184925163097,
+      "native_instructions_percent": -0.9678688352020348,
+      "paired_cpu_percent": [
+        -2.263003209290393,
+        -1.9835978999766968,
+        -0.8383989905279887,
+        0.6218474843114441
+      ],
+      "jit_roots": [
+        {
+          "pid": 3907322,
+          "tid": 3907322,
+          "timestamp": 913813022679000,
+          "address": 25204289335296,
+          "size": 236352,
+          "id": 8302,
+          "name": "JS:f_1879182840-6-turbofan",
+          "sha256": "ab3b352efa06a4d839b5f5dff216b3eced102da17e5d52bedbeadc16198ecac6"
+        },
+        {
+          "pid": 3907322,
+          "tid": 3907322,
+          "timestamp": 913813258843000,
+          "address": 25204289576960,
+          "size": 327360,
+          "id": 8303,
+          "name": "JS:f_1879182840-6-turbofan",
+          "sha256": "8c5ed02dae4e7a32ea262cecc59ea5d43659e13c3d29eae72d0226e94688da9e"
+        }
+      ],
+      "optimized_before_measurement": true,
+      "report": {
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/153.0.8010.52",
+          "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "jsVersion": "15.3.76.13"
+        },
+        "pid": 3907322,
+        "renderers": [
+          {
+            "type": "renderer",
+            "id": 3907322,
+            "cpuTime": 1.56,
+            "delta": 1.28
+          },
+          {
+            "type": "renderer",
+            "id": 3907235,
+            "cpuTime": 0.59,
+            "delta": 0.14999999999999997
+          },
+          {
+            "type": "renderer",
+            "id": 3907335,
+            "cpuTime": 0.03,
+            "delta": 0
+          },
+          {
+            "type": "renderer",
+            "id": 3907245,
+            "cpuTime": 0.06,
+            "delta": 0
+          }
+        ],
+        "iterations": 100000,
+        "entry": "tile_add_row_benchmark",
+        "builds": [
+          "/home/claude/.scratch/eka-indirect-table-20261010/control-test",
+          "/home/claude/.scratch/eka-indirect-table-20261010/prefix-test"
+        ],
+        "fullWarmups": [
+          {
+            "variant": 0,
+            "status": 0,
+            "milliseconds": 2337.670000076294
+          },
+          {
+            "variant": 1,
+            "status": 0,
+            "milliseconds": 2329.765000104904
+          },
+          {
+            "variant": 0,
+            "status": 0,
+            "milliseconds": 2331.1050000190735
+          },
+          {
+            "variant": 1,
+            "status": 0,
+            "milliseconds": 2376.4000000953674
+          }
+        ],
+        "wasm_sha256": [
+          "dc4d6f6eb435446b624588ebef5812db2426e6a9badfd7e978b82f9c3a70f1d1",
+          "08a6b9141be0729b1c053f41fce0f16e634fb783265083e2e74c6a55b9280637"
+        ],
+        "comparison": "enabled policies in separate builds",
+        "rows": [
+          {
+            "variant": 0,
+            "cpu_seconds": 2.325376363,
+            "status": 0,
+            "milliseconds": 2326.8099999427795,
+            "mhz": 2394.411953597528,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93243480,
+                  "user_cycles": {
+                    "raw": 5554498985,
+                    "time_enabled_ns": 2327112134,
+                    "time_running_ns": 2327112134,
+                    "running_fraction": 1,
+                    "scaled": 5554498985
+                  },
+                  "user_instructions": {
+                    "raw": 21791213747,
+                    "time_enabled_ns": 2327112134,
+                    "time_running_ns": 2327112134,
+                    "running_fraction": 1,
+                    "scaled": 21791213747
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5344763520,
+                    "time_enabled_ns": 2327112134,
+                    "time_running_ns": 2327112134,
+                    "running_fraction": 1,
+                    "scaled": 5344763520
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913822395922773,
+              "enable_begin_ns": 913822425833565,
+              "enable_end_ns": 913822425880359,
+              "disable_begin_ns": 913824754840651,
+              "disable_end_ns": 913824754893880
+            }
+          },
+          {
+            "variant": 1,
+            "cpu_seconds": 2.3792181459999995,
+            "status": 0,
+            "milliseconds": 2381.1349999904633,
+            "mhz": 2394.407699064346,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93243480,
+                  "user_cycles": {
+                    "raw": 5695827111,
+                    "time_enabled_ns": 2381299968,
+                    "time_running_ns": 2381299968,
+                    "running_fraction": 1,
+                    "scaled": 5695827111
+                  },
+                  "user_instructions": {
+                    "raw": 21580303345,
+                    "time_enabled_ns": 2381299968,
+                    "time_running_ns": 2381299968,
+                    "running_fraction": 1,
+                    "scaled": 21580303345
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5480764896,
+                    "time_enabled_ns": 2381299968,
+                    "time_running_ns": 2381299968,
+                    "running_fraction": 1,
+                    "scaled": 5480764896
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913824760288949,
+              "enable_begin_ns": 913824760674084,
+              "enable_end_ns": 913824760718549,
+              "disable_begin_ns": 913827143410581,
+              "disable_end_ns": 913827143461926
+            }
+          },
+          {
+            "variant": 1,
+            "cpu_seconds": 2.3754622849999993,
+            "status": 0,
+            "milliseconds": 2377.054999947548,
+            "mhz": 2394.4120230952976,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93243480,
+                  "user_cycles": {
+                    "raw": 5686970590,
+                    "time_enabled_ns": 2377307701,
+                    "time_running_ns": 2377307701,
+                    "running_fraction": 1,
+                    "scaled": 5686970590
+                  },
+                  "user_instructions": {
+                    "raw": 21580300077,
+                    "time_enabled_ns": 2377307701,
+                    "time_running_ns": 2377307701,
+                    "running_fraction": 1,
+                    "scaled": 21580300077
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5472232896,
+                    "time_enabled_ns": 2377307701,
+                    "time_running_ns": 2377307701,
+                    "running_fraction": 1,
+                    "scaled": 5472232896
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913827147696754,
+              "enable_begin_ns": 913827148052038,
+              "enable_end_ns": 913827148092494,
+              "disable_begin_ns": 913829526663503,
+              "disable_end_ns": 913829526709861
+            }
+          },
+          {
+            "variant": 0,
+            "cpu_seconds": 2.328342665000001,
+            "status": 0,
+            "milliseconds": 2330.539999961853,
+            "mhz": 2394.3892751729472,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93243480,
+                  "user_cycles": {
+                    "raw": 5573989980,
+                    "time_enabled_ns": 2330768575,
+                    "time_running_ns": 2330768575,
+                    "running_fraction": 1,
+                    "scaled": 5573989980
+                  },
+                  "user_instructions": {
+                    "raw": 21791214855,
+                    "time_enabled_ns": 2330768575,
+                    "time_running_ns": 2330768575,
+                    "running_fraction": 1,
+                    "scaled": 21791214855
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5363569344,
+                    "time_enabled_ns": 2330768575,
+                    "time_running_ns": 2330768575,
+                    "running_fraction": 1,
+                    "scaled": 5363569344
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913829530746430,
+              "enable_begin_ns": 913829531106127,
+              "enable_end_ns": 913829531148780,
+              "disable_begin_ns": 913831863329016,
+              "disable_end_ns": 913831863381926
+            }
+          },
+          {
+            "variant": 1,
+            "cpu_seconds": 2.3905027590000003,
+            "status": 0,
+            "milliseconds": 2393.0750000476837,
+            "mhz": 2394.3814664315832,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93243480,
+                  "user_cycles": {
+                    "raw": 5722748889,
+                    "time_enabled_ns": 2393354174,
+                    "time_running_ns": 2393354174,
+                    "running_fraction": 1,
+                    "scaled": 5722748889
+                  },
+                  "user_instructions": {
+                    "raw": 21580303372,
+                    "time_enabled_ns": 2393354174,
+                    "time_running_ns": 2393354174,
+                    "running_fraction": 1,
+                    "scaled": 21580303372
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5506730496,
+                    "time_enabled_ns": 2393354174,
+                    "time_running_ns": 2393354174,
+                    "running_fraction": 1,
+                    "scaled": 5506730496
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913831867623559,
+              "enable_begin_ns": 913831867983738,
+              "enable_end_ns": 913831868025117,
+              "disable_begin_ns": 913834262644908,
+              "disable_end_ns": 913834262695505
+            }
+          },
+          {
+            "variant": 0,
+            "cpu_seconds": 2.3704608080000007,
+            "status": 0,
+            "milliseconds": 2373.935000061989,
+            "mhz": 2394.3651612905496,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93243480,
+                  "user_cycles": {
+                    "raw": 5674548660,
+                    "time_enabled_ns": 2374245133,
+                    "time_running_ns": 2374245133,
+                    "running_fraction": 1,
+                    "scaled": 5674548660
+                  },
+                  "user_instructions": {
+                    "raw": 21791212709,
+                    "time_enabled_ns": 2374245133,
+                    "time_running_ns": 2374245133,
+                    "running_fraction": 1,
+                    "scaled": 21791212709
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5460386880,
+                    "time_enabled_ns": 2374245133,
+                    "time_running_ns": 2374245133,
+                    "running_fraction": 1,
+                    "scaled": 5460386880
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913834267036144,
+              "enable_begin_ns": 913834267434475,
+              "enable_end_ns": 913834267475592,
+              "disable_begin_ns": 913836643104289,
+              "disable_end_ns": 913836643155434
+            }
+          },
+          {
+            "variant": 0,
+            "cpu_seconds": 2.3918001330000003,
+            "status": 0,
+            "milliseconds": 2394.4700000286102,
+            "mhz": 2394.390259987095,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93243480,
+                  "user_cycles": {
+                    "raw": 5725731767,
+                    "time_enabled_ns": 2394683070,
+                    "time_running_ns": 2394683070,
+                    "running_fraction": 1,
+                    "scaled": 5725731767
+                  },
+                  "user_instructions": {
+                    "raw": 21791213297,
+                    "time_enabled_ns": 2394683070,
+                    "time_running_ns": 2394683070,
+                    "running_fraction": 1,
+                    "scaled": 21791213297
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5509580544,
+                    "time_enabled_ns": 2394683070,
+                    "time_running_ns": 2394683070,
+                    "running_fraction": 1,
+                    "scaled": 5509580544
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913836647767228,
+              "enable_begin_ns": 913836648291794,
+              "enable_end_ns": 913836648343437,
+              "disable_begin_ns": 913839044606311,
+              "disable_end_ns": 913839044655561
+            }
+          },
+          {
+            "variant": 1,
+            "cpu_seconds": 2.377018702000001,
+            "status": 0,
+            "milliseconds": 2378.6200000047684,
+            "mhz": 2394.4096554031785,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93243480,
+                  "user_cycles": {
+                    "raw": 5690686777,
+                    "time_enabled_ns": 2378884153,
+                    "time_running_ns": 2378884153,
+                    "running_fraction": 1,
+                    "scaled": 5690686777
+                  },
+                  "user_instructions": {
+                    "raw": 21580306351,
+                    "time_enabled_ns": 2378884153,
+                    "time_running_ns": 2378884153,
+                    "running_fraction": 1,
+                    "scaled": 21580306351
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5475814176,
+                    "time_enabled_ns": 2378884153,
+                    "time_running_ns": 2378884153,
+                    "running_fraction": 1,
+                    "scaled": 5475814176
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913839048823206,
+              "enable_begin_ns": 913839049184826,
+              "enable_end_ns": 913839049224464,
+              "disable_begin_ns": 913841429428745,
+              "disable_end_ns": 913841429479721
+            }
+          }
+        ],
+        "tiering": {
+          "optimizedRoots": [
+            {
+              "name": "JS:f_1879182840-6-turbofan",
+              "timestamp": 913813022679000
+            },
+            {
+              "name": "JS:f_1879182840-6-turbofan",
+              "timestamp": 913813258843000
+            }
+          ],
+          "incompleteJitTails": [
+            {
+              "file": "jit-3907235.dump",
+              "offset": 3038852,
+              "missingBytes": 524
+            },
+            {
+              "file": "jit-3907244.dump",
+              "offset": 2596650,
+              "missingBytes": 60
+            },
+            {
+              "file": "jit-3907245.dump",
+              "offset": 2596650,
+              "missingBytes": 60
+            },
+            {
+              "file": "jit-3907322.dump",
+              "offset": 12581425,
+              "missingBytes": 2188
+            },
+            {
+              "file": "jit-3907335.dump",
+              "offset": 2596650,
+              "missingBytes": 60
+            }
+          ],
+          "finishedBeforeMeasurement": true
+        }
+      }
+    },
+    {
+      "layout": "prefix",
+      "workload": "sub",
+      "path": "/home/claude/.scratch/eka-indirect-table-20261010/prefix-sub",
+      "baseline_cpu_seconds": 2.2145045724999997,
+      "candidate_cpu_seconds": 2.1765440315000006,
+      "cpu_throughput_percent": 1.7440741124744363,
+      "native_instructions_percent": 0.7014496571470241,
+      "paired_cpu_percent": [
+        1.9038749988978365,
+        1.9442014916775774,
+        1.6095283303419583,
+        1.5193017745211534
+      ],
+      "jit_roots": [
+        {
+          "pid": 3910478,
+          "tid": 3910478,
+          "timestamp": 913842933149000,
+          "address": 51654984323072,
+          "size": 236352,
+          "id": 8302,
+          "name": "JS:f_1879182840-6-turbofan",
+          "sha256": "64ec1eba7e553d0c80933f22cc0918ef2dab5394d24071add2323cabbbb70eaf"
+        },
+        {
+          "pid": 3910478,
+          "tid": 3910478,
+          "timestamp": 913843168439000,
+          "address": 51654984564736,
+          "size": 327360,
+          "id": 8303,
+          "name": "JS:f_1879182840-6-turbofan",
+          "sha256": "2a7b188d85a3a0f8afa07930310da21818741b444d18ab37aab2adf5ef56a8b6"
+        }
+      ],
+      "optimized_before_measurement": true,
+      "report": {
+        "browser": {
+          "protocolVersion": "1.3",
+          "product": "Chrome/153.0.8010.52",
+          "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "jsVersion": "15.3.76.13"
+        },
+        "pid": 3910478,
+        "renderers": [
+          {
+            "type": "renderer",
+            "id": 3910478,
+            "cpuTime": 1.2,
+            "delta": 0.95
+          },
+          {
+            "type": "renderer",
+            "id": 3910402,
+            "cpuTime": 0.47,
+            "delta": 0.06999999999999995
+          },
+          {
+            "type": "renderer",
+            "id": 3910510,
+            "cpuTime": 0.03,
+            "delta": 0
+          },
+          {
+            "type": "renderer",
+            "id": 3910415,
+            "cpuTime": 0.04,
+            "delta": 0
+          }
+        ],
+        "iterations": 100000,
+        "entry": "tile_sub_row_benchmark",
+        "builds": [
+          "/home/claude/.scratch/eka-indirect-table-20261010/control-test",
+          "/home/claude/.scratch/eka-indirect-table-20261010/prefix-test"
+        ],
+        "fullWarmups": [
+          {
+            "variant": 0,
+            "status": 0,
+            "milliseconds": 2224.3700000047684
+          },
+          {
+            "variant": 1,
+            "status": 0,
+            "milliseconds": 2184.1299999952316
+          },
+          {
+            "variant": 0,
+            "status": 0,
+            "milliseconds": 2218.3150000572205
+          },
+          {
+            "variant": 1,
+            "status": 0,
+            "milliseconds": 2181.125
+          }
+        ],
+        "wasm_sha256": [
+          "dc4d6f6eb435446b624588ebef5812db2426e6a9badfd7e978b82f9c3a70f1d1",
+          "08a6b9141be0729b1c053f41fce0f16e634fb783265083e2e74c6a55b9280637"
+        ],
+        "comparison": "enabled policies in separate builds",
+        "rows": [
+          {
+            "variant": 0,
+            "cpu_seconds": 2.2163356729999997,
+            "status": 0,
+            "milliseconds": 2219.875,
+            "mhz": 2394.408013358302,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93246508,
+                  "user_cycles": {
+                    "raw": 5311385998,
+                    "time_enabled_ns": 2220656880,
+                    "time_running_ns": 2220656880,
+                    "running_fraction": 1,
+                    "scaled": 5311385998
+                  },
+                  "user_instructions": {
+                    "raw": 20551776520,
+                    "time_enabled_ns": 2220656880,
+                    "time_running_ns": 2220656880,
+                    "running_fraction": 1,
+                    "scaled": 20551776520
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5110838784,
+                    "time_enabled_ns": 2220656880,
+                    "time_running_ns": 2220656880,
+                    "running_fraction": 1,
+                    "scaled": 5110838784
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913851758875569,
+              "enable_begin_ns": 913851792461119,
+              "enable_end_ns": 913851792509268,
+              "disable_begin_ns": 913854014558488,
+              "disable_end_ns": 913854014611382
+            }
+          },
+          {
+            "variant": 1,
+            "cpu_seconds": 2.174927767,
+            "status": 0,
+            "milliseconds": 2176.225000023842,
+            "mhz": 2394.4152665665342,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93246508,
+                  "user_cycles": {
+                    "raw": 5206946320,
+                    "time_enabled_ns": 2176471731,
+                    "time_running_ns": 2176471731,
+                    "running_fraction": 1,
+                    "scaled": 5206946320
+                  },
+                  "user_instructions": {
+                    "raw": 20695506725,
+                    "time_enabled_ns": 2176471731,
+                    "time_running_ns": 2176471731,
+                    "running_fraction": 1,
+                    "scaled": 20695506725
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5010327360,
+                    "time_enabled_ns": 2176471731,
+                    "time_running_ns": 2176471731,
+                    "running_fraction": 1,
+                    "scaled": 5010327360
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913854019620832,
+              "enable_begin_ns": 913854019999380,
+              "enable_end_ns": 913854020053723,
+              "disable_begin_ns": 913856197886941,
+              "disable_end_ns": 913856197938338
+            }
+          },
+          {
+            "variant": 1,
+            "cpu_seconds": 2.1742863680000006,
+            "status": 0,
+            "milliseconds": 2175.6150000095367,
+            "mhz": 2394.4138543254403,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93246508,
+                  "user_cycles": {
+                    "raw": 5205385982,
+                    "time_enabled_ns": 2175853719,
+                    "time_running_ns": 2175853719,
+                    "running_fraction": 1,
+                    "scaled": 5205385982
+                  },
+                  "user_instructions": {
+                    "raw": 20695507076,
+                    "time_enabled_ns": 2175853719,
+                    "time_running_ns": 2175853719,
+                    "running_fraction": 1,
+                    "scaled": 20695507076
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5008828896,
+                    "time_enabled_ns": 2175853719,
+                    "time_running_ns": 2175853719,
+                    "running_fraction": 1,
+                    "scaled": 5008828896
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913856201881971,
+              "enable_begin_ns": 913856202258338,
+              "enable_end_ns": 913856202297385,
+              "disable_begin_ns": 913858379463039,
+              "disable_end_ns": 913858379510497
+            }
+          },
+          {
+            "variant": 0,
+            "cpu_seconds": 2.216558875999999,
+            "status": 0,
+            "milliseconds": 2217.8550000190735,
+            "mhz": 2394.4143462492325,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93246508,
+                  "user_cycles": {
+                    "raw": 5306602737,
+                    "time_enabled_ns": 2218121028,
+                    "time_running_ns": 2218121028,
+                    "running_fraction": 1,
+                    "scaled": 5306602737
+                  },
+                  "user_instructions": {
+                    "raw": 20551210819,
+                    "time_enabled_ns": 2218121028,
+                    "time_running_ns": 2218121028,
+                    "running_fraction": 1,
+                    "scaled": 20551210819
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5106222624,
+                    "time_enabled_ns": 2218121028,
+                    "time_running_ns": 2218121028,
+                    "running_fraction": 1,
+                    "scaled": 5106222624
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913858383445529,
+              "enable_begin_ns": 913858383797991,
+              "enable_end_ns": 913858383837681,
+              "disable_begin_ns": 913860603318413,
+              "disable_end_ns": 913860603375133
+            }
+          },
+          {
+            "variant": 1,
+            "cpu_seconds": 2.179346355,
+            "status": 0,
+            "milliseconds": 2180.8150000572205,
+            "mhz": 2394.41255511831,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93246508,
+                  "user_cycles": {
+                    "raw": 5217507066,
+                    "time_enabled_ns": 2181065019,
+                    "time_running_ns": 2181065019,
+                    "running_fraction": 1,
+                    "scaled": 5217507066
+                  },
+                  "user_instructions": {
+                    "raw": 20695507784,
+                    "time_enabled_ns": 2181065019,
+                    "time_running_ns": 2181065019,
+                    "running_fraction": 1,
+                    "scaled": 20695507784
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5020495008,
+                    "time_enabled_ns": 2181065019,
+                    "time_running_ns": 2181065019,
+                    "running_fraction": 1,
+                    "scaled": 5020495008
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913860607403918,
+              "enable_begin_ns": 913860607760170,
+              "enable_end_ns": 913860607802478,
+              "disable_begin_ns": 913862790109668,
+              "disable_end_ns": 913862790160849
+            }
+          },
+          {
+            "variant": 0,
+            "cpu_seconds": 2.2144235519999995,
+            "status": 0,
+            "milliseconds": 2215.680000066757,
+            "mhz": 2394.4170526923263,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93246508,
+                  "user_cycles": {
+                    "raw": 5301469518,
+                    "time_enabled_ns": 2215903896,
+                    "time_running_ns": 2215903896,
+                    "running_fraction": 1,
+                    "scaled": 5301469518
+                  },
+                  "user_instructions": {
+                    "raw": 20551206625,
+                    "time_enabled_ns": 2215903896,
+                    "time_running_ns": 2215903896,
+                    "running_fraction": 1,
+                    "scaled": 20551206625
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5101277472,
+                    "time_enabled_ns": 2215903896,
+                    "time_running_ns": 2215903896,
+                    "running_fraction": 1,
+                    "scaled": 5101277472
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913862793877449,
+              "enable_begin_ns": 913862794244461,
+              "enable_end_ns": 913862794284806,
+              "disable_begin_ns": 913865011328622,
+              "disable_end_ns": 913865011377399
+            }
+          },
+          {
+            "variant": 0,
+            "cpu_seconds": 2.2107001890000006,
+            "status": 0,
+            "milliseconds": 2211.9700000286102,
+            "mhz": 2394.4180149666026,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93246508,
+                  "user_cycles": {
+                    "raw": 5292539771,
+                    "time_enabled_ns": 2212143199,
+                    "time_running_ns": 2212143199,
+                    "running_fraction": 1,
+                    "scaled": 5292539771
+                  },
+                  "user_instructions": {
+                    "raw": 20551207254,
+                    "time_enabled_ns": 2212143199,
+                    "time_running_ns": 2212143199,
+                    "running_fraction": 1,
+                    "scaled": 20551207254
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5092682880,
+                    "time_enabled_ns": 2212143199,
+                    "time_running_ns": 2212143199,
+                    "running_fraction": 1,
+                    "scaled": 5092682880
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913865015355602,
+              "enable_begin_ns": 913865015776791,
+              "enable_end_ns": 913865015820115,
+              "disable_begin_ns": 913867229418861,
+              "disable_end_ns": 913867229468116
+            }
+          },
+          {
+            "variant": 1,
+            "cpu_seconds": 2.1776156360000023,
+            "status": 0,
+            "milliseconds": 2178.9899998903275,
+            "mhz": 2394.4133855017444,
+            "hardware": {
+              "events": {
+                "guest": {
+                  "start_ticks": 93246508,
+                  "user_cycles": {
+                    "raw": 5213322942,
+                    "time_enabled_ns": 2179173583,
+                    "time_running_ns": 2179173583,
+                    "running_fraction": 1,
+                    "scaled": 5213322942
+                  },
+                  "user_instructions": {
+                    "raw": 20695509138,
+                    "time_enabled_ns": 2179173583,
+                    "time_running_ns": 2179173583,
+                    "running_fraction": 1,
+                    "scaled": 20695509138
+                  },
+                  "user_reference_cycles": {
+                    "raw": 5016467136,
+                    "time_enabled_ns": 2179173583,
+                    "time_running_ns": 2179173583,
+                    "running_fraction": 1,
+                    "scaled": 5016467136
+                  }
+                }
+              },
+              "errors": [],
+              "begin_ns": 913867233497573,
+              "enable_begin_ns": 913867233844141,
+              "enable_end_ns": 913867233889994,
+              "disable_begin_ns": 913869414414509,
+              "disable_end_ns": 913869414463831
+            }
+          }
+        ],
+        "tiering": {
+          "optimizedRoots": [
+            {
+              "name": "JS:f_1879182840-6-turbofan",
+              "timestamp": 913842933149000
+            },
+            {
+              "name": "JS:f_1879182840-6-turbofan",
+              "timestamp": 913843168439000
+            }
+          ],
+          "incompleteJitTails": [
+            {
+              "file": "jit-3910402.dump",
+              "offset": 3043044,
+              "missingBytes": 17
+            },
+            {
+              "file": "jit-3910413.dump",
+              "offset": 2596650,
+              "missingBytes": 60
+            },
+            {
+              "file": "jit-3910415.dump",
+              "offset": 2596650,
+              "missingBytes": 60
+            },
+            {
+              "file": "jit-3910478.dump",
+              "offset": 12581299,
+              "missingBytes": 2062
+            },
+            {
+              "file": "jit-3910510.dump",
+              "offset": 2596650,
+              "missingBytes": 60
+            }
+          ],
+          "finishedBeforeMeasurement": true
+        }
+      }
+    }
+  ],
+  "exploratory": [
+    {
+      "path": "/home/claude/.scratch/eka-indirect-table-20261010/micro-tile/report.json",
+      "layout": "micro",
+      "workload": "tile",
+      "excluded_from_final_comparisons": true,
+      "reason": "Insufficient warmup; root tiering overlapped timing. No final claim uses these timings.",
+      "root_optimization_relative_to_first_measurement_ms": [
+        10.85851,
+        220.82651
+      ]
+    },
+    {
+      "path": "/home/claude/.scratch/eka-indirect-table-20261010/micro-add/report.json",
+      "layout": "micro",
+      "workload": "add",
+      "excluded_from_final_comparisons": true,
+      "reason": "Insufficient warmup; root tiering overlapped timing. No final claim uses these timings.",
+      "root_optimization_relative_to_first_measurement_ms": [
+        -52.513283,
+        174.008717
+      ]
+    },
+    {
+      "path": "/home/claude/.scratch/eka-indirect-table-20261010/micro-sub/report.json",
+      "layout": "micro",
+      "workload": "sub",
+      "excluded_from_final_comparisons": true,
+      "reason": "Insufficient warmup; root tiering overlapped timing. No final claim uses these timings.",
+      "root_optimization_relative_to_first_measurement_ms": [
+        -33.108163,
+        176.189837
+      ]
+    },
+    {
+      "path": "/home/claude/.scratch/eka-indirect-table-20261010/fast-tile/report.json",
+      "layout": "fast",
+      "workload": "tile",
+      "excluded_from_final_comparisons": true,
+      "reason": "Insufficient warmup; root tiering overlapped timing. No final claim uses these timings.",
+      "root_optimization_relative_to_first_measurement_ms": [
+        13.561896,
+        217.505896
+      ]
+    },
+    {
+      "path": "/home/claude/.scratch/eka-indirect-table-20261010/fast-add/report.json",
+      "layout": "fast",
+      "workload": "add",
+      "excluded_from_final_comparisons": true,
+      "reason": "Insufficient warmup; root tiering overlapped timing. No final claim uses these timings.",
+      "root_optimization_relative_to_first_measurement_ms": [
+        -58.627146,
+        167.311854
+      ]
+    },
+    {
+      "path": "/home/claude/.scratch/eka-indirect-table-20261010/fast-sub/report.json",
+      "layout": "fast",
+      "workload": "sub",
+      "excluded_from_final_comparisons": true,
+      "reason": "Insufficient warmup; root tiering overlapped timing. No final claim uses these timings.",
+      "root_optimization_relative_to_first_measurement_ms": [
+        -9.069509,
+        176.317491
+      ]
+    },
+    {
+      "path": "/home/claude/.scratch/eka-indirect-table-20261010/linear12-tile/report.json",
+      "layout": "linear12",
+      "workload": "tile",
+      "excluded_from_final_comparisons": true,
+      "reason": "Insufficient warmup; root tiering overlapped timing. No final claim uses these timings.",
+      "root_optimization_relative_to_first_measurement_ms": [
+        25.79551,
+        226.10651
+      ]
+    }
+  ],
+  "host_controls": {
+    "host-micros.json": {
+      "restored": true,
+      "returncode": 0,
+      "restoration_errors": []
+    },
+    "host-separated.json": {
+      "restored": true,
+      "returncode": 0,
+      "restoration_errors": []
+    },
+    "host-fast.json": {
+      "restored": true,
+      "returncode": 0,
+      "restoration_errors": []
+    },
+    "host-prefix-rest.json": {
+      "restored": true,
+      "returncode": 0,
+      "restoration_errors": []
+    },
+    "host-prefix.json": {
+      "restored": true,
+      "returncode": 1,
+      "restoration_errors": []
+    },
+    "host-linear12.json": {
+      "restored": true,
+      "returncode": 0,
+      "restoration_errors": []
+    },
+    "host-retained-driver.json": {
+      "restored": true,
+      "returncode": 0,
+      "restoration_errors": []
+    }
+  },
+  "compiler_tests": {
+    "focused_state_checks": 2880,
+    "independent_interpreter_checks": 240,
+    "table_target_checks": 438,
+    "largest_tested_target_set": 96,
+    "full_suite": {
+      "passed": 182,
+      "failed": 0,
+      "log": "/home/claude/.scratch/eka-indirect-table-20261010/full-separated.log"
+    }
+  },
+  "candidate_hashes": {
+    "control-test": "dc4d6f6eb435446b624588ebef5812db2426e6a9badfd7e978b82f9c3a70f1d1",
+    "separated-test": "2db90682a634d102a3e0c10cff8e491e8f643ef0ea463566de65876e80e99902",
+    "prefix-test": "08a6b9141be0729b1c053f41fce0f16e634fb783265083e2e74c6a55b9280637"
+  },
+  "native_lookup": {
+    "artifact": "/home/claude/.scratch/eka-indirect-table-20261010/separated-native.asm",
+    "root": "f_1879182840",
+    "offset": "0x2596",
+    "operations": [
+      "imul r15d,edi,0x78dde6e5",
+      "shr r15d,0x1b",
+      "indexed jump through [r10+r15*8]",
+      "cmp edi,0x70003bc4"
+    ],
+    "forcing_optimization": false
+  },
+  "retained_driver_verification": {
+    "path": "/home/claude/.scratch/eka-indirect-table-20261010/retained-driver",
+    "single_build_off_on": true,
+    "tiering": {
+      "optimizedRoots": [
+        {
+          "name": "JS:f_1879182840-6-turbofan",
+          "timestamp": 914055821572000
+        },
+        {
+          "name": "JS:f_1879182840-6-turbofan",
+          "timestamp": 914056042559000
+        }
+      ],
+      "incompleteJitTails": [
+        {
+          "file": "jit-3923426.dump",
+          "offset": 3041327,
+          "missingBytes": 792
+        },
+        {
+          "file": "jit-3923435.dump",
+          "offset": 2596650,
+          "missingBytes": 60
+        },
+        {
+          "file": "jit-3923437.dump",
+          "offset": 2596650,
+          "missingBytes": 60
+        },
+        {
+          "file": "jit-3923515.dump",
+          "offset": 7606249,
+          "missingBytes": 3652
+        },
+        {
+          "file": "jit-3923531.dump",
+          "offset": 2596650,
+          "missingBytes": 60
+        }
+      ],
+      "finishedBeforeMeasurement": true
+    },
+    "all_rows_and_pixel_checks_passed": true,
+    "report": {
+      "browser": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/153.0.8010.52",
+        "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "jsVersion": "15.3.76.13"
+      },
+      "pid": 3923515,
+      "renderers": [
+        {
+          "type": "renderer",
+          "id": 3923515,
+          "cpuTime": 0.56,
+          "delta": 0.43000000000000005
+        },
+        {
+          "type": "renderer",
+          "id": 3923426,
+          "cpuTime": 0.47,
+          "delta": 0.12
+        },
+        {
+          "type": "renderer",
+          "id": 3923531,
+          "cpuTime": 0.03,
+          "delta": 0
+        },
+        {
+          "type": "renderer",
+          "id": 3923437,
+          "cpuTime": 0.05,
+          "delta": 0
+        }
+      ],
+      "iterations": 100000,
+      "entry": "tile_row_benchmark",
+      "builds": [
+        "/home/claude/.scratch/eka-indirect-table-20261010/control-test"
+      ],
+      "fullWarmups": [
+        {
+          "variant": 0,
+          "status": 0,
+          "milliseconds": 728.5400000810623
+        },
+        {
+          "variant": 1,
+          "status": 0,
+          "milliseconds": 529.9049999713898
+        },
+        {
+          "variant": 0,
+          "status": 0,
+          "milliseconds": 723.5950000286102
+        },
+        {
+          "variant": 1,
+          "status": 0,
+          "milliseconds": 531.5849999189377
+        }
+      ],
+      "wasm_sha256": [
+        "dc4d6f6eb435446b624588ebef5812db2426e6a9badfd7e978b82f9c3a70f1d1"
+      ],
+      "comparison": "disabled/enabled in one build",
+      "rows": [
+        {
+          "variant": 0,
+          "cpu_seconds": 0.7245594469999999,
+          "status": 0,
+          "milliseconds": 724.9049999713898,
+          "mhz": 2394.4095930707763,
+          "hardware": {
+            "events": {
+              "guest": {
+                "start_ticks": 93267824,
+                "user_cycles": {
+                  "raw": 1734488560,
+                  "time_enabled_ns": 725164809,
+                  "time_running_ns": 725164809,
+                  "running_fraction": 1,
+                  "scaled": 1734488560
+                },
+                "user_instructions": {
+                  "raw": 6101553153,
+                  "time_enabled_ns": 725164809,
+                  "time_running_ns": 725164809,
+                  "running_fraction": 1,
+                  "scaled": 6101553153
+                },
+                "user_reference_cycles": {
+                  "raw": 1668996672,
+                  "time_enabled_ns": 725164809,
+                  "time_running_ns": 725164809,
+                  "running_fraction": 1,
+                  "scaled": 1668996672
+                }
+              }
+            },
+            "errors": [],
+            "begin_ns": 914058426121352,
+            "enable_begin_ns": 914058449182413,
+            "enable_end_ns": 914058449234657,
+            "disable_begin_ns": 914059176345138,
+            "disable_end_ns": 914059176396316
+          }
+        },
+        {
+          "variant": 1,
+          "cpu_seconds": 0.5295395199999997,
+          "status": 0,
+          "milliseconds": 529.7099999189377,
+          "mhz": 2394.4193230157352,
+          "hardware": {
+            "events": {
+              "guest": {
+                "start_ticks": 93267824,
+                "user_cycles": {
+                  "raw": 1267683508,
+                  "time_enabled_ns": 529913028,
+                  "time_running_ns": 529913028,
+                  "running_fraction": 1,
+                  "scaled": 1267683508
+                },
+                "user_instructions": {
+                  "raw": 5125834091,
+                  "time_enabled_ns": 529913028,
+                  "time_running_ns": 529913028,
+                  "running_fraction": 1,
+                  "scaled": 5125834091
+                },
+                "user_reference_cycles": {
+                  "raw": 1219812576,
+                  "time_enabled_ns": 529913028,
+                  "time_running_ns": 529913028,
+                  "running_fraction": 1,
+                  "scaled": 1219812576
+                }
+              }
+            },
+            "errors": [],
+            "begin_ns": 914059179861806,
+            "enable_begin_ns": 914059180229216,
+            "enable_end_ns": 914059180272460,
+            "disable_begin_ns": 914059711545630,
+            "disable_end_ns": 914059711592894
+          }
+        },
+        {
+          "variant": 1,
+          "cpu_seconds": 0.53133572,
+          "status": 0,
+          "milliseconds": 531.4400000572205,
+          "mhz": 2394.4118613829423,
+          "hardware": {
+            "events": {
+              "guest": {
+                "start_ticks": 93267824,
+                "user_cycles": {
+                  "raw": 1271985608,
+                  "time_enabled_ns": 531696623,
+                  "time_running_ns": 531696623,
+                  "running_fraction": 1,
+                  "scaled": 1271985608
+                },
+                "user_instructions": {
+                  "raw": 5125860926,
+                  "time_enabled_ns": 531696623,
+                  "time_running_ns": 531696623,
+                  "running_fraction": 1,
+                  "scaled": 5125860926
+                },
+                "user_reference_cycles": {
+                  "raw": 1223956032,
+                  "time_enabled_ns": 531696623,
+                  "time_running_ns": 531696623,
+                  "running_fraction": 1,
+                  "scaled": 1223956032
+                }
+              }
+            },
+            "errors": [],
+            "begin_ns": 914059713856078,
+            "enable_begin_ns": 914059714206881,
+            "enable_end_ns": 914059714250601,
+            "disable_begin_ns": 914060247219879,
+            "disable_end_ns": 914060247274188
+          }
+        },
+        {
+          "variant": 0,
+          "cpu_seconds": 0.724038535,
+          "status": 0,
+          "milliseconds": 724.3799999952316,
+          "mhz": 2394.410076712682,
+          "hardware": {
+            "events": {
+              "guest": {
+                "start_ticks": 93267824,
+                "user_cycles": {
+                  "raw": 1733345380,
+                  "time_enabled_ns": 724596838,
+                  "time_running_ns": 724596838,
+                  "running_fraction": 1,
+                  "scaled": 1733345380
+                },
+                "user_instructions": {
+                  "raw": 6101533330,
+                  "time_enabled_ns": 724596838,
+                  "time_running_ns": 724596838,
+                  "running_fraction": 1,
+                  "scaled": 6101533330
+                },
+                "user_reference_cycles": {
+                  "raw": 1667896320,
+                  "time_enabled_ns": 724596838,
+                  "time_running_ns": 724596838,
+                  "running_fraction": 1,
+                  "scaled": 1667896320
+                }
+              }
+            },
+            "errors": [],
+            "begin_ns": 914060249713319,
+            "enable_begin_ns": 914060250064239,
+            "enable_end_ns": 914060250105267,
+            "disable_begin_ns": 914060975927308,
+            "disable_end_ns": 914060975986042
+          }
+        },
+        {
+          "variant": 1,
+          "cpu_seconds": 0.5303962860000002,
+          "status": 0,
+          "milliseconds": 530.460000038147,
+          "mhz": 2394.4175937874993,
+          "hardware": {
+            "events": {
+              "guest": {
+                "start_ticks": 93267824,
+                "user_cycles": {
+                  "raw": 1269725330,
+                  "time_enabled_ns": 530755306,
+                  "time_running_ns": 530755306,
+                  "running_fraction": 1,
+                  "scaled": 1269725330
+                },
+                "user_instructions": {
+                  "raw": 5125846085,
+                  "time_enabled_ns": 530755306,
+                  "time_running_ns": 530755306,
+                  "running_fraction": 1,
+                  "scaled": 5125846085
+                },
+                "user_reference_cycles": {
+                  "raw": 1221778176,
+                  "time_enabled_ns": 530755306,
+                  "time_running_ns": 530755306,
+                  "running_fraction": 1,
+                  "scaled": 1221778176
+                }
+              }
+            },
+            "errors": [],
+            "begin_ns": 914060978135985,
+            "enable_begin_ns": 914060978516760,
+            "enable_end_ns": 914060978561493,
+            "disable_begin_ns": 914061510653450,
+            "disable_end_ns": 914061510702465
+          }
+        },
+        {
+          "variant": 0,
+          "cpu_seconds": 0.7231792800000001,
+          "status": 0,
+          "milliseconds": 723.5149999856949,
+          "mhz": 2394.4157805881837,
+          "hardware": {
+            "events": {
+              "guest": {
+                "start_ticks": 93267824,
+                "user_cycles": {
+                  "raw": 1731314555,
+                  "time_enabled_ns": 723723274,
+                  "time_running_ns": 723723274,
+                  "running_fraction": 1,
+                  "scaled": 1731314555
+                },
+                "user_instructions": {
+                  "raw": 6101536359,
+                  "time_enabled_ns": 723723274,
+                  "time_running_ns": 723723274,
+                  "running_fraction": 1,
+                  "scaled": 6101536359
+                },
+                "user_reference_cycles": {
+                  "raw": 1665938208,
+                  "time_enabled_ns": 723723274,
+                  "time_running_ns": 723723274,
+                  "running_fraction": 1,
+                  "scaled": 1665938208
+                }
+              }
+            },
+            "errors": [],
+            "begin_ns": 914061513332590,
+            "enable_begin_ns": 914061513694811,
+            "enable_end_ns": 914061513735472,
+            "disable_begin_ns": 914062238796869,
+            "disable_end_ns": 914062238847983
+          }
+        },
+        {
+          "variant": 0,
+          "cpu_seconds": 0.7249178269999996,
+          "status": 0,
+          "milliseconds": 725.2799999713898,
+          "mhz": 2394.4076354017807,
+          "hardware": {
+            "events": {
+              "guest": {
+                "start_ticks": 93267824,
+                "user_cycles": {
+                  "raw": 1735349827,
+                  "time_enabled_ns": 725506621,
+                  "time_running_ns": 725506621,
+                  "running_fraction": 1,
+                  "scaled": 1735349827
+                },
+                "user_instructions": {
+                  "raw": 6101563084,
+                  "time_enabled_ns": 725506621,
+                  "time_running_ns": 725506621,
+                  "running_fraction": 1,
+                  "scaled": 6101563084
+                },
+                "user_reference_cycles": {
+                  "raw": 1669826784,
+                  "time_enabled_ns": 725506621,
+                  "time_running_ns": 725506621,
+                  "running_fraction": 1,
+                  "scaled": 1669826784
+                }
+              }
+            },
+            "errors": [],
+            "begin_ns": 914062241229401,
+            "enable_begin_ns": 914062241586848,
+            "enable_end_ns": 914062241625670,
+            "disable_begin_ns": 914062968312512,
+            "disable_end_ns": 914062968361767
+          }
+        },
+        {
+          "variant": 1,
+          "cpu_seconds": 0.529730689,
+          "status": 0,
+          "milliseconds": 529.8450000286102,
+          "mhz": 2394.412305356865,
+          "hardware": {
+            "events": {
+              "guest": {
+                "start_ticks": 93267824,
+                "user_cycles": {
+                  "raw": 1268155283,
+                  "time_enabled_ns": 530097431,
+                  "time_running_ns": 530097431,
+                  "running_fraction": 1,
+                  "scaled": 1268155283
+                },
+                "user_instructions": {
+                  "raw": 5125830570,
+                  "time_enabled_ns": 530097431,
+                  "time_running_ns": 530097431,
+                  "running_fraction": 1,
+                  "scaled": 5125830570
+                },
+                "user_reference_cycles": {
+                  "raw": 1220270112,
+                  "time_enabled_ns": 530097431,
+                  "time_running_ns": 530097431,
+                  "running_fraction": 1,
+                  "scaled": 1220270112
+                }
+              }
+            },
+            "errors": [],
+            "begin_ns": 914062970548772,
+            "enable_begin_ns": 914062970922682,
+            "enable_end_ns": 914062970967369,
+            "disable_begin_ns": 914063502432630,
+            "disable_end_ns": 914063502482417
+          }
+        }
+      ],
+      "tiering": {
+        "optimizedRoots": [
+          {
+            "name": "JS:f_1879182840-6-turbofan",
+            "timestamp": 914055821572000
+          },
+          {
+            "name": "JS:f_1879182840-6-turbofan",
+            "timestamp": 914056042559000
+          }
+        ],
+        "incompleteJitTails": [
+          {
+            "file": "jit-3923426.dump",
+            "offset": 3041327,
+            "missingBytes": 792
+          },
+          {
+            "file": "jit-3923435.dump",
+            "offset": 2596650,
+            "missingBytes": 60
+          },
+          {
+            "file": "jit-3923437.dump",
+            "offset": 2596650,
+            "missingBytes": 60
+          },
+          {
+            "file": "jit-3923515.dump",
+            "offset": 7606249,
+            "missingBytes": 3652
+          },
+          {
+            "file": "jit-3923531.dump",
+            "offset": 2596650,
+            "missingBytes": 60
+          }
+        ],
+        "finishedBeforeMeasurement": true
+      }
+    }
+  },
+  "restored_runtime": {
+    "branch": "wasm-port",
+    "wasm_sha256": "556c7cc6899b0bf7d31534ed3fa27983ddbd5f78a7c9b98586029deddb7c9954",
+    "lan_download_sha256": "556c7cc6899b0bf7d31534ed3fa27983ddbd5f78a7c9b98586029deddb7c9954",
+    "runtime_source_changes": false
+  }
+}

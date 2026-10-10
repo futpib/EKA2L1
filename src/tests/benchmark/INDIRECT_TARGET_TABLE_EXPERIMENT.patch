@@ -1,0 +1,204 @@
+--- a/src/emu/cpu/src/aot/arm_translator.cpp
++++ b/src/emu/cpu/src/aot/arm_translator.cpp
+@@ -812,6 +812,35 @@
+         return reject();
+     }
+
++    struct indirect_target_table {
++        std::uint32_t multiplier = 1;
++        unsigned shift = 0;
++        std::vector<unsigned> slots;
++    };
++
++    // Build a collision-free multiply/shift table once during translation.
++    // Unknown addresses still need one full-address check in the selected case.
++    // Construction retries do not add probes or work to the emitted lookup.
++    static indirect_target_table make_indirect_target_table(const std::vector<stack_callee> &callees, unsigned first) {
++        const auto count = static_cast<unsigned>(callees.size()) - first;
++        indirect_target_table table;
++        unsigned bits = 1;
++        while ((std::uint64_t(1) << bits) < 2 * count) ++bits;
++        for (std::uint32_t attempt = 0;; ++attempt) {
++            if (attempt && !(attempt & 255) && (std::uint64_t(1) << bits) < 2 * std::uint64_t(count) * count) ++bits;
++            table.multiplier = (attempt * 0x9e3779b9u) * 2 + 1;
++            table.shift = 32 - bits;
++            table.slots.assign(std::size_t(1) << bits, count);
++            bool collision = false;
++            for (unsigned n = 0; n < count; ++n) {
++                const auto slot = std::uint32_t(callees[first+n].code.address * table.multiplier) >> table.shift;
++                if (table.slots[slot] != count) { collision = true; break; }
++                table.slots[slot] = n;
++            }
++            if (!collision) return table;
++        }
++    }
++
+     struct stack_return_context {
+         std::uint32_t instruction, continuation;
+         bool proved;
+@@ -838,7 +867,7 @@
+                 std::uint32_t op; std::memcpy(&op, code + n, 4);
+                 if ((op >> 28) == 15 || (op & 0x0f7f0000u) != 0x051f0000u) continue;
+                 const auto rd = (op >> 12) & 15;
+-                if (rd >= 15 || literal_targets[rd].size() >= inline_site_limit) continue;
++                if (rd >= 15) continue;
+                 const auto pc = start_address + static_cast<std::uint32_t>(n) + 8;
+                 const auto address = (op & (1u << 23)) ? pc + (op & 4095) : pc - (op & 4095);
+                 const auto literal = (*leaves)(address);
+@@ -920,8 +949,7 @@
+
+                 if ((inst & 0xfffffff0u) == 0xe12fff30u && bounded) {
+                     const auto found = literal_targets.find(inst & 15);
+-                    if (found != literal_targets.end() && !found->second.empty()
+-                        && inlined.size() + stack_calls.size() < inline_site_limit) {
++                    if (found != literal_targets.end() && !found->second.empty()) {
+                         auto &targets = stack_calls[i];
+                         for (const auto &[address, callee] : found->second) targets.push_back(callee);
+                         i += 4; continue;
+@@ -1508,29 +1536,22 @@
+                 continue;
+             }
+             if (!instruction.leaf && stack_calls.count(i)) {
+-                const bool indirect = (inst & 0xfffffff0u) == 0xe12fff30u;
+-                unsigned target_local = 0;
+-                bool selected = false;
+-                if (indirect) {
+-                    w.end_wide(); target_local = (*fusion_next)++;
+-                    w.load_reg(inst & 15); w.set_local(target_local);
+-                    w.op(op_block); w.op(type_void);
+-                }
+-                for (const auto &callee : stack_calls.at(i)) {
++                source_scope provenance(w.source, source_kind::dispatch);
++                const auto &callees = stack_calls.at(i);
++                const auto count = static_cast<unsigned>(callees.size());
++                w.end_wide();
++                const auto target_local = (*fusion_next)++;
++                w.load_reg(inst & 15); w.set_local(target_local);
++                const auto emit_callee = [&](unsigned n) {
++                    const auto &callee = callees[n];
+                     const auto &dependency = callee.code;
+                     stack_return_context context{dependency.address + static_cast<std::uint32_t>(dependency.bytes.size()) - 4,
+-                        insn_addr + 4, callee.proved_return, w.cache, fusion_next, w.scope_depth + (indirect ? 2 : 1)};
++                        insn_addr + 4, callee.proved_return, w.cache, fusion_next, w.scope_depth + 1};
+                     auto child = translate_arm_block_impl(dependency.bytes.data(), dependency.bytes.size(), dependency.address,
+                         nullptr, nullptr, true, false, true, true, nullptr, defer_memory, true, ir_policy, &context);
+-                    if (!child.complete || !child.entry_supported || !child.func.outlined_calls.empty()) continue;
+-                    selected = true;
++                    if (!child.complete || !child.entry_supported || !child.func.outlined_calls.empty()) return false;
+                     tr.dependencies.push_back(dependency);
+                     ++tr.stack_calls; tr.proved_stack_returns += callee.proved_return;
+-                    if (indirect) {
+-                        w.get_local(target_local); w.i32_const(dependency.address); w.op(op_i32_eq);
+-                        w.op(op_if); w.op(type_void);
+-                    }
+-                    w.end_wide();
+                     w.store_i32_const(S::LR, context.continuation);
+                     w.store_i32_const(S::PC, dependency.address);
+                     // Successful POP branches to this continuation. Every other
+@@ -1548,19 +1569,39 @@
+                         result.outlined_calls.push_back({std::move(child.func.outlined_callee),
+                             static_cast<unsigned>(begin) + child.func.outlined_call_offset});
+                     w.op(op_end);
+-                    if (indirect) { w.op(op_br); leb(result.body, 1); w.op(op_end); }
+-                }
+-                if (indirect) {
+-                    w.store_i32_const(S::LR, insn_addr + 4);
+-                    w.get_local(target_local); w.i32_const(1); w.op(op_i32_and); w.store_i32_from_stack(S::TFLAG,TMP1);
+-                    w.store_i32(S::PC,target_local);
+-                    w.bail_preserve_pc(); w.op(op_end);
+-                    selected = true;
+-                }
+-                if (selected) {
+-                    ++insn_idx; decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+-                    continue;
+-                }
++                    return true;
++                };
++                w.op(op_block); w.op(type_void); // successful continuation
++                // Preserve the original first-target path outside the table's
++                // merge graph. A single fast case keeps total lookup work O(1).
++                w.get_local(target_local); w.i32_const(callees.front().code.address); w.op(op_i32_eq);
++                w.op(op_if); w.op(type_void);
++                if (emit_callee(0)) { w.op(op_br); leb(result.body, 1); }
++                w.op(op_end);
++                w.op(op_block); w.op(type_void); // ordinary BLX fallback
++                for (unsigned n = 1; n < count; ++n) { w.op(op_block); w.op(type_void); }
++                if (count > 2) {
++                    const auto table = make_indirect_target_table(callees, 1);
++                    w.get_local(target_local); w.i32_const(table.multiplier); w.op(op_i32_mul);
++                    w.i32_const(table.shift); w.op(op_i32_shr_u);
++                    w.op(op_br_table); leb(result.body, static_cast<unsigned>(table.slots.size()));
++                    for (auto slot : table.slots) leb(result.body, slot);
++                    leb(result.body, count - 1);
++                }
++                for (unsigned n = 1; n < count; ++n) {
++                    w.op(op_end);
++                    w.get_local(target_local); w.i32_const(callees[n].code.address); w.op(op_i32_ne);
++                    w.op(op_br_if); leb(result.body, count - n - 1);
++                    const bool emitted = emit_callee(n);
++                    w.op(op_br); leb(result.body, count - n - (emitted ? 0 : 1));
++                }
++                w.op(op_end);
++                w.store_i32_const(S::LR, insn_addr + 4);
++                w.get_local(target_local); w.i32_const(1); w.op(op_i32_and); w.store_i32_from_stack(S::TFLAG,TMP1);
++                w.store_i32(S::PC,target_local);
++                w.bail_preserve_pc(); w.op(op_end);
++                ++insn_idx; decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
++                continue;
+             }
+             if (!instruction.leaf && inlined.count(i)) {
+                 w.store_i32_const(S::LR, insn_addr + 4);
+--- a/src/tests/aot/test_stack_return.inc
++++ b/src/tests/aot/test_stack_return.inc
+@@ -105,7 +105,51 @@
+         if(tr.stack_calls){printf(" FAIL unsafe stack-return accepted %x\n",op);return false;}
+     }
+     if(!selected||!proved_calls||calls[1]>=calls[0])return false;
++    // Exercise dense, sparse and wrapping address sets beyond the old limit.
++    // Nonmembers must keep the exact BLX target and ARM/Thumb transition.
++    unsigned table_checks=0;
++    g_memory_boundary={};memory_experiment::mode=2;
++    for(unsigned count:{2u,12u,96u})for(unsigned layout=0;layout<3;++layout) {
++        std::vector<unsigned> addresses,caller={0xe1a0800eu,0xe12fff37u,0xe12fff18u};
++        std::map<unsigned,std::vector<unsigned>> bodies;
++        for(unsigned n=0;n<count;++n) {
++            const auto address=layout==0?0x20000000u+n*64:layout==1?0x10002000u+n*0x9e3779b8u:0xfff00000u+n*0x10000;
++            addresses.push_back(address);caller.push_back(0xe59f73ecu);
++            bodies[address]={0xe92d4010u,0xe2800000u|(n+1),0xe8bd8010u};
++        }
++        leaf_resolver resolve=[&](unsigned pc) {
++            if(pc>=0x1400 && pc<0x1400+count*4) {
++                auto value=addresses[(pc-0x1400)/4];auto *p=reinterpret_cast<std::uint8_t*>(&value);
++                return std::vector<std::uint8_t>(p,p+4);
++            }
++            const auto it=bodies.find(pc);if(it==bodies.end())return std::vector<std::uint8_t>{};
++            const auto *p=reinterpret_cast<const std::uint8_t*>(it->second.data());
++            return std::vector<std::uint8_t>(p,p+it->second.size()*4);
++        };
++        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller.data()),caller.size()*4,0x1000,
++            nullptr,nullptr,true,false,true,true,&resolve,true,arm_ir_policy::write_spans);
++        if(tr.stack_calls!=count){printf(" FAIL table selected %u/%u layout %u\n",tr.stack_calls,count,layout);return false;}
++        const auto module=build_wasm_module({tr.func},imports);
++        test_mem memory;g_test_mem=&memory;
++        memory_experiment::view view;std::vector<memory_experiment::binding> bindings={{0x8000,
++            static_cast<unsigned>(reinterpret_cast<std::uintptr_t>(memory.data.data()+0x8000)),3}};
++        const auto pointer=view.enter(1,1,[&]{return bindings;});
++        for(unsigned n=0;n<count+12;++n) {
++            const bool member=n<count;
++            const auto target=member?addresses[n]:addresses[(n-count)%count]+(n%3+1);
++            alignas(8) unsigned state[256]{};state[0]=123;state[4]=456;state[7]=target;state[13]=0x9000;
++            state[14]=0x6000;state[15]=0x1000;state[S::CPSR/4]=0x10;state[S::MODE/4]=0x10;
++            state[S::NIRQ/4]=1;state[S::NUM_INSTRS_TO_EXECUTE/4]=100;state[S::AOT_TLB/4]=pointer;
++            const auto result=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
++            if(result!=1 || state[0]!=(member?124+n:123) || state[4]!=456 || state[13]!=0x9000
++                || state[14]!=0x1008 || state[15]!=(member?0x6000:target) || state[S::TFLAG/4]!=(member?0:target&1)) {
++                printf(" FAIL table target %08x count %u layout %u result %d pc %08x r0 %u\n",target,count,layout,result,state[15],state[0]);return false;
++            }
++            ++table_checks;
++        }
++    }
+     printf(" PASS stack returns: %u state/memory/callback checks, %u interpreter checks, calls %u -> %u, proof fallbacks %u\n",checks,independent,calls[0],calls[1],proved_calls);
++    printf(" PASS indirect tables: %u exact target/fallback checks through 96 callees\n",table_checks);
+ #endif
+     return true;
+ }
