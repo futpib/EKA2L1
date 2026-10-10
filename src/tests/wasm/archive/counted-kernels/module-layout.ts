@@ -1,3 +1,4 @@
+// Historical instruction-count ABI only; see README.md in this directory.
 // Offline call-layout experiment. Does not run or alter the game launcher.
 import fs from 'node:fs';
 import path from 'node:path';

@@ -12,14 +12,12 @@ p = argparse.ArgumentParser()
 p.add_argument('--assets', type=Path, required=True)
 p.add_argument('--output', type=Path, required=True)
 modes = p.add_mutually_exclusive_group()
-modes.add_argument('--compare-aot', action='store_true', help='Compare interpreter, exports and hot-ROM compilation with timing repeats')
-modes.add_argument('--compare-diagnostics', action='store_true', help='Measure optional AOT bookkeeping with paired controls')
-modes.add_argument('--compare-build', type=Path, help='Compare an archived frontend build with the current build in AOT mode 4 (old/new/new/old)')
+modes.add_argument('--compare-aot', action='store_true', help='Compare interpreter and full compiler with timing repeats')
+modes.add_argument('--compare-build', type=Path, help='Compare an archived frontend build with the current build in AOT mode 5 (old/new/new/old)')
 modes.add_argument('--compare-steps', type=Path, nargs=2, metavar=('BASELINE', 'STEP1'), help='Compare baseline, step 1 and current build serially in forward/reverse order')
-modes.add_argument('--compare-stages', action='store_true', help='Compare interpreter, hot ROM, RAM and chained/register-cached execution')
 p.add_argument('--capture-mode', type=int, choices=(0, 1, 2), default=0, help='Capture mode for comparison trials: 0 full, 1 hashes only, 2 no readback')
-p.add_argument('--before-aot', type=int, choices=range(6), default=4)
-p.add_argument('--after-aot', type=int, choices=range(6), default=4)
+p.add_argument('--before-aot', type=int, choices=(0,5), default=5)
+p.add_argument('--after-aot', type=int, choices=(0,5), default=5)
 p.add_argument('--start-us', type=int, default=21000000)
 p.add_argument('--end-us', type=int, default=25000000)
 p.add_argument('--measure-gate', type=Path, help='Wait for this new gate file after all fixtures are paused')
@@ -34,12 +32,7 @@ a.output = a.output.resolve()
 a.output.mkdir(parents=True, exist_ok=False)
 plan = [('full-1', 0, None), ('no-png', 1, None), ('no-readback', 2, None), ('full-2', 0, None)]
 if a.compare_aot:
-    plan = [('interpreter-1', 0, 0), ('exports', 0, 1), ('hot-rom-1', 0, 2), ('hot-rom-2', 0, 2), ('interpreter-2', 0, 0)]
-if a.compare_diagnostics:
-    plan = [('diagnostics-off-1', 0, 2), ('diagnostics-on', 0, 2), ('diagnostics-off-2', 0, 2)]
-if a.compare_stages:
-    plan = [('interpreter-1', 0, 0), ('hot-rom', 0, 2), ('hot-ram', 0, 3),
-            ('chained-1', 0, 4), ('chained-2', 0, 4), ('interpreter-2', 0, 0)]
+    plan = [('interpreter-1', 0, 0), ('compiled-1', 0, 5), ('compiled-2', 0, 5), ('interpreter-2', 0, 0)]
 if a.compare_build:
     a.compare_build = a.compare_build.resolve()
     if not (a.compare_build / 'eka2l1.wasm').is_file():
@@ -49,9 +42,9 @@ if a.compare_steps:
     a.compare_steps = [path.resolve() for path in a.compare_steps]
     if not all((path / 'eka2l1.wasm').is_file() for path in a.compare_steps):
         p.error('Each archived step must contain eka2l1.wasm')
-    plan = [('baseline-1', 0, 4), ('step1-1', 0, 4), ('combined-1', 0, 4),
-            ('combined-2', 0, 4), ('step1-2', 0, 4), ('baseline-2', 0, 4)]
-if a.compare_aot or a.compare_diagnostics or a.compare_build or a.compare_steps or a.compare_stages:
+    plan = [('baseline-1', 0, 5), ('step1-1', 0, 5), ('combined-1', 0, 5),
+            ('combined-2', 0, 5), ('step1-2', 0, 5), ('baseline-2', 0, 5)]
+if a.compare_aot or a.compare_build or a.compare_steps:
     plan = [(name, a.capture_mode, aot_mode) for name, _, aot_mode in plan]
 processes = []
 logs = []
@@ -73,13 +66,10 @@ try:
                 environment['EKA2L1_WASM_BUILD_DIR'] = str(a.compare_steps[0])
             elif name.startswith('step1-'):
                 environment['EKA2L1_WASM_BUILD_DIR'] = str(a.compare_steps[1])
-        if a.compare_diagnostics:
-            environment['EKA2L1_AOT_DIAGNOSTICS'] = '1' if name == 'diagnostics-on' else '0'
         if aot_mode is not None:
             environment['EKA2L1_BENCHMARK_AOT'] = str(aot_mode)
             environment.pop('EKA2L1_AOT_VERIFY', None)
-            if not a.compare_diagnostics:
-                environment['EKA2L1_AOT_DIAGNOSTICS'] = '0'
+            environment['EKA2L1_AOT_DIAGNOSTICS'] = '0'
         process = subprocess.Popen(['node', 'profile.ts', str(a.assets.resolve()), str(a.output/name), str(mode), '0', str(a.end_us)],
             cwd=ROOT/'src/tests/wasm', env=environment, stdout=log, stderr=subprocess.STDOUT)
         processes.append((name, process, gate))

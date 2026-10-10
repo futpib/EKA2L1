@@ -1,0 +1,155 @@
+{
+  "base_revision": "334245f58",
+  "wasm_sha256": "e8c696748e1a593349455f9ae650abc6b6757891dbdd344e0a94ee60c240d7d1",
+  "scope": "Configuration and historical tooling cleanup; no new performance claim",
+  "validation": {
+    "wasm_compiler": {
+      "passed": 182,
+      "failed": 0
+    },
+    "native_cpu": {
+      "assertions": 497,
+      "cases": 33,
+      "passed": true
+    },
+    "frontend_api": "passed",
+    "normal_policy_and_targeted_overrides": "passed",
+    "asset_cache": "passed",
+    "offline_wasm_cost_tools": "passed",
+    "chrome_profiler": "passed",
+    "retained_diagnostic_json": "passed"
+  },
+  "games": {
+    "snakes": {
+      "passed": true,
+      "scene_review": "gameplay at both endpoints",
+      "browser": "Chrome/153.0.8010.52",
+      "policy": {
+        "requested": {
+          "compiledSvc": 1,
+          "sparseRom": 1,
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "watchdogUs": 2000,
+          "irMode": 7,
+          "predicatedLeaves": 1,
+          "leafFeatures": 224,
+          "executionLimits": [
+            512,
+            32,
+            8,
+            0
+          ],
+          "unsafeCode": 3
+        },
+        "applied": true,
+        "observed": {
+          "sparseRom": 1,
+          "compiledSvc": 1,
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "predicatedLeaves": 1,
+          "leafFeatures": 224,
+          "unsafeCode": 3,
+          "executionLimits": [
+            512,
+            32,
+            8,
+            0
+          ]
+        }
+      },
+      "measurement": {
+        "hostSeconds": 10.09167836199999,
+        "guestSeconds": 10.093004,
+        "guestSpeed": 1.0001313595174617,
+        "presentations": 161,
+        "presentationsPerSecond": 15.953738736486313,
+        "instructions": 0,
+        "installedCompiledFunctions": 40,
+        "maxQueryMs": 7.463211999987834,
+        "maxObservedFrameGapMs": 99.98000001907349,
+        "compilationUs": {
+          "aot_translation_us": 5705,
+          "aot_emission_us": 579,
+          "aot_installation_us": 1453
+        }
+      },
+      "evidence": "/home/claude/.scratch/eka-policy-cleanup-20261010/snakes"
+    },
+    "sky-force": {
+      "passed": true,
+      "scene_review": "gameplay at both endpoints",
+      "browser": "Chrome/153.0.8010.52",
+      "policy": {
+        "requested": {
+          "compiledSvc": 1,
+          "sparseRom": 1,
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "watchdogUs": 2000,
+          "irMode": 7,
+          "predicatedLeaves": 1,
+          "leafFeatures": 224,
+          "executionLimits": [
+            512,
+            32,
+            8,
+            0
+          ],
+          "unsafeCode": 3
+        },
+        "applied": true,
+        "observed": {
+          "sparseRom": 1,
+          "compiledSvc": 1,
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "predicatedLeaves": 1,
+          "leafFeatures": 224,
+          "unsafeCode": 3,
+          "executionLimits": [
+            512,
+            32,
+            8,
+            0
+          ]
+        }
+      },
+      "measurement": {
+        "hostSeconds": 10.0650589625,
+        "guestSeconds": 10.064401,
+        "guestSpeed": 0.9999346290466403,
+        "presentations": 322,
+        "presentationsPerSecond": 31.991864250343184,
+        "instructions": 0,
+        "installedCompiledFunctions": 9,
+        "maxQueryMs": 9.441622999991523,
+        "maxObservedFrameGapMs": 54.044999957084656,
+        "compilationUs": {
+          "aot_translation_us": 3812,
+          "aot_emission_us": 194,
+          "aot_installation_us": 830
+        }
+      },
+      "evidence": "/home/claude/.scratch/eka-policy-cleanup-20261010/sky-force"
+    }
+  },
+  "interpreter_reference": {
+    "aot": 0,
+    "frames": 20,
+    "scene_review": "menu, not a gameplay claim",
+    "test_controls": {
+      "compiled_svc": 0,
+      "sparse_rom_lookup": 0,
+      "thumb_memory": 0,
+      "hotpath_policy": 0,
+      "memory_impl": 0,
+      "ir_mode": 7
+    },
+    "capture_and_pcm_validation": "passed",
+    "evidence": "/home/claude/.scratch/eka-policy-cleanup-20261010/interpreter-gameplay"
+  },
+  "earlier_attempt": "A one-frame interpreter boot capture reached a frame but failed the gameplay-audio validator; replaced with a 20-frame menu capture. Neither interpreter capture is claimed as gameplay.",
+  "deployment": "Temporary loopback launcher using build-wasm; existing LAN artifact unchanged"
+}

@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('assets', type=Path)
 parser.add_argument('output', type=Path)
 parser.add_argument('builds', nargs='+', help='NAME=ARCHIVED_BUILD')
-parser.add_argument('--ir-mode', action='append', default=[], metavar='NAME=0/4/5/6/7/17',
+parser.add_argument('--ir-mode', action='append', default=[], metavar='NAME=0/4/5/6/7',
                     help='Select compiler policy within an archived binary')
 parser.add_argument('--code-compare', action='append', default=[], metavar='NAME=0/2')
 parser.add_argument('--unsafe-code',action='append',default=[],metavar='NAME=0/3')
@@ -33,8 +33,8 @@ for item in args.builds:
 modes = {}
 for item in args.ir_mode:
     name, separator, value = item.partition('=')
-    if not separator or name not in dict(variants) or name in modes or value not in ('0', '4', '5', '6', '7', '17'):
-        parser.error('IR mode requires a unique known NAME=0/4/5/6/7/17')
+    if not separator or name not in dict(variants) or name in modes or value not in ('0', '4', '5', '6', '7'):
+        parser.error('IR mode requires a unique known NAME=0/4/5/6/7')
     modes[name] = int(value)
 compare_modes = {}
 for item in args.code_compare:
@@ -116,7 +116,7 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
             raise RuntimeError('Wrong leaf predication mode')
         if report.get('execution_limits') != limits.get(name,[512,16,8,512]) or report.get('exit_census'):
             raise RuntimeError('Wrong execution limits or diagnostic census active in timing')
-        if report.get('ir_mode', -1) != modes.get(name, 17):
+        if report.get('ir_mode', -1) != modes.get(name, 7):
             raise RuntimeError('Profile did not record the requested IR policy')
         if report.get('code_compare', -1) != compare_modes.get(name, -1):
             raise RuntimeError('Profile did not record requested exact comparison policy')

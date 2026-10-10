@@ -1,3 +1,4 @@
+// Historical instruction-count ABI only; see README.md in this directory.
 // Offline dispatch discriminator with the real C++ code-cache validator.
 // Clones share one PC/snapshot. This is not an emulator execution-chain test.
 import crypto from 'node:crypto';

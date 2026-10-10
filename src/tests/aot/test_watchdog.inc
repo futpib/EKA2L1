@@ -36,7 +36,7 @@ static bool test_watchdog() {
     const auto compile = [](const std::vector<std::uint32_t> &words) {
         return translate_arm_block(reinterpret_cast<const std::uint8_t *>(words.data()),
             words.size() * 4, 0x1000, nullptr, nullptr, true, false, true, true,
-            nullptr, false, arm_ir_policy::full_spans);
+            nullptr, false, arm_ir_policy::write_spans);
     };
     const auto module = [](const translate_result &tr) {
         return build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},

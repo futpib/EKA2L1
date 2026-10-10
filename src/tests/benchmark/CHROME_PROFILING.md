@@ -17,7 +17,7 @@ identical to the execution being investigated. For the stock 5320 Snakes replay:
 ```sh
 cd src/tests/wasm
 EKA2L1_GPU=hardware EKA2L1_SHARED_AUDIO=1 \
-EKA2L1_BENCHMARK_AOT=5 EKA2L1_AOT_IR_MODE=17 \
+EKA2L1_BENCHMARK_AOT=5 EKA2L1_AOT_IR_MODE=7 \
 EKA2L1_THUMB_MEMORY=1 \
 EKA2L1_HOTPATH=2 \
 EKA2L1_CODE_COMPARE=2 \
@@ -26,9 +26,10 @@ node profile.ts /absolute/path/to/assets /absolute/path/to/new-capture 1 1 46000
 ```
 
 The launcher, profiler and replay harness share defaults for Thumb memory (1),
-IR policy (17) and cache-policy specialization (`EKA2L1_HOTPATH=2`). Explicit
-environment overrides still select controls or other experiments; hotpath 0
-retains the general lookup. See the [cache adoption measurements](CACHE_POLICY_DEFAULT_RESULTS.md).
+IR policy (7) and cache-policy specialization (`EKA2L1_HOTPATH=2`). The normal
+launcher fixes the graduated lookup, syscall and Thumb-memory choices; explicit
+environment overrides in `profile.ts` and `benchmark.ts` retain targeted
+controls. Hotpath 0 retains the general lookup in those test harnesses. See the [cache adoption measurements](CACHE_POLICY_DEFAULT_RESULTS.md).
 Match the remaining settings and build to the running service: the
 [Thumb memory investigation](THUMB_MEMORY_DEFAULT_RESULTS.md)
 found that an explicit profiling override had enabled an optimization absent

@@ -185,18 +185,13 @@ int eka2l1_graphics_diagnostics_configure(int enabled) {
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_aot_configure(int enabled, int verify, int diagnostics) {
-    if (g_state || (enabled < 0 || enabled > 5) || verify < 0) return -1;
+    if (g_state || (enabled != 0 && enabled != 5) || verify < 0) return -1;
     if (verify || diagnostics) return -2;
-    if (enabled >= 2) setenv("EKA2L1_AOT_HOT", "1", 1);
-    else unsetenv("EKA2L1_AOT_HOT");
-    if (enabled >= 5) setenv("EKA2L1_AOT_REGION", "1", 1);
-    else unsetenv("EKA2L1_AOT_REGION");
-    if (enabled >= 4) setenv("EKA2L1_AOT_CHAIN", "1", 1);
-    else unsetenv("EKA2L1_AOT_CHAIN");
-    if (enabled >= 3) setenv("EKA2L1_AOT_RAM", "1", 1);
-    else unsetenv("EKA2L1_AOT_RAM");
-    if (enabled) setenv("EKA2L1_BENCHMARK_AOT", "1", 1);
-    else unsetenv("EKA2L1_BENCHMARK_AOT");
+    for (const auto *name : {"EKA2L1_AOT_HOT", "EKA2L1_AOT_REGION",
+            "EKA2L1_AOT_CHAIN", "EKA2L1_AOT_RAM", "EKA2L1_BENCHMARK_AOT"}) {
+        if (enabled) setenv(name, "1", 1);
+        else unsetenv(name);
+    }
     return 0;
 }
 

@@ -1,3 +1,4 @@
+// Historical instruction-count ABI only; see README.md in this directory.
 // Matched production kernel comparison: original precise compiler versus guarded IR.
 // Uses the same native fixtures and driver as cpu-kernel-breakdown.ts; no unsafe ablations.
 import fs from 'node:fs';import path from 'node:path';import http from 'node:http';import puppeteer from 'puppeteer';

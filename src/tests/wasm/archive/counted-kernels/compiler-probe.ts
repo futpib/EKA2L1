@@ -1,3 +1,4 @@
+// Historical instruction-count ABI only; see README.md in this directory.
 // Offline, ordinary-memory kernel experiment. Never launches or changes the game.
 import fs from 'node:fs';
 import path from 'node:path';

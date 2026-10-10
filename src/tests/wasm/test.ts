@@ -119,9 +119,9 @@ async function runTests(): Promise<void> {
     await page.evaluate(() => {
       const m = (window as any).Module;
       const configure = (n: number) => m.ccall('eka2l1_ir_configure', 'number', ['number'], [n]);
-      for (const mode of [-2,1,2,3,8,9,10,11,12,13,14,15,16,18,19]) if (configure(mode) !== -1)
+      for (const mode of [-2,1,2,3,8,9,10,11,12,13,14,15,16,17,18,19]) if (configure(mode) !== -1)
         throw new Error('Retired or invalid compiler policy accepted');
-      for (const mode of [0,4,5,6,7,17]) if (configure(mode) !== 0)
+      for (const mode of [0,4,5,6,7]) if (configure(mode) !== 0)
         throw new Error('Compiler policy rejected');
       if (configure(-1) !== 0) throw new Error('IR default restoration failed');
       for (const [name, expected, valid, invalid] of [
@@ -191,6 +191,16 @@ async function runTests(): Promise<void> {
       const configure = (n: number) => (window as any).Module.ccall('eka2l1_code_compare_configure','number',['number'],[n]);
       if(configure(-1)!==-1 || configure(5)!==-1 || configure(4)!==-1 || configure(3)!==-1 || configure(2)!==0 || configure(1)!==-1 || configure(0)!==0)
         throw Error('Exact comparison policy validation failed');
+    });
+    console.log("  PASS");
+
+    console.log("TEST AOT: compiler or interpreter only...");
+    await page.evaluate(() => {
+      const m = (window as any).Module;
+      for (const mode of [-1,1,2,3,4,6])
+        if (m._eka2l1_aot_configure(mode, 0, 0) !== -1) throw Error('Retired AOT stage accepted: ' + mode);
+      for (const mode of [5,0])
+        if (m._eka2l1_aot_configure(mode, 0, 0) !== 0) throw Error('Execution mode rejected: ' + mode);
     });
     console.log("  PASS");
 

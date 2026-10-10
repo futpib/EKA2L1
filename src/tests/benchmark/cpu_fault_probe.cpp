@@ -662,8 +662,7 @@ int main(int argc, char **argv){
                 std::cerr<<"Predicated call fusion selection mismatch\n";return 4;
             }
 
-            const auto checked_policy = (ir_policy == aot::arm_ir_policy::full_spans)
-                ? aot::arm_ir_policy::write_spans : ir_policy;
+            const auto checked_policy = ir_policy;
             const bool writes = checked_policy == aot::arm_ir_policy::invariant_writes
                 || checked_policy == aot::arm_ir_policy::write_spans;
             const bool reads = writes || checked_policy == aot::arm_ir_policy::invariant_reads

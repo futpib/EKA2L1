@@ -11,10 +11,10 @@ const { startServer, compilerPolicyFromEnv } = await import('./server.ts');
 const servers: any[] = [];
 try {
   for (const name of ['EKA2L1_DIVISION_DIGITS','EKA2L1_ENTRY_BUDGET','EKA2L1_SPARSE_ROM_LOOKUP','EKA2L1_ENTRY_ONLY_PRUNING','EKA2L1_COMPILED_SVC','EKA2L1_MEMORY_IMPL','EKA2L1_ARM_MEMORY','EKA2L1_HOTPATH','EKA2L1_THUMB_MEMORY','EKA2L1_AOT_IR_MODE','EKA2L1_AOT_EAGER_REGIONS','EKA2L1_TLB_HASH','EKA2L1_MEMORY_CACHE','EKA2L1_CODE_COMPARE','EKA2L1_CODE_LOOKUP','EKA2L1_PREDICATED_LEAVES','EKA2L1_LEAF_FEATURES','EKA2L1_EXECUTION_LIMITS','EKA2L1_UNSAFE_CODE','EKA2L1_OMIT_GUARD_PUBLICATION']) delete process.env[name];
-  assert.deepEqual(compilerPolicyFromEnv(), {predicatedLeaves:1,leafFeatures:224,executionLimits:[512,32,8,0],sparseRom:1,compiledSvc:1,hotpath:2,thumbMemory:1,unsafeCode:3,watchdogUs:2000,irMode:17});
+  assert.deepEqual(compilerPolicyFromEnv(), {predicatedLeaves:1,leafFeatures:224,executionLimits:[512,32,8,0],sparseRom:1,compiledSvc:1,hotpath:2,thumbMemory:1,unsafeCode:3,watchdogUs:2000,irMode:7});
   for (const mode of [0,2]) {
     process.env.EKA2L1_CODE_COMPARE = String(mode);
-    assert.deepEqual(compilerPolicyFromEnv(), {predicatedLeaves:1,leafFeatures:224,executionLimits:[512,32,8,0],sparseRom:1,compiledSvc:1,hotpath:2,thumbMemory:1,unsafeCode:3,watchdogUs:2000,irMode:17,codeCompare:mode});
+    assert.deepEqual(compilerPolicyFromEnv(), {predicatedLeaves:1,leafFeatures:224,executionLimits:[512,32,8,0],sparseRom:1,compiledSvc:1,hotpath:2,thumbMemory:1,unsafeCode:3,watchdogUs:2000,irMode:7,codeCompare:mode});
   }
   for (const value of ['-1','1','3','4','5','2.0','NaN','']) {
     process.env.EKA2L1_CODE_COMPARE = value;
@@ -28,15 +28,24 @@ try {
     }
     delete process.env[name];
   }
-  for (const mode of [1,2,3,8,9,10,11,12,13,14,15,16,18]) {
+  for (const name of ['EKA2L1_SPARSE_ROM_LOOKUP','EKA2L1_COMPILED_SVC','EKA2L1_HOTPATH','EKA2L1_THUMB_MEMORY']) {
+    for (const value of ['0','1','2','']) {
+      process.env[name] = value;
+      assert.throws(compilerPolicyFromEnv, /Retired normal-launch option/);
+      await assert.rejects(startServer(), /Retired normal-launch option/);
+      // Explicit test controls do not inherit the normal launch environment.
+      const {server} = await startServer(0, {}, undefined, {compilerPolicy:{compiledSvc:0,sparseRom:0,hotpath:0,thumbMemory:0}});
+      servers.push(server);
+    }
+    delete process.env[name];
+  }
+  for (const mode of [1,2,3,8,9,10,11,12,13,14,15,16,17,18]) {
     process.env.EKA2L1_AOT_IR_MODE = String(mode);
     assert.throws(compilerPolicyFromEnv, /Invalid compiler policy/);
     await assert.rejects(startServer(0,{},undefined,{compilerPolicy:{irMode:mode}}), /Invalid compiler policy/);
   }
   process.env.EKA2L1_AOT_IR_MODE = '7';
   assert.deepEqual(compilerPolicyFromEnv(), {predicatedLeaves:1,leafFeatures:224,executionLimits:[512,32,8,0],sparseRom:1,compiledSvc:1,hotpath:2,thumbMemory:1,unsafeCode:3,watchdogUs:2000,irMode:7});
-  process.env.EKA2L1_AOT_IR_MODE = '17';
-  assert.deepEqual(compilerPolicyFromEnv(), {predicatedLeaves:1,leafFeatures:224,executionLimits:[512,32,8,0],sparseRom:1,compiledSvc:1,hotpath:2,thumbMemory:1,unsafeCode:3,watchdogUs:2000,irMode:17});
   process.env.EKA2L1_AOT_IR_MODE = '19';
   assert.throws(compilerPolicyFromEnv, /Invalid compiler policy/);
   delete process.env.EKA2L1_AOT_IR_MODE;
@@ -89,18 +98,14 @@ try {
   for (const invalid of [-1,5,NaN]) await assert.rejects(startServer(0,{},undefined,{compilerPolicy:{codeCompare:invalid}}),/Invalid compiler policy/);
   for (const policy of [{tlbHash:0},{tlbHash:1},{memoryCache:1},{codeLookup:0},{omitGuardPublication:0}]) await assert.rejects(startServer(0,{},undefined,{compilerPolicy:policy as any}),/Invalid compiler policy/);
   for (const [envName,key,valid,invalid] of [
-    ['EKA2L1_SPARSE_ROM_LOOKUP','sparseRom',['0','1'],['','2','-1','1.0']],
-    ['EKA2L1_COMPILED_SVC','compiledSvc',['0','1'],['','2','-1','1.0']],
     ['EKA2L1_MEMORY_IMPL','memoryImpl',['0','2'],['','1','3','-1','2.0']],
-    ['EKA2L1_HOTPATH','hotpath',['0','2'],['','1','3','4','5','6','7','8','-1','2.0','02']],
-    ['EKA2L1_THUMB_MEMORY','thumbMemory',['0','1'],['','2','-1','1.0']],
     ['EKA2L1_UNSAFE_CODE','unsafeCode',['0','3'],['','1','2','4','-1','3.0']],
     ['EKA2L1_PREDICATED_LEAVES','predicatedLeaves',['0','1'],['','2','-1','1.0']],
     ['EKA2L1_LEAF_FEATURES','leafFeatures',['0','32','64','96','128','160','192','224'],['','1','7','8','15','16','24','31','63','65','127','129','159','161','255','256','-1','8.0','08']],
   ] as const) {
     for (const value of valid) {
       process.env[envName] = value;
-      assert.deepEqual(compilerPolicyFromEnv(), {predicatedLeaves:1,leafFeatures:224,executionLimits:[512,32,8,0],sparseRom:1,compiledSvc:1,hotpath:2,thumbMemory:1,unsafeCode:3,watchdogUs:2000,irMode:17,...(key === 'unsafeCode' && value === '0' ? {memoryImpl:0} : {}),[key]:Number(value)});
+      assert.deepEqual(compilerPolicyFromEnv(), {predicatedLeaves:1,leafFeatures:224,executionLimits:[512,32,8,0],sparseRom:1,compiledSvc:1,hotpath:2,thumbMemory:1,unsafeCode:3,watchdogUs:2000,irMode:7,...(key === 'unsafeCode' && value === '0' ? {memoryImpl:0} : {}),[key]:Number(value)});
     }
     for (const value of invalid) { process.env[envName] = value; assert.throws(compilerPolicyFromEnv, /Invalid .* policy/); }
     delete process.env[envName];

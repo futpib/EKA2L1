@@ -1,3 +1,4 @@
+// Historical instruction-count ABI only; see README.md in this directory.
 // Isolated CPU kernels; diagnostic variants must never be used by the emulator.
 import fs from 'node:fs';import path from 'node:path';import http from 'node:http';import puppeteer from 'puppeteer';
 const [directory,output]=process.argv.slice(2);if(!directory||!output)throw Error('cpu-kernel-breakdown.ts KERNELS NEW_OUTPUT');fs.mkdirSync(output);

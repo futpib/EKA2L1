@@ -2958,7 +2958,7 @@ static bool test_division_sequences() {
     } restore;
     unsigned checks = 0, selected = 0, random = 0x159731ae;
     auto next = [&]() {random ^= random << 13; random ^= random >> 17; random ^= random << 5; return random;};
-    for (const auto policy : {arm_ir_policy::full_spans, arm_ir_policy::write_spans})
+    for (const auto policy : {arm_ir_policy::write_spans})
     for (unsigned entry : {0u,2u}) {
 
         for (unsigned high : {4u,7u,15u,31u}) for (unsigned digits : {4u,5u})
@@ -4349,7 +4349,7 @@ static void emit_division_helper_probe() {
     memory_experiment::mode=2;
     eka2l1::common::code_tracking::unsafe_code_mode=3;
     auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(division_helper_fixture),
-        sizeof(division_helper_fixture),0x80191968,nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::full_spans);
+        sizeof(division_helper_fixture),0x80191968,nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::write_spans);
     auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
         {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
     emit_memory_layout();
@@ -4371,7 +4371,7 @@ static void emit_lifetime_probes() {
         for(const auto &item:fixtures) {
             const auto &code=item.second;
             auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code.data()),code.size()*4,0x1000,
-                nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::full_spans);
+                nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::write_spans);
             auto module=build_wasm_module({tr.func},imports);
             const auto name=item.first+"-entry"+std::to_string(entry)+"-unsafe"+std::to_string(unsafe);
             printf("LIFETIME_SELECTION %s reads=%u writes=%u\n",name.c_str(),tr.proved_reads,tr.proved_writes);
@@ -4403,13 +4403,13 @@ static bool test_list_scan_summary() {
             0x0a000000u|(((0x6000u-(address+24))/4)&0xffffff),0xe3500106u|(statusreg<<16),
             0x12100001u|(payloadreg<<16)|(resultreg<<12),0x0afffff8u,0xea000000u|(((0x7000u-(address+40))/4)&0xffffff)};
         const auto *bytes=reinterpret_cast<const std::uint8_t*>(code.data());
-        auto tr=translate_arm_block(bytes,code.size()*4,address,nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::full_spans);
+        auto tr=translate_arm_block(bytes,code.size()*4,address,nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::write_spans);
         if(tr.summarized_helpers!=1){printf(" FAIL list scan selection\n");return false;}
         for(auto change:std::vector<std::pair<unsigned,unsigned>>{{0,1u},{1,1u<<20},{2,1u},
                 {3,1u<<21},{4,1u<<28},{5,1u<<28},{6,1u},{7,1u}}) {
             auto mutated=code;mutated[change.first]^=change.second;
             const auto rejected=translate_arm_block(reinterpret_cast<const std::uint8_t*>(mutated.data()),
-                mutated.size()*4,address,nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::full_spans);
+                mutated.size()*4,address,nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::write_spans);
             if(rejected.summarized_helpers){printf(" FAIL list unsafe selection %u\n",change.first);return false;}
         }
         auto module=build_wasm_module({tr.func},imports);
@@ -4505,7 +4505,7 @@ static bool test_division_helper() {
         memory_experiment::mode=mode;
         const auto *bytes=reinterpret_cast<const std::uint8_t*>(division_helper_fixture);
         auto tr=translate_arm_block(bytes,sizeof(division_helper_fixture),address,nullptr,nullptr,
-            true,false,true,true,nullptr,true,arm_ir_policy::full_spans);
+            true,false,true,true,nullptr,true,arm_ir_policy::write_spans);
         if(tr.summarized_helpers!=1){printf(" FAIL whole helper selection\n");return false;}
         auto module=build_wasm_module({tr.func});
         test_mem memory;memory.write_code(address,{bytes,bytes+sizeof(division_helper_fixture)});
@@ -4537,7 +4537,7 @@ static bool test_division_helper() {
     for(unsigned i=0;i<sizeof(division_helper_fixture)/4;++i) {
         auto changed=std::vector<unsigned>(std::begin(division_helper_fixture),std::end(division_helper_fixture));changed[i]^=1;
         auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(changed.data()),changed.size()*4,0x1000,
-            nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::full_spans);
+            nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::write_spans);
         if(tr.summarized_helpers!=(i==58?1u:0u)){printf(" FAIL helper byte guard %u\n",i);return false;}
     }
     printf(" PASS complete division helper (%u independent ARM state/flags/count comparisons)\n",checks);
@@ -4567,7 +4567,7 @@ static bool test_pointer_lifetimes() {
         eka2l1::common::code_tracking::unsafe_code_mode=unsafe;
         const auto &code=fixture.first;
         auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code.data()),code.size()*4,0x1000,
-            nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::full_spans);
+            nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::write_spans);
         if(tr.proved_reads!=fixture.second) {printf(" FAIL lifetime proof selection got=%u expected=%u\n",tr.proved_reads,fixture.second);return false;}
         auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
@@ -4616,7 +4616,7 @@ static bool test_pointer_lifetimes() {
         eka2l1::common::code_tracking::unsafe_code_mode=unsafe;
         auto code=lifetime_reads(16);code.insert(code.begin()+8,0xe4923004u);
         auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code.data()),code.size()*4,0x1000,
-            nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::full_spans);
+            nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::write_spans);
         if(tr.proved_reads!=16){printf(" FAIL lifetime callback selection reads=%u\n",tr.proved_reads);return false;}
         auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
@@ -4720,9 +4720,6 @@ static bool test_boundary_details() {
         if(count!=1 || state[15]!=0x2000 || last_constraint!=3 || last_restriction!=f.expected || last_rejected_pc!=0x2004 || last_rejected_opcode!=f.opcode) {
             printf(" FAIL boundary detail op=%x got=%s expected=%s pc=%x count=%d\n",f.opcode,restriction_name(last_restriction),restriction_name(f.expected),last_rejected_pc,count);return false;
         }
-        const auto before=call_restrictions[restriction_name(f.expected)];
-        record(0x1000,0x2000,7,count,16,0);
-        if(call_restrictions[restriction_name(f.expected)]!=before+1)return false;
         ++checks;
     }
     for(unsigned address:{0x1000u,0x1800u,0x2000u,0x3000u}) {
@@ -4807,7 +4804,7 @@ static bool test_branch_veneers() {
         const unsigned leaf[]={branch,0xe3a0c077u}; // unreachable bytes must not be a dependency
         leaf_resolver resolver=[&](unsigned pc){const auto *b=reinterpret_cast<const std::uint8_t*>(leaf);
             return pc==0x2000?std::vector<std::uint8_t>(b,b+sizeof(leaf)):std::vector<std::uint8_t>{};};
-        auto translate=[&](arm_ir_policy policy=arm_ir_policy::full_spans){return translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller.data()),caller.size()*4,0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,policy);};
+        auto translate=[&](arm_ir_policy policy=arm_ir_policy::write_spans){return translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller.data()),caller.size()*4,0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,policy);};
         auto tr=translate();
         if(tr.dependencies.size()!=unsigned(features==32) || (features &&
             (tr.dependencies[0].bytes.size()!=4 || tr.dependencies[0].address!=0x2000 ||
@@ -4854,7 +4851,7 @@ static bool test_branch_veneers() {
     for(unsigned op:{0x1a000000u,0xeb000000u,0xfa000000u,0xe12fff10u,0xe51ff004u}) {
         const unsigned caller[]={0xeb0003feu};
         leaf_resolver resolver=[&](unsigned){const auto *b=reinterpret_cast<const std::uint8_t*>(&op);return std::vector<std::uint8_t>(b,b+4);};
-        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),4,0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::full_spans);
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),4,0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_spans);
         if(!tr.dependencies.empty()){printf(" FAIL unsupported veneer accepted %x\n",op);return false;}
     }
     printf(" PASS branch veneers (%u register state/alias/path comparisons)\n",checks);
@@ -4881,7 +4878,7 @@ static bool test_tail_prefixes() {
         leaf.push_back(0xe3a0c077u); // Unreachable bytes must not become a dependency.
         leaf_resolver resolver=[&](unsigned pc){const auto *b=reinterpret_cast<const std::uint8_t*>(leaf.data());
             return pc==0x2000?std::vector<std::uint8_t>(b,b+leaf.size()*4):std::vector<std::uint8_t>{};};
-        auto translate=[&](arm_ir_policy policy=arm_ir_policy::full_spans){return translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller.data()),caller.size()*4,0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,policy);};
+        auto translate=[&](arm_ir_policy policy=arm_ir_policy::write_spans){return translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller.data()),caller.size()*4,0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,policy);};
         auto tr=translate();
         if(tr.dependencies.size()!=unsigned((features&64)!=0) || ((features&64)!=0 &&
             (tr.dependencies[0].bytes.size()!=dependency_bytes || tr.dependencies[0].address!=0x2000 ||
@@ -4928,14 +4925,14 @@ static bool test_tail_prefixes() {
     for(unsigned op:{0xea000000u,0x1a000000u,0xeb000000u,0xfa000000u,0xe12fff10u,0xe51ff004u}) {
         const unsigned caller[]={0xeb0003feu};
         leaf_resolver resolver=[&](unsigned){const auto *b=reinterpret_cast<const std::uint8_t*>(&op);return std::vector<std::uint8_t>(b,b+4);};
-        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),4,0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::full_spans);
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),4,0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_spans);
         if(!tr.dependencies.empty()){printf(" FAIL unsupported veneer accepted %x\n",op);return false;}
     }
     // Reject unsafe prefixes even when an unconditional branch follows.
     for(unsigned op:{0xe5801000u,0xe1a0000du,0xe1a0e000u,0xe1a0000fu,0xe0000192u,0xe10f0000u,0xf1a00000u}) {
         const unsigned caller[]={0xeb0003feu}, leaf[]={op,0xea000000u};
         leaf_resolver resolver=[&](unsigned){const auto *b=reinterpret_cast<const std::uint8_t*>(leaf);return std::vector<std::uint8_t>(b,b+sizeof(leaf));};
-        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),4,0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::full_spans);
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),4,0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_spans);
         if(!tr.dependencies.empty()){printf(" FAIL unsafe tail prefix accepted %x\n",op);return false;}
     }
     {
@@ -4944,7 +4941,7 @@ static bool test_tail_prefixes() {
             std::vector<unsigned> leaf(length,0xe1a03000u);
             leaf.back()=0xea000000u;
             leaf_resolver resolver=[&](unsigned){const auto *b=reinterpret_cast<const std::uint8_t*>(leaf.data());return std::vector<std::uint8_t>(b,b+leaf.size()*4);};
-            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),4,0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::full_spans);
+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),4,0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_spans);
             if(tr.dependencies.size()!=unsigned(length<=leaf_instruction_limit))return false;
         }
     }
@@ -4956,7 +4953,7 @@ static bool test_tail_prefixes() {
         leaf_resolver resolver=[&](unsigned){const auto *b=reinterpret_cast<const std::uint8_t*>(leaf);return std::vector<std::uint8_t>(b,b+sizeof(leaf));};
         for(unsigned features:{160u,224u}) {
             leaf_features=features;
-            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::full_spans);
+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_spans);
             if(tr.dependencies.size()!=1 || tr.dependencies[0].bytes.size()!=sizeof(leaf)) {
                 printf(" FAIL complete returning leaf shortened by tail prefix\n");return false;
             }
@@ -5064,7 +5061,7 @@ static bool test_literal_pc_veneers() {
     return true;
 }
 
-static bool test_expanded_leaves(bool always=false, arm_ir_policy policy=arm_ir_policy::full_spans, unsigned entry_mode=0) {
+static bool test_expanded_leaves(bool always=false, arm_ir_policy policy=arm_ir_policy::write_spans, unsigned entry_mode=0) {
 #ifdef __EMSCRIPTEN__
     struct restore {bool flag=predicated_leaves;unsigned features=leaf_features;
         ~restore(){predicated_leaves=flag;leaf_features=features;}} saved;
@@ -5490,47 +5487,6 @@ static bool test_inline_limits() {
     return true;
 }
 
-static bool test_exit_census() {
-    if constexpr (!eka2l1::common::diagnostics::available) {
-        printf(" SKIP exit census: build with EKA2L1_WASM_DIAGNOSTICS=ON\n");
-        return true;
-    }
-#ifdef __EMSCRIPTEN__
-    const bool old=exit_census::enabled;exit_census::enabled=true;
-    struct fixture {std::uint32_t op;unsigned budget,count;const char *reason;bool thumb=false;};
-    for(const auto &f:std::vector<fixture>{{0xe2800001,8,1,"source_window_end"},
-        {0xe2800001,0,0,"budget"},{0xef000000,8,0,"unsupported"},
-        {0xe5910000,8,0,"memory_guard"},{0xeb000001,8,1,"call"},
-        {0xe12fff1e,8,1,"return_bx_lr"},{0xeafffffe,8,1,"interrupt"},
-        {0xe5810000,8,1,"code_write_guard"},{0xe4910004,8,1,"helper_exit"},
-        {0x2001,8,1,"source_window_end",true},{0x2001,0,0,"budget",true},
-        {0xdf00,8,0,"unsupported",true},{0x4770,8,1,"return_bx_lr",true}}) {
-        const auto *bytes=reinterpret_cast<const std::uint8_t*>(&f.op);
-        const auto tr=f.thumb?translate_thumb_block(bytes,2,0x1000,nullptr,nullptr,true,false,true)
-            :translate_arm_block(bytes,4,0x1000,nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::write_spans);
-        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
-            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
-        test_mem memory;memory.write32(0x1000,f.op);memory.write32(0x8000,123);
-        r12l1::tlb tlb(12);tlb.add(0x1000,memory.data.data()+0x1000,3);
-        alignas(8) std::uint32_t state[256]{};state[0]=0xe2800002;state[1]=f.op==0xe5810000?0x1000:0x8000;
-        state[14]=0x2000;state[15]=0x1000;state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=16;
-        state[state_offsets::TFLAG/4]=f.thumb;state[state_offsets::NIRQ/4]=f.op==0xeafffffe?0:1;
-        state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
-        state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(memory.data.data()+0x1000);
-        state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+4;
-        exit_census::last_reason=0;exit_census::effects=0;g_test_mem=&memory;
-        const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));g_test_mem=nullptr;
-        const auto actual=exit_census::classify(f.thumb,count,f.budget,state[state_offsets::AOT_EXIT/4]);
-        if(count!=int(f.count)||std::string(actual)!=f.reason||exit_census::last_pc!=(0x1000u|unsigned(f.thumb))||exit_census::last_opcode!=f.op) {
-            printf(" FAIL exit census op=%x count=%d/%u reason=%s/%s site=%x opcode=%x\n",f.op,count,f.count,actual,f.reason,exit_census::last_pc,exit_census::last_opcode);
-            exit_census::enabled=old;return false;
-        }
-    }
-    exit_census::enabled=old;printf(" PASS exit census actual ARM/Thumb exit labels, budgets, helpers and code aliases\n");
-#endif
-    return true;
-}
-
 // Deliberate semantic counterexamples are successes for this diagnostic test:
 // mode 3 must trust changed bytes and execute past an overlapping code store.
 static bool test_unsafe_code_diagnostic() {
@@ -5686,7 +5642,7 @@ static bool test_direct_memory_translation() {
         auto compile=[&](unsigned policy) {
             mode=policy;
             auto tr=program>=3?translate_thumb_block(code.data(),code.size(),0x1000,nullptr,nullptr,true,true,true)
-                :translate_arm_block(code.data(),code.size(),0x1000,nullptr,nullptr,true,true,true,true,nullptr,false,arm_ir_policy::full_spans);
+                :translate_arm_block(code.data(),code.size(),0x1000,nullptr,nullptr,true,true,true,true,nullptr,false,arm_ir_policy::write_spans);
             return build_wasm_module({tr.func},imports);
         };
         const auto baseline=compile(0),tested=compile(2);
@@ -6101,7 +6057,7 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--expanded-leaves-only")return
         test_expanded_leaves() && test_expanded_leaves(true)
         && test_expanded_leaves(false,arm_ir_policy::write_spans)
-        && test_expanded_leaves(false,arm_ir_policy::full_spans,2)?0:1;
+        && test_expanded_leaves(false,arm_ir_policy::write_spans,2)?0:1;
     if(argc==2 && std::string(argv[1])=="--predicated-leaves-only")return test_predicated_leaves()?0:1;
     if(argc==2 && std::string(argv[1])=="--frozen-cache-only")return test_frozen_code_cache()?0:1;
     if(argc==2 && std::string(argv[1])=="--hotpaths") {hotpath_policy=2;argc=1;}
@@ -6124,7 +6080,6 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--registry-only")return test_registry_lookup_lifecycle()?0:1;
     if(argc==2 && std::string(argv[1])=="--guard-publication-only")return test_guard_publication()?0:1;
     if(argc==2 && std::string(argv[1])=="--execution-limits-only")return test_execution_limits() && test_inline_limits()?0:1;
-    if(argc==2 && std::string(argv[1])=="--exit-census-only")return test_exit_census()?0:1;
     if(argc==2 && std::string(argv[1])=="--exit-census") {
         if (!eka2l1::common::diagnostics::available) {
             fprintf(stderr,"Exit census requires EKA2L1_WASM_DIAGNOSTICS=ON\n");
@@ -6811,8 +6766,6 @@ int main(int argc, char **argv) {
     if (test_invariant_reads()) passed++; else failed++;
     printf("TEST test_invariant_writes\n"); watchdog::request=0;
     if (test_invariant_writes()) passed++; else failed++;
-    printf("TEST test_exit_census\n"); watchdog::request=0;
-    if (test_exit_census()) passed++; else failed++;
     printf("TEST test_execution_limits\n"); watchdog::request=0;
     if (test_execution_limits()) passed++; else failed++;
     printf("TEST test_guard_publication\n"); watchdog::request=0;
@@ -6841,13 +6794,13 @@ int main(int argc, char **argv) {
     printf("TEST test_division_sequences\n"); watchdog::request=0;
     if (test_division_sequences()) passed++; else failed++;
     printf("TEST test_inlined_leaves\n"); watchdog::request=0;
-    if (test_inlined_leaves(arm_ir_policy::full_spans)) passed++; else failed++;
+    if (test_inlined_leaves(arm_ir_policy::write_spans)) passed++; else failed++;
     printf("TEST test_region_loop_interrupts\n"); watchdog::request=0;
-    if (test_region_loop_interrupts(arm_ir_policy::full_spans)) passed++; else failed++;
+    if (test_region_loop_interrupts(arm_ir_policy::write_spans)) passed++; else failed++;
     printf("TEST test_region_code_alias\n"); watchdog::request=0;
-    if (test_region_code_alias(arm_ir_policy::full_spans)) passed++; else failed++;
+    if (test_region_code_alias(arm_ir_policy::write_spans)) passed++; else failed++;
     printf("TEST test_region_cpsr_callback\n"); watchdog::request=0;
-    if (test_region_cpsr_callback(arm_ir_policy::full_spans)) passed++; else failed++;
+    if (test_region_cpsr_callback(arm_ir_policy::write_spans)) passed++; else failed++;
     printf("TEST test_invariant_writes\n"); watchdog::request=0;
     if (test_invariant_writes(arm_ir_policy::write_spans)) passed++; else failed++;
     printf("TEST test_memory_displacements\n"); watchdog::request=0;

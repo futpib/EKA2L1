@@ -1,3 +1,4 @@
+// Historical instruction-count ABI only; see README.md in this directory.
 // A single browser, same C++ batching loop for the compact reference and current emitter.
 import crypto from 'node:crypto';import fs from 'node:fs';import path from 'node:path';import http from 'node:http';import puppeteer from 'puppeteer';
 const [build,fixtures,output]=process.argv.slice(2);if(!output)throw Error('matched-kernel.ts BUILD FIXTURES NEW_OUTPUT');fs.mkdirSync(output);

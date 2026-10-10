@@ -1,8 +1,9 @@
+// Historical instruction-count ABI only; see README.md in this directory.
 // Offline counts and exact state comparison for a captured ARM idivmod helper.
 // Never used in game timing or normal guest execution.
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-import {counted,resetCost,readCost} from './wasm-step-counter.mjs';
+import {counted,resetCost,readCost} from '../../wasm-step-counter.mjs';
 const [input,output,name]=process.argv.slice(2);
 if(!name)throw Error('division-counts.mjs MODULE_COMPARISON.json OUTPUT.json DIVISION_EXPORT');
 const comparison=JSON.parse(fs.readFileSync(input));

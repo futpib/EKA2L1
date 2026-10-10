@@ -75,7 +75,6 @@ static constexpr bool defer_memory_enabled = true;
 static constexpr bool defer_memory_enabled = false;
 #endif
 static validated_code_cache ram_cache;
-static const validated_code_cache::block *census_entry = nullptr;
 static std::unordered_map<std::uint64_t, unsigned> ram_counts;
 static const std::uint8_t *hot_rom = nullptr;
 static std::uint64_t hot_dispatches = 0;
@@ -159,7 +158,6 @@ __forceinline
 __attribute__((always_inline))
 #endif
 static aot_func lookup_compiled_impl(ARMul_State *cpu, const registry &functions) {
-    if constexpr(Profile) if(exit_census::enabled)census_entry=nullptr;
     // TrustBytes follows the frozen code-cache policy.
     const auto pc = cpu->Reg[15], pc_mode = pc | cpu->TFlag;
     // Existing ROM functions use immutable bytes and need no mapping lookup.
@@ -179,7 +177,6 @@ static aot_func lookup_compiled_impl(ARMul_State *cpu, const registry &functions
         auto *entry = TrustBytes ? ram_cache.find_trusted_original(pc_mode, *cpu->parent())
             : ram_cache.find(pc_mode, *cpu->parent());
         if (!entry) return nullptr;
-        if constexpr(Profile) if(exit_census::enabled)census_entry=entry;
         if constexpr(!TrustBytes) {
             cpu->aot_code_begin = static_cast<std::uint32_t>(entry->guard_begin);
             cpu->aot_code_end = static_cast<std::uint32_t>(entry->guard_end);
@@ -197,7 +194,6 @@ static aot_func lookup_compiled_impl(ARMul_State *cpu, const registry &functions
         common::guest_profile::state.event(!mapped ? "ram_unmapped" : !entry ? "ram_missing" : entry->rejected ? "ram_rejected" : "ram_pending",pc_mode,view.address_space,opcode);
     }
     if (!mapped || !entry) return nullptr;
-    if constexpr(Profile) if(exit_census::enabled)census_entry=entry;
     if constexpr(!TrustBytes) {
         cpu->aot_code_begin = static_cast<std::uint32_t>(entry->guard_begin);
         cpu->aot_code_end = static_cast<std::uint32_t>(entry->guard_end);

@@ -1,3 +1,4 @@
+// Historical instruction-count ABI only; see README.md in this directory.
 // Paired emitted-code probe. Full interpreter differential tests are separate.
 import fs from 'node:fs';
 import http from 'node:http';

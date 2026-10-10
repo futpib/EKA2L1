@@ -1,3 +1,4 @@
+// Historical instruction-count ABI only; see README.md in this directory.
 // Uninstrumented microbenchmark: all dispatch and repetition stay inside WASM.
 // Use --no-liftoff to isolate optimized native execution from tiering/startup.
 import fs from 'node:fs';

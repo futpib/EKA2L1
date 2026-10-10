@@ -42,14 +42,14 @@ const predicatedLeaves = Number(process.env.EKA2L1_PREDICATED_LEAVES ?? compiler
 if(![0,1].includes(predicatedLeaves))throw Error('Invalid leaf predication setting');
 const executionLimits = compilerDefaults.executionLimits.split(',').map(Number);
 const irMode = Number(process.env.EKA2L1_AOT_IR_MODE ?? compilerDefaults.irMode);
-if (![-1,0,4,5,6,7,17].includes(irMode)) throw Error('Invalid compiler policy');
+if (![-1,0,4,5,6,7].includes(irMode)) throw Error('Invalid compiler policy');
 const hotpathPolicy = Number(process.env.EKA2L1_HOTPATH ?? compilerDefaults.hotpath);
 if (![-1,0,2].includes(hotpathPolicy)) throw Error('Hotpath policy must be 0 or 2');
 const verifyAot = Number(process.env.EKA2L1_AOT_VERIFY || "0");
 if (!Number.isSafeInteger(verifyAot) || verifyAot < 0 || verifyAot > 2147483647)
   throw new Error('EKA2L1_AOT_VERIFY must be a nonnegative integer stride');
 const aot = Number(process.env.EKA2L1_BENCHMARK_AOT || "0");
-if (![0,1,2,3,4,5].includes(aot)) throw new Error("AOT mode must be 0, 1, 2, 3, 4 or 5");
+if (![0,5].includes(aot)) throw new Error("AOT mode must be 0 (interpreter) or 5 (compiler)");
 // Direct memory is the compiled-play default; interpreter/verifier runs need TLB.
 const memoryText = process.env.EKA2L1_MEMORY_IMPL ?? (aot === 5 && !verifyAot && unsafeCode === 3 ? '2' : '0');
 if (!/^[02]$/.test(memoryText)) throw Error('Memory implementation must be 0 (TLB) or 2 (direct)');
@@ -85,7 +85,7 @@ const dirtyWorktree = !!execFileSync('git', ['status', '--porcelain'], {encoding
 fs.mkdirSync(output); // Refuse to mix captures from different runs.
 const files: Record<string,string> = {'/preload/input': input};
 for (const name of Object.keys(expected)) files[`/preload/${name}`] = path.join(assets, name);
-const {server, port} = await startServer(0, files);
+const {server, port} = await startServer(0, files, undefined, {compilerPolicy: {}});
 const log = fs.createWriteStream(path.join(output, 'browser.log'));
 let browser;
 try {

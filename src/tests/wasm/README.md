@@ -75,6 +75,8 @@ selection below remains independent of this fixed compiler behavior. See the
 [eligibility and adoption checks](../benchmark/ARM_MEMORY_ADOPTION.md).
 
 For compiled-region replay and profiling, set `EKA2L1_BENCHMARK_AOT=5`.
+Only 5 (full compiler) and 0 (interpreter reference) are supported; intermediate
+stages 1–4 are retired.
 These runs select direct memory and unsafe code mode 3.
 Interpreter and mutation-compatible runs select TLB unless explicitly
 overridden. The launcher also selects TLB for `EKA2L1_UNSAFE_CODE=0` when no
@@ -86,9 +88,19 @@ whole access range, and the fallback table requires the access to fit in one
 page. TLB retains its alignment checks. See the
 [alignment measurements and adoption](../benchmark/UNALIGNED_SCALAR_RESULTS.md).
 
-Compiled syscalls (`EKA2L1_COMPILED_SVC=1`), sparse ROM lookup
-(`EKA2L1_SPARSE_ROM_LOOKUP=1`) are enabled by default and frozen before
-initialization. Full state pruning and IR mode 17 remain the defaults.
+Compiled syscalls, sparse ROM lookup, Thumb inline memory and trusted lookup
+are fixed normal-launch defaults. Remove `EKA2L1_COMPILED_SVC`,
+`EKA2L1_SPARSE_ROM_LOOKUP`, `EKA2L1_THUMB_MEMORY` and `EKA2L1_HOTPATH` from
+launcher environments. Their pre-init APIs and the dedicated `benchmark.ts` /
+`profile.ts` controls remain for targeted comparisons and fallback tests.
+Trusted lookup still respects mapping lifetime and the executable-byte policy.
+Full state pruning and IR mode 7 are the defaults. Former mode 17 performed the
+same lowering after instruction accounting was removed and is now rejected.
+
+The count-based exit classifier/recorder has been removed; compilation-site,
+memory/fault metadata and invalidation diagnostics remain. Old count-returning
+kernel harnesses live in [the historical archive](archive/counted-kernels/README.md).
+See [cleanup scope and verification](CONFIGURATION_CLEANUP.md).
 
 Division lowering, entry-only pruning, static count batching (IR mode 18),
 and inline entry-budget recovery (mode 1) were removed after the completed

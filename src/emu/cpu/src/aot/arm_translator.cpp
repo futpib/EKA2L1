@@ -972,8 +972,6 @@ namespace eka2l1::arm::aot {
         const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region, const leaf_resolver *leaves, bool defer_memory, bool allow_memory_proof, arm_ir_policy ir_policy = arm_ir_policy::configured,
         stack_return_context *stack_return = nullptr)
     {
-        // Policy 17 retains the established default memory lowering.
-        if (ir_policy == arm_ir_policy::full_spans) ir_policy = arm_ir_policy::write_spans;
         region = region && bounded;
         // Bounded blocks exit on branches instead of recursively calling siblings.
         // Keep guest-visible instructions (including veneers) in the execution stream.

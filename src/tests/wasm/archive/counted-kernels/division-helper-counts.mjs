@@ -1,8 +1,9 @@
+// Historical instruction-count ABI only; see README.md in this directory.
 // Offline exact-state comparison and executed operation counts. Not a timing build.
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-import {counted,resetCost,readCost} from './wasm-step-counter.mjs';
-import {CostComparisons} from './wasm-cost-model.mjs';
+import {counted,resetCost,readCost} from '../../wasm-step-counter.mjs';
+import {CostComparisons} from '../../wasm-cost-model.mjs';
 const [beforeFile,afterFile,output]=process.argv.slice(2);
 if(!output)throw Error('division-helper-counts.mjs BASELINE_PROBES CANDIDATE_PROBES OUTPUT.json');
 function parse(file) {

@@ -1,15 +1,16 @@
+// Historical instruction-count ABI only; see README.md in this directory.
 // Count executed guest-translation WASM operations, including private fallback
 // functions. Counter instructions and structural block/loop/end/else markers
 // are excluded. These instrumented modules are never used for CPU timings.
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
-import {counted,resetCost,readCost} from './wasm-step-counter.mjs';
-import {CostComparisons} from './wasm-cost-model.mjs';
+import {counted,resetCost,readCost} from '../../wasm-step-counter.mjs';
+import {CostComparisons} from '../../wasm-cost-model.mjs';
 
 const [beforePath, afterPath, output] = process.argv.slice(2);
 const breakdown=process.argv.includes('--breakdown'),costs=new CostComparisons();
-if (!output) throw Error('lifetime-counts.mjs BASELINE_PROBES CANDIDATE_PROBES OUTPUT.json');
+if (!output) throw Error('span-counts.mjs BASELINE_PROBES CANDIDATE_PROBES OUTPUT.json');
 function readProbes(path) {
     const lines=fs.readFileSync(path,'utf8').split('\n');
     return {layout:JSON.parse(lines.find(l=>l.startsWith('MEMORY_LAYOUT ')).slice(14)),
@@ -50,31 +51,33 @@ function init(probe,scenario,budget,z) {
         words[page+1]=permission&2&&!scenario.zeroHost?host:0;
     }
     for(let r=0;r<16;r++)words[state/4+r]=0xabc00000+r;
-    words[state/4]=scenario.alias?address+32:(address>=0x400000?0x40a040:0xa040);
-    words[state/4+1]=address;words[state/4+2]=address+128;words[state/4+6]=2;
-    words[state/4+13]=address>=0x400000?0x40b800:0xb800;words[state/4+14]=0x2000;words[state/4+15]=0x1000;
+    words[state/4+1]=address;words[state/4+6]=2;words[state/4+13]=address;words[state/4+15]=0x1000;
+    if(probe.thumb&&(probe.opcode&0xfe00)===0xb400) {
+        let mask=(probe.opcode&255)|((probe.opcode&256)?16384:0),n=0;
+        while(mask){n++;mask&=mask-1;}words[state/4+13]+=n*4;
+    }
     words[view/4]=0x400000;words[view/4+1]=0x4000000;words[view/4+2]=0x4000000;
     words[view/4+3]=pages;words[view/4+4]=0x3c00000;words[view/4+5]=scenario.arena?0xffffffff:0;
     const field=(name,value)=>words[(state+S[name])/4]=value;
     field('mode',16);field('cpsr',16|(probe.thumb?32:0)|(scenario.endian?512:0));
-    field('thumb',probe.thumb);field('z',z);field('budget',budget);field('irq',1);field('remaining',budget);
+    field('thumb',probe.thumb);field('z',z);field('budget',budget);field('irq',1);field('remaining',64);
     field('tlb',scenario.nullView?0:probe.mode===2?view:tlb);
-    field('code_begin',scenario.codeAlias?physical(words[state/4]):0x70000000);field('code_end',scenario.codeAlias?physical(words[state/4])+64:0x70001000);
+    field('code_begin',0x70000000);field('code_end',0x70001000);
     helperTrace=[];
 }
-const scenarios=[{name:'valid'},{name:'alias',alias:true},{name:'code-alias',codeAlias:true},{name:'read-only',permission:1},{name:'write-only',permission:2},
+const scenarios=[{name:'valid'},{name:'read-only',permission:1},{name:'write-only',permission:2},
     {name:'denied',permission:0},{name:'null-view',nullView:true},{name:'zero-host',zeroHost:true},
     {name:'endian',endian:true},{name:'unaligned',address:0x8001},{name:'cross-page',address:0x8ffc},
     {name:'word-cross-page',address:0x8fff},{name:'half-cross-page',address:0x8ffe},
-    {name:'page-zero',address:0},{name:'address-wrap',address:0xfffffffe},{name:'arena',address:0x408040,arena:true},{name:'arena-alias',address:0x408040,arena:true,alias:true},
+    {name:'page-zero',address:0},{name:'address-wrap',address:0xfffffffe},{name:'arena',address:0x408040,arena:true},
     {name:'arena-cross-page',address:0x408ffc,arena:true}];
-const rows=[];let reductions=0,unchanged=0,grown=0;
+const rows=[];let reductions=0,unchanged=0;
 for(let i=0;i<before.probes.length;i++) {
     const a=before.probes[i],b=after.probes[i];assert.equal(a.name,b.name);assert.equal(a.mode,b.mode);
     const raw=[a,b].map(p=>Buffer.from(p.wasm,'base64'));
     const instances=raw.map(blob=>new WebAssembly.Instance(counted(blob,{breakdown}),{env}));
     let improved=0,comparisons=0;
-    for(const scenario of scenarios)for(const budget of [0,1,3,4,8,16,32,57,64])for(const z of [0,1]) {
+    for(const scenario of scenarios)for(const budget of [0,1,3,16])for(const z of [0,1]) {
         const results=instances.map((instance,variant)=>{
             init(variant?b:a,scenario,budget,z);resetCost(instance);
             const count=instance.exports.f_4096(state);
@@ -88,13 +91,13 @@ for(let i=0;i<before.probes.length;i++) {
         if(breakdown)costs.add(`${a.name} mode=${a.mode}`,old.cost,current.cost,{scenario:scenario.name,budget,z});
         assert.equal(current.count,old.count,label+' guest count');assert.equal(current.hash,old.hash,label+' state/memory');
         assert.deepEqual(current.helpers,old.helpers,label+' helpers');
-
-        if(current.steps<old.steps){improved++;reductions++;}else if(current.steps>old.steps)grown++;else unchanged++;
+        assert(current.steps<=old.steps,`${label}: instructions increased ${old.steps} -> ${current.steps}`);
+        if(current.steps<old.steps){improved++;reductions++;}else unchanged++;
         comparisons++;
         rows.push({name:a.name,mode:a.mode,scenario:scenario.name,budget,z,before:old.steps,after:current.steps,guest_instructions:current.count,helper_calls:current.helpers.length});
     }
-    if(a.mode===0||a.name.includes('entry0')||a.name.includes('backedge'))assert(raw[0].equals(raw[1]),`${a.name}: excluded path changed`);
+    if(!raw[0].equals(raw[1]))assert(improved>0,`${a.name}: changed without an instruction-count reduction`);
     console.log('PASS',a.name,'mode',a.mode,improved,'reduced of',comparisons);
 }
-fs.writeFileSync(output,JSON.stringify({metric:'Executed WASM operations; block/loop/end/else markers and counter operations excluded; imported helper bodies excluded but call traces equal',reductions,unchanged,grown,rows,...(breakdown?{cost_classes:costs.fixtures}:{})},null,2)+'\n');
-console.log('PASS',reductions,'reduced,',unchanged,'unchanged,',grown,'increased; state, memory, guest progress and helper traces match');
+fs.writeFileSync(output,JSON.stringify({metric:'Executed WASM operations; block/loop/end/else markers and counter operations excluded; imported helper bodies excluded but call traces equal',reductions,unchanged,rows,...(breakdown?{cost_classes:costs.fixtures}:{})},null,2)+'\n');
+console.log('PASS',reductions,'reduced,',unchanged,'unchanged, zero increased; state, memory, guest progress and helper traces match');

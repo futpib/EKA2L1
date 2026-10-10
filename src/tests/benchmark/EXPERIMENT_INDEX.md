@@ -10,7 +10,7 @@ to detect stale output.
 
 The controlled historical sweep is complete: 109/109 game comparisons, 872/872 valid observations and 20 retained earlier invalid attempts. All saved plans and observations are preserved. Winners were reassessed on the current runtime before graduation; individual percentages are not additive.
 
-Compiled syscalls, sparse ROM lookup and outlined entry budgets were adopted in 632c3d433. The resumed sweep additionally graduated forward-only leaves at bound 32 (21c322713), single-branch veneers (0b890a26a), and register-only tail prefixes (7f5f85273). Those graduated choices remain the browser defaults.
+Compiled syscalls, sparse ROM lookup and outlined entry budgets were adopted in 632c3d433. The resumed sweep additionally graduated forward-only leaves at bound 32 (21c322713), single-branch veneers (0b890a26a), and register-only tail prefixes (7f5f85273). Compiled syscalls, sparse ROM lookup and those later fusion choices remain enabled. Outlined entry budgets were subsequently removed with instruction accounting in 0e354cd12; the browser now uses watchdog yields and IR policy 7 (former policy 17 is identical and retired).
 
 The final direct measurement of those three later graduations together versus 632c3d433 gives Snakes +2.56% CPU throughput (4/4 faster pairs) and Sky Force -1.80% (2/4 faster pairs). This is a measured tradeoff, not a demonstrated two-game win. All 16 observations are valid and all 88 restoration checks pass. See [combined results and limitations](SWEEP_COMBINED_RESULTS.md). No new promotion or rollback follows from this closing comparison; the Sky Force regression is explicitly recorded for targeted isolation.
 
@@ -18,7 +18,7 @@ The graduated artifact passed 175 compiler tests and real LAN gameplay/input che
 
 The subsequent [56-entry source audit and cleanup](RETIRED_SWEEP_EXPERIMENTS.md) removes division lowering, entry-only pruning, count batching, inline entry-budget recovery and adjustable execution limits. The other listed implementations were already absent or superseded. Adopted behavior remains; this maintenance change has no new timing claim. Historical measurements and candidate patches remain available.
 
-The requested [incoming-pointer lifetime proof](POINTER_LIFETIME_RESULTS.md) is adopted for direct-memory ARM regions under the full-entry budget. Against b96296d58, Snakes improves +1.87% CPU throughput with all four pairs faster and -0.94% native instructions. Sky Force averages +0.14% with mixed pairs and essentially unchanged native instructions, so no Sky Force gain is established. All 16 observations and 88 restoration checks pass; both games pass exact image, instruction-progress and PCM replays. This was a separate requested optimization, not a resumed sweep. At the conclusion of that experiment, the measured artifact was served on LAN and both game-picker gameplay/input checks passed. The existing host audio-device failure remains; full live-audio E2E is not claimed.
+The requested [incoming-pointer lifetime proof](POINTER_LIFETIME_RESULTS.md) was adopted for direct-memory ARM regions under the then-current full-entry budget; that budget mechanism has since been removed. Against b96296d58, Snakes improves +1.87% CPU throughput with all four pairs faster and -0.94% native instructions. Sky Force averages +0.14% with mixed pairs and essentially unchanged native instructions, so no Sky Force gain is established. All 16 observations and 88 restoration checks pass; both games pass exact image, instruction-progress and PCM replays. This was a separate requested optimization, not a resumed sweep. At the conclusion of that experiment, the measured artifact was served on LAN and both game-picker gameplay/input checks passed. The existing host audio-device failure remains; full live-audio E2E is not claimed.
 
 The requested [deferred comparison flags across successful reads](DEFERRED_COMPARE_MEMORY_RESULTS.md) experiment is not adopted. V8 retains flag work that the prototype removes: sixteen fewer native instructions on each of four audited successful scheduler loop paths. In current-runtime ABBA/BAAB measurements, Snakes is effectively flat (+0.19% CPU throughput, 3/4 faster pairs), while Sky Force averages -1.12% with mixed pairs despite -2.00% native instructions. All 16 observations, exact state/replay checks and 88 host-restoration checks pass. The full candidate is archived as a patch; its compiler changes and test hooks are removed from active source. That experiment left production and LAN on the prior lifetime-proof build.
 
@@ -66,7 +66,7 @@ The region-fusion round adopts [Whole-path Thumb budget proof](THUMB_REGION_BUDG
 
 The region-fusion round does not adopt [Bounded Thumb loop wrapper removal](THUMB_LINEAR_REGION_RESULTS.md): Snakes +0.66% CPU throughput (2/4 faster pairs), -0.13% native instructions; Sky Force +0.57% CPU throughput (3/4 faster pairs), -0.49% native instructions. Inconclusive runtime benefit despite fewer native instructions and eliminated loop-header checks. Prototype archived and removed; b57a12bbe remains the served default. All 16 valid observations, exact both-game replays and 88 restoration checks pass; 0 invalid attempts.
 
-The region-fusion round does not adopt [Known Thumb return fusion](THUMB_RETURN_FUSION_RESULTS.md): Snakes -0.13% CPU throughput (2/4 faster pairs), -0.01% native instructions; Sky Force -2.39% CPU throughput (1/4 faster pairs), -1.98% native instructions. The guarded-return prototype did not earn graduation and is removed. The earlier shared-local fusion and exact bounded entry-budget proof remain enabled; no quantum overshoot is enabled. All 16 valid observations, exact both-game replays and 88 restoration checks pass; 0 invalid attempts.
+The region-fusion round does not adopt [Known Thumb return fusion](THUMB_RETURN_FUSION_RESULTS.md): Snakes -0.13% CPU throughput (2/4 faster pairs), -0.01% native instructions; Sky Force -2.39% CPU throughput (1/4 faster pairs), -1.98% native instructions. The guarded-return prototype did not earn graduation and is removed. Shared-local fusion remains enabled. The bounded entry-budget mechanism was later removed with instruction accounting; current browser execution uses watchdog yields. All 16 valid observations, exact both-game replays and 88 restoration checks pass; 0 invalid attempts.
 
 The [native handoff investigation](HANDOFF_NATIVE_PROFILE_RESULTS.md) on watchdog-only browser runtime 0e354cd12 adopts no new optimization. Actual warmed instruction samples put V8 indirect calls at 11.34% of Snakes / 6.42% of Sky Force worker samples, and inlined RAM hits at 8.47% / 2.53%. Combined identity checks do not reduce executed native instruction count; an arithmetic PC mask reduces its sequence from nine to seven instructions but has no established runtime gain. Both prototypes are archived and removed. Short fixed-clock screens have unequal gameplay work and cannot establish small gains or regressions; all host settings were restored. The existing LAN artifact remains served. Historical budget-based results above are not measurements of this count-free runtime.
 
@@ -199,7 +199,7 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 61 | conditional-alu-select / Snakes | -0.17% | -0.16% | +0.20% | 1/4 | 8/8; 0 invalid | No new default adopted | [CONDITIONAL_ALU_RESULTS.md](CONDITIONAL_ALU_RESULTS.md) |
 | 62 | compare-operand-reuse / Snakes | +0.40% | +0.39% | -0.03% | 2/4 | 8/8; 1 invalid | No new default adopted | [COMPARE_CONDITION_RESULTS.md](COMPARE_CONDITION_RESULTS.md) |
 | 63 | whole-entry-budget / Snakes | +2.00% | +1.90% | -3.23% | 4/4 | 8/8; 0 invalid | Removed after completed sweep: Current gains are mixed; outlined mode 2 has the stronger Snakes result and is selected for combined validation. Implementation and selector removed; see RETIRED_SWEEP_EXPERIMENTS.md. | [ENTRY_BUDGET_RESULTS.md](ENTRY_BUDGET_RESULTS.md) |
-| 64 | outlined-entry-budget / Snakes | +1.91% | +1.75% | -3.04% | 4/4 | 8/8; 0 invalid | Default: Mode 2 enabled in the measured winning combination; full bounded entry with private precise recovery | [OUTLINED_BUDGET_RESULTS.md](OUTLINED_BUDGET_RESULTS.md) |
+| 64 | outlined-entry-budget / Snakes | +1.91% | +1.75% | -3.04% | 4/4 | 8/8; 0 invalid | Removed with instruction accounting: Historical mode 2 used bounded entry with private precise recovery. All generated instruction budgets and their recovery wrappers were removed in 0e354cd12; current browser execution uses watchdog yields. | [OUTLINED_BUDGET_RESULTS.md](OUTLINED_BUDGET_RESULTS.md) |
 | 65 | cached-address-displacement / Snakes | -0.27% | -0.36% | -0.41% | 2/4 | 8/8; 2 invalid | Historical result mixed: Controlled Snakes -0.27% CPU, 2/4 faster pairs; no current-runtime promotion proposed | [RUNNER_SPECIALIZATION_RESULTS.md](RUNNER_SPECIALIZATION_RESULTS.md) |
 | 66 | deferred-read-exit / Snakes | +0.46% | +0.43% | -1.52% | 2/4 | 8/8; 0 invalid | Historical result mixed: Controlled Snakes +0.46% CPU, 2/4 faster pairs; no current-runtime promotion proposed | [RUNNER_SPECIALIZATION_RESULTS.md](RUNNER_SPECIALIZATION_RESULTS.md) |
 | 67 | owner-core-reuse / Snakes | +0.81% | +0.75% | -0.24% | 4/4 | 8/8; 0 invalid | Not selected on current runtime: Current Snakes +0.15% CPU throughput with mixed pairs and +0.46% native instructions; Sky Force -0.82% with 2/4 faster pairs and +0.53% native instructions. No repeatable two-game gain; retain the graduated baseline. | [LOOKUP_FOLLOWUP_RESULTS.md](LOOKUP_FOLLOWUP_RESULTS.md) |
@@ -256,7 +256,7 @@ boundary. All valid samples remain included; see the [host limitations](CONTROLL
 
 ## Complete report catalogue
 
-309 reports and supporting notes are discovered below, including
+310 reports and supporting notes are discovered below, including
 timing, adoption and design documents with nonstandard filenames. Design plans
 and profiling shares do not establish measured speed gains. Each document
 retains its exact variants, workloads, controls and
@@ -574,9 +574,10 @@ is retained separately from the later controlled comparisons.
 | 304 | Results/notes | [Adjacent long multiply result reuse: rejected](WIDE_REUSE_RESULTS.md) | [Findings below](#report-304) |
 | 305 | Profiling/analysis | [CPU sampling after eliminating measured interpreter fallback](ZERO_FALLBACK_CPU_PROFILE_RESULTS.md) | No performance excerpt; see source report |
 | 306 | Results/notes | [Recurrent literal-load fallback: data-TLB collision observed](ZERO_LITERAL_RESULTS.md) | No performance excerpt; see source report |
-| 307 | Results/notes | [Browser CPU comparison (in progress)](browser_cores/README.md) | No performance excerpt; see source report |
-| 308 | Results/notes | [Runtime service overlap census](service_overlap/README.md) | [Findings below](#report-308) |
-| 309 | Results/notes | [Snakes service overlap, 2026-10-01](service_overlap/RESULTS.md) | [Findings below](#report-309) |
+| 307 | Results/notes | [Historical counted fault matrices](archive/counted-kernels/README.md) | No performance excerpt; see source report |
+| 308 | Results/notes | [Browser CPU comparison (in progress)](browser_cores/README.md) | No performance excerpt; see source report |
+| 309 | Results/notes | [Runtime service overlap census](service_overlap/README.md) | [Findings below](#report-309) |
+| 310 | Results/notes | [Snakes service overlap, 2026-10-01](service_overlap/RESULTS.md) | [Findings below](#report-310) |
 
 ## Historical findings and gain/loss tables
 
@@ -8849,9 +8850,9 @@ The rejected runtime source and binary are preserved under
 
 </details>
 
-<a id="report-308"></a>
+<a id="report-309"></a>
 <details>
-<summary>308. Runtime service overlap census</summary>
+<summary>309. Runtime service overlap census</summary>
 
 [Full report and evidence](service_overlap/README.md)
 
@@ -8876,9 +8877,9 @@ The rejected runtime source and binary are preserved under
 
 </details>
 
-<a id="report-309"></a>
+<a id="report-310"></a>
 <details>
-<summary>309. Snakes service overlap, 2026-10-01</summary>
+<summary>310. Snakes service overlap, 2026-10-01</summary>
 
 [Full report and evidence](service_overlap/RESULTS.md)
 

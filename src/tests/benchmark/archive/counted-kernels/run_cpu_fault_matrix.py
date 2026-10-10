@@ -19,7 +19,7 @@ parser.add_argument('--long', action='store_true', help='Include 128-instruction
 parser.add_argument('--code-compare', type=int, choices=(0,2))
 a = parser.parse_args()
 a.output.mkdir()
-root = Path(__file__).resolve().parents[3]
+root = Path(__file__).resolve().parents[5]
 archive = a.archive.resolve()
 cases = [('ir-conditions',5376),('ir-calls',96),('ir-calls-short',96),('ir-flags',480),
     ('invariant-write-remap',64),('invariant-remap',64),('ir-segments',672),

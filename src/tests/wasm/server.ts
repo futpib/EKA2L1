@@ -62,7 +62,7 @@ autoStart();
 </script>`;
 }
 
-export const compilerDefaults = {sparseRom: 1, compiledSvc: 1, thumbMemory: 1, irMode: 17, hotpath: 2, predicatedLeaves: 1, leafFeatures: 224, executionLimits: '512,32,8,0'} as const;
+export const compilerDefaults = {sparseRom: 1, compiledSvc: 1, thumbMemory: 1, irMode: 7, hotpath: 2, predicatedLeaves: 1, leafFeatures: 224, executionLimits: '512,32,8,0'} as const;
 
 export type CompilerPolicy = { watchdogUs?: number; sparseRom?: number; compiledSvc?: number; hotpath?: number; thumbMemory?: number; irMode?: number; codeCompare?: number; predicatedLeaves?: number; leafFeatures?: number; unsafeCode?: number; memoryImpl?: number; executionLimits?: [number,number,number,number] };
 
@@ -84,12 +84,14 @@ export function rejectRetiredCompilerOptions(): void {
   }
 }
 
+// The four graduated optimizations have fixed normal-launch defaults. Explicit
+// compilerPolicy overrides and the raw configure APIs remain available to tests.
 export function compilerPolicyFromEnv(): CompilerPolicy {
   rejectRetiredCompilerOptions();
-  const sparseRom = process.env.EKA2L1_SPARSE_ROM_LOOKUP ?? String(compilerDefaults.sparseRom);
-  const svc = process.env.EKA2L1_COMPILED_SVC ?? String(compilerDefaults.compiledSvc);
-  const hotpath = process.env.EKA2L1_HOTPATH ?? String(compilerDefaults.hotpath);
-  const thumb = process.env.EKA2L1_THUMB_MEMORY ?? String(compilerDefaults.thumbMemory);
+  for (const name of ['EKA2L1_SPARSE_ROM_LOOKUP', 'EKA2L1_COMPILED_SVC', 'EKA2L1_HOTPATH', 'EKA2L1_THUMB_MEMORY']) {
+    if (process.env[name] !== undefined)
+      throw Error('Retired normal-launch option: ' + name + '; use benchmark.ts or profile.ts for targeted controls');
+  }
   const ir = process.env.EKA2L1_AOT_IR_MODE ?? String(compilerDefaults.irMode);
   const compare = process.env.EKA2L1_CODE_COMPARE;
   const predicates = process.env.EKA2L1_PREDICATED_LEAVES ?? String(compilerDefaults.predicatedLeaves);
@@ -98,18 +100,13 @@ export function compilerPolicyFromEnv(): CompilerPolicy {
   const unsafe = process.env.EKA2L1_UNSAFE_CODE ?? '3';
   const memory = process.env.EKA2L1_MEMORY_IMPL ?? (unsafe === '0' ? '0' : undefined);
   if (!/^[03]$/.test(unsafe)) throw new Error("Invalid executable-byte policy");
-  if (!/^[01]$/.test(svc)) throw Error('Invalid compiled syscall policy');
-  if (!/^[01]$/.test(sparseRom)) throw Error('Invalid sparseRom policy');
-  const policy: CompilerPolicy = {compiledSvc: Number(svc), sparseRom: Number(sparseRom)};
-  policy.watchdogUs = watchdogInterval();
-  if (!/^[02]$/.test(hotpath)) throw Error('Invalid hotpath policy');
-  policy.hotpath = Number(hotpath);
-  if (thumb !== undefined) {
-    if (!/^[01]$/.test(thumb)) throw Error('Invalid Thumb memory policy');
-    policy.thumbMemory = Number(thumb);
-  }
+  const policy: CompilerPolicy = {
+    compiledSvc: compilerDefaults.compiledSvc, sparseRom: compilerDefaults.sparseRom,
+    hotpath: compilerDefaults.hotpath, thumbMemory: compilerDefaults.thumbMemory,
+    watchdogUs: watchdogInterval(),
+  };
   if (ir !== undefined) {
-    if (!/^(?:-1|0|[4-7]|17)$/.test(ir)) throw new Error("Invalid compiler policy");
+    if (!/^(?:-1|0|[4-7])$/.test(ir)) throw new Error("Invalid compiler policy");
     policy.irMode = Number(ir);
   }
 
@@ -148,7 +145,7 @@ function makeCompilerPolicyScript(policy?: CompilerPolicy): string {
       || (policy.compiledSvc !== undefined && ![0,1].includes(policy.compiledSvc))
       || (policy.hotpath !== undefined && ![0,2].includes(policy.hotpath))
       || (policy.thumbMemory !== undefined && ![0,1].includes(policy.thumbMemory))
-      || (policy.irMode !== undefined && ![-1,0,4,5,6,7,17].includes(policy.irMode))
+      || (policy.irMode !== undefined && ![-1,0,4,5,6,7].includes(policy.irMode))
       || (policy.codeCompare !== undefined && ![0,2].includes(policy.codeCompare))
       || (policy.memoryImpl !== undefined && ![0,2].includes(policy.memoryImpl))
       || (policy.unsafeCode !== undefined && ![0,3].includes(policy.unsafeCode))

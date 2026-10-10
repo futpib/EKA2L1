@@ -1,8 +1,9 @@
+// Historical instruction-count ABI only; see README.md in this directory.
 // Compare complete compiled chains with equal guest work and callback traces.
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-import {counted,resetCost,readCost} from './wasm-step-counter.mjs';
-import {CostComparisons} from './wasm-cost-model.mjs';
+import {counted,resetCost,readCost} from '../../wasm-step-counter.mjs';
+import {CostComparisons} from '../../wasm-cost-model.mjs';
 
 const [input,output]=process.argv.slice(2);
 const breakdown=process.argv.includes('--breakdown'),costs=new CostComparisons();
