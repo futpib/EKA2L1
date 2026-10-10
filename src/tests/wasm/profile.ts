@@ -158,6 +158,7 @@ try {
   page.on('requestfailed', request => failures.push(`${request.url()}: ${request.failure()?.errorText}`));
   page.on('response', response => {if (response.status() >= 400) failures.push(`HTTP ${response.status()} ${response.url()}`);});
   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil: 'domcontentloaded'});
+  if (failures.length) throw new Error(failures.join('\n'));
   await page.waitForFunction(() => (window as any).Module?.calledRun, {timeout: 120000});
   await page.evaluate(configureWatchdog, watchdogInterval());
   const diagnosticsAvailable = await page.evaluate(() => {
@@ -290,6 +291,15 @@ try {
   const warmupStart = performance.now();
   await waitPhase(1);
   const warmupSeconds = (performance.now() - warmupStart) / 1000;
+  // Capture the paused starting scene before counters or timing are enabled.
+  const startDialogOpen = await page.evaluate(() => {
+    const dialog = document.querySelector<HTMLDialogElement>('#session-panel');
+    const open = dialog?.open ?? false;
+    dialog?.close();
+    return open;
+  });
+  await page.screenshot({path: path.join(output, 'browser-start.png')});
+  if (startDialogOpen) await page.evaluate(() => document.querySelector<HTMLDialogElement>('#session-panel')?.showModal());
   if (process.env.PROFILE_GATE) {
     fs.writeFileSync(`${process.env.PROFILE_GATE}.ready`, JSON.stringify({warmup_seconds: warmupSeconds}));
     const deadline = performance.now() + 1800000;

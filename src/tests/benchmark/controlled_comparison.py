@@ -46,7 +46,9 @@ def find_build_processes():
     for path in Path('/proc').glob('[0-9]*/comm'):
         try:
             name = path.read_text().strip()
-            if name in {'rustc', 'cargo', 'clang', 'clang++', 'cc1', 'cc1plus',
+            # Cargo remains alive while integration tests or launched programs
+            # run. Observe its compiler/linker children instead of the manager.
+            if name in {'rustc', 'clang', 'clang++', 'cc1', 'cc1plus',
                         'gcc', 'g++', 'ld.lld', 'ld', 'ninja', 'make', 'cmake'}:
                 busy[path.parent.name] = name
         except (FileNotFoundError, PermissionError, ProcessLookupError):
