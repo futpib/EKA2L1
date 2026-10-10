@@ -4,6 +4,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { buildDir, startServer, compilerPolicyFromEnv } from "./server.ts";
 import { fetchCid } from "@futpib/fetch-cid";
+import { ngagePackage } from './ngage.ts';
 
 if (!fs.existsSync(path.join(buildDir, "eka2l1.html"))) {
   console.error("build-wasm output not found. Run the WASM build first.");
@@ -12,9 +13,13 @@ if (!fs.existsSync(path.join(buildDir, "eka2l1.html"))) {
 
 const ROM_CID = "bafybeicj2jkrjfirzdz5jezz6hjbx2ylyv343kaecnhytl3g6yjy3mwmqm";
 const RPKG_CID = "bafybeihjy4vjxb5cy7zxca4kedg5ncxf5xrbj5basirfefemqwru73aipu";
-const games = JSON.parse(fs.readFileSync(new URL('./games.json', import.meta.url), 'utf8')) as {
-  id: string; title: string; uid: string; file: string; cid: string; sha256: string;
-}[];
+type GameAsset = { file: string; cid: string; sha256: string };
+const games = JSON.parse(fs.readFileSync(new URL('./games.json', import.meta.url), 'utf8')) as (GameAsset & {
+  id: string; title: string; uid: string;
+  ngage?: { runtime: GameAsset; metadata: GameAsset; sha256: string };
+})[];
+const gameAssets = new Map(games.flatMap(game => [game, ...(game.ngage
+  ? [game.ngage.runtime, game.ngage.metadata] : [])]).map(asset => [asset.file, asset]));
 
 async function fetchCidToFile(cid: string, label: string, destPath: string, digest: string): Promise<void> {
   const valid = (data: Buffer) => crypto.createHash('sha256').update(data).digest('hex') === digest;
@@ -44,7 +49,7 @@ const rpkgPath = path.join(cacheDir, "SYM.RPKG");
 await Promise.all([
   fetchCidToFile(ROM_CID, "ROM", romPath, '89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490'),
   fetchCidToFile(RPKG_CID, "RPKG", rpkgPath, '58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531'),
-  ...games.map(game => fetchCidToFile(game.cid, game.title, path.join(cacheDir, game.file), game.sha256)),
+  ...[...gameAssets.values()].map(asset => fetchCidToFile(asset.cid, asset.file, path.join(cacheDir, asset.file), asset.sha256)),
 ]);
 
 const port = parseInt(process.argv[2] ?? "8080", 10);
@@ -60,6 +65,18 @@ const preloadFiles: Record<string, string> = {
   "/preload/sis": path.join(cacheDir, 'Snakes.sis'),
   ...Object.fromEntries(games.map(game => ['/preload/games/' + game.id, path.join(cacheDir, game.file)])),
 };
+for (const game of games) {
+  if (!game.ngage) continue;
+  const bytes = ngagePackage(fs.readFileSync(path.join(cacheDir, game.ngage.metadata.file)),
+    fs.readFileSync(path.join(cacheDir, game.file)));
+  if (crypto.createHash('sha256').update(bytes).digest('hex') !== game.ngage.sha256)
+    throw new Error(`${game.title}: reconstructed N-Gage package SHA-256 mismatch`);
+  const packagePath = path.join(cacheDir, game.id + '.n-gage');
+  fs.writeFileSync(packagePath + '.tmp', bytes);
+  fs.renameSync(packagePath + '.tmp', packagePath);
+  preloadFiles['/preload/games/' + game.id + '/ngage'] = packagePath;
+  preloadFiles['/preload/games/' + game.id + '/runtime'] = path.join(cacheDir, game.ngage.runtime.file);
+}
 
 const host = process.env.EKA2L1_SERVE_HOST ?? "127.0.0.1";
 const certPath = process.env.EKA2L1_TLS_CERT;
@@ -72,7 +89,10 @@ const tls = certPath && keyPath
   : undefined;
 const { port: resolvedPort } = await startServer(port, preloadFiles, undefined, {
   host, tls, compilerPolicy: compilerPolicyFromEnv(), defaultGame,
-  games: games.map(({id, title, uid}) => ({id, title, uid, sis: '/preload/games/' + id})),
+  games: games.map(({id, title, uid, ngage}) => ({id, title, uid,
+    sis: '/preload/games/' + id + (ngage ? '/runtime' : ''),
+    ...(ngage ? {ngage: '/preload/games/' + id + '/ngage'} : {}),
+  })),
 });
 const displayHost = process.env.EKA2L1_SERVE_NAME ?? host;
 const urlHost = displayHost.includes(":") ? `[${displayHost}]` : displayHost;

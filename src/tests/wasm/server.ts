@@ -66,7 +66,7 @@ export const compilerDefaults = {sparseRom: 1, compiledSvc: 1, thumbMemory: 1, i
 
 export type CompilerPolicy = { watchdogUs?: number; sparseRom?: number; compiledSvc?: number; hotpath?: number; thumbMemory?: number; irMode?: number; codeCompare?: number; predicatedLeaves?: number; leafFeatures?: number; unsafeCode?: number; memoryImpl?: number; executionLimits?: [number,number,number,number] };
 
-export type LauncherGame = { id: string; title: string; uid: string; sis: string };
+export type LauncherGame = { id: string; title: string; uid: string; sis: string; ngage?: string };
 
 function makeGameLauncherScript(games: LauncherGame[], defaultGame?: string): string {
   const encode = (value: unknown) => JSON.stringify(value).replace(/</g, '\\u003c');
@@ -157,7 +157,7 @@ function makeCompilerPolicyScript(policy?: CompilerPolicy): string {
 window.ekaCompilerPolicy = {requested:${JSON.stringify(policy)}, applied:false};
 {
   const originalStart = startEmulator;
-  startEmulator = async function() {
+  startEmulator = async function(...args) {
     const state = window.ekaCompilerPolicy;
     if (!state.applied) {
       await (${configureWatchdog.toString()})(state.requested.watchdogUs ?? 2000);
@@ -183,7 +183,7 @@ window.ekaCompilerPolicy = {requested:${JSON.stringify(policy)}, applied:false};
       }
       state.applied = true;
     }
-    return originalStart();
+    return originalStart(...args);
   };
 }
 </script>`;

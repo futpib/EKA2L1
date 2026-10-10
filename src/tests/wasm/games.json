@@ -18,5 +18,28 @@
     "source": "https://www.myabandonware.com/game/sky-force-vxs",
     "download": "https://www.myabandonware.com/download/pcqp-sky-force",
     "archive_member": "Infinite Dreams SkyForce v1.22 (240x320) (S60 3rd)(Space).sisx"
+  },
+  {
+    "id": "hooked-on",
+    "title": "Hooked On: Creatures of the Deep (trial)",
+    "uid": "0x20003b78",
+    "file": "Hooked-On.sis",
+    "cid": "bafybeifmd2wjfhrlkizjx6qqtd2j4lcrpmjb75yk3lbqdkqk73wmy5xjri",
+    "sha256": "f95e3e9573531654a77a658f5949f302017b7135b5be16ad1482608668269b05",
+    "version": "0.74, N-Gage 2.0, original trial",
+    "source": "https://archive.org/details/nokia-n-gage-the-force-unleashed-2008",
+    "ngage": {
+      "sha256": "991ad3fea19a2c93ba0d39713fe68e6acb24df17991691b1963756ac96541678",
+      "runtime": {
+        "file": "N-Gage-1.40.1557-inner.sisx",
+        "cid": "bafybeigkftb66qpv2lq256qfr3jmlmwkj72v3bdsd4hpy63a6eutk27sxm",
+        "sha256": "e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4"
+      },
+      "metadata": {
+        "file": "Hooked-On-Creatures-of-the-Deep-0.74-metadata.sis",
+        "cid": "bafkreid3hqcdto7452y4vjhpgm3aimqv7cgvy54z5jnialw5tfcmfew33m",
+        "sha256": "7b3c0439bbfceeb1caa4ef3336043215f88d5c7799ea5a802edd9944c292dbdb"
+      }
+    }
   }
 ]

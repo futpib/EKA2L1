@@ -59,7 +59,8 @@ try {
     await Promise.all([page.waitForNavigation({waitUntil: 'domcontentloaded'}), page.click('#btn-play')]);
   };
   await page.goto(url, {waitUntil: 'domcontentloaded'});
-  assert.deepEqual(await page.$$eval('#game-select option', options => options.map(o => (o as HTMLOptionElement).value)), ['snakes', 'sky-force', 'custom']);
+  const catalogue = JSON.parse(fs.readFileSync(new URL('./games.json', import.meta.url), 'utf8'));
+  assert.deepEqual(await page.$$eval('#game-select option', options => options.map(o => (o as HTMLOptionElement).value)), [...catalogue.map((game:any)=>game.id), 'custom']);
   for (const [id, uid] of [['sky-force', '0xa020d913'], ['snakes', '0x2000730f']]) {
     if (onlyGame && onlyGame!==id) continue;
     await page.setViewport({width:900,height:800,hasTouch:true});

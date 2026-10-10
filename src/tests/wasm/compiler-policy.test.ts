@@ -61,12 +61,14 @@ try {
     const entries = ['ir','code_compare'].map(n=>'eka2l1_'+n+'_configure');
     const expected = [7,mode];
     let starts = 0;
-    const context = vm.createContext({ekaWatchdog:{},window:{}, startEmulator:async()=>{++starts;}, Module:{
+    const packages: (string|undefined)[] = [];
+    const context = vm.createContext({ekaWatchdog:{},window:{}, startEmulator:async(ngage?:string)=>{++starts;packages.push(ngage);}, Module:{
       ...Object.fromEntries(entries.map(n=>['_'+n,()=>0])),
       ccall:(name:string,_type:string,_args:string[],values:number[])=>{calls.push([name,values[0]]);return 0;}
     }});
     vm.runInContext(script, context);
-    await vm.runInContext('startEmulator()', context);
+    await vm.runInContext('startEmulator("/preload/game.n-gage")', context);
+    assert.deepEqual(packages, ['/preload/game.n-gage']);
     assert.deepEqual(calls, entries.map((entry,i)=>[entry,expected[i]]));
     assert.equal(context.window.ekaCompilerPolicy.applied, true);
     await vm.runInContext('startEmulator()', context);

@@ -8,8 +8,9 @@ The gallery's order is approximate popularity, not verified sales ranking.
 The [manifest](pre-touch-game-installers.json) records exact source URLs,
 versions, dates, SHA-256 hashes, individual IPFS CIDs, signature checks and
 browser observations. Installers and full screenshot/log evidence stay outside
-Git and are included in the transfer bundle. The recorded CIDs identify file
-contents; they do not claim that a remote pinning service already stores them.
+Git. The transfer contains only the five selected game SIS files. The recorded
+CIDs identify file contents; they do not claim that a remote pinning service
+already stores them.
 
 | # | Game | Selected recovered package | Provenance | Browser result |
 |---|---|---|---|---|
@@ -64,7 +65,8 @@ metadata's Nokia signature and both game-controller Nokia signatures verify;
 all 5 metadata and 59 game payload hashes match. The game SIS is dated
 2008-03-20, and the metadata SIS 2008-03-24. Both extracted SIS files are exact
 decoded container parts, not repackaged installers. Keep the complete
-`.n-gage` file for normal installation.
+`.n-gage` file for normal installation, or reconstruct it from those exact
+parts as the browser launcher now does.
 
 The recovered N-Gage 1.40.1557 wrapper and its inner installer also retain
 valid Nokia signatures. The inner SIS is extracted unchanged from wrapper
@@ -106,6 +108,33 @@ entered fishing and activated the casting control. Full-game activation and
 online services were not tested. Installing the extracted metadata and game
 SIS files directly did not register the game in N-Gage's My Games list.
 
+The normal browser picker now offers **Hooked On: Creatures of the Deep
+(trial)** at `?game=hooked-on`. Its launch installs the signed client and puts
+the game container in `E:\n-gage\` automatically. The server fetches the game
+SIS, runtime SIS and metadata SIS using individual CIDs in
+[`games.json`](../wasm/games.json). It reconstructs the original multipart
+container and requires SHA-256
+`991ad3fea19a2c93ba0d39713fe68e6acb24df17991691b1963756ac96541678`,
+also checked byte for byte against the CD download. No altered game SIS,
+firmware patch, N-Gage registration bypass or full-game activation is involved.
+Each launch still uses a fresh filesystem, so Nokia's import step repeats.
+
+The follow-up launcher check used a fresh Chromium 153 profile against
+`https://claude-laptop.lan:8188/`, selected Hooked On in the normal picker, and
+used the production launch path without harness-supplied installs or filesystem
+patches. Nokia's importer completed; the original trial reached Costa Rica,
+boat movement, the fishing scene and its casting control. The WASM SHA-256 remains
+`8177f5d6107093bc98fcc445e91a7d3118a316b54a06562f065a479b01cb0dca`;
+the launcher changes are HTML/TypeScript and asset configuration.
+Build and compiler-policy tests passed. The existing `game-picker.ts` regression
+check passed Snakes/Sky Force gameplay, keyboard/touch, layout, switching and
+manual loading, with no page/request errors. Its overall result was **failed**
+because neither browser audio device advanced: Chromium reported
+`The AudioContext encountered an error from the audio device or the WebAudio renderer.`
+The PCM queues did advance. Audio output is not verified by this run.
+Screenshots and logs are retained under
+`/home/claude/.scratch/eka-hooked-launcher-20261010/{e2e,regression}/`.
+
 K-Rally's saved controls map acceleration to **4**, turbo to **7**, steering to
 left/right, and weapons to up/down. Driving was verified with guest scan code
 52 for 4. The browser phone keypad currently emits numeric-keypad scan 140,
@@ -124,16 +153,15 @@ and again after the device UID fix. The fix therefore addresses N-Gage
 installation but does not resolve the Asphalt fault. A “Running” status or a
 nonzero presentation count alone was not counted as successful gameplay.
 
-## Transfer bundle
+## Files for pinning
 
-`Pre-touch-Symbian-top5-2026-10-10.zip` contains 12 installer/container artifacts,
-the manifest, this report, signature audits, screenshots, browser logs and
-`SHA256SUMS`. Its folders separate originals, runtime, unchanged extracted
-components, the touchscreen extra and the two approved preservation copies.
-The firmware is not duplicated in this bundle.
+The final transfer is five individual `.sis` files: Snakes, Sky Force, K-Rally,
+Asphalt: Urban GT 2 and Hooked On. Local filename normalization does not change
+their bytes. The larger recovery archive and ancillary evidence are not needed
+for this transfer. Hooked On's runtime and metadata remain separate automatic
+launcher dependencies; its game SIS alone is not a standalone N-Gage installer.
 
-For IPFS pinning, upload the individual files after extracting the ZIP if you
-want to preserve this repository's per-file asset convention. Pinning only the
-ZIP gives it a separate archive CID. The manifest supplies each file's expected
-CIDv1 and SHA-256; your service's chunking/import settings may produce a
-different CID for identical bytes, so use SHA-256 to check the downloaded file.
+The manifest supplies each file's expected CIDv1 and SHA-256. A pinning service's
+chunking/import settings may produce a different CID for identical bytes, so
+use SHA-256 to check the downloaded file. No recovered game, runtime or firmware
+binary is committed.

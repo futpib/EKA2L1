@@ -248,7 +248,7 @@
                     document.getElementById(selector).files = transfer.files;
                 }
                 document.getElementById('app-name').value = selected.uid;
-                await startEmulator();
+                await startEmulator(selected.ngage);
                 if (_gameRunning) setRunningStatus(selected.title);
             } catch (error) {
                 Module.setStatus('Error: ' + error.message);
@@ -261,7 +261,7 @@
                 + ' · Arrows/WASD to move, Enter to select · Use Enable sound for audio');
         }
 
-        async function startEmulator() {
+        async function startEmulator(ngagePackage) {
             var btn = document.getElementById('btn-start');
             btn.disabled = true;
             Module.setStatus('Initializing...');
@@ -322,8 +322,18 @@
                     }
                     sisInput.value = '';
                     if (ret !== 0) {
+                        if (ngagePackage) throw new Error('N-Gage runtime installation failed: ' + ret);
                         Module.printErr('SIS install returned ' + ret + ' (may already be in ROM)');
                     }
+                }
+
+                // N-Gage registers and licenses games through its own importer.
+                if (ngagePackage) {
+                    Module.setStatus('Preparing N-Gage game...');
+                    var packageResponse = await window.ekaDownload(ngagePackage);
+                    if (!packageResponse.ok) throw new Error('N-Gage download failed: HTTP ' + packageResponse.status);
+                    FS.mkdirTree('/data/drives/e/n-gage');
+                    FS.writeFile('/data/drives/e/n-gage/game.n-gage', new Uint8Array(await packageResponse.arrayBuffer()));
                 }
 
                 // Transfer/initialize WebGL without blocking the browser event loop.

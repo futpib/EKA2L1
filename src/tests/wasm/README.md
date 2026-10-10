@@ -2,11 +2,11 @@
 
 Build `eka2l1_wasm` following the [browser build instructions](../benchmark/README.md),
 then run `npm ci --ignore-scripts` and `npm run serve -- 8188` in this directory.
-Choose **Sky Force** or **Snakes** and press **Play**. Each launch starts a
-fresh session; saves are not persisted. **Load my own files** opens the
+Choose **Sky Force**, **Snakes** or **Hooked On (trial)** and press **Play**.
+Each launch starts a fresh session; saves are not persisted. **Load my own files** opens the
 ROM/RPKG/SIS upload controls. Changing the dropdown alone does not stop play.
 
-Direct links use `?game=sky-force`, `?game=snakes` or `?game=custom`.
+Direct links use `?game=sky-force`, `?game=snakes`, `?game=hooked-on` or `?game=custom`.
 All browser execution uses the watchdog without instruction accounting.
 Legacy `counting` URL parameters are ignored and removed on Play.
 An optional
@@ -25,6 +25,14 @@ expandable phone keypad. See the [touch control guide](TOUCH_CONTROLS.md).
 Sky Force first shows a splash screen and language selection, followed by
 **Start game**, difficulty and ship selection.
 
+Hooked On automatically installs the original N-Gage 1.40 client and supplies
+the original game package to its importer. Wait for the installation bar to
+finish, then choose **Start Game**. If the client remains visible, choose
+**Back to Game** (F2). Choose **Try Game**, select English, acknowledge
+the trial notice with the left softkey (F1), then choose **Instant Play**.
+The client imports the package on every fresh launch; allow several minutes.
+This is Nokia's original limited trial. Full-game activation is not provided.
+
 The bundled choices share the stock Nokia 5320 ROM/RPKG. Games are installed and
 launched by UID, avoiding ambiguous captions. Sky Force is the original game's
 S60 3rd Edition release, version 1.22 at 240×320, UID `0xa020d913`.
@@ -33,11 +41,17 @@ installer itself has a third-party BiNPDA signature; it is not an authenticated
 original publisher package. The [installer recovery and browser checks](../benchmark/PRE_TOUCH_GAME_INSTALLERS.md)
 distinguish publisher-signed releases from modified preservation copies.
 
-[`games.json`](games.json) records filenames, IPFS CIDs, SHA-256 digests and the
-Sky Force archive source. Binaries stay outside Git, following the existing
+[`games.json`](games.json) records filenames, IPFS CIDs, SHA-256 digests and
+sources, including Hooked On's runtime and metadata dependencies. Binaries
+stay outside Git, following the existing
 [individual-file IPFS convention](../benchmark/README.md#assets).
 The archive member is used unchanged; only its local filename is normalized to
 `SkyForce.sis`. The downloaded SISX header identifies the same package UID.
+For Hooked On, the server reconstructs Nokia's multipart `.n-gage` container
+from the unchanged signed game and metadata SIS files. It verifies the result
+against the original promotional-CD package's SHA-256 before serving it. The
+game SIS remains the same individual file supplied for pinning. The runtime
+and metadata are separate CID-addressed dependencies fetched automatically.
 
 The launcher checks cached and downloaded asset hashes before serving. Its asset
 directory defaults to `/tmp/eka2l1-serve` (the system temporary directory on other
@@ -119,8 +133,8 @@ Run the actual browser integration check against a running launcher:
 node game-picker.ts https://claude-laptop.lan:8188/ /absolute/path/to/new-results
 ```
 
-It launches both games through the picker, exercises keyboard/touch, measures
-guest time and frame presentations, checks non-silent browser audio and narrow
+It launches Snakes and Sky Force through the picker, exercises keyboard/touch,
+measures guest time and frame presentations, checks non-silent browser audio and narrow
 layout, switches games and opens manual loading. It retains intermediate menus,
 gameplay screenshots, GPU details, browser logs and measurements. Inspect those
 screenshots to confirm the intended game scenes; changing pixels alone do not
