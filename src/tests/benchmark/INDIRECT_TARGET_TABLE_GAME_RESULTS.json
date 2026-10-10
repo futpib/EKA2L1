@@ -1,0 +1,675 @@
+{
+  "baseline": "Current eight-target shared-local fusion (a290e3a68 runtime)",
+  "candidate": "Archived uncapped O(1) table, one direct fast case",
+  "comparisons": [
+    {
+      "game": "sky-force",
+      "means": {
+        "baseline": {
+          "worker_cpu_seconds": 3.5756314525,
+          "wall_seconds": 6.201135000000001,
+          "unpaced_realtime": 2.902694426101028,
+          "presentations": 562.5,
+          "presentations_per_cpu_second": 157.31487080602582,
+          "presentations_per_wall_second": 90.70920081565713,
+          "native_instructions": 24612374075
+        },
+        "candidate": {
+          "worker_cpu_seconds": 3.5772885985,
+          "wall_seconds": 6.207855,
+          "unpaced_realtime": 2.8995522608050606,
+          "presentations": 562.5,
+          "presentations_per_cpu_second": 157.24199614083778,
+          "presentations_per_wall_second": 90.61100815015814,
+          "native_instructions": 24394489677
+        }
+      },
+      "change": {
+        "cpu_throughput_percent": -0.04632407909986869,
+        "wall_throughput_percent": -0.10824995107004964,
+        "native_instructions_percent": -0.8852636374534706
+      },
+      "pairs": [
+        {
+          "cpu_percent": 0.9899285322233498,
+          "wall_percent": -0.45599848808152155
+        },
+        {
+          "cpu_percent": -1.0692001102616255,
+          "wall_percent": 0.2375941782197355
+        }
+      ],
+      "plan": {
+        "frequency_khz": 2400000,
+        "reference_mhz": 2304,
+        "worker_cpu": 7,
+        "support_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14
+        ],
+        "panels": [
+          "BAAB"
+        ],
+        "clock_rules": {
+          "mean_relative_tolerance": 0.005,
+          "interval_relative_tolerance": 0.01,
+          "minimum_reference_interval_seconds": 0.02,
+          "max_sibling_busy_fraction": 0.02
+        },
+        "description": "Uncapped one-fast-case O(1) target table vs existing eight-target fusion; ABBA gameplay windows",
+        "isolated_cpus": [
+          7,
+          15
+        ],
+        "require_support_affinity": true,
+        "platform_profile": "performance",
+        "purpose": "ABBA screen after functional and selected-hot-callee checks. Inspect scenes and unequal-work limitation; graduate only a repeatable runtime gain.",
+        "windows": {
+          "sky-force": [
+            74000000,
+            92000000
+          ],
+          "snakes": [
+            74000000,
+            92000000
+          ]
+        },
+        "stop_on_clock_failure": true
+      },
+      "input": "# 600ms confirm holds; same route, longer consumption window.\n6000000 167 1\n6600000 167 0\n10000000 167 1\n10600000 167 0\n14000000 167 1\n14600000 167 0\n18000000 167 1\n18600000 167 0\n22000000 167 1\n22600000 167 0\n26000000 167 1\n26600000 167 0\n30000000 167 1\n30600000 167 0\n34000000 167 1\n34600000 167 0\n38000000 167 1\n38600000 167 0\n42000000 167 1\n42600000 167 0\n46000000 167 1\n46600000 167 0\n50000000 167 1\n68000000 167 0\n",
+      "rows": [
+        {
+          "game": "sky-force",
+          "index": 0,
+          "variant": "B",
+          "path": "/home/claude/.scratch/eka-target-table-games-20261010/gameplay/final-screen-sky-force-0-B",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 74000000,
+            "last_virtual_us": 92000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 6.19081,
+            "presentations": 564
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 2394.3347034466483,
+            "interval_min_mhz": 2394.1418423816212,
+            "interval_max_mhz": 2394.608334812512,
+            "worker_cpu_seconds": 3.554049697,
+            "instructions": 24530947342,
+            "cycles": 8439064813,
+            "worker": "4025470:4025520",
+            "sibling_busy_fraction": {
+              "15": 0.0
+            }
+          },
+          "artifact": {
+            "wasm_sha256": "1d8463a2a6836033b1b6b36268bb4ee07498aa0ed1145da91129c26eeb222984",
+            "loader_sha256": "49a402f509d2caefa0417f7836a69afd6015acddfc44291d864558910c9e0173",
+            "input_sha256": "10dc1630bc1a6763cf88bc5e976b05a5b1da4c402a42108ffe01569557912fcc",
+            "browser": "Chrome/153.0.8010.52",
+            "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+            "purpose": "throughput",
+            "watchdog_us": 2000,
+            "watchdog_requests": 20983,
+            "warmup_seconds": 29.652122452999997
+          },
+          "scene_review": {
+            "start": "Gameplay score 1350, stage 4%, three lives",
+            "end": "Gameplay score 3200, stage 10%, one life; explosion at player"
+          },
+          "screenshot_sha256": {
+            "browser-start.png": "82769ff82625300ae114c784ee30d6ff7378944266993308099d46e0cfb650d7",
+            "browser.png": "61a21b3b2f0c27b751a3d2314e87b8c89d2d0a71f84e46708f5a8a83cf05cab8"
+          }
+        },
+        {
+          "game": "sky-force",
+          "index": 1,
+          "variant": "A",
+          "path": "/home/claude/.scratch/eka-target-table-games-20261010/gameplay/final-screen-sky-force-1-A",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 74000000,
+            "last_virtual_us": 92000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 6.16258,
+            "presentations": 562
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 2394.325100863064,
+            "interval_min_mhz": 2393.941685337009,
+            "interval_max_mhz": 2394.518210430259,
+            "worker_cpu_seconds": 3.589232249,
+            "instructions": 24505190779,
+            "cycles": 8524177957,
+            "worker": "4030257:4030323",
+            "sibling_busy_fraction": {
+              "15": 0.011164274322169059
+            }
+          },
+          "artifact": {
+            "wasm_sha256": "556c7cc6899b0bf7d31534ed3fa27983ddbd5f78a7c9b98586029deddb7c9954",
+            "loader_sha256": "db9c4283f33300d063b3933748b7b88a85b0c4bd48adcf0f4b0f080f064d5c91",
+            "input_sha256": "10dc1630bc1a6763cf88bc5e976b05a5b1da4c402a42108ffe01569557912fcc",
+            "browser": "Chrome/153.0.8010.52",
+            "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+            "purpose": "throughput",
+            "watchdog_us": 2000,
+            "watchdog_requests": 20855,
+            "warmup_seconds": 29.900949633999996
+          },
+          "scene_review": {
+            "start": "Gameplay score 1350, stage 4%, three lives",
+            "end": "Gameplay score 3200, stage 10%, two lives; differs in damage/enemy positions from candidate"
+          },
+          "screenshot_sha256": {
+            "browser-start.png": "2dd691c1b77b7bffe574c9d9bf9a07113d0002b073139425fde2733cf1527d8f",
+            "browser.png": "d82307dda3bf641c0af253a0afb1ddef4c9f3687545898cbf453b9566c5275ec"
+          }
+        },
+        {
+          "game": "sky-force",
+          "index": 2,
+          "variant": "A",
+          "path": "/home/claude/.scratch/eka-target-table-games-20261010/gameplay/final-screen-sky-force-2-A",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 74000000,
+            "last_virtual_us": 92000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 6.23969,
+            "presentations": 563
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 2394.346711180636,
+            "interval_min_mhz": 2394.1461319776886,
+            "interval_max_mhz": 2394.5446160690967,
+            "worker_cpu_seconds": 3.562030656,
+            "instructions": 24719557371,
+            "cycles": 8473745850,
+            "worker": "4034438:4034507",
+            "sibling_busy_fraction": {
+              "15": 0.0
+            }
+          },
+          "artifact": {
+            "wasm_sha256": "556c7cc6899b0bf7d31534ed3fa27983ddbd5f78a7c9b98586029deddb7c9954",
+            "loader_sha256": "db9c4283f33300d063b3933748b7b88a85b0c4bd48adcf0f4b0f080f064d5c91",
+            "input_sha256": "10dc1630bc1a6763cf88bc5e976b05a5b1da4c402a42108ffe01569557912fcc",
+            "browser": "Chrome/153.0.8010.52",
+            "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+            "purpose": "throughput",
+            "watchdog_us": 2000,
+            "watchdog_requests": 20985,
+            "warmup_seconds": 29.903857643999995
+          },
+          "scene_review": {
+            "start": "Gameplay score 1350, stage 4%, three lives",
+            "end": "Gameplay score 3200, stage 10%, two lives, low health"
+          },
+          "screenshot_sha256": {
+            "browser-start.png": "f61f85f3d14354a04416e00edfc62b8cd48f0c7d35c03f0194b00eb997d5fde5",
+            "browser.png": "f8c68bd95136f5c6708424140e8e8a8265139624d3d967bbca053cf0269fb04c"
+          }
+        },
+        {
+          "game": "sky-force",
+          "index": 3,
+          "variant": "B",
+          "path": "/home/claude/.scratch/eka-target-table-games-20261010/gameplay/final-screen-sky-force-3-B",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 74000000,
+            "last_virtual_us": 92000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 6.2249,
+            "presentations": 561
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 2394.316002981709,
+            "interval_min_mhz": 2394.0718787007277,
+            "interval_max_mhz": 2394.628169974427,
+            "worker_cpu_seconds": 3.6005275,
+            "instructions": 24258032012,
+            "cycles": 8553168069,
+            "worker": "4040367:4040417",
+            "sibling_busy_fraction": {
+              "15": 0.011164274322169059
+            }
+          },
+          "artifact": {
+            "wasm_sha256": "1d8463a2a6836033b1b6b36268bb4ee07498aa0ed1145da91129c26eeb222984",
+            "loader_sha256": "49a402f509d2caefa0417f7836a69afd6015acddfc44291d864558910c9e0173",
+            "input_sha256": "10dc1630bc1a6763cf88bc5e976b05a5b1da4c402a42108ffe01569557912fcc",
+            "browser": "Chrome/153.0.8010.52",
+            "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+            "purpose": "throughput",
+            "watchdog_us": 2000,
+            "watchdog_requests": 20927,
+            "warmup_seconds": 29.902974185
+          },
+          "scene_review": {
+            "start": "Gameplay score 1350, stage 4%, three lives",
+            "end": "Gameplay score 3200, stage 10%, two lives, low health"
+          },
+          "screenshot_sha256": {
+            "browser-start.png": "0021af0531cee35d870332cd83c22b0dd90effb1fef356cfc474f3837ef41e47",
+            "browser.png": "b3b18ee1b7f84297d30777d50ce356f6188167817fd9bbd08e4409731358a2b0"
+          }
+        }
+      ]
+    },
+    {
+      "game": "snakes",
+      "means": {
+        "baseline": {
+          "worker_cpu_seconds": 4.1144467585,
+          "wall_seconds": 5.17985,
+          "unpaced_realtime": 3.4750041024353986,
+          "presentations": 219.5,
+          "presentations_per_cpu_second": 53.34860623643674,
+          "presentations_per_wall_second": 42.375744471365,
+          "native_instructions": 21687225718.5
+        },
+        "candidate": {
+          "worker_cpu_seconds": 4.130474693,
+          "wall_seconds": 5.1708300000000005,
+          "unpaced_realtime": 3.4810659023793082,
+          "presentations": 213.5,
+          "presentations_per_cpu_second": 51.6889742386808,
+          "presentations_per_wall_second": 41.289309453221236,
+          "native_instructions": 21230445205.5
+        }
+      },
+      "change": {
+        "cpu_throughput_percent": -0.38804098054791014,
+        "wall_throughput_percent": 0.1744400802192292,
+        "native_instructions_percent": -2.106219204470905
+      },
+      "pairs": [
+        {
+          "cpu_percent": -0.23783875058698278,
+          "wall_percent": -0.13458223591611418
+        },
+        {
+          "cpu_percent": -0.5385250953651832,
+          "wall_percent": 0.48533142976854293
+        }
+      ],
+      "plan": {
+        "frequency_khz": 2400000,
+        "reference_mhz": 2304,
+        "worker_cpu": 6,
+        "support_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          15
+        ],
+        "panels": [
+          "BAAB"
+        ],
+        "clock_rules": {
+          "mean_relative_tolerance": 0.005,
+          "interval_relative_tolerance": 0.01,
+          "minimum_reference_interval_seconds": 0.02,
+          "max_sibling_busy_fraction": 0.02
+        },
+        "description": "Fresh Snakes BAAB panel on CPU 6; SMT sibling 14 offline throughout, restored before host policy restoration",
+        "isolated_cpus": [
+          6
+        ],
+        "require_support_affinity": true,
+        "platform_profile": "performance",
+        "purpose": "ABBA screen after functional and selected-hot-callee checks. Inspect scenes and unequal-work limitation; graduate only a repeatable runtime gain.",
+        "windows": {
+          "sky-force": [
+            74000000,
+            92000000
+          ],
+          "snakes": [
+            74000000,
+            92000000
+          ]
+        },
+        "stop_on_clock_failure": true,
+        "offline_siblings": [
+          14
+        ]
+      },
+      "input": "# Count-free Snakes route: 600ms holds, four-second spacing through 62s.\n6000000 167 1\n6600000 167 0\n10000000 167 1\n10600000 167 0\n14000000 167 1\n14600000 167 0\n18000000 167 1\n18600000 167 0\n22000000 167 1\n22600000 167 0\n26000000 167 1\n26600000 167 0\n30000000 167 1\n30600000 167 0\n34000000 167 1\n34600000 167 0\n38000000 167 1\n38600000 167 0\n42000000 167 1\n42600000 167 0\n46000000 167 1\n46600000 167 0\n50000000 167 1\n50600000 167 0\n54000000 167 1\n54600000 167 0\n58000000 167 1\n58600000 167 0\n62000000 167 1\n62600000 167 0\n",
+      "rows": [
+        {
+          "game": "snakes",
+          "index": 0,
+          "variant": "B",
+          "path": "/home/claude/.scratch/eka-target-table-games-20261010/gameplay/snakes-core6/offline-sibling/final-screen-snakes-0-B",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 74000000,
+            "last_virtual_us": 92000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 5.18642,
+            "presentations": 213
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 2394.368725221188,
+            "interval_min_mhz": 2394.094836564629,
+            "interval_max_mhz": 2394.5163277086704,
+            "worker_cpu_seconds": 4.134346895,
+            "instructions": 21113998621,
+            "cycles": 9848804266,
+            "worker": "4069547:4069592",
+            "sibling_busy_fraction": {}
+          },
+          "artifact": {
+            "wasm_sha256": "1d8463a2a6836033b1b6b36268bb4ee07498aa0ed1145da91129c26eeb222984",
+            "loader_sha256": "49a402f509d2caefa0417f7836a69afd6015acddfc44291d864558910c9e0173",
+            "input_sha256": "26124da784af2508ad056cdff1dd23d13ae48a239a6be34ebff60774649e5dfd",
+            "browser": "Chrome/153.0.8010.52",
+            "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+            "purpose": "throughput",
+            "watchdog_us": 2000,
+            "watchdog_requests": 20036,
+            "warmup_seconds": 28.39824808
+          },
+          "scene_review": {
+            "start": "Level gameplay, score 200, snake and pickups visible",
+            "end": "Level gameplay, score 200, moved board and pickups"
+          },
+          "screenshot_sha256": {
+            "browser-start.png": "e1dd1355af8bf2f0a4fe751b4321b0685cd6fe95bac105529a9b2908730cfc53",
+            "browser.png": "852b46a8c922cf46a529b1a62ea351da64ff9cdfed8ecf10a223237e90469500"
+          }
+        },
+        {
+          "game": "snakes",
+          "index": 1,
+          "variant": "A",
+          "path": "/home/claude/.scratch/eka-target-table-games-20261010/gameplay/snakes-core6/offline-sibling/final-screen-snakes-1-A",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 74000000,
+            "last_virtual_us": 92000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 5.17944,
+            "presentations": 216
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 2394.372955234507,
+            "interval_min_mhz": 2394.2367585068305,
+            "interval_max_mhz": 2394.4932573352708,
+            "worker_cpu_seconds": 4.124513816,
+            "instructions": 21355539898,
+            "cycles": 9825410185,
+            "worker": "4084479:4084525",
+            "sibling_busy_fraction": {}
+          },
+          "artifact": {
+            "wasm_sha256": "556c7cc6899b0bf7d31534ed3fa27983ddbd5f78a7c9b98586029deddb7c9954",
+            "loader_sha256": "db9c4283f33300d063b3933748b7b88a85b0c4bd48adcf0f4b0f080f064d5c91",
+            "input_sha256": "26124da784af2508ad056cdff1dd23d13ae48a239a6be34ebff60774649e5dfd",
+            "browser": "Chrome/153.0.8010.52",
+            "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+            "purpose": "throughput",
+            "watchdog_us": 2000,
+            "watchdog_requests": 19759,
+            "warmup_seconds": 28.398804765999998
+          },
+          "scene_review": {
+            "start": "Level gameplay, score 200, snake and pickups visible",
+            "end": "Level gameplay, score 200, moved board and pickups; similar scene, different positions"
+          },
+          "screenshot_sha256": {
+            "browser-start.png": "7a119e264d0f03869f36744ef4fbb275a54f2f9a55aaff9f574168f67e6427a9",
+            "browser.png": "004da4a95a5c92c36f658383ad848ada63da9b13b6df7f26bd2fae1889de6841"
+          }
+        },
+        {
+          "game": "snakes",
+          "index": 2,
+          "variant": "A",
+          "path": "/home/claude/.scratch/eka-target-table-games-20261010/gameplay/snakes-core6/offline-sibling/final-screen-snakes-2-A",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 74000000,
+            "last_virtual_us": 92000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 5.18026,
+            "presentations": 223
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 2394.3545494399423,
+            "interval_min_mhz": 2394.1896679316123,
+            "interval_max_mhz": 2394.5429191439994,
+            "worker_cpu_seconds": 4.104379701,
+            "instructions": 22018911539,
+            "cycles": 9774995746,
+            "worker": "4088672:4088725",
+            "sibling_busy_fraction": {}
+          },
+          "artifact": {
+            "wasm_sha256": "556c7cc6899b0bf7d31534ed3fa27983ddbd5f78a7c9b98586029deddb7c9954",
+            "loader_sha256": "db9c4283f33300d063b3933748b7b88a85b0c4bd48adcf0f4b0f080f064d5c91",
+            "input_sha256": "26124da784af2508ad056cdff1dd23d13ae48a239a6be34ebff60774649e5dfd",
+            "browser": "Chrome/153.0.8010.52",
+            "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+            "purpose": "throughput",
+            "watchdog_us": 2000,
+            "watchdog_requests": 19895,
+            "warmup_seconds": 28.653085035000004
+          },
+          "scene_review": {
+            "start": "Level gameplay, score 200, snake and pickups visible",
+            "end": "Level gameplay, score 200, moved board and pickups; similar scene, different positions"
+          },
+          "screenshot_sha256": {
+            "browser-start.png": "e4450c78dff73bea48815d3ee37b9b139ffdbf7e47feaf0753dcd3ce3a472250",
+            "browser.png": "70b8a6da2dde8906e14ec541378ceb7f5c15527dfd31294db313993828e88c8d"
+          }
+        },
+        {
+          "game": "snakes",
+          "index": 3,
+          "variant": "B",
+          "path": "/home/claude/.scratch/eka-target-table-games-20261010/gameplay/snakes-core6/offline-sibling/final-screen-snakes-3-B",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 74000000,
+            "last_virtual_us": 92000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 5.15524,
+            "presentations": 214
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 2394.3664778901925,
+            "interval_min_mhz": 2394.2602076838784,
+            "interval_max_mhz": 2394.5019722348493,
+            "worker_cpu_seconds": 4.126602491,
+            "instructions": 21346891790,
+            "cycles": 9844433883,
+            "worker": "4145431:4145481",
+            "sibling_busy_fraction": {}
+          },
+          "artifact": {
+            "wasm_sha256": "1d8463a2a6836033b1b6b36268bb4ee07498aa0ed1145da91129c26eeb222984",
+            "loader_sha256": "49a402f509d2caefa0417f7836a69afd6015acddfc44291d864558910c9e0173",
+            "input_sha256": "26124da784af2508ad056cdff1dd23d13ae48a239a6be34ebff60774649e5dfd",
+            "browser": "Chrome/153.0.8010.52",
+            "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+            "purpose": "throughput",
+            "watchdog_us": 2000,
+            "watchdog_requests": 21032,
+            "warmup_seconds": 30.168741906
+          },
+          "scene_review": {
+            "start": "Level gameplay, score 200, snake and pickups visible; board position differs",
+            "end": "Level gameplay, score 200, moved board and pickups"
+          },
+          "screenshot_sha256": {
+            "browser-start.png": "45ae25e8c665477b74ecf836dd0108e0f1ed778f6723c03fb22d9b0e367a79e2",
+            "browser.png": "1167843e4276ddfe57a4d3d1b54e241ebffbe04b49adc7d114f96dc44ea379bf"
+          }
+        }
+      ]
+    }
+  ],
+  "host_controls": {
+    "host-resume.json": {
+      "restored": true,
+      "returncode": -15,
+      "restoration_errors": []
+    },
+    "host.json": {
+      "restored": true,
+      "returncode": 1,
+      "restoration_errors": []
+    },
+    "gameplay/host-snakes.json": {
+      "restored": true,
+      "returncode": 1,
+      "restoration_errors": []
+    },
+    "gameplay/host-retry.json": {
+      "restored": true,
+      "returncode": -15,
+      "restoration_errors": []
+    },
+    "gameplay/host.json": {
+      "restored": true,
+      "returncode": 1,
+      "restoration_errors": []
+    },
+    "gameplay/snakes-core6/host.json": {
+      "restored": true,
+      "returncode": 1,
+      "restoration_errors": []
+    },
+    "gameplay/snakes-core6/offline-sibling/host-final.json": {
+      "restored": true,
+      "returncode": 0,
+      "restoration_errors": []
+    },
+    "gameplay/snakes-core6/offline-sibling/host.json": {
+      "restored": true,
+      "returncode": 241,
+      "restoration_errors": []
+    }
+  },
+  "excluded_attempts": [
+    {
+      "path": "/home/claude/.scratch/eka-target-table-games-20261010/setup-missing-assets-sky-force-1-B",
+      "reason": "Candidate snapshot missing launcher assets; no timing"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-target-table-games-20261010/final-screen-sky-force-0-A",
+      "reason": "Initial shorter-route baseline; not paired with menu candidate"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-target-table-games-20261010/final-screen-sky-force-1-B",
+      "reason": "Ship-selection menu throughout"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-target-table-games-20261010/gameplay/invalid-sibling-sky-force-0-B",
+      "reason": "Sibling CPU 15 busy 5.93 percent"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-target-table-games-20261010/gameplay/menu-route-snakes-0-B",
+      "reason": "Start Game menu throughout"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-target-table-games-20261010/gameplay/final-screen-snakes-0-B",
+      "reason": "Sibling CPU 15 busy 3.04 percent; gameplay reached"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-target-table-games-20261010/gameplay/snakes-core6/final-screen-snakes-0-B",
+      "reason": "Sibling CPU 14 busy 3.30 percent; gameplay reached"
+    }
+  ],
+  "cpu_offline_controls": {
+    "gameplay/snakes-core6/offline-sibling/offline-state.json": {
+      "cpu": 14,
+      "before": "1",
+      "start": 1791629801.2307343,
+      "returncode": 0,
+      "after": "1",
+      "end": 1791629875.025421,
+      "restored": true
+    },
+    "gameplay/snakes-core6/offline-sibling/offline-state-first-three.json": {
+      "cpu": 14,
+      "before": "1",
+      "start": 1791629039.771435,
+      "returncode": -15,
+      "after": "1",
+      "end": 1791629512.4587412,
+      "restored": true
+    }
+  },
+  "limitations": "Same guest-time windows and input replay, not identical guest work. Screens show actual gameplay but differing object positions, damage and presentation counts. Small changes are observations, not established causal speedups.",
+  "decision": "No new runtime/default/LAN change; table candidate remains archived.",
+  "lan_verified_sha256": "556c7cc6899b0bf7d31534ed3fa27983ddbd5f78a7c9b98586029deddb7c9954"
+}

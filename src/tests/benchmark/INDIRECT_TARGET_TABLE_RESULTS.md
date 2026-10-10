@@ -90,8 +90,11 @@ the main renderer by 36.57% CPU throughput and removes 15.99% of retired
 instructions versus fusion disabled. That comparison confirms the earlier
 retained optimization; it is not a gain from the target-table candidate.
 
-No whole-game speedup is claimed, and no new gameplay timing/deployment was
-performed after the fixed-work results failed to establish a worthwhile default.
+The subsequent [whole-game comparison](INDIRECT_TARGET_TABLE_GAME_RESULTS.md)
+measures Snakes at -0.39% CPU / +0.17% wall throughput and Sky Force at -0.05%
+CPU / -0.11% wall throughput versus the retained eight-target runtime. Those
+four-run gameplay averages are effectively flat and do not establish a gain;
+Snakes also presents fewer frames. The candidate remains archived.
 
 ## Verification and reproduction
 
