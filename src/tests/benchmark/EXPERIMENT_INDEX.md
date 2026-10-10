@@ -84,6 +84,8 @@ The [whole-game fusion census](FUSION_CENSUS_RESULTS.md) measures complete/parti
 
 The [complete Thumb leaf-call extension](THUMB_COMPLETE_CALL_RESULTS.md) is enabled by default. Short read-only acyclic helpers and their known return continuation share WASM locals, removing the successful helper-return dispatcher boundary. Two fixed-work panels of the real EUser boolean-helper sequence improve CPU throughput 14.10% and 16.54%, with 17.12% fewer native instructions and all eight adjacent pairs faster; both variants finish normal V8 tiering before timing. Actual warmed Sky Force native code confirms the eliminated boundary, but its enclosing root grows from 7,936 to 14,400 bytes. Whole-game ABBA screens are effectively flat (Sky Force +0.10%, Snakes +0.38% observed CPU throughput), with mixed pairs and unequal gameplay work; no game-wide gain is established. Missing-memory paths grow by an extra dispatcher entry. All 183 compiler tests pass, including 4,800 new state/memory/callback and 600 interpreter checks. Both games pass final served paced gameplay and keyboard-input checks with reviewed scenes; sound is muted. Final LAN artifact hashes match; all host settings restore.
 
+The [User::After timing correction](USER_AFTER_RESULTS.md) is adopted by default after merging fresh upstream master. Positive delays use the nominal 64 Hz tick queue, zero remains immediate, and AfterHighRes has a distinct nanokernel deadline; the global next-event clock rule is unchanged. Eight clock-valid ABBA gameplay observations show Sky Force +10.95% unpaced presentation throughput and -16.45% worker CPU time per presentation; Snakes is effectively flat (-0.65%, +0.46%). Both Sky Force pairs improve; Snakes CPU directions are mixed. These are normalized presentation measurements from reviewed gameplay, not identical-work or all-level claims. Native CTest passes 3/3, merged compiler tests 183/183; both games pass served paced input checks at 1.00x. Host settings restore cleanly. The broader launcher/touch check passes its non-audio assertions but fails sound: a standalone WebAudio oscillator also stalls at time zero, so audible output is unverified on this host. The fixed LAN assets match the tested candidate.
+
 Historical gains are relative to their recorded controls and configurations.
 They are not additive or evidence of the same gain on the current runtime.
 A positive measurement does not automatically change adoption status.
@@ -252,7 +254,7 @@ boundary. All valid samples remain included; see the [host limitations](CONTROLL
 
 ## Complete report catalogue
 
-307 reports and supporting notes are discovered below, including
+308 reports and supporting notes are discovered below, including
 timing, adoption and design documents with nonstandard filenames. Design plans
 and profiling shares do not establish measured speed gains. Each document
 retains its exact variants, workloads, controls and
@@ -561,16 +563,17 @@ is retained separately from the later controlled comparisons.
 | 295 | Results/notes | [WASM executable-byte default, 2026-10-01](UNSAFE_DEFAULT_RESULTS.md) | No performance excerpt; see source report |
 | 296 | Results/notes | [Upstream master integration, 2026-09-30](UPSTREAM_20260930_RESULTS.md) | [Findings below](#report-296) |
 | 297 | Results/notes | [Upstream merge and new deterministic baseline](UPSTREAM_MERGE_RESULTS.md) | [Findings below](#report-297) |
-| 298 | Results/notes | [Direct-call switches with production code validation](VALIDATED_LAYOUT_RESULTS.md) | [Findings below](#report-298) |
-| 299 | Results/notes | [Safe validity generations and native/browser cost comparison](VALIDITY_AND_COST_RESULTS.md) | [Findings below](#report-299) |
-| 300 | Results/notes | [Shared WASM cost accounting and Snakes diagnosis](WASM_COST_ACCOUNTING_RESULTS.md) | [Findings below](#report-300) |
-| 301 | Results/notes | [Count-free watchdog execution](WATCHDOG_RESULTS.md) | [Findings below](#report-301) |
-| 302 | Results/notes | [Adjacent long multiply result reuse: rejected](WIDE_REUSE_RESULTS.md) | [Findings below](#report-302) |
-| 303 | Profiling/analysis | [CPU sampling after eliminating measured interpreter fallback](ZERO_FALLBACK_CPU_PROFILE_RESULTS.md) | No performance excerpt; see source report |
-| 304 | Results/notes | [Recurrent literal-load fallback: data-TLB collision observed](ZERO_LITERAL_RESULTS.md) | No performance excerpt; see source report |
-| 305 | Results/notes | [Browser CPU comparison (in progress)](browser_cores/README.md) | No performance excerpt; see source report |
-| 306 | Results/notes | [Runtime service overlap census](service_overlap/README.md) | [Findings below](#report-306) |
-| 307 | Results/notes | [Snakes service overlap, 2026-10-01](service_overlap/RESULTS.md) | [Findings below](#report-307) |
+| 298 | Results/notes | [User::After tick deadlines](USER_AFTER_RESULTS.md) | [Findings below](#report-298) |
+| 299 | Results/notes | [Direct-call switches with production code validation](VALIDATED_LAYOUT_RESULTS.md) | [Findings below](#report-299) |
+| 300 | Results/notes | [Safe validity generations and native/browser cost comparison](VALIDITY_AND_COST_RESULTS.md) | [Findings below](#report-300) |
+| 301 | Results/notes | [Shared WASM cost accounting and Snakes diagnosis](WASM_COST_ACCOUNTING_RESULTS.md) | [Findings below](#report-301) |
+| 302 | Results/notes | [Count-free watchdog execution](WATCHDOG_RESULTS.md) | [Findings below](#report-302) |
+| 303 | Results/notes | [Adjacent long multiply result reuse: rejected](WIDE_REUSE_RESULTS.md) | [Findings below](#report-303) |
+| 304 | Profiling/analysis | [CPU sampling after eliminating measured interpreter fallback](ZERO_FALLBACK_CPU_PROFILE_RESULTS.md) | No performance excerpt; see source report |
+| 305 | Results/notes | [Recurrent literal-load fallback: data-TLB collision observed](ZERO_LITERAL_RESULTS.md) | No performance excerpt; see source report |
+| 306 | Results/notes | [Browser CPU comparison (in progress)](browser_cores/README.md) | No performance excerpt; see source report |
+| 307 | Results/notes | [Runtime service overlap census](service_overlap/README.md) | [Findings below](#report-307) |
+| 308 | Results/notes | [Snakes service overlap, 2026-10-01](service_overlap/RESULTS.md) | [Findings below](#report-308) |
 
 ## Historical findings and gain/loss tables
 
@@ -8462,7 +8465,54 @@ AOT is about 1.58x the merged interpreter in this window. Another 21.4% throughp
 
 <a id="report-298"></a>
 <details>
-<summary>298. Direct-call switches with production code validation</summary>
+<summary>298. User::After tick deadlines</summary>
+
+[Full report and evidence](USER_AFTER_RESULTS.md)
+
+**User::After tick deadlines**
+
+The whole-game ABBA screen improves Sky Force's unpaced presentation throughput
+**10.95%** and reduces guest-worker CPU time per presentation **16.45%**. Snakes
+is effectively flat: throughput **-0.65%**, worker CPU time per presentation
+**+0.46%**. These are short, reviewed gameplay windows, not helper benchmarks or
+an all-level performance guarantee. Raw observations, commands, hashes and
+paired comparisons are in [USER_AFTER_RESULTS.json](USER_AFTER_RESULTS.json).
+
+**Controlled whole-game results**
+
+| # | Game | Unpaced presentations/s A → B | Throughput change | Worker CPU ms/presentation A → B | CPU time change | Native instructions/presentation change |
+|---:|---|---:|---:|---:|---:|---:|
+| 1 | Sky Force | 92.35 → 102.45 | +10.95% | 6.332 → 5.290 | -16.45% | -14.11% |
+| 2 | Snakes | 44.33 → 44.04 | -0.65% | 17.885 → 17.968 | +0.46% | -0.32% |
+
+Ratios use pooled presentations divided by pooled wall/CPU time. Both Sky Force
+pairs improve wall frame throughput (+12.96%, +9.00%) and CPU frame throughput
+(+20.26%, +19.11%). Snakes CPU pair directions disagree (+0.36%, -1.27%); its
+sub-percent pooled changes do not establish a meaningful gain or regression.
+Renderer-process CPU time per presentation changes -3.29% and -0.43%, respectively;
+this includes its other threads but excludes GPU device time.
+
+| # | Game | Variant/order | Presentations | Wall seconds | Worker CPU seconds | Native instructions, billions |
+|---:|---|---|---:|---:|---:|---:|
+| 1 | sky-force | A0 | 377 | 4.09620 | 2.407632 | 15.921914 |
+| 2 | sky-force | B1 | 380 | 3.65521 | 2.017919 | 13.740983 |
+| 3 | sky-force | B2 | 381 | 3.77256 | 2.008095 | 13.712484 |
+| 4 | sky-force | A3 | 377 | 4.06882 | 2.366811 | 15.747862 |
+| 5 | snakes | A0 | 154 | 3.47526 | 2.758869 | 15.279683 |
+| 6 | snakes | B1 | 154 | 3.48920 | 2.749005 | 15.236570 |
+| 7 | snakes | B2 | 152 | 3.45839 | 2.749192 | 15.047798 |
+| 8 | snakes | A3 | 155 | 3.49518 | 2.767719 | 15.400812 |
+
+Guest-clock progress alone would report 2.939× → 3.231× for Sky Force and
+3.443× → 3.454× for Snakes. Those ratios are recorded separately and are not used
+as the useful-work speedup. Correcting a clock contract can change the number
+of updates performed in a fixed virtual-time interval.
+
+</details>
+
+<a id="report-299"></a>
+<details>
+<summary>299. Direct-call switches with production code validation</summary>
 
 [Full report and evidence](VALIDATED_LAYOUT_RESULTS.md)
 
@@ -8485,9 +8535,9 @@ coverage warrants it; it does not support blindly clustering many functions.
 
 </details>
 
-<a id="report-299"></a>
+<a id="report-300"></a>
 <details>
-<summary>299. Safe validity generations and native/browser cost comparison</summary>
+<summary>300. Safe validity generations and native/browser cost comparison</summary>
 
 [Full report and evidence](VALIDITY_AND_COST_RESULTS.md)
 
@@ -8544,9 +8594,9 @@ noisy diagnostic runs, not evidence of a causal speedup.**
 
 </details>
 
-<a id="report-300"></a>
+<a id="report-301"></a>
 <details>
-<summary>300. Shared WASM cost accounting and Snakes diagnosis</summary>
+<summary>301. Shared WASM cost accounting and Snakes diagnosis</summary>
 
 [Full report and evidence](WASM_COST_ACCOUNTING_RESULTS.md)
 
@@ -8591,9 +8641,9 @@ remain follow-ups, not completed optimizations.
 
 </details>
 
-<a id="report-301"></a>
+<a id="report-302"></a>
 <details>
-<summary>301. Count-free watchdog execution</summary>
+<summary>302. Count-free watchdog execution</summary>
 
 [Full report and evidence](WATCHDOG_RESULTS.md)
 
@@ -8689,9 +8739,9 @@ renderer, which does not establish its physical GPU path.
 
 </details>
 
-<a id="report-302"></a>
+<a id="report-303"></a>
 <details>
-<summary>302. Adjacent long multiply result reuse: rejected</summary>
+<summary>303. Adjacent long multiply result reuse: rejected</summary>
 
 [Full report and evidence](WIDE_REUSE_RESULTS.md)
 
@@ -8726,9 +8776,9 @@ The rejected runtime source and binary are preserved under
 
 </details>
 
-<a id="report-306"></a>
+<a id="report-307"></a>
 <details>
-<summary>306. Runtime service overlap census</summary>
+<summary>307. Runtime service overlap census</summary>
 
 [Full report and evidence](service_overlap/README.md)
 
@@ -8753,9 +8803,9 @@ The rejected runtime source and binary are preserved under
 
 </details>
 
-<a id="report-307"></a>
+<a id="report-308"></a>
 <details>
-<summary>307. Snakes service overlap, 2026-10-01</summary>
+<summary>308. Snakes service overlap, 2026-10-01</summary>
 
 [Full report and evidence](service_overlap/RESULTS.md)
 

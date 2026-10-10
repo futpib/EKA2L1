@@ -289,6 +289,10 @@ namespace eka2l1::kernel {
     }
 
     bool thread_scheduler::sleep(kernel::thread *thr, uint32_t sl_time, const bool deque) {
+        return sleep_until(thr, timing->microseconds() + sl_time, deque);
+    }
+
+    bool thread_scheduler::sleep_until(kernel::thread *thr, std::uint64_t deadline, const bool deque) {
         if (crr_thread != thr) {
             return false;
         }
@@ -305,7 +309,7 @@ namespace eka2l1::kernel {
         }
 
         // Schedule the thread to be waken up
-        timing->schedule_event(static_cast<std::uint64_t>(sl_time), wakeup_evt, thr->unique_id());
+        timing->schedule_event_at(deadline, wakeup_evt, thr->unique_id());
 
         return true;
     }

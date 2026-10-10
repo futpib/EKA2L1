@@ -25,6 +25,19 @@
 
 using namespace eka2l1::kernel;
 
+TEST_CASE("User After rounds positive delays without rounding zero yields", "[timer]") {
+    REQUIRE(user_after_deadline(0, 1) == 15625);
+    REQUIRE(user_after_deadline(10000, 1) == 15625);
+    REQUIRE(user_after_deadline(15624, 1) == 15625);
+    REQUIRE(user_after_deadline(15625, 1) == 31250);
+    REQUIRE(user_after_deadline(1000, 33000) == 46875);
+    REQUIRE(user_after_deadline(0, std::numeric_limits<std::int32_t>::max()) == 2147484375ULL);
+    REQUIRE(user_after_deadline(0, 0) == 0);
+    REQUIRE(user_after_deadline(10000, 0) == 10000);
+    REQUIRE(user_after_deadline(15625, 0) == 15625);
+    REQUIRE(user_after_deadline(10000, 1) != high_res_timer_deadline(10000, 1));
+}
+
 // Symbian stimer.cpp fixes the nominal kernel tick at 15625 us. These fixtures
 // describe that grid, not the hardware's additional nanokernel rounding jitter.
 TEST_CASE("relative timers use the nominal global tick queue", "[timer]") {

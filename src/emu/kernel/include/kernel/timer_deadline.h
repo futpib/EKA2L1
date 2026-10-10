@@ -32,6 +32,11 @@ namespace eka2l1::kernel {
         return (deadline + period - 1) / period * period;
     }
 
+    // Exec::After uses the tick queue for positive delays; zero only yields.
+    constexpr std::uint64_t user_after_deadline(std::uint64_t now, std::int32_t interval_us) {
+        return interval_us > 0 ? tick_timer_deadline(now, interval_us) : now;
+    }
+
     constexpr std::uint64_t tick_count_timer_deadline(std::uint64_t now, std::uint32_t tick_count) {
         if (tick_count == 0) {
             return tick_timer_deadline(now, 0);

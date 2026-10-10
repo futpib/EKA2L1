@@ -473,11 +473,11 @@ namespace eka2l1 {
             return true;
         }
 
-        bool thread::sleep_nof(eka2l1::ptr<epoc::request_status> sts, uint32_t mssecs) {
+        bool thread::sleep_nof_until(eka2l1::ptr<epoc::request_status> sts, std::uint64_t deadline) {
             assert(!sleep_nof_sts && "Thread supposed to sleep already");
             sleep_nof_sts = sts;
 
-            return scheduler->sleep(this, mssecs, false);
+            return scheduler->sleep_until(this, deadline, false);
         }
 
         void thread::notify_sleep(const int errcode) {

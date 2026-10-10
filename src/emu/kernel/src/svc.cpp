@@ -33,6 +33,7 @@
 #include <common/configure.h>
 #include <kernel/kernel.h>
 #include <kernel/svc.h>
+#include <kernel/timer_deadline.h>
 
 #include <loader/rom.h>
 
@@ -207,7 +208,12 @@ namespace eka2l1::epoc {
 
     BRIDGE_FUNC(void, after, std::int32_t micro_secs, eka2l1::ptr<epoc::request_status> status) {
         kernel::thread *thr = kern->crr_thread();
-        thr->sleep_nof(status, micro_secs);
+        thr->sleep_nof_until(status, kernel::user_after_deadline(kern->get_ntimer()->microseconds(), micro_secs));
+    }
+
+    BRIDGE_FUNC(void, after_high_res, std::int32_t micro_secs, eka2l1::ptr<epoc::request_status> status) {
+        kernel::thread *thr = kern->crr_thread();
+        thr->sleep_nof_until(status, kernel::high_res_timer_deadline(kern->get_ntimer()->microseconds(), micro_secs));
     }
 
     /****************************/
@@ -6098,7 +6104,7 @@ namespace eka2l1::epoc {
         BRIDGE_REGISTER(0x84, logical_channel_create),
         BRIDGE_REGISTER(0x85, timer_create),
         BRIDGE_REGISTER(0x86, timer_after_high_res), // Actually TimerHighRes
-        BRIDGE_REGISTER(0x87, after), // Actually AfterHighRes
+        BRIDGE_REGISTER(0x87, after_high_res),
         BRIDGE_REGISTER(0x88, change_notifier_create),
         BRIDGE_REGISTER(0x8D, thread_get_cpu_time),
         BRIDGE_REGISTER(0x9D, wait_dll_lock),
@@ -6280,7 +6286,7 @@ namespace eka2l1::epoc {
         BRIDGE_REGISTER(0x80, session_create_from_handle),
         BRIDGE_REGISTER(0x84, timer_create),
         BRIDGE_REGISTER(0x85, timer_after_high_res), // Actually TimerHighRes
-        BRIDGE_REGISTER(0x86, after), // Actually AfterHighRes
+        BRIDGE_REGISTER(0x86, after_high_res),
         BRIDGE_REGISTER(0x87, change_notifier_create),
         BRIDGE_REGISTER(0x9C, wait_dll_lock),
         BRIDGE_REGISTER(0x9D, release_dll_lock),
@@ -6460,7 +6466,7 @@ namespace eka2l1::epoc {
         BRIDGE_REGISTER(0x7F, session_create_from_handle),
         BRIDGE_REGISTER(0x83, timer_create),
         BRIDGE_REGISTER(0x84, timer_after_high_res), // Actually TimerHighRes
-        BRIDGE_REGISTER(0x85, after), // Actually AfterHighRes
+        BRIDGE_REGISTER(0x85, after_high_res),
         BRIDGE_REGISTER(0x86, change_notifier_create),
         BRIDGE_REGISTER(0x9B, wait_dll_lock),
         BRIDGE_REGISTER(0x9C, release_dll_lock),

@@ -1,6 +1,7 @@
 #include <catch2/catch.hpp>
 #include <common/deterministic.h>
 #include <kernel/timing.h>
+#include <kernel/timer_deadline.h>
 
 #include <cstdlib>
 #include <vector>
@@ -65,6 +66,31 @@ TEST_CASE("Virtual timer supports cancellation and callbacks scheduling callback
     REQUIRE(timer.microseconds() == 10);
     timer.reset();
     REQUIRE(timer.microseconds() == 0);
+    REQUIRE_FALSE(timer.advance_to_next_event());
+}
+
+TEST_CASE("Rounded User After leaves earlier events in order", "timing") {
+    benchmark_environment environment;
+    eka2l1::ntimer timer(1000000);
+    timer.reset();
+    timer.advance_instructions(10000);
+    std::vector<std::uint64_t> fired;
+    const int evt = timer.register_event("sleep ordering", [&](std::uint64_t data, int late) {
+        REQUIRE(late == 0);
+        fired.push_back(data);
+    });
+    const auto wakeup = eka2l1::kernel::user_after_deadline(timer.microseconds(), 1);
+    timer.schedule_event_at(wakeup, evt, 2);
+    timer.schedule_event_at(12000, evt, 1);
+    REQUIRE(timer.advance_to_next_event(1000));
+    REQUIRE(timer.microseconds() == 11000);
+    REQUIRE(fired.empty());
+    REQUIRE(timer.advance_to_next_event());
+    REQUIRE(timer.microseconds() == 12000);
+    REQUIRE(fired == std::vector<std::uint64_t>{1});
+    REQUIRE(timer.advance_to_next_event());
+    REQUIRE(timer.microseconds() == 15625);
+    REQUIRE(fired == std::vector<std::uint64_t>{1, 2});
     REQUIRE_FALSE(timer.advance_to_next_event());
 }
 
