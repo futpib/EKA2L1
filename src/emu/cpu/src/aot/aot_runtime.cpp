@@ -297,7 +297,7 @@ static void compile_at(core &cpu, std::uint32_t key, std::vector<std::uint32_t> 
             core::code_mapping leaf;
             if (!cpu.resolve_code(target, leaf) || leaf.address_space != view.address_space)
                 return std::vector<std::uint8_t>{};
-            const auto bytes = std::min(std::size_t(leaf_instruction_limit*4), leaf.size);
+            const auto bytes = std::min(std::size_t(arm_indirect_calls ? primary_window_bytes : leaf_instruction_limit*4), leaf.size);
             return std::vector<std::uint8_t>(leaf.bytes, leaf.bytes + bytes);
         };
         const code_window immutable_code{hot_rom, hot_rom_base, hot_rom_size};

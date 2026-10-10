@@ -106,7 +106,7 @@ namespace eka2l1::arm::aot {
         }
 
         // Depth inside the result block added by state_local_cache::finish.
-        unsigned scope_depth = 0;
+        unsigned scope_depth = 0, outer_return_depth = 0;
         void op(std::uint8_t o) {
             source.mark(b.size());
             if (o == op_block || o == op_loop || o == op_if) ++scope_depth;
@@ -355,7 +355,7 @@ namespace eka2l1::arm::aot {
             materialize_wide();
             // The return count is already on the stack. Branching carries it
             // to the shared exit and discards any enclosing temporary stack.
-            if (cache.shared_return) { op(op_br); leb(b, scope_depth); }
+            if (cache.shared_return) { op(op_br); leb(b, scope_depth + outer_return_depth); }
             else { cache.barrier_at(b.size()); op(op_return); }
         }
 
@@ -745,14 +745,110 @@ namespace eka2l1::arm::aot {
         return returning.empty() ? prefix : returning;
     }
 
+    struct stack_callee {
+        code_dependency code;
+        bool proved_return = true;
+    };
+
+    // The first push dominates every path. Interior instructions cannot change
+    // SP or read/write LR; the final pop restores the same slots. Arbitrary
+    // stores can alias the saved LR, so those callees need a return guard.
+    static stack_callee resolve_stack_callee(const leaf_resolver &resolve, std::uint32_t address) {
+        stack_callee result{{address, resolve(address)}};
+        auto &bytes = result.code.bytes;
+        const auto reject = [] { return stack_callee{}; };
+        if (bytes.size() < 8 || address > 0xffffffffu - std::min(bytes.size(), std::size_t(primary_window_bytes))) return reject();
+        std::uint32_t push; std::memcpy(&push, bytes.data(), 4);
+        if ((push & 0xffffe000u) != 0xe92d4000u) return reject();
+        const auto pop = 0xe8bd8000u | (push & 0x1fffu);
+        std::vector<std::uint32_t> targets;
+        for (std::size_t n = 4; n + 4 <= bytes.size() && n < primary_window_bytes; n += 4) {
+            std::uint32_t op; std::memcpy(&op, bytes.data() + n, 4);
+            if (op == pop) {
+                for (auto target : targets) if (target < address + 4 || target > address + n) return reject();
+                bytes.resize(n + 4); return result;
+            }
+            if ((op >> 28) > 14) return reject();
+            const unsigned rn = (op >> 16) & 15, rd = (op >> 12) & 15;
+            const unsigned rs = (op >> 8) & 15, rm = op & 15;
+            if (((op >> 25) & 7) == 5) {
+                if (op & (1u << 24)) return reject();
+                const auto delta = static_cast<std::int32_t>(op << 8) >> 6;
+                const auto target = std::int64_t(address) + static_cast<std::int64_t>(n) + 8 + delta;
+                if (target < std::int64_t(address) + 4 || target > 0xffffffffll) return reject();
+                targets.push_back(static_cast<std::uint32_t>(target)); continue;
+            }
+            if (((op >> 25) & 7) == 4) {
+                if (rn >= 13 || (op & 0x0040e000u) || !(op & 0x1fffu)
+                    || ((op & (1u << 21)) && (op & (1u << rn)))) return reject();
+                result.proved_return &= bool(op & (1u << 20)); continue;
+            }
+            if ((op & 0x0f8000f0u) == 0x00800090u) {
+                if (rn >= 13 || rd >= 13 || rn == rd || rs >= 13 || rm >= 13) return reject();
+                continue;
+            }
+            if ((op & 0x0fc000f0u) == 0x00000090u) {
+                if (rn >= 13 || rs >= 13 || rm >= 13 || ((op & (1u << 21)) ? rd >= 13 : rd != 0)) return reject();
+                continue;
+            }
+            if ((op & 0x0e000090u) == 0x00000090u && (op & 0x60)) {
+                const bool load = op & (1u << 20), writeback = !(op & (1u << 24)) || (op & (1u << 21));
+                if (rn >= 13 || rd >= 13 || (!load && (op & 0x60) != 0x20)
+                    || (!(op & (1u << 22)) && rm >= 13)
+                    || (!(op & (1u << 24)) && (op & (1u << 21))) || (load && writeback && rn == rd)) return reject();
+                result.proved_return &= load; continue;
+            }
+            if (((op >> 26) & 3) == 1) {
+                const bool load = op & (1u << 20), writeback = !(op & (1u << 24)) || (op & (1u << 21));
+                if (rn >= 13 || rd >= 13 || ((op & (1u << 25)) && (rm >= 13 || (op & 16)))
+                    || (!(op & (1u << 24)) && (op & (1u << 21))) || (load && writeback && rn == rd)) return reject();
+                result.proved_return &= load; continue;
+            }
+            if (((op >> 26) & 3) != 0 || rn >= 13 || rd >= 13) return reject();
+            const unsigned alu = (op >> 21) & 15;
+            if (alu >= 8 && alu <= 11 && !(op & (1u << 20))) return reject();
+            if (!(op & (1u << 25)) && ((op & 0x90) == 0x90 || rm >= 13 || ((op & 16) && rs >= 13))) return reject();
+        }
+        return reject();
+    }
+
+    struct stack_return_context {
+        std::uint32_t instruction, continuation;
+        bool proved;
+        state_local_cache cache;
+        unsigned *next_local = nullptr;
+        unsigned outer_depth = 0;
+        bool direct_memory = false;
+    };
+
     // CFG walker for ARM code. Returns reachable 4-byte-aligned offsets.
     static std::set<std::size_t> find_reachable_offsets_arm(
         const std::uint8_t *code, std::size_t code_size, bool bounded,
         std::uint32_t start_address, const leaf_resolver *leaves,
-        std::map<std::size_t, code_dependency> &inlined, std::map<std::size_t,exit_census::leaf_refusal> &refusals, bool allow_predicates)
+        std::map<std::size_t, code_dependency> &inlined, std::map<std::size_t,exit_census::leaf_refusal> &refusals, bool allow_predicates,
+        std::map<std::size_t, std::vector<stack_callee>> &stack_calls)
     {
         std::set<std::size_t> reachable;
         if (code_size < 4) return reachable;
+        // Literal values are specialization candidates, never assumed
+        // immutable data. The emitted BLX guard checks the live register value.
+        std::map<unsigned, std::map<std::uint32_t, stack_callee>> literal_targets;
+        if (arm_indirect_calls && common::code_tracking::skip_code_write_guards() && leaves) {
+            for (std::size_t n = 0; n + 4 <= code_size; n += 4) {
+                std::uint32_t op; std::memcpy(&op, code + n, 4);
+                if ((op >> 28) == 15 || (op & 0x0f7f0000u) != 0x051f0000u) continue;
+                const auto rd = (op >> 12) & 15;
+                if (rd >= 15 || literal_targets[rd].size() >= inline_site_limit) continue;
+                const auto pc = start_address + static_cast<std::uint32_t>(n) + 8;
+                const auto address = (op & (1u << 23)) ? pc + (op & 4095) : pc - (op & 4095);
+                const auto literal = (*leaves)(address);
+                if (literal.size() < 4) continue;
+                std::uint32_t target; std::memcpy(&target, literal.data(), 4);
+                if ((target & 3) || literal_targets[rd].count(target)) continue;
+                auto callee = resolve_stack_callee(*leaves, target);
+                if (!callee.code.bytes.empty()) literal_targets[rd].emplace(target, std::move(callee));
+            }
+        }
         std::vector<std::size_t> worklist;
         worklist.push_back(0);
         while (!worklist.empty()) {
@@ -822,6 +918,16 @@ namespace eka2l1::arm::aot {
                     continue;
                 }
 
+                if ((inst & 0xfffffff0u) == 0xe12fff30u && bounded) {
+                    const auto found = literal_targets.find(inst & 15);
+                    if (found != literal_targets.end() && !found->second.empty()
+                        && inlined.size() + stack_calls.size() < inline_site_limit) {
+                        auto &targets = stack_calls[i];
+                        for (const auto &[address, callee] : found->second) targets.push_back(callee);
+                        i += 4; continue;
+                    }
+                }
+
                 // BX LR / BX Rm: bits [27:4] = 0x12FFF1x
                 if ((inst & 0x0FFFFFF0) == 0x012FFF10) {
                     if (cond >= 0xE) {
@@ -863,7 +969,8 @@ namespace eka2l1::arm::aot {
         std::size_t code_size,
         std::uint32_t start_address,
         const sibling_map *siblings,
-        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region, const leaf_resolver *leaves, bool defer_memory, bool allow_memory_proof, arm_ir_policy ir_policy = arm_ir_policy::configured)
+        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region, const leaf_resolver *leaves, bool defer_memory, bool allow_memory_proof, arm_ir_policy ir_policy = arm_ir_policy::configured,
+        stack_return_context *stack_return = nullptr)
     {
         // Policy 17 retains the established default memory lowering.
         if (ir_policy == arm_ir_policy::full_spans) ir_policy = arm_ir_policy::write_spans;
@@ -909,9 +1016,25 @@ namespace eka2l1::arm::aot {
         }
 
         std::map<std::size_t, code_dependency> inlined;
+        std::map<std::size_t, std::vector<stack_callee>> stack_calls;
         std::map<std::size_t,exit_census::leaf_refusal> refusals;
         auto reachable = find_reachable_offsets_arm(code, code_size, bounded,
-            start_address, region ? leaves : nullptr, inlined, refusals, predicated_leaves && ir_policy == arm_ir_policy::write_spans);
+            start_address, region ? leaves : nullptr, inlined, refusals, predicated_leaves && ir_policy == arm_ir_policy::write_spans, stack_calls);
+        // All fused bodies use one field-to-local mapping. Reserve its bank
+        // before allocating proof temporaries; unused entry loads are pruned.
+        unsigned fusion_next_local = 0;
+        unsigned *fusion_next = stack_return ? stack_return->next_local : nullptr;
+        if (stack_return) {
+            w.cache = stack_return->cache;
+            w.cache.barriers.clear(); w.cache.written.clear();
+            w.outer_return_depth = stack_return->outer_depth;
+        } else if (!stack_calls.empty()) {
+            w.cache.program_counter = true;
+            for (unsigned field = 0; field <= S::AOT_EXIT; field += 4)
+                if (w.cache.accepts(field)) w.cache.local(field);
+            fusion_next_local = w.cache.first_local + static_cast<unsigned>(w.cache.locals.size());
+            fusion_next = &fusion_next_local;
+        }
         struct instruction { std::size_t offset; std::uint32_t address, opcode; bool leaf; };
         std::vector<instruction> instructions;
         for (auto i : reachable) {
@@ -960,7 +1083,7 @@ namespace eka2l1::arm::aot {
         // this region before a later instruction can use a pointer invalidated by a callback.
         const bool include_writes = ir_policy == arm_ir_policy::invariant_writes
             || ir_policy == arm_ir_policy::write_spans;
-        const bool invariant_reads = allow_memory_proof && (ir_policy == arm_ir_policy::invariant_reads
+        const bool invariant_reads = allow_memory_proof && stack_calls.empty() && (ir_policy == arm_ir_policy::invariant_reads
             || include_writes || ir_policy == arm_ir_policy::read_spans)
             && w.region && w.defer_memory && cache_registers && !instructions.empty();
         if (invariant_reads) {
@@ -1046,7 +1169,7 @@ namespace eka2l1::arm::aot {
             else ++tr.proved_reads;
         }
         if (prove_memory) {
-            for (auto &span : proof_groups) span.host = w.cache.first_local++;
+            for (auto &span : proof_groups) span.host = fusion_next ? (*fusion_next)++ : w.cache.first_local++;
             result.num_locals += static_cast<unsigned>(proof_groups.size());
             for (const auto &access : proof_accesses) {
                 const auto &span = proof_groups[access.group];
@@ -1204,12 +1327,15 @@ namespace eka2l1::arm::aot {
             }
             w.get_local(TMP4); w.op(op_if); w.op(type_void);
             w.census_store(&exit_census::entry_proof_failed,1);
+            if (stack_return) w.cache.barrier_at(result.body.size());
             w.state_ptr(); w.op(op_call);
             proof_call_offset = static_cast<std::uint32_t>(result.body.size());
             result.body.insert(result.body.end(), {0x80,0x80,0x80,0x80,0});
             // No guest effects preceded this call. Return directly, bypassing
             // this function's cached-state writeback after the callee updates it.
-            w.op(op_return); w.op(op_end);
+            if (stack_return) { w.cache.barrier_at(result.body.size(), true); w.ret(); }
+            else w.op(op_return);
+            w.op(op_end);
         }
 
         // block $exit
@@ -1380,6 +1506,61 @@ namespace eka2l1::arm::aot {
                 ++insn_idx;
                 decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
                 continue;
+            }
+            if (!instruction.leaf && stack_calls.count(i)) {
+                const bool indirect = (inst & 0xfffffff0u) == 0xe12fff30u;
+                unsigned target_local = 0;
+                bool selected = false;
+                if (indirect) {
+                    w.end_wide(); target_local = (*fusion_next)++;
+                    w.load_reg(inst & 15); w.set_local(target_local);
+                    w.op(op_block); w.op(type_void);
+                }
+                for (const auto &callee : stack_calls.at(i)) {
+                    const auto &dependency = callee.code;
+                    stack_return_context context{dependency.address + static_cast<std::uint32_t>(dependency.bytes.size()) - 4,
+                        insn_addr + 4, callee.proved_return, w.cache, fusion_next, w.scope_depth + (indirect ? 2 : 1)};
+                    auto child = translate_arm_block_impl(dependency.bytes.data(), dependency.bytes.size(), dependency.address,
+                        nullptr, nullptr, true, false, true, true, nullptr, defer_memory, true, ir_policy, &context);
+                    if (!child.complete || !child.entry_supported || !child.func.outlined_calls.empty()) continue;
+                    selected = true;
+                    tr.dependencies.push_back(dependency);
+                    ++tr.stack_calls; tr.proved_stack_returns += callee.proved_return;
+                    if (indirect) {
+                        w.get_local(target_local); w.i32_const(dependency.address); w.op(op_i32_eq);
+                        w.op(op_if); w.op(type_void);
+                    }
+                    w.end_wide();
+                    w.store_i32_const(S::LR, context.continuation);
+                    w.store_i32_const(S::PC, dependency.address);
+                    // Successful POP branches to this continuation. Every other
+                    // exit reaches the caller's single architectural writeback.
+                    w.op(op_block); w.op(type_void);
+                    const auto begin = result.body.size();
+                    copy_source_marks(child.func.sources, 0, child.func.body.size(), begin, result.sources);
+                    result.body.insert(result.body.end(), child.func.body.begin(), child.func.body.end());
+                    for (auto barrier : context.cache.barriers) {
+                        barrier.position += begin; w.cache.barriers.push_back(barrier);
+                    }
+                    w.cache.written.insert(context.cache.written.begin(), context.cache.written.end());
+                    w.direct_memory_used |= context.direct_memory;
+                    if (child.func.outlined_callee)
+                        result.outlined_calls.push_back({std::move(child.func.outlined_callee),
+                            static_cast<unsigned>(begin) + child.func.outlined_call_offset});
+                    w.op(op_end);
+                    if (indirect) { w.op(op_br); leb(result.body, 1); w.op(op_end); }
+                }
+                if (indirect) {
+                    w.store_i32_const(S::LR, insn_addr + 4);
+                    w.get_local(target_local); w.i32_const(1); w.op(op_i32_and); w.store_i32_from_stack(S::TFLAG,TMP1);
+                    w.store_i32(S::PC,target_local);
+                    w.bail_preserve_pc(); w.op(op_end);
+                    selected = true;
+                }
+                if (selected) {
+                    ++insn_idx; decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                    continue;
+                }
             }
             if (!instruction.leaf && inlined.count(i)) {
                 w.store_i32_const(S::LR, insn_addr + 4);
@@ -1722,6 +1903,22 @@ namespace eka2l1::arm::aot {
                     w.op(op_i32_and);
                     w.set_local(TMP2);
                     w.store_i32(S::TFLAG, TMP2);
+                    if (stack_return && insn_addr == stack_return->instruction) {
+                        w.load_i32(S::AOT_EXIT);
+                        if (!stack_return->proved) {
+                            w.load_reg(15); w.i32_const(stack_return->continuation);
+                            w.op(op_i32_ne); w.op(op_i32_or);
+                        }
+                        w.op(op_if); w.op(type_void); w.bail_preserve_pc(); w.op(op_end);
+                        w.load_i32(S::NIRQ); w.op(op_i32_eqz);
+                        w.load_i32(S::CPSR); w.i32_const(0x80); w.op(op_i32_and); w.op(op_i32_eqz); w.op(op_i32_and);
+                        w.op(op_if); w.op(type_void); w.bail_preserve_pc(); w.op(op_end);
+                        w.materialize_wide();
+                        w.op(op_br); leb(result.body, w.scope_depth);
+                        if (cond_opened) w.op(op_end);
+                        decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                        ++insn_idx; break;
+                    }
                     w.bail_preserve_pc();
                     if (cond_opened) w.op(op_end);
                     if (cond >= 0xE && closed_count >= N_fwd) {
@@ -2478,12 +2675,12 @@ namespace eka2l1::arm::aot {
         if (bounded) w.bail(start_address + decoded_end_offset, insn_idx, decoded_end_offset>=code_size?exit_census::source_end:exit_census::emission_end);
         else { w.i32_const(1); w.ret(); }
 
-        finish_memory_locals(w);
+        if (!stack_return) finish_memory_locals(w);
         if (prove_memory) {
             std::vector<std::uint8_t> prefix;
             w.cache.transfer(prefix, true);
-            result.outlined_call_offset = proof_call_offset + static_cast<std::uint32_t>(prefix.size())
-                + (w.cache.shared_return ? 2 : 0);
+            result.outlined_call_offset = proof_call_offset + (stack_return ? 0 :
+                static_cast<std::uint32_t>(prefix.size()) + (w.cache.shared_return ? 2 : 0));
             auto fallback = translate_arm_block_impl(code, code_size, start_address,
                 siblings, dll_code, bounded, stop_after_store, cache_registers,
                 region, leaves, defer_memory, false,
@@ -2491,7 +2688,14 @@ namespace eka2l1::arm::aot {
             fallback.func.export_name += "_memory_fallback";
             result.outlined_callee = std::make_shared<wasm_func_def>(std::move(fallback.func));
         }
-        w.cache.finish(result);
+        if (stack_return) {
+            stack_return->cache = std::move(w.cache);
+            stack_return->direct_memory = w.direct_memory_used;
+        } else {
+            if (fusion_next) result.num_locals = *fusion_next - 1 - result.num_prefix_i64_locals
+                - static_cast<unsigned>(w.cache.locals.size());
+            w.cache.finish(result);
+        }
         tr.entry_supported = w.entry_supported;
         tr.complete = !w.unsupported;
         tr.end_address = start_address + decoded_end_offset;

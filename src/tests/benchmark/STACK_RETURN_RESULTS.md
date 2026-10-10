@@ -1,5 +1,9 @@
 # Caller-specific stack returns
 
+Follow-up: [fused indirect calls with shared locals](FUSED_INDIRECT_CALL_RESULTS.md)
+targets the frequent tile renderer and establishes a fixed-work runtime gain.
+The results below describe the earlier, archived direct-call prototype.
+
 Tracking the caller's return address works, including a hot Sky Force function
 that the previous direct-chain experiment could not connect. It does not
 establish a useful game-speed gain. The prototype is archived in

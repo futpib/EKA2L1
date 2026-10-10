@@ -86,6 +86,7 @@ namespace eka2l1::arm::aot {
         unsigned watchdog_safepoints = 0, proved_terminating_loops = 0;
         unsigned summarized_helpers = 0;
         unsigned fused_edges = 0;
+        unsigned stack_calls = 0, proved_stack_returns = 0;
         bool complete;  // true if entire block was translated without bailing
         // Addresses where execution may resume after a bail-out call
         // (the instruction immediately after a BLX Rm, BL Rm, or non-sibling

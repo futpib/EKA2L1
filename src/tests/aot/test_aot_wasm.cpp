@@ -6002,6 +6002,7 @@ static bool test_memory_implementations() {
 #include "svc_return_fixture.h"
 
 #include "test_region_fusion.inc"
+#include "test_stack_return.inc"
 
 #include "test_watchdog.inc"
 
@@ -6082,6 +6083,7 @@ int main(int argc, char **argv) {
 #endif
     if(argc==2 && std::string(argv[1])=="--precompile-only") return test_precompile()?0:1;
     if(argc==2 && std::string(argv[1])=="--watchdog-only") return test_watchdog()?0:1;
+    if(argc==2 && std::string(argv[1])=="--stack-returns-only")return test_stack_returns()?0:1;
     if(argc==2 && std::string(argv[1])=="--shared-spans-only")return test_thumb_transfer_spans()
         && test_thumb_direct_memory() && test_invariant_reads(arm_ir_policy::write_spans)
         && test_invariant_writes(arm_ir_policy::write_spans) && test_block_transfer_callback_pc()?0:1;
@@ -6772,6 +6774,8 @@ int main(int argc, char **argv) {
 
     printf("\nRunning ARM translator-level tests...\n\n");
     if (test_watchdog()) passed++; else failed++;
+    printf("TEST test_stack_returns\n"); watchdog::request=0;
+    if (test_stack_returns()) passed++; else failed++;
     printf("TEST test_inlined_leaves\n"); watchdog::request=0;
     if (test_inlined_leaves()) passed++; else failed++;
     printf("TEST test_sparse_rom_registry\n"); watchdog::request=0;

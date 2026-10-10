@@ -25,6 +25,7 @@
 namespace eka2l1::arm::aot {
     // Shared instruction support, fixed before any module is translated.
     inline bool arm_exclusive_memory = false;
+    inline bool arm_indirect_calls = true;
     inline bool supported_exclusive_word(std::uint32_t op) {
         const bool load = (op & 0x0ff00fff) == 0x01900f9f;
         const bool store = (op & 0x0ff00ff0) == 0x01800f90;

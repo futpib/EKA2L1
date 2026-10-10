@@ -1,0 +1,653 @@
+{
+  "baseline": {
+    "commit": "c72346c6fdff07083f4c73d10b4ff7f852735dc4",
+    "wasm_sha256": "a62e6b920d773d1c3f14dd2213fe28d8a1d3f64e8165b4309cee797138f29597"
+  },
+  "candidate": {
+    "stock": {
+      "cpu_seconds": 0.73393802675,
+      "instructions": 6103572455.25
+    },
+    "fused": {
+      "cpu_seconds": 0.54652381525,
+      "instructions": 5126064372.75
+    },
+    "cpu_throughput_percent": 34.292048447014125,
+    "instructions_percent": -16.015343303726894,
+    "final_wasm_sha256": "556c7cc6899b0bf7d31534ed3fa27983ddbd5f78a7c9b98586029deddb7c9954"
+  },
+  "candidate_test_wasm_sha256": "ce61eb3709cc900383a39bc815988e8d9eb4be6bc8d837c2c3d349a6db43e423",
+  "micro": {
+    "browser": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/153.0.8010.52",
+      "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "jsVersion": "15.3.76.13"
+    },
+    "pid": 3709205,
+    "renderers": [
+      {
+        "type": "renderer",
+        "id": 3709205,
+        "cpuTime": 0.51,
+        "delta": 0.39
+      },
+      {
+        "type": "renderer",
+        "id": 3709129,
+        "cpuTime": 0.46,
+        "delta": 0.13
+      },
+      {
+        "type": "renderer",
+        "id": 3709217,
+        "cpuTime": 0.02,
+        "delta": 0
+      },
+      {
+        "type": "renderer",
+        "id": 3709157,
+        "cpuTime": 0.04,
+        "delta": 0
+      }
+    ],
+    "iterations": 100000,
+    "entry": "tile_row_benchmark",
+    "rows": [
+      {
+        "variant": 0,
+        "cpu_seconds": 0.746718585,
+        "status": 0,
+        "milliseconds": 748.0349999666214,
+        "mhz": 2394.384864630363,
+        "hardware": {
+          "events": {
+            "guest": {
+              "start_ticks": 92944121,
+              "user_cycles": {
+                "raw": 1786382108,
+                "time_enabled_ns": 748591957,
+                "time_running_ns": 748591957,
+                "running_fraction": 1,
+                "scaled": 1786382108
+              },
+              "user_instructions": {
+                "raw": 6109100843,
+                "time_enabled_ns": 748591957,
+                "time_running_ns": 748591957,
+                "running_fraction": 1,
+                "scaled": 6109100843
+              },
+              "user_reference_cycles": {
+                "raw": 1718948544,
+                "time_enabled_ns": 748591957,
+                "time_running_ns": 748591957,
+                "running_fraction": 1,
+                "scaled": 1718948544
+              }
+            }
+          },
+          "errors": [],
+          "begin_ns": 910818846077979,
+          "enable_begin_ns": 910818862824152,
+          "enable_end_ns": 910818862876387,
+          "disable_begin_ns": 910819613245955,
+          "disable_end_ns": 910819613296211
+        }
+      },
+      {
+        "variant": 1,
+        "cpu_seconds": 0.546619332,
+        "status": 0,
+        "milliseconds": 546.6599999666214,
+        "mhz": 2394.416662879972,
+        "hardware": {
+          "events": {
+            "guest": {
+              "start_ticks": 92944121,
+              "user_cycles": {
+                "raw": 1308558683,
+                "time_enabled_ns": 547011029,
+                "time_running_ns": 547011029,
+                "running_fraction": 1,
+                "scaled": 1308558683
+              },
+              "user_instructions": {
+                "raw": 5126137876,
+                "time_enabled_ns": 547011029,
+                "time_running_ns": 547011029,
+                "running_fraction": 1,
+                "scaled": 5126137876
+              },
+              "user_reference_cycles": {
+                "raw": 1259145600,
+                "time_enabled_ns": 547011029,
+                "time_running_ns": 547011029,
+                "running_fraction": 1,
+                "scaled": 1259145600
+              }
+            }
+          },
+          "errors": [],
+          "begin_ns": 910819616734156,
+          "enable_begin_ns": 910819617113338,
+          "enable_end_ns": 910819617154817,
+          "disable_begin_ns": 910820165489639,
+          "disable_end_ns": 910820165539814
+        }
+      },
+      {
+        "variant": 1,
+        "cpu_seconds": 0.5467936629999999,
+        "status": 0,
+        "milliseconds": 546.9850000143051,
+        "mhz": 2394.415800949826,
+        "hardware": {
+          "events": {
+            "guest": {
+              "start_ticks": 92944121,
+              "user_cycles": {
+                "raw": 1308914082,
+                "time_enabled_ns": 547229613,
+                "time_running_ns": 547229613,
+                "running_fraction": 1,
+                "scaled": 1308914082
+              },
+              "user_instructions": {
+                "raw": 5126062682,
+                "time_enabled_ns": 547229613,
+                "time_running_ns": 547229613,
+                "running_fraction": 1,
+                "scaled": 5126062682
+              },
+              "user_reference_cycles": {
+                "raw": 1259488032,
+                "time_enabled_ns": 547229613,
+                "time_running_ns": 547229613,
+                "running_fraction": 1,
+                "scaled": 1259488032
+              }
+            }
+          },
+          "errors": [],
+          "begin_ns": 910820167711541,
+          "enable_begin_ns": 910820168073282,
+          "enable_end_ns": 910820168113591,
+          "disable_begin_ns": 910820716576692,
+          "disable_end_ns": 910820716626393
+        }
+      },
+      {
+        "variant": 0,
+        "cpu_seconds": 0.7295683610000001,
+        "status": 0,
+        "milliseconds": 729.8550000190735,
+        "mhz": 2394.41698541569,
+        "hardware": {
+          "events": {
+            "guest": {
+              "start_ticks": 92944121,
+              "user_cycles": {
+                "raw": 1746521271,
+                "time_enabled_ns": 730051654,
+                "time_running_ns": 730051654,
+                "running_fraction": 1,
+                "scaled": 1746521271
+              },
+              "user_instructions": {
+                "raw": 6101719112,
+                "time_enabled_ns": 730051654,
+                "time_running_ns": 730051654,
+                "running_fraction": 1,
+                "scaled": 6101719112
+              },
+              "user_reference_cycles": {
+                "raw": 1680569856,
+                "time_enabled_ns": 730051654,
+                "time_running_ns": 730051654,
+                "running_fraction": 1,
+                "scaled": 1680569856
+              }
+            }
+          },
+          "errors": [],
+          "begin_ns": 910820719091872,
+          "enable_begin_ns": 910820719453973,
+          "enable_end_ns": 910820719493403,
+          "disable_begin_ns": 910821450878957,
+          "disable_end_ns": 910821450930333
+        }
+      },
+      {
+        "variant": 1,
+        "cpu_seconds": 0.5464782370000001,
+        "status": 0,
+        "milliseconds": 546.6049998998642,
+        "mhz": 2394.421024695369,
+        "hardware": {
+          "events": {
+            "guest": {
+              "start_ticks": 92944121,
+              "user_cycles": {
+                "raw": 1308209885,
+                "time_enabled_ns": 546845578,
+                "time_running_ns": 546845578,
+                "running_fraction": 1,
+                "scaled": 1308209885
+              },
+              "user_instructions": {
+                "raw": 5126036363,
+                "time_enabled_ns": 546845578,
+                "time_running_ns": 546845578,
+                "running_fraction": 1,
+                "scaled": 5126036363
+              },
+              "user_reference_cycles": {
+                "raw": 1258807680,
+                "time_enabled_ns": 546845578,
+                "time_running_ns": 546845578,
+                "running_fraction": 1,
+                "scaled": 1258807680
+              }
+            }
+          },
+          "errors": [],
+          "begin_ns": 910821453138813,
+          "enable_begin_ns": 910821453505667,
+          "enable_end_ns": 910821453554018,
+          "disable_begin_ns": 910822001659832,
+          "disable_end_ns": 910822001709512
+        }
+      },
+      {
+        "variant": 0,
+        "cpu_seconds": 0.7299547879999997,
+        "status": 0,
+        "milliseconds": 730.3049999475479,
+        "mhz": 2394.4161280741905,
+        "hardware": {
+          "events": {
+            "guest": {
+              "start_ticks": 92944121,
+              "user_cycles": {
+                "raw": 1747434714,
+                "time_enabled_ns": 730502547,
+                "time_running_ns": 730502547,
+                "running_fraction": 1,
+                "scaled": 1747434714
+              },
+              "user_instructions": {
+                "raw": 6101735338,
+                "time_enabled_ns": 730502547,
+                "time_running_ns": 730502547,
+                "running_fraction": 1,
+                "scaled": 6101735338
+              },
+              "user_reference_cycles": {
+                "raw": 1681449408,
+                "time_enabled_ns": 730502547,
+                "time_running_ns": 730502547,
+                "running_fraction": 1,
+                "scaled": 1681449408
+              }
+            }
+          },
+          "errors": [],
+          "begin_ns": 910822004200921,
+          "enable_begin_ns": 910822004567102,
+          "enable_end_ns": 910822004607564,
+          "disable_begin_ns": 910822736359523,
+          "disable_end_ns": 910822736412474
+        }
+      },
+      {
+        "variant": 0,
+        "cpu_seconds": 0.7295103730000001,
+        "status": 0,
+        "milliseconds": 729.7599999904633,
+        "mhz": 2394.418849335202,
+        "hardware": {
+          "events": {
+            "guest": {
+              "start_ticks": 92944121,
+              "user_cycles": {
+                "raw": 1746416478,
+                "time_enabled_ns": 729997271,
+                "time_running_ns": 729997271,
+                "running_fraction": 1,
+                "scaled": 1746416478
+              },
+              "user_instructions": {
+                "raw": 6101734528,
+                "time_enabled_ns": 729997271,
+                "time_running_ns": 729997271,
+                "running_fraction": 1,
+                "scaled": 6101734528
+              },
+              "user_reference_cycles": {
+                "raw": 1680467712,
+                "time_enabled_ns": 729997271,
+                "time_running_ns": 729997271,
+                "running_fraction": 1,
+                "scaled": 1680467712
+              }
+            }
+          },
+          "errors": [],
+          "begin_ns": 910822738787970,
+          "enable_begin_ns": 910822739164043,
+          "enable_end_ns": 910822739214952,
+          "disable_begin_ns": 910823470487953,
+          "disable_end_ns": 910823470538350
+        }
+      },
+      {
+        "variant": 1,
+        "cpu_seconds": 0.5462040290000001,
+        "status": 0,
+        "milliseconds": 546.3900001049042,
+        "mhz": 2394.4204316012565,
+        "hardware": {
+          "events": {
+            "guest": {
+              "start_ticks": 92944121,
+              "user_cycles": {
+                "raw": 1307593297,
+                "time_enabled_ns": 546552329,
+                "time_running_ns": 546552329,
+                "running_fraction": 1,
+                "scaled": 1307593297
+              },
+              "user_instructions": {
+                "raw": 5126020570,
+                "time_enabled_ns": 546552329,
+                "time_running_ns": 546552329,
+                "running_fraction": 1,
+                "scaled": 5126020570
+              },
+              "user_reference_cycles": {
+                "raw": 1258214688,
+                "time_enabled_ns": 546552329,
+                "time_running_ns": 546552329,
+                "running_fraction": 1,
+                "scaled": 1258214688
+              }
+            }
+          },
+          "errors": [],
+          "begin_ns": 910823472940931,
+          "enable_begin_ns": 910823473297333,
+          "enable_end_ns": 910823473337481,
+          "disable_begin_ns": 910824021300355,
+          "disable_end_ns": 910824021349248
+        }
+      }
+    ]
+  },
+  "gameplay_screen": [
+    {
+      "game": "sky-force",
+      "index": 0,
+      "variant": "A",
+      "path": "/home/claude/.scratch/eka-fused-calls-20261010/final-screen-sky-force-0-A",
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 58000000,
+        "last_virtual_us": 62000000,
+        "first_instructions": 0,
+        "last_instructions": 0,
+        "wall_seconds": 1.44313,
+        "presentations": 128
+      },
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 2394.3453342038424,
+        "interval_min_mhz": 2393.993913952005,
+        "interval_max_mhz": 2394.51425691941,
+        "worker_cpu_seconds": 0.874528693,
+        "instructions": 5725541657,
+        "cycles": 2073579878,
+        "worker": "3725049:3725114",
+        "sibling_busy_fraction": {
+          "15": 0.0
+        }
+      }
+    },
+    {
+      "game": "sky-force",
+      "index": 1,
+      "variant": "B",
+      "path": "/home/claude/.scratch/eka-fused-calls-20261010/final-screen-sky-force-1-B",
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 58000000,
+        "last_virtual_us": 62000000,
+        "first_instructions": 0,
+        "last_instructions": 0,
+        "wall_seconds": 1.42903,
+        "presentations": 127
+      },
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 2394.3440754247868,
+        "interval_min_mhz": 2394.211370448463,
+        "interval_max_mhz": 2394.434701038395,
+        "worker_cpu_seconds": 0.849197541,
+        "instructions": 5647000473,
+        "cycles": 2016556087,
+        "worker": "3727351:3727396",
+        "sibling_busy_fraction": {
+          "15": 0.0
+        }
+      }
+    },
+    {
+      "game": "sky-force",
+      "index": 2,
+      "variant": "B",
+      "path": "/home/claude/.scratch/eka-fused-calls-20261010/final-screen-sky-force-2-B",
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 58000000,
+        "last_virtual_us": 62000000,
+        "first_instructions": 0,
+        "last_instructions": 0,
+        "wall_seconds": 1.41524,
+        "presentations": 128
+      },
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 2394.3495144059193,
+        "interval_min_mhz": 2394.2378072302113,
+        "interval_max_mhz": 2394.4884643659702,
+        "worker_cpu_seconds": 0.84221711,
+        "instructions": 5576255123,
+        "cycles": 1996486641,
+        "worker": "3729486:3729542",
+        "sibling_busy_fraction": {
+          "15": 0.0
+        }
+      }
+    },
+    {
+      "game": "sky-force",
+      "index": 3,
+      "variant": "A",
+      "path": "/home/claude/.scratch/eka-fused-calls-20261010/final-screen-sky-force-3-A",
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 58000000,
+        "last_virtual_us": 62000000,
+        "first_instructions": 0,
+        "last_instructions": 0,
+        "wall_seconds": 1.43442,
+        "presentations": 128
+      },
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 2394.3455034727017,
+        "interval_min_mhz": 2394.1020007294674,
+        "interval_max_mhz": 2394.4946649074673,
+        "worker_cpu_seconds": 0.845340972,
+        "instructions": 5640671727,
+        "cycles": 2008042199,
+        "worker": "3731317:3731362",
+        "sibling_busy_fraction": {
+          "15": 0.0
+        }
+      }
+    }
+  ],
+  "gameplay_summary": {
+    "worker_cpu_seconds": {
+      "stock": 0.8599348325,
+      "candidate": 0.8457073255,
+      "candidate_percent": -1.6544866497194666
+    },
+    "instructions": {
+      "stock": 5683106692,
+      "candidate": 5611627798,
+      "candidate_percent": -1.2577433061501275
+    },
+    "cpu_throughput_percent": 1.6823204164145622
+  },
+  "correctness": {
+    "full_suite_passed": 182,
+    "failed": 0,
+    "focused_state_memory_callback_cases": 2880,
+    "independent_interpreter_cases": 240,
+    "outlined_proof_fallbacks": 12
+  },
+  "artifacts": "/home/claude/.scratch/eka-fused-calls-20261010",
+  "limitations": [
+    "Microbenchmark is fixed renderer work, not whole-game throughput.",
+    "Fixture uses ROM registry lookup for captured game code; production uses RAM lookup.",
+    "Gameplay windows have different work; +1.68% is not an established whole-game gain.",
+    "Snakes timing attempt was a menu and is excluded."
+  ],
+  "host_controls": {
+    "host-final-row.json": {
+      "restored": true,
+      "returncode": 0,
+      "restoration_errors": []
+    },
+    "host-final-screen.json": {
+      "restored": true,
+      "returncode": 2,
+      "restoration_errors": []
+    },
+    "host-final-screen2.json": {
+      "restored": true,
+      "returncode": 0,
+      "restoration_errors": []
+    },
+    "host-row-micro.json": {
+      "restored": true,
+      "returncode": 0,
+      "restoration_errors": []
+    },
+    "host-screen.json": {
+      "restored": true,
+      "returncode": -15,
+      "restoration_errors": []
+    },
+    "host-tile-micro.json": {
+      "restored": true,
+      "returncode": 0,
+      "restoration_errors": []
+    }
+  },
+  "decision": "Enabled by default: repeatable fixed-work hot-renderer gain; no established whole-game percentage.",
+  "paced_gameplay": {
+    "snakes": {
+      "passed": true,
+      "measurement": {
+        "hostSeconds": 10.093640251000004,
+        "guestSeconds": 10.094031,
+        "guestSpeed": 1.0000387123961503,
+        "presentations": 162,
+        "presentationsPerSecond": 16.049710111666624,
+        "instructions": 0,
+        "installedCompiledFunctions": 25,
+        "maxQueryMs": 6.063123999992968,
+        "maxObservedFrameGapMs": 100.46000003814697,
+        "compilationUs": {
+          "aot_translation_us": 8627,
+          "aot_emission_us": 354,
+          "aot_installation_us": 680
+        }
+      },
+      "sound": "muted",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "scene_review": "Actual gameplay in start and end screenshots"
+    },
+    "sky-force": {
+      "passed": true,
+      "measurement": {
+        "hostSeconds": 10.0669357495,
+        "guestSeconds": 10.06621,
+        "guestSpeed": 0.9999279076058435,
+        "presentations": 322,
+        "presentationsPerSecond": 31.98589998113308,
+        "instructions": 0,
+        "installedCompiledFunctions": 33,
+        "maxQueryMs": 5.833490000004531,
+        "maxObservedFrameGapMs": 50.72500002384186,
+        "compilationUs": {
+          "aot_translation_us": 6954,
+          "aot_emission_us": 1035,
+          "aot_installation_us": 2524
+        }
+      },
+      "sound": "muted",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "scene_review": "Actual gameplay in start and end screenshots"
+    }
+  },
+  "lan": {
+    "url": "https://claude-laptop.lan:8188/",
+    "served_wasm_sha256": "556c7cc6899b0bf7d31534ed3fa27983ddbd5f78a7c9b98586029deddb7c9954",
+    "gameplay_check": {
+      "passed": true,
+      "game": "sky-force",
+      "measurement": {
+        "hostSeconds": 10.071019547999997,
+        "guestSeconds": 10.072359,
+        "guestSpeed": 1.0001330006354987,
+        "presentations": 322,
+        "presentationsPerSecond": 31.972929698457982,
+        "instructions": 0,
+        "installedCompiledFunctions": 18,
+        "maxQueryMs": 5.7873860000036075,
+        "maxObservedFrameGapMs": 50.59500002861023,
+        "compilationUs": {
+          "aot_translation_us": 9188,
+          "aot_emission_us": 655,
+          "aot_installation_us": 1595
+        }
+      },
+      "scene_review": "Actual gameplay; start score 0/stage 0%, end score 1350/stage 4%",
+      "sound": "muted"
+    }
+  },
+  "sampled_edges": {
+    "total": 12025,
+    "hot_tile_loop": 3666,
+    "fraction": 0.30486486486486486,
+    "counts_are_not_cpu_time": true,
+    "snakes_capture_excluded": "Menu scene"
+  }
+}
