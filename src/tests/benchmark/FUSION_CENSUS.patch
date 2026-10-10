@@ -1,0 +1,361 @@
+diff --git a/src/emu/cpu/src/aot/aot_runtime.cpp b/src/emu/cpu/src/aot/aot_runtime.cpp
+index c55d70b35..ec17394c7 100644
+--- a/src/emu/cpu/src/aot/aot_runtime.cpp
++++ b/src/emu/cpu/src/aot/aot_runtime.cpp
+@@ -17,6 +17,7 @@
+  * along with this program. If not, see <http://www.gnu.org/licenses/>.
+  */
+
++#include <cpu/aot/fusion_census.h>
+ #include <cpu/aot/aot_runtime.h>
+ #include <cpu/aot/watchdog.h>
+ #include <cpu/aot/memory_experiment.h>
+@@ -49,6 +50,10 @@ namespace eka2l1::arm::aot {
+ #ifdef __EMSCRIPTEN__
+ static_assert(offsetof(ARMul_State, NumInstrsToExecute) == state_offsets::NUM_INSTRS_TO_EXECUTE);
+ #endif
++extern "C" EMSCRIPTEN_KEEPALIVE void eka2l1_fusion_reset() { fusion_census::reset(); }
++extern "C" EMSCRIPTEN_KEEPALIVE const char *eka2l1_fusion_report() {
++    static std::string result; result = fusion_census::report(); return result.c_str();
++}
+ compilation_counters compilation;
+ struct compilation_timer {
+     std::atomic<std::uint64_t> &total;
+@@ -226,7 +231,9 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
+     std::uint32_t progress = 0;
+     while (function) {
+         cpu->aot_exit = 0;
++        ++fusion_census::region_entries;
+         progress = function(cpu);
++        ++fusion_census::region_returns;
+         if (!progress || !cpu->NumInstrsToExecute
+             || (!cpu->NirqSig && !(cpu->Cpsr & 0x80)) || watchdog::requested()) break;
+         // Each body has completed; indirect successors may cycle.
+@@ -248,7 +255,10 @@ compiled_run execute_chain(ARMul_State *cpu, aot_func function) {
+
+ std::uint32_t execute_single(ARMul_State *cpu, aot_func function) {
+     cpu->aot_exit = 0;
+-    return function(cpu);
++    ++fusion_census::region_entries;
++    const auto progress = function(cpu);
++    ++fusion_census::region_returns;
++    return progress;
+ }
+
+ #ifdef __EMSCRIPTEN__
+diff --git a/src/emu/cpu/src/aot/arm_translator.cpp b/src/emu/cpu/src/aot/arm_translator.cpp
+index e02a2864f..65259d55f 100644
+--- a/src/emu/cpu/src/aot/arm_translator.cpp
++++ b/src/emu/cpu/src/aot/arm_translator.cpp
+@@ -17,6 +17,7 @@
+  * along with this program. If not, see <http://www.gnu.org/licenses/>.
+  */
+
++#include <cpu/aot/fusion_census.h>
+ #include <common/code_tracking.h>
+ #include <cpu/aot/arm_translator.h>
+ #include <cpu/aot/aot_runtime.h>
+@@ -1501,6 +1502,7 @@ namespace eka2l1::arm::aot {
+
+
+             if (instruction.leaf && inst == 0xe12fff1e) {
++                fusion_census::emit(w, fusion_census::arm_leaf_return, insn_addr);
+                 // LR still contains this call's ARM return address. The next
+                 // emitted instruction is the caller continuation, with no spill.
+                 ++insn_idx;
+@@ -1530,6 +1532,7 @@ namespace eka2l1::arm::aot {
+                         w.get_local(target_local); w.i32_const(dependency.address); w.op(op_i32_eq);
+                         w.op(op_if); w.op(type_void);
+                     }
++                    fusion_census::emit(w, fusion_census::arm_indirect, insn_addr, dependency.address);
+                     w.end_wide();
+                     w.store_i32_const(S::LR, context.continuation);
+                     w.store_i32_const(S::PC, dependency.address);
+@@ -1548,9 +1551,11 @@ namespace eka2l1::arm::aot {
+                         result.outlined_calls.push_back({std::move(child.func.outlined_callee),
+                             static_cast<unsigned>(begin) + child.func.outlined_call_offset});
+                     w.op(op_end);
++                    fusion_census::emit(w, fusion_census::arm_indirect_return, insn_addr, dependency.address);
+                     if (indirect) { w.op(op_br); leb(result.body, 1); w.op(op_end); }
+                 }
+                 if (indirect) {
++                    fusion_census::emit(w, fusion_census::arm_indirect_miss, insn_addr);
+                     w.store_i32_const(S::LR, insn_addr + 4);
+                     w.get_local(target_local); w.i32_const(1); w.op(op_i32_and); w.store_i32_from_stack(S::TFLAG,TMP1);
+                     w.store_i32(S::PC,target_local);
+@@ -1563,6 +1568,9 @@ namespace eka2l1::arm::aot {
+                 }
+             }
+             if (!instruction.leaf && inlined.count(i)) {
++                const auto &callee = inlined.at(i);
++                const bool prefix = is_literal_pc_veneer(callee.bytes) || ends_in_tail_branch(callee.bytes);
++                fusion_census::emit(w, prefix ? fusion_census::arm_prefix : fusion_census::arm_leaf, insn_addr, callee.address);
+                 w.store_i32_const(S::LR, insn_addr + 4);
+                 ++insn_idx;
+                 decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+@@ -1635,6 +1643,7 @@ namespace eka2l1::arm::aot {
+                     if (siblings) {
+                         auto it = siblings->find(target);
+                         if (it != siblings->end()) {
++                            fusion_census::emit(w, fusion_census::arm_sibling, insn_addr, target);
+                             w.store_i32_const(S::LR, static_cast<std::int32_t>(next_pc));
+                             w.state_ptr();
+                             w.op(op_call);
+@@ -1649,6 +1658,7 @@ namespace eka2l1::arm::aot {
+                             continue;
+                         }
+                     }
++                    fusion_census::emit(w, fusion_census::arm_dispatch, insn_addr, target);
+                     w.store_i32_const(S::LR, static_cast<std::int32_t>(next_pc));
+                     w.bail(target, insn_idx + 1);
+                     if (cond_opened) w.op(op_end);
+@@ -1747,6 +1757,7 @@ namespace eka2l1::arm::aot {
+
+             // === BLX Rm: 0x012FFF3x ===
+             if ((inst & 0x0FFFFFF0) == 0x012FFF30) {
++                fusion_census::emit(w, fusion_census::arm_dispatch, insn_addr);
+                 int rm = inst & 0xF;
+                 std::uint32_t next_pc = insn_addr + 4;
+                 w.store_i32_const(S::LR, static_cast<std::int32_t>(next_pc));
+diff --git a/src/emu/cpu/src/aot/thumb_translator.cpp b/src/emu/cpu/src/aot/thumb_translator.cpp
+index ecc937a7b..eac215037 100644
+--- a/src/emu/cpu/src/aot/thumb_translator.cpp
++++ b/src/emu/cpu/src/aot/thumb_translator.cpp
+@@ -17,6 +17,7 @@
+  * along with this program. If not, see <http://www.gnu.org/licenses/>.
+  */
+
++#include <cpu/aot/fusion_census.h>
+ #include <cpu/aot/thumb_translator.h>
+ #include <cpu/aot/watchdog.h>
+ #include <cpu/aot/aot_runtime.h>
+@@ -715,13 +716,16 @@ namespace eka2l1::arm::aot {
+         const std::uint32_t TMP1 = 1, TMP2 = 2, TMP3 = 3, TMP4 = 4;
+         const std::uint32_t PC_IDX = 5, ADDR_TMP = 6;
+         const std::uint32_t FTMP1 = 7, FTMP2 = 8, DTMP1 = 9;
+-        const auto branch = [&](std::uint32_t target, unsigned count, bool checked = false) {
++        const auto branch = [&](std::uint32_t target, unsigned count, bool checked = false, std::uint32_t call_pc = 0) {
+             std::uint16_t first = 0;
+             const bool candidate = fusion && count < 128 && fusion->emitted < 512
+                 && tr.fused_edges < 8 && !fusion->path.count(target) && !(target & 1)
+                 && fusion->code->read(target, &first, sizeof(first))
+                 && first < 0xe800 && (first & 0xff00) != 0xdf00;
+-            if (!candidate) { w.bail(target, count); return; }
++            if (!candidate) {
++                if (call_pc) fusion_census::emit(w, fusion_census::thumb_dispatch, call_pc, target);
++                w.bail(target, count); return;
++            }
+             // A memory callback can request a stop or interrupt. Pure prefixes
+             // reuse the runner's entry checks; callbacks retain its edge check.
+             if (!checked && w.helper_calls) {
+@@ -734,6 +738,8 @@ namespace eka2l1::arm::aot {
+                 w.op(op_i32_eqz); w.op(op_i32_and); w.op(op_i32_or);
+                 w.op(op_if); w.op(type_void); w.bail(target, count, exit_census::guard); w.op(op_end);
+             }
++            if (call_pc) fusion_census::emit(w, fusion_census::thumb_fused_call, call_pc, target);
++            else fusion_census::emit(w, fusion_census::thumb_fused_branch, w.source.pc | 1u, target);
+             const auto path = fusion->path;
+             const auto helpers = w.helper_calls;
+             const auto source = w.source;
+@@ -954,6 +960,7 @@ namespace eka2l1::arm::aot {
+                             if (kind == 0xE800 && compiled_svc_enabled && immutable_code
+                                     && immutable_code->read(target, &veneer, sizeof(veneer))
+                                     && (veneer & 0xff000000u) == 0xef000000u) {
++                                fusion_census::emit(w, fusion_census::thumb_prefix, (insn_addr + 2) | 1u, target);
+                                 // The immutable ARM veneer can publish the same pending trap
+                                 // here. The outer loop handles it before the successor region.
+                                 w.source.pc = target; w.source.kind = source_kind::guest;
+@@ -981,6 +988,7 @@ namespace eka2l1::arm::aot {
+                             } else if (kind == 0xE800 && memory_experiment::enabled() && immutable_code
+                                     && immutable_code->read(target, &veneer, sizeof(veneer))
+                                     && (veneer & 0xff7ff000u) == 0xe51ff000u) {
++                                fusion_census::emit(w, fusion_census::thumb_prefix, (insn_addr + 2) | 1u, target);
+                                 // Fold only the immutable instruction. Its literal remains
+                                 // a checked runtime read, so changed pointers and mappings
+                                 // retain their original behavior. A miss exits before LDR.
+@@ -999,8 +1007,9 @@ namespace eka2l1::arm::aot {
+                                 w.set_local(TMP2); w.store_i32(S::TFLAG, TMP2);
+                                 w.bail_preserve_pc();
+                             } else if (kind == 0xF800) {
+-                                branch(target, insn_idx + 2, true);
++                                branch(target, insn_idx + 2, true, (insn_addr + 2) | 1u);
+                             } else {
++                                fusion_census::emit(w, fusion_census::thumb_dispatch, (insn_addr + 2) | 1u, target);
+                                 w.bail(target, insn_idx + 2);
+                             }
+                             tr.resume_points.push_back(insn_addr + 2);
+@@ -1016,6 +1025,7 @@ namespace eka2l1::arm::aot {
+                 }
+                 // Odd BLX suffix encodings are undefined in the guest decoder.
+                 if (call_half == 0xF800 || (call_half == 0xE800 && !(insn & 1))) {
++                    fusion_census::emit(w, fusion_census::thumb_dispatch, insn_addr | 1u);
+                     w.load_reg(14); w.i32_const((insn & 0x7FF) << 1); w.op(op_i32_add);
+                     if (call_half == 0xE800) { w.i32_const(-4); w.op(op_i32_and); }
+                     w.set_local(TMP1); w.store_reg(15,TMP1);
+@@ -1102,6 +1112,7 @@ namespace eka2l1::arm::aot {
+                         if (is_bl && siblings) {
+                             auto it = siblings->find(target);
+                             if (it != siblings->end()) {
++                                fusion_census::emit(w, fusion_census::thumb_sibling, insn_addr | 1u, target);
+                                 // Set LR = next_pc | 1 before the call
+                                 w.store_i32_const(S::LR, static_cast<std::int32_t>(next_pc | 1));
+                                 // Call sibling: returns progress status
+@@ -1129,7 +1140,7 @@ namespace eka2l1::arm::aot {
+                         // Set PC to target and bail — interpreter re-dispatches.
+                         // Use w.bail() so bail_count is tracked correctly.
+                         w.successor_thumb = !is_blx;
+-                        branch(target, insn_idx + 1);
++                        branch(target, insn_idx + 1, false, insn_addr | 1u);
+                         w.successor_thumb = true;
+                         // Resume point at next_pc: when control returns from
+                         // the external callee via BX LR, we want to dispatch
+@@ -3966,6 +3977,7 @@ namespace eka2l1::arm::aot {
+                 else w.load_reg(rm);
+                 w.set_local(TMP3); // capture before BLX overwrites LR
+                 if (is_blx) {
++                    fusion_census::emit(w, fusion_census::thumb_dispatch, insn_addr | 1u);
+                     // BLX Rm — set LR = next instruction | 1 (Thumb)
+                     w.store_i32_const(S::LR, static_cast<std::int32_t>((insn_addr + 2) | 1));
+                     // Register a resume point at the instruction after the
+diff --git a/src/emu/cpu/src/dyncom/arm_dyncom_interpreter.cpp b/src/emu/cpu/src/dyncom/arm_dyncom_interpreter.cpp
+index 01cf1dbaf..59071e49a 100644
+--- a/src/emu/cpu/src/dyncom/arm_dyncom_interpreter.cpp
++++ b/src/emu/cpu/src/dyncom/arm_dyncom_interpreter.cpp
+@@ -32,6 +32,7 @@
+
+ #include <cpu/arm_interface.h>
+ #include <cpu/aot/aot_registry.h>
++#include <cpu/aot/fusion_census.h>
+ #include <cpu/aot/aot_runtime.h>
+ #include <cpu/aot/watchdog.h>
+ #include <cpu/aot/svc_return.h>
+@@ -2898,6 +2899,7 @@ BBL_INST : {
+     if ((inst_base->cond == ConditionCode::AL) || CondPassed(cpu, inst_base->cond)) {
+         bbl_inst *inst_cream = (bbl_inst *)inst_base->component;
+         if (inst_cream->L) {
++            eka2l1::arm::aot::fusion_census::interpreted(cpu->Reg[15], cpu->TFlag);
+             LINK_RTN_ADDR;
+         }
+         SET_PC;
+@@ -2974,6 +2976,7 @@ BKPT_INST : {
+ BLX_INST : {
+     blx_inst *inst_cream = (blx_inst *)inst_base->component;
+     if ((inst_base->cond == ConditionCode::AL) || CondPassed(cpu, inst_base->cond)) {
++        eka2l1::arm::aot::fusion_census::interpreted(cpu->Reg[15], cpu->TFlag);
+         unsigned int inst = inst_cream->inst;
+         if (BITS(inst, 20, 27) == 0x12 && BITS(inst, 4, 7) == 0x3) {
+             const std::uint32_t jump_address = cpu->Reg[inst_cream->val.Rm];
+@@ -5517,6 +5520,7 @@ BL_1_THUMB : {
+     GOTO_NEXT_INST;
+ }
+ BL_2_THUMB : {
++    eka2l1::arm::aot::fusion_census::interpreted(cpu->Reg[15], true);
+     bl_2_thumb *inst_cream = (bl_2_thumb *)inst_base->component;
+     int tmp = ((cpu->Reg[15] + 2) | 1);
+     cpu->Reg[15] = (cpu->Reg[14] + inst_cream->imm);
+@@ -5526,6 +5530,7 @@ BL_2_THUMB : {
+     goto DISPATCH;
+ }
+ BLX_1_THUMB : {
++    eka2l1::arm::aot::fusion_census::interpreted(cpu->Reg[15], true);
+     // BLX 1 for armv5t and above
+     std::uint32_t tmp = cpu->Reg[15];
+     blx_1_thumb *inst_cream = (blx_1_thumb *)inst_base->component;
+diff --git a/src/emu/cpu/include/cpu/aot/fusion_census.h b/src/emu/cpu/include/cpu/aot/fusion_census.h
+new file mode 100644
+--- /dev/null
++++ b/src/emu/cpu/include/cpu/aot/fusion_census.h
+@@ -0,0 +1,56 @@
++#pragma once
++#include <cpu/aot/wasm_emitter.h>
++#include <cstdint>
++#include <map>
++#include <mutex>
++#include <sstream>
++#include <tuple>
++
++namespace eka2l1::arm::aot::fusion_census {
++    enum kind { arm_leaf, arm_prefix, arm_indirect, arm_indirect_miss, arm_dispatch,
++        arm_sibling, thumb_fused_call, thumb_prefix, thumb_dispatch, thumb_sibling,
++        arm_interpreted, thumb_interpreted, arm_leaf_return, arm_indirect_return,
++        thumb_fused_branch };
++    inline constexpr const char *names[] = {"arm_leaf_call", "arm_prefix_call", "arm_indirect_call",
++        "arm_indirect_miss_call", "arm_dispatch_call", "arm_sibling_call", "thumb_fused_call",
++        "thumb_prefix_call", "thumb_dispatch_call", "thumb_sibling_call", "arm_interpreted_call",
++        "thumb_interpreted_call", "arm_leaf_return", "arm_indirect_return", "thumb_fused_branch"};
++    using key = std::tuple<unsigned, std::uint32_t, std::uint32_t>;
++    inline std::map<key, std::uint64_t> counts;
++    inline std::mutex mutex;
++    inline std::uint64_t region_entries = 0, region_returns = 0;
++    inline std::uint64_t *counter(kind k, std::uint32_t pc, std::uint32_t target = 0) {
++        std::lock_guard<std::mutex> lock(mutex);
++        return &counts[{k, pc, target}];
++    }
++    template<class Writer> void emit(Writer &w, kind k, std::uint32_t pc, std::uint32_t target = 0) {
++        const auto address = static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(counter(k,pc,target)));
++        // A constant-address i64 increment, with no guest-state or helper call.
++        w.i32_const(address); w.i32_const(address);
++        w.op(0x29); w.b.push_back(3); w.b.push_back(0); // i64.load
++        w.op(0x42); w.b.push_back(1); w.op(0x7c); // i64.const 1; i64.add
++        w.op(0x37); w.b.push_back(3); w.b.push_back(0); // i64.store
++    }
++    inline void interpreted(std::uint32_t pc, bool thumb) {
++        ++*counter(thumb ? thumb_interpreted : arm_interpreted, pc | (thumb ? 1u : 0u));
++    }
++    // The browser calls these only while the emulation worker is paused.
++    inline void reset() {
++        std::lock_guard<std::mutex> lock(mutex);
++        for (auto &[key,count] : counts) count = 0;
++        region_entries = region_returns = 0;
++    }
++    inline std::string report() {
++        std::lock_guard<std::mutex> lock(mutex);
++        std::ostringstream out;
++        out << "{\"region_entries\":" << region_entries << ",\"region_returns\":" << region_returns << ",\"sites\":[";
++        bool first = true;
++        for (const auto &[key,count] : counts) {
++            if (!count) continue;
++            const auto &[kind,pc,target] = key;
++            if (!first) out << ','; first = false;
++            out << "{\"kind\":\"" << names[kind] << "\",\"pc\":" << pc << ",\"target\":" << target << ",\"count\":" << count << '}';
++        }
++        return out.str() + "]}";
++    }
++}
+diff --git a/src/tests/wasm/profile.ts b/src/tests/wasm/profile.ts
+--- a/src/tests/wasm/profile.ts
++++ b/src/tests/wasm/profile.ts
+@@ -319,6 +319,13 @@
+     await client.send('Profiler.start');
+   }));
+   const memoryBefore = await page.evaluate(() => {const m=(globalThis as any).Module;return m._eka2l1_memory_impl_stats?JSON.parse(m.ccall('eka2l1_memory_impl_stats','string',[],[])):null;});
++  const fusionBefore = await page.evaluate(() => {
++    const m = (window as any).Module;
++    if (typeof m._eka2l1_fusion_reset !== 'function') throw Error('Missing fusion census build');
++    m._eka2l1_fusion_reset();
++    return JSON.parse(m.ccall('eka2l1_fusion_report', 'string', [], []));
++  });
++  if (fusionBefore.region_entries || fusionBefore.sites.length) throw Error('Fusion census reset failed');
+   const cpuBefore = await sampleCpuTime(system);
+   if (nativeSampling) {
+     nativeSampler = await startNativeProfile(output, cpuBefore.processes.filter(p => p.type === 'renderer').map(p => p.id), nativeVersion);
+@@ -369,6 +376,9 @@
+       await new Promise(resolve => setTimeout(resolve, 2000));
+     }
+   } else await waitPhase(3);
++  const fusion = await page.evaluate(() => JSON.parse((window as any).Module.ccall('eka2l1_fusion_report', 'string', [], [])));
++  fs.writeFileSync(path.join(output, 'fusion-census.json'), JSON.stringify(fusion, null, 2));
++  if (fusion.region_entries !== fusion.region_returns) throw Error('Unbalanced compiled region boundaries');
+   if (nativeSampler) await nativeSampler.stop();
+   const cpuAfter = await sampleCpuTime(system);
+   if (nativeSampling) console.log('Native metadata', snapshotNativeMetadata(output, nativeVersion));
+@@ -465,7 +475,8 @@
+   if (failures.length) throw new Error(failures.join('\n'));
+
+   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({watchdog_us: watchdogInterval(), watchdog_requests: await page.evaluate(() => (globalThis as any).ekaWatchdog ? Atomics.load((globalThis as any).ekaWatchdog.control, 1) : 0), sparse_rom_lookup: await page.evaluate(() => (globalThis as any).sparseRomActual), compiled_svc: await page.evaluate(() => (globalThis as any).compiledSvcActual), hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, app_uid: appUid, measurement: measured, warmup_seconds: warmupSeconds,
+-    purpose: nativeSampling || sampling || monitorCpuStart || traceScope !== 'off' || detailedProfile || guestProfile || aotDiagnostics || monitor || glDiagnostics || !glDiagnosticsSupported || verifyAot || process.env.EKA2L1_COMPILE_CENSUS === '1' ? 'diagnostic' : 'throughput',
++    fusion_census: true,
++    purpose: 'diagnostic',
+     cpu_time: cpuTime,
+     chrome_trace: {scope: traceScope, ...traceReport}, diagnostics_available: diagnosticsAvailable,
+     shared_audio: sharedAudio, guest_profile_stride: guestProfile, exit_census:exitCensus, monitor, monitor_cpu_start_us: monitorCpuStart, sampling, sample_interval_us: sampleInterval, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash,
