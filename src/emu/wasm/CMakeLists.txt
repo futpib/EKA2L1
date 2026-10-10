@@ -8,7 +8,9 @@ file(GLOB_RECURSE EKA2L1_WASM_PATCH_FILES CONFIGURE_DEPENDS
     "${PROJECT_SOURCE_DIR}/src/patch/*/group/*.dll"
     "${PROJECT_SOURCE_DIR}/src/patch/*/group/*.map")
 set_property(TARGET eka2l1_wasm APPEND PROPERTY LINK_DEPENDS
-    ${EKA2L1_WASM_PATCH_FILES} "${CMAKE_CURRENT_SOURCE_DIR}/shell.html")
+    ${EKA2L1_WASM_PATCH_FILES} "${CMAKE_CURRENT_SOURCE_DIR}/shell.html"
+    "${PROJECT_SOURCE_DIR}/src/emu/drivers/resources/defaultbank.sf2"
+    "${PROJECT_SOURCE_DIR}/src/emu/drivers/resources/defaultbank.hsb")
 
 set(EKA2L1_WASM_WORKER_POOL_SIZE 32 CACHE STRING "Number of prestarted browser workers")
 if(NOT EKA2L1_WASM_WORKER_POOL_SIZE MATCHES "^[1-9][0-9]*$")
@@ -71,6 +73,8 @@ target_link_options(eka2l1_wasm PRIVATE
     "SHELL:--shell-file ${CMAKE_CURRENT_SOURCE_DIR}/shell.html"
     "SHELL:--preload-file ${PROJECT_SOURCE_DIR}/src/emu/drivers/resources/gles/@resources/"
     "SHELL:--preload-file ${PROJECT_SOURCE_DIR}/src/emu/drivers/resources/upscale/@resources/upscale/"
+    "SHELL:--preload-file ${PROJECT_SOURCE_DIR}/src/emu/drivers/resources/defaultbank.sf2@resources/defaultbank.sf2"
+    "SHELL:--preload-file ${PROJECT_SOURCE_DIR}/src/emu/drivers/resources/defaultbank.hsb@resources/defaultbank.hsb"
     "SHELL:--preload-file ${CMAKE_BINARY_DIR}/bin/patch/@patch/")
 
 set_target_properties(eka2l1_wasm PROPERTIES

@@ -17,7 +17,7 @@ already stores them.
 | 1 | Snakes | 0.6.0.20, S60v3 | Original Nokia installer | Gameplay and directional input verified |
 | 2 | Sky Force | 1.22c, S60v3 240x320 | DeFconX preservation copy; original keypad installer not recovered | Gameplay and directional input verified |
 | 3 | K-Rally | 1.01, S60v3 240x320 | Team SyMBiAN preservation copy; original installer not recovered | Tutorial track, acceleration to 65 MPH and steering verified |
-| 4 | Asphalt: Urban GT 2 | N95 8GB 1.0.1, packaged 2008-02-26 | Original Gameloft-signed S60 port | Fails before gameplay: `KERN-EXEC 3`, reads at `0x37e8` / `0x37ec` |
+| 4 | Asphalt: Urban GT 2 | N95 8GB 1.0.1, packaged 2008-02-26 | Original Gameloft-signed S60 port | Race and steering verified after restoring the browser's missing MIDI banks; see follow-up below |
 | 5 | Hooked On: Creatures of the Deep | 0.74, original `.n-gage` container | Original Nokia-signed game and metadata | Original trial reaches boat map and fishing/casting scene through N-Gage 1.40; slow in this smoke run |
 
 “Selected” means the newest relevant-platform build recovered in this search,
@@ -148,10 +148,42 @@ were roughly 3–8 presentations/s during this smoke. These runs overlapped
 and included loading/input work, so they are **not a controlled performance
 comparison**. No full playthrough or audio correctness claim is made.
 
-Asphalt failed with all three signed handset builds, with the TLB fallback,
+Asphalt initially failed with all three signed handset builds, with the TLB fallback,
 and again after the device UID fix. The fix therefore addresses N-Gage
 installation but does not resolve the Asphalt fault. A “Running” status or a
 nonzero presentation count alone was not counted as successful gameplay.
+
+## Asphalt browser MIDI fix
+
+The current baseline reproduced `Failed to load SF2 bank:` with an empty path,
+followed by `User::Leave(-5)` and `KERN-EXEC 3` reading `0x37e8`. The WASM
+frontend omitted Qt's MIDI bank configuration, and its data bundle omitted both
+default instrument banks. The fix packages the existing SF2/HSB resources and
+passes their configured paths to the clocked audio driver. The original signed
+SIS and stock 5320 ROM/RPKG are unchanged.
+
+With the fix, Asphalt passes audio setup, offers its sound prompt and reaches
+**Instant Play** racing with steering. The normal picker now includes it at
+`?game=asphalt-2`, using its existing individual SIS CID. The API smoke test also
+checks the packaged banks against the source hashes, to catch missing or stale
+data bundles. This fixes the observed startup path; it does not establish that
+all guest exception-unwinding failures are resolved.
+
+Baseline and first corrected run:
+`/home/claude/.scratch/eka-top5-20261010/asphalt-{current-baseline,soundbank}/`.
+The corrected WASM SHA-256 is
+`e1d7b25d767e83f7f045ab7cdbb2a39d82b3259fa5ef5e8f9387990ffc376f1c`.
+
+A fresh Chromium 153 profile then selected Asphalt through the production
+`.lan` picker and repeated sound-enabled startup, **Instant Play**, racing and
+left/right steering. No page errors, bank-load failures or guest access
+violations were observed. The browser received nonzero synthesized PCM
+(4,512,379 nonzero channel samples, peak 6,553); hardware audio output was not
+part of this check. Build, API/resource smoke and compiler-policy tests passed.
+The Snakes gameplay regression also passed, with 161 presentations in 10.06
+seconds. This is a compatibility check, not an Asphalt performance comparison.
+Final LAN evidence is in
+`/home/claude/.scratch/eka-asphalt-fix-20261010/{e2e,snakes-regression}/`.
 
 ## Files for pinning
 

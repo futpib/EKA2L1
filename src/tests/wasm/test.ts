@@ -115,6 +115,21 @@ async function runTests(): Promise<void> {
     );
     console.log("  PASS");
 
+    console.log("TEST resources: bundled MIDI instruments...");
+    await page.waitForFunction(() => (window as any).Module.calledRun);
+    for (const name of ['defaultbank.sf2', 'defaultbank.hsb']) {
+      const expected = crypto.createHash('sha256').update(fs.readFileSync(
+        path.join(__dirname, '../../emu/drivers/resources', name))).digest('hex');
+      const observed = await page.evaluate(async name => {
+        // @ts-expect-error FS is a global from Emscripten
+        const bytes = FS.readFile('/resources/' + name);
+        const digest = await crypto.subtle.digest('SHA-256', bytes);
+        return Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
+      }, name);
+      if (observed !== expected) throw Error('Missing or stale MIDI bank: ' + name);
+    }
+    console.log("  PASS");
+
     console.log("TEST IR: pre-init compiler mode validation...");
     await page.evaluate(() => {
       const m = (window as any).Module;

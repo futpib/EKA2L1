@@ -563,6 +563,10 @@ int eka2l1_init(const char *data_path) {
     if (common::benchmark::interactive || (std::getenv("EKA2L1_SHARED_AUDIO") &&
         std::string(std::getenv("EKA2L1_SHARED_AUDIO")) == "1"))
         g_state->audio_driver = drivers::make_clocked_audio_driver(!common::benchmark::interactive, common::benchmark::interactive);
+    if (g_state->audio_driver) {
+        g_state->audio_driver->set_bank_path(drivers::MIDI_BANK_TYPE_HSB, g_state->conf.hsb_bank_path);
+        g_state->audio_driver->set_bank_path(drivers::MIDI_BANK_TYPE_SF2, g_state->conf.sf2_bank_path);
+    }
     comp.audio_ = g_state->audio_driver.get();
     comp.graphics_ = nullptr;
     comp.conf_ = &g_state->conf;

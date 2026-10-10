@@ -20,6 +20,18 @@
     "archive_member": "Infinite Dreams SkyForce v1.22 (240x320) (S60 3rd)(Space).sisx"
   },
   {
+    "id": "asphalt-2",
+    "title": "Asphalt: Urban GT 2",
+    "uid": "0x2001302c",
+    "file": "Asphalt-Urban-GT-2-N95-8GB-1.0.1.sis",
+    "cid": "bafybeidubuhgiqdedmtolq4tpfgledkxflwgnr4c5nkkrgyzb2u3xsxt6i",
+    "sha256": "d55bb082f53deb40b3b4d9f7440b7eb7b7087a648eabc8c8c9cdf1b8aa756b40",
+    "version": "1.0.1, N95 8GB, original Gameloft-signed S60v3 release",
+    "source": "https://www.myabandonware.com/game/asphalt-urban-gt-2-ms3",
+    "download": "https://www.myabandonware.com/download/pd6c-asphalt-urban-gt-2",
+    "archive_member": "Asphalt Urban GT 2 3D (Symbian (9.1, 9.2, 9.3)).sis"
+  },
+  {
     "id": "hooked-on",
     "title": "Hooked On: Creatures of the Deep (trial)",
     "uid": "0x20003b78",

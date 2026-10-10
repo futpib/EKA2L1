@@ -17,7 +17,8 @@
     "baseline_wasm_sha256": "e8c696748e1a593349455f9ae650abc6b6757891dbdd344e0a94ee60c240d7d1",
     "device_fix_wasm_sha256": "8177f5d6107093bc98fcc445e91a7d3118a316b54a06562f065a479b01cb0dca",
     "configuration": "Paced watchdog/no instruction accounting, AOT 5, IR policy 7, direct memory 2, unsafe code policy 3. asphalt-tlb uses memory 0.",
-    "coverage": "Real browser WASM launches from fresh filesystems, visual checks and input. Smoke tests, not controlled performance comparisons, full playthroughs or audio certification."
+    "coverage": "Real browser WASM launches from fresh filesystems, visual checks and input. Smoke tests, not controlled performance comparisons, full playthroughs or audio certification.",
+    "midi_fix_wasm_sha256": "e1d7b25d767e83f7f045ab7cdbb2a39d82b3259fa5ef5e8f9387990ffc376f1c"
   },
   "artifacts": [
     {
@@ -648,6 +649,28 @@
         }
       },
       "evidence_directory": "evidence/hooked-container"
+    },
+    {
+      "id": "asphalt-midi-banks",
+      "base_commit": "5720f42fa",
+      "observations": {
+        "url": "https://claude-laptop.lan:8188/?game=asphalt-2",
+        "browser": "Chrome/153.0.8010.52",
+        "outcome": "original signed Asphalt 2 reaches racing with left/right input through normal LAN picker",
+        "state": {
+          "status": "Running: Asphalt: Urban GT 2 \u00b7 Arrows/WASD to move, Enter to select \u00b7 Use Enable sound for audio",
+          "running": true,
+          "frames": 1266,
+          "monitor": "{\"guest_us\":100342997,\"instructions\":0,\"compiled_functions\":42766,\"aot_translation_us\":6382823,\"aot_emission_us\":253907,\"aot_installation_us\":619777,\"aot_eager_functions\":30714,\"aot_eager_passes\":12,\"allocated_bytes\":877729008,\"free_bytes\":88274832}"
+        },
+        "pcm": {
+          "frames": 2978401,
+          "nonzero": 4512379,
+          "peak": 6553
+        },
+        "errors": []
+      },
+      "evidence_directory": "/home/claude/.scratch/eka-asphalt-fix-20261010/e2e"
     }
   ]
 }

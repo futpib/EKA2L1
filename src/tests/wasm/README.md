@@ -2,11 +2,13 @@
 
 Build `eka2l1_wasm` following the [browser build instructions](../benchmark/README.md),
 then run `npm ci --ignore-scripts` and `npm run serve -- 8188` in this directory.
-Choose **Sky Force**, **Snakes** or **Hooked On (trial)** and press **Play**.
+Choose **Sky Force**, **Snakes**, **Asphalt: Urban GT 2** or **Hooked On (trial)**
+and press **Play**.
 Each launch starts a fresh session; saves are not persisted. **Load my own files** opens the
 ROM/RPKG/SIS upload controls. Changing the dropdown alone does not stop play.
 
-Direct links use `?game=sky-force`, `?game=snakes`, `?game=hooked-on` or `?game=custom`.
+Direct links use `?game=sky-force`, `?game=snakes`, `?game=asphalt-2`,
+`?game=hooked-on` or `?game=custom`.
 All browser execution uses the watchdog without instruction accounting.
 Legacy `counting` URL parameters are ignored and removed on Play.
 An optional
@@ -24,6 +26,12 @@ with fixed or floating movement, saved per-game layouts, handedness and an
 expandable phone keypad. See the [touch control guide](TOUCH_CONTROLS.md).
 Sky Force first shows a splash screen and language selection, followed by
 **Start game**, difficulty and ship selection.
+
+Asphalt asks whether to enable sound: F1 selects **Yes**, F2 selects **No**.
+Enter advances past its title screen and selects **Instant Play**. Arrow keys
+steer during the race. Its original N95 8GB 1.0.1 installer runs on the stock
+5320. The browser build includes the MIDI instrument banks used by the Qt
+frontend; without them, Asphalt failed during audio setup before the title.
 
 Hooked On automatically installs the original N-Gage 1.40 client and supplies
 the original game package to its importer. Wait for the installation bar to
