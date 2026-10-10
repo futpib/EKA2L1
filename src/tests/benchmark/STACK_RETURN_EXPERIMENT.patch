@@ -1,0 +1,483 @@
+diff --git a/src/emu/cpu/include/cpu/aot/arm_translator.h b/src/emu/cpu/include/cpu/aot/arm_translator.h
+index 5d34ff4e5..96f74e1de 100644
+--- a/src/emu/cpu/include/cpu/aot/arm_translator.h
++++ b/src/emu/cpu/include/cpu/aot/arm_translator.h
+@@ -25,6 +25,7 @@
+ namespace eka2l1::arm::aot {
+     // Shared instruction support, fixed before any module is translated.
+     inline bool arm_exclusive_memory = false;
++    inline bool arm_stack_returns = true;
+     inline bool supported_exclusive_word(std::uint32_t op) {
+         const bool load = (op & 0x0ff00fff) == 0x01900f9f;
+         const bool store = (op & 0x0ff00ff0) == 0x01800f90;
+diff --git a/src/emu/cpu/include/cpu/aot/thumb_translator.h b/src/emu/cpu/include/cpu/aot/thumb_translator.h
+index 913d8c95a..170499949 100644
+--- a/src/emu/cpu/include/cpu/aot/thumb_translator.h
++++ b/src/emu/cpu/include/cpu/aot/thumb_translator.h
+@@ -86,6 +86,7 @@ namespace eka2l1::arm::aot {
+         unsigned watchdog_safepoints = 0, proved_terminating_loops = 0;
+         unsigned summarized_helpers = 0;
+         unsigned fused_edges = 0;
++        unsigned stack_calls = 0, proved_stack_returns = 0;
+         bool complete;  // true if entire block was translated without bailing
+         // Addresses where execution may resume after a bail-out call
+         // (the instruction immediately after a BLX Rm, BL Rm, or non-sibling
+diff --git a/src/emu/cpu/src/aot/aot_runtime.cpp b/src/emu/cpu/src/aot/aot_runtime.cpp
+index 4c6b0536f..10fd59d6e 100644
+--- a/src/emu/cpu/src/aot/aot_runtime.cpp
++++ b/src/emu/cpu/src/aot/aot_runtime.cpp
+@@ -297,7 +297,7 @@ static void compile_at(core &cpu, std::uint32_t key, std::vector<std::uint32_t>
+             core::code_mapping leaf;
+             if (!cpu.resolve_code(target, leaf) || leaf.address_space != view.address_space)
+                 return std::vector<std::uint8_t>{};
+-            const auto bytes = std::min(std::size_t(leaf_instruction_limit*4), leaf.size);
++            const auto bytes = std::min(std::size_t(arm_stack_returns ? primary_window_bytes : leaf_instruction_limit*4), leaf.size);
+             return std::vector<std::uint8_t>(leaf.bytes, leaf.bytes + bytes);
+         };
+         const code_window immutable_code{hot_rom, hot_rom_base, hot_rom_size};
+diff --git a/src/emu/cpu/src/aot/arm_translator.cpp b/src/emu/cpu/src/aot/arm_translator.cpp
+index 89450354f..d6a02420e 100644
+--- a/src/emu/cpu/src/aot/arm_translator.cpp
++++ b/src/emu/cpu/src/aot/arm_translator.cpp
+@@ -745,11 +745,84 @@ namespace eka2l1::arm::aot {
+         return returning.empty() ? prefix : returning;
+     }
+
++    struct stack_callee {
++        code_dependency code;
++        bool proved_return = true;
++    };
++
++    // The first push dominates every path. Interior instructions cannot change
++    // SP or read/write LR; the final pop restores the same slots. Arbitrary
++    // stores can alias the saved LR, so those callees need a return guard.
++    static stack_callee resolve_stack_callee(const leaf_resolver &resolve, std::uint32_t address) {
++        stack_callee result{{address, resolve(address)}};
++        auto &bytes = result.code.bytes;
++        const auto reject = [] { return stack_callee{}; };
++        if (bytes.size() < 8 || address > 0xffffffffu - std::min(bytes.size(), std::size_t(primary_window_bytes))) return reject();
++        std::uint32_t push; std::memcpy(&push, bytes.data(), 4);
++        if ((push & 0xffffe000u) != 0xe92d4000u) return reject();
++        const auto pop = 0xe8bd8000u | (push & 0x1fffu);
++        std::vector<std::uint32_t> targets;
++        for (std::size_t n = 4; n + 4 <= bytes.size() && n < primary_window_bytes; n += 4) {
++            std::uint32_t op; std::memcpy(&op, bytes.data() + n, 4);
++            if (op == pop) {
++                for (auto target : targets) if (target < address + 4 || target > address + n) return reject();
++                bytes.resize(n + 4); return result;
++            }
++            if ((op >> 28) > 14) return reject();
++            const unsigned rn = (op >> 16) & 15, rd = (op >> 12) & 15;
++            const unsigned rs = (op >> 8) & 15, rm = op & 15;
++            if (((op >> 25) & 7) == 5) {
++                if (op & (1u << 24)) return reject();
++                const auto delta = static_cast<std::int32_t>(op << 8) >> 6;
++                const auto target = std::int64_t(address) + static_cast<std::int64_t>(n) + 8 + delta;
++                if (target < std::int64_t(address) + 4 || target > 0xffffffffll) return reject();
++                targets.push_back(static_cast<std::uint32_t>(target)); continue;
++            }
++            if (((op >> 25) & 7) == 4) {
++                if (rn >= 13 || (op & 0x0040e000u) || !(op & 0x1fffu)
++                    || ((op & (1u << 21)) && (op & (1u << rn)))) return reject();
++                result.proved_return &= bool(op & (1u << 20)); continue;
++            }
++            if ((op & 0x0f8000f0u) == 0x00800090u) {
++                if (rn >= 13 || rd >= 13 || rn == rd || rs >= 13 || rm >= 13) return reject();
++                continue;
++            }
++            if ((op & 0x0fc000f0u) == 0x00000090u) {
++                if (rn >= 13 || rs >= 13 || rm >= 13 || ((op & (1u << 21)) ? rd >= 13 : rd != 0)) return reject();
++                continue;
++            }
++            if ((op & 0x0e000090u) == 0x00000090u && (op & 0x60)) {
++                const bool load = op & (1u << 20), writeback = !(op & (1u << 24)) || (op & (1u << 21));
++                if (rn >= 13 || rd >= 13 || (!load && (op & 0x60) != 0x20)
++                    || (!(op & (1u << 22)) && rm >= 13)
++                    || (!(op & (1u << 24)) && (op & (1u << 21))) || (load && writeback && rn == rd)) return reject();
++                result.proved_return &= load; continue;
++            }
++            if (((op >> 26) & 3) == 1) {
++                const bool load = op & (1u << 20), writeback = !(op & (1u << 24)) || (op & (1u << 21));
++                if (rn >= 13 || rd >= 13 || ((op & (1u << 25)) && (rm >= 13 || (op & 16)))
++                    || (!(op & (1u << 24)) && (op & (1u << 21))) || (load && writeback && rn == rd)) return reject();
++                result.proved_return &= load; continue;
++            }
++            if (((op >> 26) & 3) != 0 || rn >= 13 || rd >= 13) return reject();
++            const unsigned alu = (op >> 21) & 15;
++            if (alu >= 8 && alu <= 11 && !(op & (1u << 20))) return reject();
++            if (!(op & (1u << 25)) && ((op & 0x90) == 0x90 || rm >= 13 || ((op & 16) && rs >= 13))) return reject();
++        }
++        return reject();
++    }
++
++    struct stack_return_context {
++        std::uint32_t instruction, continuation;
++        bool proved;
++    };
++
+     // CFG walker for ARM code. Returns reachable 4-byte-aligned offsets.
+     static std::set<std::size_t> find_reachable_offsets_arm(
+         const std::uint8_t *code, std::size_t code_size, bool bounded,
+         std::uint32_t start_address, const leaf_resolver *leaves,
+-        std::map<std::size_t, code_dependency> &inlined, std::map<std::size_t,exit_census::leaf_refusal> &refusals, bool allow_predicates)
++        std::map<std::size_t, code_dependency> &inlined, std::map<std::size_t,exit_census::leaf_refusal> &refusals, bool allow_predicates,
++        std::map<std::size_t, stack_callee> &stack_calls)
+     {
+         std::set<std::size_t> reachable;
+         if (code_size < 4) return reachable;
+@@ -800,6 +873,14 @@ namespace eka2l1::arm::aot {
+                             }
+                             if(cond==14 && leaves && inlined.size()>=inline_site_limit)
+                                 exit_census::compile_site(start_address+static_cast<std::uint32_t>(i),inst,"inline_site_limit");
++                            if (arm_stack_returns && common::code_tracking::skip_code_write_guards()
++                                && cond == 14 && leaves && inlined.size() + stack_calls.size() < inline_site_limit) {
++                                const auto address = start_address + static_cast<std::uint32_t>(target_off);
++                                auto callee = resolve_stack_callee(*leaves, address);
++                                if (!callee.code.bytes.empty()) {
++                                    stack_calls.emplace(i, std::move(callee)); i += 4; continue;
++                                }
++                            }
+                             break;
+                         }
+                         // Conditional BL can fall through when its condition fails.
+@@ -863,7 +944,8 @@ namespace eka2l1::arm::aot {
+         std::size_t code_size,
+         std::uint32_t start_address,
+         const sibling_map *siblings,
+-        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region, const leaf_resolver *leaves, bool defer_memory, bool allow_memory_proof, arm_ir_policy ir_policy = arm_ir_policy::configured)
++        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region, const leaf_resolver *leaves, bool defer_memory, bool allow_memory_proof, arm_ir_policy ir_policy = arm_ir_policy::configured,
++        const stack_return_context *stack_return = nullptr)
+     {
+         // Policy 17 retains the established default memory lowering.
+         if (ir_policy == arm_ir_policy::full_spans) ir_policy = arm_ir_policy::write_spans;
+@@ -909,9 +991,10 @@ namespace eka2l1::arm::aot {
+         }
+
+         std::map<std::size_t, code_dependency> inlined;
++        std::map<std::size_t, stack_callee> stack_calls;
+         std::map<std::size_t,exit_census::leaf_refusal> refusals;
+         auto reachable = find_reachable_offsets_arm(code, code_size, bounded,
+-            start_address, region ? leaves : nullptr, inlined, refusals, predicated_leaves && ir_policy == arm_ir_policy::write_spans);
++            start_address, region ? leaves : nullptr, inlined, refusals, predicated_leaves && ir_policy == arm_ir_policy::write_spans, stack_calls);
+         struct instruction { std::size_t offset; std::uint32_t address, opcode; bool leaf; };
+         std::vector<instruction> instructions;
+         for (auto i : reachable) {
+@@ -960,7 +1043,7 @@ namespace eka2l1::arm::aot {
+         // this region before a later instruction can use a pointer invalidated by a callback.
+         const bool include_writes = ir_policy == arm_ir_policy::invariant_writes
+             || ir_policy == arm_ir_policy::write_spans;
+-        const bool invariant_reads = allow_memory_proof && (ir_policy == arm_ir_policy::invariant_reads
++        const bool invariant_reads = allow_memory_proof && stack_calls.empty() && (ir_policy == arm_ir_policy::invariant_reads
+             || include_writes || ir_policy == arm_ir_policy::read_spans)
+             && w.region && w.defer_memory && cache_registers && !instructions.empty();
+         if (invariant_reads) {
+@@ -1381,6 +1464,36 @@ namespace eka2l1::arm::aot {
+                 decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                 continue;
+             }
++            if (!instruction.leaf && stack_calls.count(i)) {
++                const auto &callee = stack_calls.at(i);
++                const auto &dependency = callee.code;
++                const stack_return_context context{dependency.address + static_cast<std::uint32_t>(dependency.bytes.size()) - 4,
++                    insn_addr + 4, callee.proved_return};
++                auto child = translate_arm_block_impl(dependency.bytes.data(), dependency.bytes.size(), dependency.address,
++                    nullptr, nullptr, true, false, true, true, nullptr, defer_memory, true, ir_policy, &context);
++                // Keep existing memory-proof outlining; the module builder
++                // deliberately supports only one private-call level.
++                if (child.complete && child.entry_supported && !child.func.outlined_callee && child.func.outlined_calls.empty()) {
++                    child.func.export_name += "_stack_return_" + std::to_string(context.continuation);
++                    tr.dependencies.push_back(dependency);
++                    ++tr.stack_calls; tr.proved_stack_returns += callee.proved_return;
++                    w.store_i32_const(S::LR, context.continuation);
++                    w.store_i32_const(S::PC, dependency.address);
++                    w.cache.barrier_at(result.body.size());
++                    w.state_ptr(); w.op(op_call);
++                    const auto operand = static_cast<std::uint32_t>(result.body.size());
++                    result.body.insert(result.body.end(), {0x80,0x80,0x80,0x80,0});
++                    result.outlined_calls.push_back({std::make_shared<wasm_func_def>(std::move(child.func)), operand});
++                    w.set_local(TMP1);
++                    w.cache.barrier_at(result.body.size(), true);
++                    // Two is private to this call: the callee reached this
++                    // caller's continuation without an observable helper exit.
++                    w.get_local(TMP1); w.i32_const(2); w.op(op_i32_ne);
++                    w.op(op_if); w.op(type_void); w.get_local(TMP1); w.ret(); w.op(op_end);
++                    ++insn_idx; decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
++                    continue;
++                }
++            }
+             if (!instruction.leaf && inlined.count(i)) {
+                 w.store_i32_const(S::LR, insn_addr + 4);
+                 ++insn_idx;
+@@ -1722,6 +1835,21 @@ namespace eka2l1::arm::aot {
+                     w.op(op_i32_and);
+                     w.set_local(TMP2);
+                     w.store_i32(S::TFLAG, TMP2);
++                    if (stack_return && insn_addr == stack_return->instruction) {
++                        w.load_i32(S::AOT_EXIT);
++                        if (!stack_return->proved) {
++                            w.load_reg(15); w.i32_const(stack_return->continuation);
++                            w.op(op_i32_ne); w.op(op_i32_or);
++                        }
++                        w.op(op_if); w.op(type_void); w.bail_preserve_pc(); w.op(op_end);
++                        w.load_i32(S::NIRQ); w.op(op_i32_eqz);
++                        w.load_i32(S::CPSR); w.i32_const(0x80); w.op(op_i32_and); w.op(op_i32_eqz); w.op(op_i32_and);
++                        w.op(op_if); w.op(type_void); w.bail_preserve_pc(); w.op(op_end);
++                        w.i32_const(2); w.ret();
++                        if (cond_opened) w.op(op_end);
++                        decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
++                        ++insn_idx; break;
++                    }
+                     w.bail_preserve_pc();
+                     if (cond_opened) w.op(op_end);
+                     if (cond >= 0xE && closed_count >= N_fwd) {
+diff --git a/src/tests/aot/test_aot_wasm.cpp b/src/tests/aot/test_aot_wasm.cpp
+index 944c45dad..d4645de65 100644
+--- a/src/tests/aot/test_aot_wasm.cpp
++++ b/src/tests/aot/test_aot_wasm.cpp
+@@ -6002,6 +6002,7 @@ static bool test_memory_implementations() {
+ #include "svc_return_fixture.h"
+
+ #include "test_region_fusion.inc"
++#include "test_stack_return.inc"
+
+ #include "test_watchdog.inc"
+
+@@ -6082,6 +6083,7 @@ int main(int argc, char **argv) {
+ #endif
+     if(argc==2 && std::string(argv[1])=="--precompile-only") return test_precompile()?0:1;
+     if(argc==2 && std::string(argv[1])=="--watchdog-only") return test_watchdog()?0:1;
++    if(argc==2 && std::string(argv[1])=="--stack-returns-only")return test_stack_returns()?0:1;
+     if(argc==2 && std::string(argv[1])=="--shared-spans-only")return test_thumb_transfer_spans()
+         && test_thumb_direct_memory() && test_invariant_reads(arm_ir_policy::write_spans)
+         && test_invariant_writes(arm_ir_policy::write_spans) && test_block_transfer_callback_pc()?0:1;
+@@ -6772,6 +6774,8 @@ int main(int argc, char **argv) {
+
+     printf("\nRunning ARM translator-level tests...\n\n");
+     if (test_watchdog()) passed++; else failed++;
++    printf("TEST test_stack_returns\n"); watchdog::request=0;
++    if (test_stack_returns()) passed++; else failed++;
+     printf("TEST test_inlined_leaves\n"); watchdog::request=0;
+     if (test_inlined_leaves()) passed++; else failed++;
+     printf("TEST test_sparse_rom_registry\n"); watchdog::request=0;
+diff --git a/src/tests/aot/test_stack_return.inc b/src/tests/aot/test_stack_return.inc
+new file mode 100644
+--- /dev/null
++++ b/src/tests/aot/test_stack_return.inc
+@@ -0,0 +1,164 @@
++// Caller-specific stack returns preserve ordinary memory and helper exits.
++static bool test_stack_returns() {
++#ifdef __EMSCRIPTEN__
++    using S=state_offsets;
++    struct restore {
++        bool enabled=arm_stack_returns;unsigned mode=memory_experiment::mode;
++        unsigned unsafe=eka2l1::common::code_tracking::unsafe_code_mode;
++        ~restore(){arm_stack_returns=enabled;memory_experiment::mode=mode;
++            eka2l1::common::code_tracking::unsafe_code_mode=unsafe;g_test_mem=nullptr;g_memory_boundary={};}
++    } saved;
++    eka2l1::common::code_tracking::unsafe_code_mode=3;
++    const std::vector<wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
++        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
++    // Preserve the outer return in r8, with two different callee continuations.
++    const unsigned caller[]={0xe1a0800eu,0xeb0003fdu,0xe2800001u,0xe3a02002u,0xeb0003fau,0xe2800003u,0xe12fff18u};
++    unsigned checks=0,independent=0,selected=0;unsigned calls[2]{};
++    for(unsigned policy:{0u,2u})for(bool store:{false,true}) {
++        memory_experiment::mode=policy;
++        const unsigned callee[]={0xe92d4010u,0xe1a04000u,store?0xe5813000u:0xe5913000u,
++            0xe0800003u,0xe2522001u,0x1afffffbu,0xe8bd8010u};
++        const auto cb=reinterpret_cast<const std::uint8_t*>(caller),lb=reinterpret_cast<const std::uint8_t*>(callee);
++        leaf_resolver resolve=[&](unsigned pc){return pc==0x2000?std::vector<std::uint8_t>(lb,lb+sizeof(callee)):std::vector<std::uint8_t>{};};
++        std::map<unsigned,std::vector<std::uint8_t>> modules[2];
++        for(unsigned variant=0;variant<2;++variant) {
++            arm_stack_returns=variant;
++            for(unsigned off=0;off<sizeof(caller);off+=4) {
++                auto tr=translate_arm_block(cb+off,sizeof(caller)-off,0x1000+off,nullptr,nullptr,true,false,true,true,&resolve,false,arm_ir_policy::write_spans);
++                if(!off && variant && (tr.stack_calls!=2 || tr.proved_stack_returns!=(store?0u:2u))) {
++                    printf(" FAIL stack-return selection %u/%u\n",tr.stack_calls,tr.proved_stack_returns);return false;
++                }
++                selected+=tr.stack_calls;modules[variant][0x1000+off]=build_wasm_module({tr.func},imports);
++            }
++            for(unsigned off=0;off<sizeof(callee);off+=4) {
++                auto tr=translate_arm_block(lb+off,sizeof(callee)-off,0x2000+off,nullptr,nullptr,true,false,true,true,nullptr,false,arm_ir_policy::write_spans);
++                modules[variant][0x2000+off]=build_wasm_module({tr.func},imports);
++            }
++        }
++        for(unsigned flags:{0u,5u,10u,15u})for(unsigned mapping=0;mapping<3;++mapping)
++        for(unsigned alias=0;alias<(store?3u:1u);++alias)for(unsigned event=0;event<4;++event) {
++            test_mem memories[2];memories[0].write_code(0x1000,{cb,cb+sizeof(caller)});memories[0].write_code(0x2000,{lb,lb+sizeof(callee)});
++            memories[0].write32(0x9000,5);memories[1]=memories[0];
++            alignas(8) unsigned states[2][256]{};unsigned helpers[2]{};
++            std::vector<std::array<unsigned,21>> observations[2];
++            for(unsigned variant=0;variant<2;++variant) {
++                auto *s=states[variant];for(unsigned reg=0;reg<15;++reg)s[reg]=reg*37;
++                s[0]=1;s[1]=alias?0x8ffc:0x9000;s[2]=2;s[3]=alias==2?0x4001:0x4000;s[13]=0x9000;s[14]=0x4000;s[15]=0x1000;
++                s[S::CPSR/4]=0x10|(flags<<28);s[S::MODE/4]=0x10;s[S::NIRQ/4]=1;s[S::NUM_INSTRS_TO_EXECUTE/4]=100;
++                for(unsigned f=0;f<4;++f)s[test_flag_offsets[f]/4]=(flags>>(3-f))&1;
++                r12l1::tlb tlb(12);std::vector<memory_experiment::binding> bindings;
++                for(unsigned page:{0x8000u,0x9000u})if(!((mapping==1&&page==0x8000)||(mapping==2&&page==0x9000))) {
++                    auto *host=memories[variant].data.data()+page;tlb.add(page,host,3);
++                    bindings.push_back({page,static_cast<unsigned>(reinterpret_cast<std::uintptr_t>(host)),3});
++                }
++                memory_experiment::view view;auto pointer=view.enter(1,1,[&]{return bindings;});
++                s[S::AOT_TLB/4]=policy?static_cast<unsigned>(pointer):reinterpret_cast<std::uintptr_t>(tlb.entries);
++                g_test_mem=&memories[variant];g_all_memory_helper_calls=0;
++                g_memory_boundary=[&](bool after,unsigned ptr) {
++                    auto *state=reinterpret_cast<unsigned*>(ptr);
++                    if(after && event==1){state[S::NIRQ/4]=0;state[S::NUM_INSTRS_TO_EXECUTE/4]=0;}
++                    if(after && event==2)memories[variant].write32(0x8ffc,0x4001);
++                    if(after && event==3){state[14]=0x5555;state[S::CFLAG/4]=1;}
++                    std::array<unsigned,21> snapshot{};std::copy(state,state+16,snapshot.begin());
++                    for(unsigned f=0;f<4;++f)snapshot[16+f]=state[test_flag_offsets[f]/4];snapshot[20]=state[S::TFLAG/4];
++                    observations[variant].push_back(snapshot);
++                };
++                for(unsigned round=0;round<128;++round) {
++                    auto it=modules[variant].find(s[15]);
++                    if(it==modules[variant].end()||s[S::TFLAG/4]||!s[S::NIRQ/4]||!s[S::NUM_INSTRS_TO_EXECUTE/4])break;
++                    s[S::AOT_EXIT/4]=0;
++                    int result=js_run_aot_wasm(it->second.data(),it->second.size(),reinterpret_cast<std::uint8_t*>(s),sizeof(states[variant]));
++                    if(result<0||result>1)return false;++calls[variant];if(!result)break;
++                    if(round==127){printf(" FAIL stack-return chain failed to finish\n");return false;}
++                }
++                helpers[variant]=g_all_memory_helper_calls;s[S::AOT_TLB/4]=0;
++            }
++            if(std::memcmp(states[0],states[1],sizeof(states[0]))||memories[0].data!=memories[1].data||helpers[0]!=helpers[1]||observations[0]!=observations[1]) {
++                printf(" FAIL stack-return policy=%u store=%u flags=%u mapping=%u alias=%u event=%u helpers=%u/%u observations=%zu/%zu\n",policy,store,flags,mapping,alias,event,helpers[0],helpers[1],observations[0].size(),observations[1].size());
++                for(unsigned i=0;i<256;++i)if(states[0][i]!=states[1][i])printf(" state[%u] %x/%x\n",i,states[0][i],states[1][i]);return false;
++            }
++            if(!event && !mapping) {
++                test_mem expected;expected.write_code(0x1000,{cb,cb+sizeof(caller)});expected.write_code(0x2000,{lb,lb+sizeof(callee)});expected.write32(0x9000,5);
++                r12l1::exclusive_monitor mon(1);auto cpu=make_cpu(expected,mon);
++                for(unsigned reg=0;reg<15;++reg)cpu->set_reg(reg,reg*37);
++                cpu->set_reg(0,1);cpu->set_reg(1,alias?0x8ffc:0x9000);cpu->set_reg(2,2);cpu->set_reg(3,alias==2?0x4001:0x4000);
++                cpu->set_reg(13,0x9000);cpu->set_reg(14,0x4000);cpu->set_pc(0x1000);cpu->set_cpsr(0x10|(flags<<28));
++                if(reference_to(*cpu,states[1])<0||expected.data!=memories[1].data)return false;++independent;
++            }
++            ++checks;
++        }
++    }
++    // Stack-pointer changes, LR changes, escaping branches and unmatched pops
++    // cannot establish the saved return's lifetime.
++    arm_stack_returns=true;
++    for(unsigned op:{0xe28dd004u,0xe28ee004u,0xeb000000u,0xeafffffdu,0xe8bd8001u,0xe8b1e000u}) {
++        const unsigned callee[]={0xe92d4010u,op,0xe8bd8010u};const auto *bytes=reinterpret_cast<const std::uint8_t*>(callee);
++        leaf_resolver resolve=[&](unsigned){return std::vector<std::uint8_t>(bytes,bytes+sizeof(callee));};
++        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolve,false,arm_ir_policy::write_spans);
++        if(tr.stack_calls){printf(" FAIL unsafe stack-return accepted %x\n",op);return false;}
++    }
++    if(!selected||calls[1]>=calls[0])return false;
++    printf(" PASS stack returns: %u state/memory/callback checks, %u interpreter checks, calls %u -> %u\n",checks,independent,calls[0],calls[1]);
++#endif
++    return true;
++}
++
++#ifdef __EMSCRIPTEN__
++// The captured pixel converter performs fixed work here, without guest-time
++// scheduling or menus. The real runner dispatches both compiled variants.
++extern "C" EMSCRIPTEN_KEEPALIVE int stack_return_benchmark(unsigned variant, unsigned iterations) {
++    if(!eka2l1::log::filterings) {
++        eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
++        eka2l1::log::filterings->reset_all(spdlog::level::off);
++    }
++    static test_mem memory;
++    static r12l1::exclusive_monitor monitor(1);
++    static auto core=make_cpu(memory,monitor);
++    static memory_experiment::view view;
++    static aot_func entries[2][4]{};
++    static std::uintptr_t pointer=0;
++    static bool ready=false;
++    const unsigned pcs[]={0x1000,0x1004,0x1018,0x2000};
++    if(!ready) {
++        hotpath_policy=2;memory_experiment::mode=2;
++        eka2l1::common::code_tracking::unsafe_code_mode=3;
++        global_registry().configure_rom_index(0x1000,0x2000,true);
++        const unsigned caller[]={0xe1a0800eu,0xe1a00004u,0xe1a01005u,0xe1a02006u,0xe1a03007u,
++            0xeb0003f9u,0xe2599001u,0x1afffff8u,0xe12fff18u};
++        // Sky Force 0x700042fc, relocated without changing relative branches.
++        const unsigned callee[]={0xe92d5ff0u,0xe1a0b903u,0xe1a0b82bu,0xe1a038a3u,0xe3a0c01fu,0xe1a04003u,0xe4905004u,0xe2544001u,0xe00c6005u,0xe00c7325u,0xe00c85a5u,0xe1a09186u,0xe0899587u,0xe0899988u,0xe00c6825u,0xe00c7b25u,0xe00c8da5u,0xe1a0a186u,0xe08aa587u,0xe08aa988u,0xe5819000u,0xe581a004u,0xe2811008u,0x1affffedu,0xe2522001u,0xe2800020u,0xe081100bu,0x1affffe8u,0xe8bd9ff0u};
++        const auto cb=reinterpret_cast<const std::uint8_t*>(caller),lb=reinterpret_cast<const std::uint8_t*>(callee);
++        leaf_resolver resolve=[&](unsigned pc){return pc==0x2000?std::vector<std::uint8_t>(lb,lb+sizeof(callee)):std::vector<std::uint8_t>{};};
++        const std::vector<wasm_import_func> imports{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
++            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
++        for(unsigned v=0;v<2;++v) {
++            arm_stack_returns=v;std::vector<wasm_func_def> functions;
++            for(unsigned i=0;i<4;++i) {
++                auto tr=translate_arm_block(i==3?lb:cb+pcs[i]-0x1000,i==3?sizeof(callee):sizeof(caller)-(pcs[i]-0x1000),
++                    pcs[i],nullptr,nullptr,true,false,true,true,i==3?nullptr:&resolve,true,arm_ir_policy::write_spans);
++                if(!i && tr.stack_calls!=v)return -1;
++                functions.push_back(std::move(tr.func));
++            }
++            stage_aot_module(build_wasm_module(functions,imports),"stack-return-benchmark");instantiate_staged_modules();
++            for(unsigned i=0;i<4;++i)if(!(entries[v][i]=global_registry().lookup(pcs[i])))return -2;
++        }
++        for(unsigned p=0x10000;p<0x40000;p+=4)memory.write32(p,0x12345678);
++        std::vector<memory_experiment::binding> bindings;
++        for(unsigned page=0x10000;page<test_mem::SIZE;page+=4096)
++            bindings.push_back({page,static_cast<unsigned>(reinterpret_cast<std::uintptr_t>(memory.data.data()+page)),3});
++        pointer=view.enter(1,1,[&]{return bindings;});ready=true;
++    }
++    if(variant>1||!iterations)return -3;
++    for(unsigned i=0;i<4;++i)global_registry().register_function(pcs[i],entries[variant][i]);
++    auto *cpu=matched_kernel_access::state(*core);cpu->Reset();for(auto &reg:cpu->Reg)reg=0;
++    cpu->NFlag=cpu->ZFlag=cpu->CFlag=cpu->VFlag=0;
++    cpu->Reg[4]=0x10000;cpu->Reg[5]=0x80000;cpu->Reg[6]=320;cpu->Reg[7]=120u<<17;
++    cpu->Reg[9]=iterations;cpu->Reg[13]=0xf0000;cpu->Reg[14]=0x5000;cpu->Reg[15]=0x1000;
++    cpu->Cpsr=16;cpu->TFlag=0;cpu->NirqSig=1;cpu->NumInstrsToExecute=UINT32_MAX;cpu->aot_tlb=pointer;
++    watchdog::request=0;g_test_mem=&memory;g_all_memory_helper_calls=0;
++    const auto progress=execute_chain(cpu,entries[variant][0]).progress;g_test_mem=nullptr;
++    const auto rgb=[](unsigned value){return ((value&31)<<3)+(((value>>6)&31)<<11)+(((value>>11)&31)<<19);};
++    return progress==1 && !cpu->Reg[9] && cpu->Reg[13]==0xf0000 && cpu->Reg[15]==0x5000 && !g_all_memory_helper_calls
++        && memory.read32(0x80000)==rgb(0x5678) && memory.read32(0x80000+240*320*4-4)==rgb(0x1234) ? 0 : -4;
++}
++#endif
+diff --git a/src/tests/benchmark/stack_returns/micro.mjs b/src/tests/benchmark/stack_returns/micro.mjs
+new file mode 100644
+--- /dev/null
++++ b/src/tests/benchmark/stack_returns/micro.mjs
+@@ -0,0 +1,48 @@
++import fs from 'node:fs';
++import http from 'node:http';
++import path from 'node:path';
++import {spawn,execFileSync} from 'node:child_process';
++import {createInterface} from 'node:readline';
++import assert from 'node:assert/strict';
++import {createRequire} from 'node:module';
++import {fileURLToPath} from 'node:url';
++const puppeteer=createRequire(new URL('../../wasm/package.json',import.meta.url))('puppeteer');
++const [buildArg,outputArg,cpuArg='7',mhzArg='2400',referenceArg='2304']=process.argv.slice(2);
++if(!buildArg || !outputArg)throw Error('Usage: node micro.mjs TEST_BUILD NEW_OUTPUT [CPU] [MHZ] [REFERENCE_MHZ]');
++const cpuId=Number(cpuArg),targetMhz=Number(mhzArg),referenceMhz=Number(referenceArg);
++assert.ok(Number.isInteger(cpuId)&&cpuId>=0&&targetMhz>0&&referenceMhz>0);
++const root=path.dirname(fileURLToPath(import.meta.url)),build=path.resolve(buildArg),out=path.resolve(outputArg);fs.mkdirSync(out);
++const server=http.createServer((req,res)=>{
++ res.setHeader('Cross-Origin-Opener-Policy','same-origin');res.setHeader('Cross-Origin-Embedder-Policy','require-corp');
++ if(req.url==='/'){res.setHeader('Content-Type','text/html');res.end('<script>var Module={noInitialRun:true,onRuntimeInitialized(){globalThis.ready=true;},print:console.log,printErr:console.error};</script><script src="/test_aot_wasm.js"></script>');return;}
++ const name=path.basename(req.url);
++ if(!/^test_aot_wasm\.(js|wasm)$/.test(name)){res.writeHead(404);res.end();return;}
++ res.setHeader('Content-Type',name.endsWith('wasm')?'application/wasm':'application/javascript');fs.createReadStream(path.join(build,name)).pipe(res);
++});await new Promise(r=>server.listen(0,'127.0.0.1',r));
++let browser,counter;
++try{
++ browser=await puppeteer.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',headless:true,args:['--no-sandbox','--disable-dev-shm-usage','--disable-background-timer-throttling',`--js-flags=--perf-prof --perf-prof-path=${out} --logfile=${out}/v8.log`]});
++ const system=await browser.target().createCDPSession(),page=await browser.newPage();
++ const log=fs.createWriteStream(out+'/browser.log');page.on('console',m=>log.write(m.text()+'\n'));page.on('pageerror',e=>log.write(String(e)+'\n'));
++ await page.goto(`http://127.0.0.1:${server.address().port}/`);await page.waitForFunction(()=>globalThis.ready,{timeout:120000});
++ const before=await system.send('SystemInfo.getProcessInfo');
++ for(let i=0;i<16;i++)assert.equal(await page.evaluate(v=>Module._stack_return_benchmark(v,4),i%2),0);
++ const after=await system.send('SystemInfo.getProcessInfo');
++ const renderers=after.processInfo.filter(p=>p.type==='renderer').map(p=>({...p,delta:p.cpuTime-(before.processInfo.find(q=>q.id===p.id)?.cpuTime||0)})).sort((a,b)=>b.delta-a.delta);
++ const pid=renderers[0].id;assert.ok(renderers[0].delta>.005);execFileSync('taskset',['-pc',String(cpuId),String(pid)]);
++ counter=spawn('python3',[root+'/../direct_chain/counters.py'],{stdio:['pipe','pipe','inherit']});
++ const lines=createInterface({input:counter.stdout});let waiter;lines.on('line',l=>{assert.ok(waiter);const fn=waiter;waiter=null;fn(JSON.parse(l));});
++ const request=r=>new Promise(resolve=>{waiter=resolve;counter.stdin.write(JSON.stringify(r)+'\n');});
++ const cpu=()=>Number(fs.readFileSync(`/proc/${pid}/schedstat`,'utf8').split(' ')[0])/1e9;
++ const report={browser:await system.send('Browser.getVersion'),pid,renderers,iterations:1000,rows:[]};
++ for(const variant of [0,1,1,0,1,0,0,1]){
++  assert.equal(await page.evaluate(v=>Module._stack_return_benchmark(v,4),variant),0);
++  await request({command:'start',pid});const first=cpu();
++  const result=await page.evaluate(({variant,n})=>{const start=performance.now();const status=Module._stack_return_benchmark(variant,n);return{status,milliseconds:performance.now()-start};},{variant,n:report.iterations});
++  const seconds=cpu()-first,hardware=await request({command:'stop'});assert.equal(result.status,0);assert.deepEqual(hardware.errors,[]);
++  const h=hardware.events.guest;for(const k of ['user_cycles','user_reference_cycles','user_instructions'])assert.equal(h[k].running_fraction,1);
++  const mhz=referenceMhz*h.user_cycles.raw/h.user_reference_cycles.raw;assert.ok(Math.abs(mhz/targetMhz-1)<.005);
++  const row={variant,cpu_seconds:seconds,...result,mhz,hardware};report.rows.push(row);fs.writeFileSync(out+'/report.json',JSON.stringify(report,null,2));console.log(JSON.stringify({variant,cpu_seconds:seconds,ms:result.milliseconds,mhz,instructions:h.user_instructions.raw}));
++ }
++ counter.stdin.end();await browser.close();browser=null;log.end();
++}catch(e){console.error(e);process.exitCode=1;}finally{counter?.stdin.end();await browser?.close();server.close();}

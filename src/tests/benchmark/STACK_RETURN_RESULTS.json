@@ -1,0 +1,1061 @@
+{
+  "decision": "Archived; no established game-speed gain; no active runtime or LAN change",
+  "baseline": {
+    "commit": "8d000d8fb0be8bc325009baa289d7315d9d7fbef",
+    "wasm_sha256": "a62e6b920d773d1c3f14dd2213fe28d8a1d3f64e8165b4309cee797138f29597"
+  },
+  "candidate": {
+    "wasm_sha256": "dc70ea0e58efcc04ec1167922720cbeb8a0259a1e623dc07e6fcb8365985bc23"
+  },
+  "candidate_test_wasm_sha256": "a91b233e343fcde46b65d5687333885c798fbf2b89f5ecab62346923e7cbadda",
+  "micro": {
+    "browser": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/153.0.8010.52",
+      "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "jsVersion": "15.3.76.13"
+    },
+    "pid": 3538179,
+    "renderers": [
+      {
+        "type": "renderer",
+        "id": 3538179,
+        "cpuTime": 0.32,
+        "delta": 0.19
+      },
+      {
+        "type": "renderer",
+        "id": 3538122,
+        "cpuTime": 0.47,
+        "delta": 0.10999999999999999
+      },
+      {
+        "type": "renderer",
+        "id": 3538199,
+        "cpuTime": 0.02,
+        "delta": 0
+      },
+      {
+        "type": "renderer",
+        "id": 3538132,
+        "cpuTime": 0.04,
+        "delta": 0
+      }
+    ],
+    "iterations": 1000,
+    "rows": [
+      {
+        "variant": 0,
+        "cpu_seconds": 0.699301834,
+        "status": 0,
+        "milliseconds": 699.4049999713898,
+        "mhz": 2394.4126826936067,
+        "hardware": {
+          "events": {
+            "guest": {
+              "start_ticks": 92648468,
+              "user_cycles": {
+                "raw": 1673964535,
+                "time_enabled_ns": 699950943,
+                "time_running_ns": 699950943,
+                "running_fraction": 1,
+                "scaled": 1673964535
+              },
+              "user_instructions": {
+                "raw": 7157466700,
+                "time_enabled_ns": 699950943,
+                "time_running_ns": 699950943,
+                "running_fraction": 1,
+                "scaled": 7157466700
+              },
+              "user_reference_cycles": {
+                "raw": 1610755872,
+                "time_enabled_ns": 699950943,
+                "time_running_ns": 699950943,
+                "running_fraction": 1,
+                "scaled": 1610755872
+              }
+            }
+          },
+          "errors": [],
+          "begin_ns": 907862304824131,
+          "enable_begin_ns": 907862329696186,
+          "enable_end_ns": 907862329744065,
+          "disable_begin_ns": 907863031443582,
+          "disable_end_ns": 907863031509710
+        }
+      },
+      {
+        "variant": 1,
+        "cpu_seconds": 0.698479292,
+        "status": 0,
+        "milliseconds": 698.7649999856949,
+        "mhz": 2394.4141511651196,
+        "hardware": {
+          "events": {
+            "guest": {
+              "start_ticks": 92648468,
+              "user_cycles": {
+                "raw": 1672077167,
+                "time_enabled_ns": 699087413,
+                "time_running_ns": 699087413,
+                "running_fraction": 1,
+                "scaled": 1672077167
+              },
+              "user_instructions": {
+                "raw": 7156902980,
+                "time_enabled_ns": 699087413,
+                "time_running_ns": 699087413,
+                "running_fraction": 1,
+                "scaled": 7156902980
+              },
+              "user_reference_cycles": {
+                "raw": 1608938784,
+                "time_enabled_ns": 699087413,
+                "time_running_ns": 699087413,
+                "running_fraction": 1,
+                "scaled": 1608938784
+              }
+            }
+          },
+          "errors": [],
+          "begin_ns": 907863037036299,
+          "enable_begin_ns": 907863037434562,
+          "enable_end_ns": 907863037483797,
+          "disable_begin_ns": 907863737898189,
+          "disable_end_ns": 907863737949500
+        }
+      },
+      {
+        "variant": 1,
+        "cpu_seconds": 0.6987690759999998,
+        "status": 0,
+        "milliseconds": 699.1200000047684,
+        "mhz": 2394.414325146422,
+        "hardware": {
+          "events": {
+            "guest": {
+              "start_ticks": 92648468,
+              "user_cycles": {
+                "raw": 1672757801,
+                "time_enabled_ns": 699403059,
+                "time_running_ns": 699403059,
+                "running_fraction": 1,
+                "scaled": 1672757801
+              },
+              "user_instructions": {
+                "raw": 7156832145,
+                "time_enabled_ns": 699403059,
+                "time_running_ns": 699403059,
+                "running_fraction": 1,
+                "scaled": 7156832145
+              },
+              "user_reference_cycles": {
+                "raw": 1609593600,
+                "time_enabled_ns": 699403059,
+                "time_running_ns": 699403059,
+                "running_fraction": 1,
+                "scaled": 1609593600
+              }
+            }
+          },
+          "errors": [],
+          "begin_ns": 907863742387046,
+          "enable_begin_ns": 907863742760567,
+          "enable_end_ns": 907863742803460,
+          "disable_begin_ns": 907864443509963,
+          "disable_end_ns": 907864443564625
+        }
+      },
+      {
+        "variant": 0,
+        "cpu_seconds": 0.699093119,
+        "status": 0,
+        "milliseconds": 699.5,
+        "mhz": 2394.409398393645,
+        "hardware": {
+          "events": {
+            "guest": {
+              "start_ticks": 92648468,
+              "user_cycles": {
+                "raw": 1673604574,
+                "time_enabled_ns": 699719249,
+                "time_running_ns": 699719249,
+                "running_fraction": 1,
+                "scaled": 1673604574
+              },
+              "user_instructions": {
+                "raw": 7157219554,
+                "time_enabled_ns": 699719249,
+                "time_running_ns": 699719249,
+                "running_fraction": 1,
+                "scaled": 7157219554
+              },
+              "user_reference_cycles": {
+                "raw": 1610411712,
+                "time_enabled_ns": 699719249,
+                "time_running_ns": 699719249,
+                "running_fraction": 1,
+                "scaled": 1610411712
+              }
+            }
+          },
+          "errors": [],
+          "begin_ns": 907864448083534,
+          "enable_begin_ns": 907864448446056,
+          "enable_end_ns": 907864448489700,
+          "disable_begin_ns": 907865149525874,
+          "disable_end_ns": 907865149575183
+        }
+      },
+      {
+        "variant": 1,
+        "cpu_seconds": 0.6982477790000003,
+        "status": 0,
+        "milliseconds": 698.5299999713898,
+        "mhz": 2394.414153537946,
+        "hardware": {
+          "events": {
+            "guest": {
+              "start_ticks": 92648468,
+              "user_cycles": {
+                "raw": 1671492333,
+                "time_enabled_ns": 698826257,
+                "time_running_ns": 698826257,
+                "running_fraction": 1,
+                "scaled": 1671492333
+              },
+              "user_instructions": {
+                "raw": 7156803789,
+                "time_enabled_ns": 698826257,
+                "time_running_ns": 698826257,
+                "running_fraction": 1,
+                "scaled": 7156803789
+              },
+              "user_reference_cycles": {
+                "raw": 1608376032,
+                "time_enabled_ns": 698826257,
+                "time_running_ns": 698826257,
+                "running_fraction": 1,
+                "scaled": 1608376032
+              }
+            }
+          },
+          "errors": [],
+          "begin_ns": 907865154132715,
+          "enable_begin_ns": 907865154514048,
+          "enable_end_ns": 907865154564270,
+          "disable_begin_ns": 907865854675102,
+          "disable_end_ns": 907865854729736
+        }
+      },
+      {
+        "variant": 0,
+        "cpu_seconds": 0.6997769180000004,
+        "status": 0,
+        "milliseconds": 700.1749999523163,
+        "mhz": 2394.413873574829,
+        "hardware": {
+          "events": {
+            "guest": {
+              "start_ticks": 92648468,
+              "user_cycles": {
+                "raw": 1675249372,
+                "time_enabled_ns": 700414090,
+                "time_running_ns": 700414090,
+                "running_fraction": 1,
+                "scaled": 1675249372
+              },
+              "user_instructions": {
+                "raw": 7157233949,
+                "time_enabled_ns": 700414090,
+                "time_running_ns": 700414090,
+                "running_fraction": 1,
+                "scaled": 7157233949
+              },
+              "user_reference_cycles": {
+                "raw": 1611991392,
+                "time_enabled_ns": 700414090,
+                "time_running_ns": 700414090,
+                "running_fraction": 1,
+                "scaled": 1611991392
+              }
+            }
+          },
+          "errors": [],
+          "begin_ns": 907865859238795,
+          "enable_begin_ns": 907865859602826,
+          "enable_end_ns": 907865859643815,
+          "disable_begin_ns": 907866561278426,
+          "disable_end_ns": 907866561331070
+        }
+      },
+      {
+        "variant": 0,
+        "cpu_seconds": 0.6985535199999999,
+        "status": 0,
+        "milliseconds": 698.9299999475479,
+        "mhz": 2394.4103319577603,
+        "hardware": {
+          "events": {
+            "guest": {
+              "start_ticks": 92648468,
+              "user_cycles": {
+                "raw": 1672270243,
+                "time_enabled_ns": 699193116,
+                "time_running_ns": 699193116,
+                "running_fraction": 1,
+                "scaled": 1672270243
+              },
+              "user_instructions": {
+                "raw": 7157237146,
+                "time_enabled_ns": 699193116,
+                "time_running_ns": 699193116,
+                "running_fraction": 1,
+                "scaled": 7157237146
+              },
+              "user_reference_cycles": {
+                "raw": 1609127136,
+                "time_enabled_ns": 699193116,
+                "time_running_ns": 699193116,
+                "running_fraction": 1,
+                "scaled": 1609127136
+              }
+            }
+          },
+          "errors": [],
+          "begin_ns": 907866565659242,
+          "enable_begin_ns": 907866566068740,
+          "enable_end_ns": 907866566112318,
+          "disable_begin_ns": 907867266482269,
+          "disable_end_ns": 907867266537365
+        }
+      },
+      {
+        "variant": 1,
+        "cpu_seconds": 0.6981770889999996,
+        "status": 0,
+        "milliseconds": 698.5700000524521,
+        "mhz": 2394.414180208981,
+        "hardware": {
+          "events": {
+            "guest": {
+              "start_ticks": 92648468,
+              "user_cycles": {
+                "raw": 1671399169,
+                "time_enabled_ns": 698771902,
+                "time_running_ns": 698771902,
+                "running_fraction": 1,
+                "scaled": 1671399169
+              },
+              "user_instructions": {
+                "raw": 7156785906,
+                "time_enabled_ns": 698771902,
+                "time_running_ns": 698771902,
+                "running_fraction": 1,
+                "scaled": 7156785906
+              },
+              "user_reference_cycles": {
+                "raw": 1608286368,
+                "time_enabled_ns": 698771902,
+                "time_running_ns": 698771902,
+                "running_fraction": 1,
+                "scaled": 1608286368
+              }
+            }
+          },
+          "errors": [],
+          "begin_ns": 907867271048990,
+          "enable_begin_ns": 907867271406868,
+          "enable_end_ns": 907867271448457,
+          "disable_begin_ns": 907867971499564,
+          "disable_end_ns": 907867971554757
+        }
+      }
+    ]
+  },
+  "micro_summary": {
+    "0": {
+      "mean_cpu_seconds": 0.6991813477500001,
+      "mean_native_instructions": 7157289337.25
+    },
+    "1": {
+      "mean_cpu_seconds": 0.698418309,
+      "mean_native_instructions": 7156831205
+    },
+    "cpu_throughput_change_percent": 0.10925239790642305,
+    "native_instruction_change_percent": -0.006400918398197231,
+    "pair_cpu_throughput_changes_percent": [
+      0.11776183051106504,
+      0.04637340304971538,
+      0.21899661495379252,
+      0.05391626364299462
+    ]
+  },
+  "final_sky_comparison": {
+    "rows": [
+      {
+        "game": "sky-force",
+        "index": 0,
+        "variant": "A",
+        "path": "/home/claude/.scratch/eka-stack-return-20261010/screen5-sky-force-0-A",
+        "measurement": {
+          "diagnostics_available": false,
+          "detailed": false,
+          "capture_mode": 1,
+          "first_virtual_us": 58000000,
+          "last_virtual_us": 76000000,
+          "first_instructions": 0,
+          "last_instructions": 0,
+          "wall_seconds": 6.64569,
+          "presentations": 565
+        },
+        "validity": {
+          "valid": true,
+          "errors": [],
+          "mhz": 2394.300125279355,
+          "interval_min_mhz": 2393.9888606601926,
+          "interval_max_mhz": 2394.6371525594263,
+          "worker_cpu_seconds": 3.68993564,
+          "instructions": 23246374697,
+          "cycles": 8771548737,
+          "worker": "3542224:3542269",
+          "sibling_busy_fraction": {
+            "15": 0.0014771048744460858
+          }
+        }
+      },
+      {
+        "game": "sky-force",
+        "index": 1,
+        "variant": "B",
+        "path": "/home/claude/.scratch/eka-stack-return-20261010/screen5-sky-force-1-B",
+        "measurement": {
+          "diagnostics_available": false,
+          "detailed": false,
+          "capture_mode": 1,
+          "first_virtual_us": 58000000,
+          "last_virtual_us": 76000000,
+          "first_instructions": 0,
+          "last_instructions": 0,
+          "wall_seconds": 7.36561,
+          "presentations": 567
+        },
+        "validity": {
+          "valid": true,
+          "errors": [],
+          "mhz": 2394.3111084711813,
+          "interval_min_mhz": 2394.074898141704,
+          "interval_max_mhz": 2394.57853987091,
+          "worker_cpu_seconds": 3.79672806,
+          "instructions": 24374570185,
+          "cycles": 9036009909,
+          "worker": "3555404:3555471",
+          "sibling_busy_fraction": {
+            "15": 0.003989361702127659
+          }
+        }
+      },
+      {
+        "game": "sky-force",
+        "index": 2,
+        "variant": "B",
+        "path": "/home/claude/.scratch/eka-stack-return-20261010/screen5-sky-force-2-B",
+        "measurement": {
+          "diagnostics_available": false,
+          "detailed": false,
+          "capture_mode": 1,
+          "first_virtual_us": 58000000,
+          "last_virtual_us": 76000000,
+          "first_instructions": 0,
+          "last_instructions": 0,
+          "wall_seconds": 6.08054,
+          "presentations": 567
+        },
+        "validity": {
+          "valid": true,
+          "errors": [],
+          "mhz": 2394.3138290936686,
+          "interval_min_mhz": 2394.1065721754867,
+          "interval_max_mhz": 2394.571108996325,
+          "worker_cpu_seconds": 3.593307182,
+          "instructions": 23414767528,
+          "cycles": 8535578358,
+          "worker": "3558533:3558598",
+          "sibling_busy_fraction": {
+            "15": 0.0047694753577106515
+          }
+        }
+      },
+      {
+        "game": "sky-force",
+        "index": 3,
+        "variant": "A",
+        "path": "/home/claude/.scratch/eka-stack-return-20261010/screen5-sky-force-3-A",
+        "measurement": {
+          "diagnostics_available": false,
+          "detailed": false,
+          "capture_mode": 1,
+          "first_virtual_us": 58000000,
+          "last_virtual_us": 76000000,
+          "first_instructions": 0,
+          "last_instructions": 0,
+          "wall_seconds": 7.52447,
+          "presentations": 553
+        },
+        "validity": {
+          "valid": true,
+          "errors": [],
+          "mhz": 2394.2882997320407,
+          "interval_min_mhz": 2394.0320104566226,
+          "interval_max_mhz": 2394.705634363674,
+          "worker_cpu_seconds": 3.818540088,
+          "instructions": 23572914135,
+          "cycles": 9067399543,
+          "worker": "3562007:3562057",
+          "sibling_busy_fraction": {
+            "15": 0.005298013245033113
+          }
+        }
+      }
+    ],
+    "arithmetic_summary_not_causal_speedup": {
+      "A": {
+        "cpu_seconds": 3.7542378640000003,
+        "instructions": 23409644416
+      },
+      "B": {
+        "cpu_seconds": 3.695017621,
+        "instructions": 23894668856.5
+      },
+      "cpu_throughput_change_percent": 1.6027052932963581,
+      "native_instruction_change_percent": 2.0719000762288164,
+      "paired_cpu_changes_percent": [
+        -2.8127487223828185,
+        6.268122779156271
+      ]
+    },
+    "plan": {
+      "frequency_khz": 2400000,
+      "reference_mhz": 2304,
+      "worker_cpu": 7,
+      "support_cpus": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "panels": [
+        "ABBA"
+      ],
+      "clock_rules": {
+        "mean_relative_tolerance": 0.005,
+        "interval_relative_tolerance": 0.01,
+        "minimum_reference_interval_seconds": 0.02,
+        "max_sibling_busy_fraction": 0.02
+      },
+      "description": "Fresh Sky Force ABBA at a 2.4 GHz request, after the 3.6 GHz host run failed measured-frequency limits. Do not pool frequencies.",
+      "isolated_cpus": [
+        7,
+        15
+      ],
+      "require_support_affinity": true,
+      "platform_profile": "performance",
+      "purpose": "ABBA screen after functional and selected-hot-callee checks. Inspect scenes and unequal-work limitation; graduate only a repeatable runtime gain.",
+      "windows": {
+        "snakes": [
+          42000000,
+          46000000
+        ],
+        "sky-force": [
+          58000000,
+          76000000
+        ]
+      },
+      "stop_on_clock_failure": true
+    }
+  },
+  "all_game_attempts": [
+    {
+      "game": "snakes",
+      "index": 0,
+      "variant": "A",
+      "path": "/home/claude/.scratch/eka-stack-return-20261010/screen-snakes-0-A",
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 42000000,
+        "last_virtual_us": 60000000,
+        "first_instructions": 0,
+        "last_instructions": 0,
+        "wall_seconds": 2.71811,
+        "presentations": 383
+      },
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.4767904955165,
+        "interval_min_mhz": 3591.1100472950634,
+        "interval_max_mhz": 3591.687471831477,
+        "worker_cpu_seconds": 1.638747803,
+        "instructions": 14124619765,
+        "cycles": 5842125553,
+        "worker": "3500266:3500312",
+        "sibling_busy_fraction": {
+          "15": 0.0036231884057971015
+        }
+      }
+    },
+    {
+      "game": "snakes",
+      "index": 0,
+      "variant": "A",
+      "path": "/home/claude/.scratch/eka-stack-return-20261010/screen2-snakes-0-A",
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 42000000,
+        "last_virtual_us": 46000000,
+        "first_instructions": 0,
+        "last_instructions": 0,
+        "wall_seconds": 1.04106,
+        "presentations": 66
+      },
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.476831841451,
+        "interval_min_mhz": 3591.031859954148,
+        "interval_max_mhz": 3591.6250067115457,
+        "worker_cpu_seconds": 0.831103894,
+        "instructions": 6410607312,
+        "cycles": 2958727750,
+        "worker": "3506007:3506052",
+        "sibling_busy_fraction": {
+          "15": 0.0
+        }
+      }
+    },
+    {
+      "game": "snakes",
+      "index": 1,
+      "variant": "B",
+      "path": "/home/claude/.scratch/eka-stack-return-20261010/screen2-snakes-1-B",
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 42000000,
+        "last_virtual_us": 46000000,
+        "first_instructions": 0,
+        "last_instructions": 0,
+        "wall_seconds": 1.07025,
+        "presentations": 67
+      },
+      "validity": {
+        "valid": false,
+        "errors": [
+          "Reserved sibling CPU was busy"
+        ],
+        "mhz": 3591.5575066428205,
+        "interval_min_mhz": 3591.436444701899,
+        "interval_max_mhz": 3591.6574069634758,
+        "worker_cpu_seconds": 0.836547216,
+        "instructions": 6709321449,
+        "cycles": 2985160733,
+        "worker": "3509030:3509083",
+        "sibling_busy_fraction": {
+          "15": 0.024
+        }
+      }
+    },
+    {
+      "game": "snakes",
+      "index": 1,
+      "variant": "B",
+      "path": "/home/claude/.scratch/eka-stack-return-20261010/screen3-snakes-1-B",
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 42000000,
+        "last_virtual_us": 46000000,
+        "first_instructions": 0,
+        "last_instructions": 0,
+        "wall_seconds": 1.02282,
+        "presentations": 64
+      },
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.5084995106636,
+        "interval_min_mhz": 3591.286099637815,
+        "interval_max_mhz": 3591.73409326131,
+        "worker_cpu_seconds": 0.826961189,
+        "instructions": 6462474935,
+        "cycles": 2950039492,
+        "worker": "3513731:3513778",
+        "sibling_busy_fraction": {
+          "15": 0.0
+        }
+      }
+    },
+    {
+      "game": "snakes",
+      "index": 2,
+      "variant": "B",
+      "path": "/home/claude/.scratch/eka-stack-return-20261010/screen3-snakes-2-B",
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 42000000,
+        "last_virtual_us": 46000000,
+        "first_instructions": 0,
+        "last_instructions": 0,
+        "wall_seconds": 0.856375,
+        "presentations": 85
+      },
+      "validity": {
+        "valid": false,
+        "errors": [
+          "package_throttle_count increased"
+        ],
+        "mhz": 3591.3170094529455,
+        "interval_min_mhz": 3591.101739388116,
+        "interval_max_mhz": 3591.6112687279337,
+        "worker_cpu_seconds": 0.407550113,
+        "instructions": 3194190021,
+        "cycles": 1442980999,
+        "worker": "3515538:3515583",
+        "sibling_busy_fraction": {
+          "15": 0.0
+        }
+      }
+    },
+    {
+      "game": "sky-force",
+      "index": 0,
+      "variant": "A",
+      "path": "/home/claude/.scratch/eka-stack-return-20261010/screen4-sky-force-0-A",
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 58000000,
+        "last_virtual_us": 76000000,
+        "first_instructions": 0,
+        "last_instructions": 0,
+        "wall_seconds": 8.83774,
+        "presentations": 459
+      },
+      "validity": {
+        "valid": false,
+        "errors": [
+          "Interval frequency outside predeclared limit",
+          "Whole-window frequency outside predeclared limit"
+        ],
+        "mhz": 1605.0664527684935,
+        "interval_min_mhz": 1396.6311702843639,
+        "interval_max_mhz": 2693.1645136307598,
+        "worker_cpu_seconds": 3.838137609,
+        "instructions": 15610575558,
+        "cycles": 6091067016,
+        "worker": "3528059:3528119",
+        "sibling_busy_fraction": {
+          "15": 0.017679558011049725
+        }
+      }
+    },
+    {
+      "game": "sky-force",
+      "index": 0,
+      "variant": "A",
+      "path": "/home/claude/.scratch/eka-stack-return-20261010/screen5-sky-force-0-A",
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 58000000,
+        "last_virtual_us": 76000000,
+        "first_instructions": 0,
+        "last_instructions": 0,
+        "wall_seconds": 6.64569,
+        "presentations": 565
+      },
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 2394.300125279355,
+        "interval_min_mhz": 2393.9888606601926,
+        "interval_max_mhz": 2394.6371525594263,
+        "worker_cpu_seconds": 3.68993564,
+        "instructions": 23246374697,
+        "cycles": 8771548737,
+        "worker": "3542224:3542269",
+        "sibling_busy_fraction": {
+          "15": 0.0014771048744460858
+        }
+      }
+    },
+    {
+      "game": "sky-force",
+      "index": 1,
+      "variant": "B",
+      "path": "/home/claude/.scratch/eka-stack-return-20261010/screen5-sky-force-1-B",
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 58000000,
+        "last_virtual_us": 76000000,
+        "first_instructions": 0,
+        "last_instructions": 0,
+        "wall_seconds": 7.36561,
+        "presentations": 567
+      },
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 2394.3111084711813,
+        "interval_min_mhz": 2394.074898141704,
+        "interval_max_mhz": 2394.57853987091,
+        "worker_cpu_seconds": 3.79672806,
+        "instructions": 24374570185,
+        "cycles": 9036009909,
+        "worker": "3555404:3555471",
+        "sibling_busy_fraction": {
+          "15": 0.003989361702127659
+        }
+      }
+    },
+    {
+      "game": "sky-force",
+      "index": 2,
+      "variant": "B",
+      "path": "/home/claude/.scratch/eka-stack-return-20261010/screen5-sky-force-2-B",
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 58000000,
+        "last_virtual_us": 76000000,
+        "first_instructions": 0,
+        "last_instructions": 0,
+        "wall_seconds": 6.08054,
+        "presentations": 567
+      },
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 2394.3138290936686,
+        "interval_min_mhz": 2394.1065721754867,
+        "interval_max_mhz": 2394.571108996325,
+        "worker_cpu_seconds": 3.593307182,
+        "instructions": 23414767528,
+        "cycles": 8535578358,
+        "worker": "3558533:3558598",
+        "sibling_busy_fraction": {
+          "15": 0.0047694753577106515
+        }
+      }
+    },
+    {
+      "game": "sky-force",
+      "index": 3,
+      "variant": "A",
+      "path": "/home/claude/.scratch/eka-stack-return-20261010/screen5-sky-force-3-A",
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 58000000,
+        "last_virtual_us": 76000000,
+        "first_instructions": 0,
+        "last_instructions": 0,
+        "wall_seconds": 7.52447,
+        "presentations": 553
+      },
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 2394.2882997320407,
+        "interval_min_mhz": 2394.0320104566226,
+        "interval_max_mhz": 2394.705634363674,
+        "worker_cpu_seconds": 3.818540088,
+        "instructions": 23572914135,
+        "cycles": 9067399543,
+        "worker": "3562007:3562057",
+        "sibling_busy_fraction": {
+          "15": 0.005298013245033113
+        }
+      }
+    }
+  ],
+  "scene_review": {
+    "initial_18s_snakes": "Rejected before any candidate measurement: endpoint is Start New Game menu. Retained observation and host restoration record.",
+    "revised_4s_snakes": "Reviewed browser.png: active gameplay, score 200, multiplier x1. Allowed ABBA comparison.",
+    "sky_force_2_4_ghz": [
+      {
+        "run": "/home/claude/.scratch/eka-stack-return-20261010/screen5-sky-force-0-A",
+        "score": 825,
+        "stage_percent": 4,
+        "scene": "gameplay"
+      },
+      {
+        "run": "/home/claude/.scratch/eka-stack-return-20261010/screen5-sky-force-1-B",
+        "score": 200,
+        "stage_percent": 1,
+        "scene": "gameplay"
+      },
+      {
+        "run": "/home/claude/.scratch/eka-stack-return-20261010/screen5-sky-force-2-B",
+        "score": 1250,
+        "stage_percent": 4,
+        "scene": "gameplay"
+      },
+      {
+        "run": "/home/claude/.scratch/eka-stack-return-20261010/screen5-sky-force-3-A",
+        "score": 200,
+        "stage_percent": 1,
+        "scene": "gameplay"
+      }
+    ]
+  },
+  "coverage": {
+    "sampled_specializations": [
+      {
+        "name": "f_1879065340_stack_return_1879085204",
+        "samples": 53
+      },
+      {
+        "name": "f_1879065340_stack_return_1879085204",
+        "samples": 3
+      }
+    ],
+    "compiled_specializations": [
+      {
+        "module": "worker-13-module-270.wasm",
+        "index": 38,
+        "name": "f_1879065340_stack_return_1879085204",
+        "bytes": 12446
+      },
+      {
+        "module": "worker-13-module-270.wasm",
+        "index": 39,
+        "name": "f_1879065212_stack_return_1879085320",
+        "bytes": 12947
+      },
+      {
+        "module": "worker-13-module-1224.wasm",
+        "index": 32,
+        "name": "f_1879065340_stack_return_1879085204",
+        "bytes": 12446
+      },
+      {
+        "module": "worker-13-module-1224.wasm",
+        "index": 33,
+        "name": "f_1879065212_stack_return_1879085320",
+        "bytes": 12947
+      },
+      {
+        "module": "worker-13-module-1222.wasm",
+        "index": 28,
+        "name": "f_1879065340_stack_return_1879085204",
+        "bytes": 12446
+      },
+      {
+        "module": "worker-13-module-1222.wasm",
+        "index": 29,
+        "name": "f_1879065212_stack_return_1879085320",
+        "bytes": 12947
+      },
+      {
+        "module": "worker-13-module-286.wasm",
+        "index": 38,
+        "name": "f_1879065340_stack_return_1879085204",
+        "bytes": 12446
+      },
+      {
+        "module": "worker-13-module-286.wasm",
+        "index": 39,
+        "name": "f_1879065212_stack_return_1879085320",
+        "bytes": 12947
+      },
+      {
+        "module": "worker-13-module-286.wasm",
+        "index": 43,
+        "name": "f_1879062628_stack_return_1879183400",
+        "bytes": 17605
+      }
+    ]
+  },
+  "host_restoration": {
+    "host-bench.json": {
+      "restored": true,
+      "restoration_errors": []
+    },
+    "host-bench2.json": {
+      "restored": true,
+      "restoration_errors": []
+    },
+    "host-micro.json": {
+      "restored": true,
+      "restoration_errors": []
+    },
+    "host-screen2.json": {
+      "restored": true,
+      "restoration_errors": []
+    },
+    "host-screen3.json": {
+      "restored": true,
+      "restoration_errors": []
+    },
+    "host-screen4.json": {
+      "restored": true,
+      "restoration_errors": []
+    },
+    "host-screen5.json": {
+      "restored": true,
+      "restoration_errors": []
+    },
+    "host.json": {
+      "restored": true,
+      "restoration_errors": []
+    }
+  },
+  "raw_artifact_root": "/home/claude/.scratch/eka-stack-return-20261010",
+  "correctness": {
+    "focused_state_memory_callback_checks": 384,
+    "independent_interpreter_checks": 32,
+    "candidate_aot_passed": 182,
+    "candidate_aot_failed": 0,
+    "focused_dispatch_calls": {
+      "stock": 1600,
+      "candidate": 976
+    },
+    "restored_aot_passed": 181,
+    "restored_aot_failed": 0
+  },
+  "restored_runtime_wasm_sha256": "a62e6b920d773d1c3f14dd2213fe28d8a1d3f64e8165b4309cee797138f29597",
+  "restoration": {
+    "runtime_source_matches_baseline": true,
+    "runtime_hash_matches_baseline": true,
+    "lan_service_active": true,
+    "lan_http_status": 200,
+    "archive_patch_apply_check": true
+  }
+}
