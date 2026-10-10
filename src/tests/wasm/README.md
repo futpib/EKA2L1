@@ -28,7 +28,10 @@ Sky Force first shows a splash screen and language selection, followed by
 The bundled choices share the stock Nokia 5320 ROM/RPKG. Games are installed and
 launched by UID, avoiding ambiguous captions. Sky Force is the original game's
 S60 3rd Edition release, version 1.22 at 240×320, UID `0xa020d913`.
-No game or firmware patch is applied for Sky Force.
+The launcher applies no game or firmware patch. The preserved Sky Force 1.22
+installer itself has a third-party BiNPDA signature; it is not an authenticated
+original publisher package. The [installer recovery and browser checks](../benchmark/PRE_TOUCH_GAME_INSTALLERS.md)
+distinguish publisher-signed releases from modified preservation copies.
 
 [`games.json`](games.json) records filenames, IPFS CIDs, SHA-256 digests and the
 Sky Force archive source. Binaries stay outside Git, following the existing

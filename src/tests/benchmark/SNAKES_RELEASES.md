@@ -12,6 +12,10 @@ packaged on 2007-01-18. Their executables differ. This preservation work does
 not change the launcher, benchmark reference or stock Nokia 5320 firmware,
 and does not establish gameplay or resolution support for the newer build.
 
+Follow-up on 2026-10-10: the [keypad installer checks](PRE_TOUCH_GAME_INSTALLERS.md)
+verified 0.6.0.20 gameplay and directional input in the WASM browser build on
+the stock Nokia 5320. The default browser and benchmark asset remains unchanged.
+
 [Download the collection ZIP](https://claude-laptop.lan:8188/downloads/snakes/Snakes-preserved-releases.zip),
 or use the [individual downloads and manifest](https://claude-laptop.lan:8188/downloads/snakes/index.html).
 The [tracked manifest](snakes-releases.json) records full hashes, IPFS CIDs,

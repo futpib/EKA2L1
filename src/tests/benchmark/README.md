@@ -67,6 +67,11 @@ Nokia installers and two firmware builds, with hashes and separate IPFS CIDs.
 It identifies a newer game build, 0.6.0.20, without changing this benchmark's
 reference asset.
 
+The [keypad top-five installer recovery](PRE_TOUCH_GAME_INSTALLERS.md) records
+Snakes, Sky Force, K-Rally, Asphalt: Urban GT 2 and Hooked On packages, signature
+checks and real browser launch results. Its manifest keeps publisher originals,
+unchanged extracted components and third-party preservation copies distinct.
+
 The experimental [Nokia N80 assets](N80_ASSETS.md) use the same ROM/RPKG convention
 with separate CIDs and a reproducible firmware converter. Select their manifest
 using `--asset-manifest src/tests/benchmark/n80-assets.json`. Device installation

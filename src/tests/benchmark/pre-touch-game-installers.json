@@ -1,0 +1,653 @@
+{
+  "checked_utc": "2026-10-10",
+  "scope": "Top five entries in the pre-touchscreen/keypad Symbian Buzz gallery, following the top-five question; not the complete 50-game catalogue.",
+  "buzz": {
+    "channel_id": "77f8bb1c-5df6-42ab-b153-242b6a9edd87",
+    "thread_event_id": "e0cf0c5ac2a0a451b6d090352f851699f23e0eae735919a4020757e76ddf2c3d"
+  },
+  "version_limit": "Newest recovered relevant-platform builds, not proof that no later official release ever existed. Handset branch version numbers are not globally ordered.",
+  "signature_limit": "Controller signatures checked against embedded certificates and described payload SHA-1 hashes checked. No independent certificate-chain trust validation. See separate modified-copy labels.",
+  "ipfs_note": "Per-file CIDv1 values computed with ipfs add --only-hash --cid-version=1. These are content identifiers, not a claim that this recovery pinned or published the files.",
+  "environment": {
+    "branch": "wasm-port",
+    "browser": "Chromium 153.0.8010.52, headless, Vulkan",
+    "device": "Stock Nokia 5320, S60v3 FP2, 240x320",
+    "rom_sha256": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+    "rpkg_sha256": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+    "baseline_wasm_sha256": "e8c696748e1a593349455f9ae650abc6b6757891dbdd344e0a94ee60c240d7d1",
+    "device_fix_wasm_sha256": "8177f5d6107093bc98fcc445e91a7d3118a316b54a06562f065a479b01cb0dca",
+    "configuration": "Paced watchdog/no instruction accounting, AOT 5, IR policy 7, direct memory 2, unsafe code policy 3. asphalt-tlb uses memory 0.",
+    "coverage": "Real browser WASM launches from fresh filesystems, visual checks and input. Smoke tests, not controlled performance comparisons, full playthroughs or audio certification."
+  },
+  "artifacts": [
+    {
+      "filename": "Snakes-0.6.0.20.sis",
+      "bundle_path": "official-installers/Snakes-0.6.0.20.sis",
+      "game": "Snakes",
+      "release": "0.6.0.20",
+      "platform": "S60v3",
+      "provenance": "publisher-signed original or unchanged extracted component",
+      "bytes": 965420,
+      "sha256": "0611ef2c851294028dfc85f9e6c07a9c1022d77d0b51095ff57dd358dfdafb7d",
+      "cid": "bafybeidv7gkizrdislpflysmwz64jn45f4zkinivvvhkfguaudysck363y",
+      "source_page": "https://web.archive.org/web/20090209210758id_/http://europe.nokia.com:80/A4403831",
+      "download_url": "https://web.archive.org/web/20090507145931id_/http://nds1.nokia.com:80/phones/files/software/snakes60all.sis",
+      "archive_member": null,
+      "notes": "Original Nokia-hosted installer. SIS version is 1.0.0; game build comes from its executable.",
+      "sis": {
+        "uid": "0x2000730f",
+        "version": [
+          1,
+          0,
+          0
+        ],
+        "created": "2007-03-13T00:02:17",
+        "vendor": "Nokia",
+        "signatures": [
+          {
+            "subject": "CN=Nokia Content,O=Nokia",
+            "issuer": "CN=Nokia Content Signing CA,O=Nokia",
+            "verified": true,
+            "signed_controller_range": [
+              8,
+              21020
+            ],
+            "certificate_sha256": "36b320b06cd36c858d5f3882f33655a88ee9ca6822beddfd9110da83e52e0631"
+          }
+        ],
+        "payload_count": 104,
+        "checked_file_descriptions": 104,
+        "all_checked_payload_hashes_match": true
+      }
+    },
+    {
+      "filename": "Sky-Force-1.22c-DeFconX.sisx",
+      "bundle_path": "preservation-copies/Sky-Force-1.22c-DeFconX.sisx",
+      "game": "Sky Force",
+      "release": "1.22c",
+      "platform": "S60v3, 240x320",
+      "provenance": "third-party preservation copy",
+      "bytes": 1176836,
+      "sha256": "04bce5b1515686e8e0ba98f592add0e201202b2f9824a2f7ec8102f86b32fe8d",
+      "cid": "bafybeiagmc6f3opbb3m4mb434kwxkz6gy6ueq2vlcqx7r5n4waeuyrou4m",
+      "source_page": "https://www.myabandonware.com/game/sky-force-vxs",
+      "download_url": "https://www.myabandonware.com/download/pcqj-sky-force",
+      "archive_member": "SkyForce v1.22c (S60 3rd)(Space).sisx",
+      "notes": "Fallback: no original keypad publisher package recovered. Valid DeFconX self-signature does not establish publisher authenticity.",
+      "sis": {
+        "uid": "0xa020d913",
+        "version": [
+          1,
+          22,
+          3
+        ],
+        "created": "2007-04-08T12:44:31",
+        "vendor": "Infinite Dreams",
+        "signatures": [
+          {
+            "subject": "1.2.840.113549.1.9.1=,CN=DeFconX,OU=DeFconX,O=DeFconX,C=IT",
+            "issuer": "1.2.840.113549.1.9.1=,CN=DeFconX,OU=DeFconX,O=DeFconX,C=IT",
+            "verified": true,
+            "signed_controller_range": [
+              8,
+              1940
+            ],
+            "certificate_sha256": "08ad6ac97e4ccb9a7522b392b33108cf6b34b7c0abacee45c94167444d3add6d"
+          }
+        ],
+        "payload_count": 10,
+        "checked_file_descriptions": 10,
+        "all_checked_payload_hashes_match": true
+      }
+    },
+    {
+      "filename": "K-Rally-1.01-Team-SyMBiAN.sis",
+      "bundle_path": "preservation-copies/K-Rally-1.01-Team-SyMBiAN.sis",
+      "game": "K-Rally",
+      "release": "1.01",
+      "platform": "S60v3, 240x320",
+      "provenance": "third-party preservation copy",
+      "bytes": 3021676,
+      "sha256": "e93abd790e7c5b05427e5e141f34532b329982e89f1a0112c856b59eb03db9e4",
+      "cid": "bafybeifjddozwm5cprnmzxp7cbixgnni6srx5nhga26yzokmvllacbbkay",
+      "source_page": "https://www.myabandonware.com/game/k-rally-xw4",
+      "download_url": "https://www.myabandonware.com/download/pcwv-k-rally",
+      "archive_member": "KRally V1.01 240x320 (S60 3rd)(Racing).sis",
+      "notes": "Fallback: no original publisher package recovered. Team SyMBiAN cracker certificate; retained signature fails verification. Payload hashes match the modified controller.",
+      "sis": {
+        "uid": "0xa0000bf6",
+        "version": [
+          1,
+          1,
+          0
+        ],
+        "created": "2007-04-07T15:08:31",
+        "vendor": "Infinite Dreams Ltd.",
+        "signatures": [
+          {
+            "subject": "1.2.840.113549.1.9.1=mail@SyMBiAN.cc,CN=Team SyMBiAN,OU=Cracker,O=Team SyMBiAN,C=GB",
+            "issuer": "1.2.840.113549.1.9.1=mail@SyMBiAN.cc,CN=Team SyMBiAN,OU=Cracker,O=Team SyMBiAN,C=GB",
+            "verified": false,
+            "signed_controller_range": [
+              8,
+              2204
+            ],
+            "certificate_sha256": "8799216476908092e393c06572fce01dc6fb0753b60c66a567062a6fe490052a"
+          }
+        ],
+        "payload_count": 12,
+        "checked_file_descriptions": 12,
+        "all_checked_payload_hashes_match": true
+      }
+    },
+    {
+      "filename": "Asphalt-Urban-GT-2-N95-8GB-1.0.1.sis",
+      "bundle_path": "official-installers/Asphalt-Urban-GT-2-N95-8GB-1.0.1.sis",
+      "game": "Asphalt: Urban GT 2",
+      "release": "1.0.1",
+      "platform": "S60v3, Nokia N95 8GB",
+      "provenance": "publisher-signed original or unchanged extracted component",
+      "bytes": 2268692,
+      "sha256": "d55bb082f53deb40b3b4d9f7440b7eb7b7087a648eabc8c8c9cdf1b8aa756b40",
+      "cid": "bafybeidubuhgiqdedmtolq4tpfgledkxflwgnr4c5nkkrgyzb2u3xsxt6i",
+      "source_page": "https://www.myabandonware.com/game/asphalt-urban-gt-2-ms3",
+      "download_url": "https://www.myabandonware.com/download/pd6c-asphalt-urban-gt-2",
+      "archive_member": "Asphalt Urban GT 2 3D (Symbian (9.1, 9.2, 9.3)).sis",
+      "notes": "Newest recovered handset build by package date. Official S60 port, not the original N-Gage card release.",
+      "sis": {
+        "uid": "0x2001302c",
+        "version": [
+          1,
+          0,
+          1
+        ],
+        "created": "2008-02-26T12:31:50",
+        "vendor": "Gameloft",
+        "signatures": [
+          {
+            "subject": "CN=Gameloft,OU=Asphalt2_3D_NokiaN95(8GB) 1.0.1,OU=ad4bedc68f387802ecb66046aff95f80,O=Gameloft,L=Montreal,ST=Quebec,C=CA",
+            "issuer": "CN=Symbian,O=Symbian Limited,C=GB",
+            "verified": true,
+            "signed_controller_range": [
+              8,
+              2080
+            ],
+            "certificate_sha256": "ed5525d95e60be1a60f157d6ca771fa67deec4d0d62d81762df026548fabff8e"
+          }
+        ],
+        "payload_count": 9,
+        "checked_file_descriptions": 9,
+        "all_checked_payload_hashes_match": true
+      }
+    },
+    {
+      "filename": "Asphalt-Urban-GT-2-N95-1.0.1.sisx",
+      "bundle_path": "official-installers/alternate-device-builds/Asphalt-Urban-GT-2-N95-1.0.1.sisx",
+      "game": "Asphalt: Urban GT 2",
+      "release": "1.0.1",
+      "platform": "S60v3, Nokia N95",
+      "provenance": "publisher-signed original or unchanged extracted component",
+      "bytes": 2349256,
+      "sha256": "dbaaeaf1ad009d87c54cf91974bca49ddd17f8f0c7e7893957d93477c1298925",
+      "cid": "bafybeieptp6bk5nnp3kipk55pdeudjggizx3edeii53qrryhxwnumuizee",
+      "source_page": "https://www.myabandonware.com/game/asphalt-urban-gt-2-ms3",
+      "download_url": "https://www.myabandonware.com/download/pd6e-asphalt-urban-gt-2",
+      "archive_member": "Asphalt_Urban_GT_2_3D_HD_Version_N95_Signed.sisx",
+      "notes": "Older handset-specific build, retained for compatibility comparison.",
+      "sis": {
+        "uid": "0x20008629",
+        "version": [
+          1,
+          0,
+          1
+        ],
+        "created": "2007-05-30T13:14:38",
+        "vendor": "Gameloft",
+        "signatures": [
+          {
+            "subject": "CN=Gameloft,OU=Asphalt23D_nokiaN95_ML_nonIGP_v1_0_1.sis 1.0.1,OU=93e264d36cd30df1ac35aece0c2ded85,O=Gameloft,L=Montreal,ST=Quebec,C=CA",
+            "issuer": "CN=Symbian,O=Symbian Limited,C=GB",
+            "verified": true,
+            "signed_controller_range": [
+              8,
+              2264
+            ],
+            "certificate_sha256": "647ab11dc52221ed074ef60e5cc99ee4bc7959ca630b227aef88277859036c38"
+          }
+        ],
+        "payload_count": 11,
+        "checked_file_descriptions": 11,
+        "all_checked_payload_hashes_match": true
+      }
+    },
+    {
+      "filename": "Asphalt-Urban-GT-2-N91-3250-1.2.0.sisx",
+      "bundle_path": "official-installers/alternate-device-builds/Asphalt-Urban-GT-2-N91-3250-1.2.0.sisx",
+      "game": "Asphalt: Urban GT 2",
+      "release": "1.2.0",
+      "platform": "S60v3, Nokia N91 / 3250",
+      "provenance": "publisher-signed original or unchanged extracted component",
+      "bytes": 2247152,
+      "sha256": "87e991ebe40083aa5f3bac402c4e8e68ec65808844fbb873ce5ab5fa1e208117",
+      "cid": "bafybeialww2vjropfs3bfkpalraxd3n57lh36yuda7o3t42jdivuza75xq",
+      "source_page": "https://www.myabandonware.com/game/asphalt-urban-gt-2-ms3",
+      "download_url": "https://www.myabandonware.com/download/pd6d-asphalt-urban-gt-2",
+      "archive_member": "Asphalt_Urban_GT_2_3D_HD_Version_N91_3250_Signed.sisx",
+      "notes": "Older handset-specific build. Its higher version number does not make it newer than the 2008 N95 8GB branch.",
+      "sis": {
+        "uid": "0x200042e9",
+        "version": [
+          1,
+          2,
+          0
+        ],
+        "created": "2007-03-09T12:27:51",
+        "vendor": "Gameloft",
+        "signatures": [
+          {
+            "subject": "CN=Gameloft,OU=Asphalt 2 3D 1.2.0,OU=09392acec4221826a84e6018ff7e10dc,O=Gameloft,L=Montreal,ST=Quebec,C=CA",
+            "issuer": "CN=Symbian,O=Symbian Limited,C=GB",
+            "verified": true,
+            "signed_controller_range": [
+              8,
+              2296
+            ],
+            "certificate_sha256": "8364d6ce1c870da3cbce85b4236015db5560d8d80894d6eef1fee51ea66a7156"
+          }
+        ],
+        "payload_count": 10,
+        "checked_file_descriptions": 10,
+        "all_checked_payload_hashes_match": true
+      }
+    },
+    {
+      "filename": "Hooked-On-Creatures-of-the-Deep-0.74.n-gage",
+      "bundle_path": "official-installers/Hooked-On-Creatures-of-the-Deep-0.74.n-gage",
+      "game": "Hooked On: Creatures of the Deep",
+      "release": "0.74",
+      "platform": "N-Gage 2.0 / S60v3",
+      "provenance": "publisher-signed original or unchanged extracted component",
+      "bytes": 28202107,
+      "sha256": "991ad3fea19a2c93ba0d39713fe68e6acb24df17991691b1963756ac96541678",
+      "cid": "bafybeidx3p5c2mxwch773atrzdw2d3rd4evzruom6vkcnwtgk2zhl47ty4",
+      "source_page": "https://archive.org/details/nokia-n-gage-the-force-unleashed-2008",
+      "download_url": "https://archive.org/download/nokia-n-gage-the-force-unleashed-2008/N-gage/Nokia%20N-gage%20-%20The%20Force%20Unleashed%20%5B2008%5D.iso/N95/Hooked_on_Creatures_of_the_Deep_0.74_Signed/Hooked_on_Creatures_of_the_Deep.n-gage",
+      "archive_member": null,
+      "notes": "Original Nokia promotional CD distribution. Multipart container includes signed metadata and game SIS; original trial licensing remains.",
+      "signature_note": "Container itself is not SIS-signed. Both enclosed SIS components were verified separately."
+    },
+    {
+      "filename": "Hooked-On-Creatures-of-the-Deep-0.74-game.sis",
+      "bundle_path": "unchanged-extracted-components/Hooked-On-Creatures-of-the-Deep-0.74-game.sis",
+      "game": "Hooked On: Creatures of the Deep",
+      "release": "0.74",
+      "platform": "N-Gage 2.0 / S60v3",
+      "provenance": "publisher-signed original or unchanged extracted component",
+      "bytes": 28148628,
+      "sha256": "f95e3e9573531654a77a658f5949f302017b7135b5be16ad1482608668269b05",
+      "cid": "bafybeifmd2wjfhrlkizjx6qqtd2j4lcrpmjb75yk3lbqdkqk73wmy5xjri",
+      "source_page": "https://archive.org/details/nokia-n-gage-the-force-unleashed-2008",
+      "download_url": "https://archive.org/download/nokia-n-gage-the-force-unleashed-2008/N-gage/Nokia%20N-gage%20-%20The%20Force%20Unleashed%20%5B2008%5D.iso/N95/Hooked_on_Creatures_of_the_Deep_0.74_Signed/Hooked_on_Creatures_of_the_Deep.n-gage",
+      "archive_member": "MIME part 2, zero-based",
+      "notes": "Exact decoded game SIS from original .n-gage container. Requires N-Gage runtime and normal package import; not an independent launchable SIS.",
+      "sis": {
+        "uid": "0x2000afbc",
+        "version": [
+          0,
+          74,
+          0
+        ],
+        "created": "2008-03-20T23:25:48",
+        "vendor": "Nokia",
+        "signatures": [
+          {
+            "subject": "CN=Nokia Content,O=Nokia",
+            "issuer": "CN=Nokia Online CA,O=Nokia",
+            "verified": true,
+            "signed_controller_range": [
+              8,
+              9976
+            ],
+            "certificate_sha256": "724063b388b87db8e2e23030b2a6f52f00d715d1b44ed9f594108c1917abbc95"
+          },
+          {
+            "subject": "CN=Nokia Content,O=Nokia",
+            "issuer": "CN=Nokia Content Signing CA,O=Nokia",
+            "verified": true,
+            "signed_controller_range": [
+              8,
+              11248
+            ],
+            "certificate_sha256": "8b18c75c1c0fd938d6fa37251acd70cf816313b7efde62794240e83f73b38574"
+          }
+        ],
+        "payload_count": 59,
+        "checked_file_descriptions": 59,
+        "all_checked_payload_hashes_match": true
+      }
+    },
+    {
+      "filename": "Hooked-On-Creatures-of-the-Deep-0.74-metadata.sis",
+      "bundle_path": "unchanged-extracted-components/Hooked-On-Creatures-of-the-Deep-0.74-metadata.sis",
+      "game": "Hooked On: Creatures of the Deep",
+      "release": "0.74",
+      "platform": "N-Gage 2.0 / S60v3",
+      "provenance": "publisher-signed original or unchanged extracted component",
+      "bytes": 52680,
+      "sha256": "7b3c0439bbfceeb1caa4ef3336043215f88d5c7799ea5a802edd9944c292dbdb",
+      "cid": "bafkreid3hqcdto7452y4vjhpgm3aimqv7cgvy54z5jnialw5tfcmfew33m",
+      "source_page": "https://archive.org/details/nokia-n-gage-the-force-unleashed-2008",
+      "download_url": "https://archive.org/download/nokia-n-gage-the-force-unleashed-2008/N-gage/Nokia%20N-gage%20-%20The%20Force%20Unleashed%20%5B2008%5D.iso/N95/Hooked_on_Creatures_of_the_Deep_0.74_Signed/Hooked_on_Creatures_of_the_Deep.n-gage",
+      "archive_member": "MIME part 1, zero-based",
+      "notes": "Exact decoded metadata SIS from original .n-gage container.",
+      "sis": {
+        "uid": "0x2000afbc",
+        "version": [
+          0,
+          74,
+          0
+        ],
+        "created": "2008-03-24T16:02:47",
+        "vendor": "Nokia",
+        "signatures": [
+          {
+            "subject": "CN=Nokia Corp.,OU=Symbian Signed ContentID,OU=COTD-0.74_NG101_m  0.74,O=Nokia Corp.,L=Espoo,ST=FIN,C=FI",
+            "issuer": "CN=Symbian CA I,O=Symbian Limited,C=GB",
+            "verified": true,
+            "signed_controller_range": [
+              8,
+              1204
+            ],
+            "certificate_sha256": "058f0ec6e65e7c87a10c4d08cc88033bff4a685a515054f857e7efb724494f6c"
+          }
+        ],
+        "payload_count": 5,
+        "checked_file_descriptions": 5,
+        "all_checked_payload_hashes_match": true
+      }
+    },
+    {
+      "filename": "N-Gage-1.40.1557.sisx",
+      "bundle_path": "official-runtime/N-Gage-1.40.1557.sisx",
+      "game": "N-Gage runtime",
+      "release": "1.40.1557",
+      "platform": "Supported S60v3 devices",
+      "provenance": "publisher-signed original or unchanged extracted component",
+      "bytes": 12266112,
+      "sha256": "2396b65d14abbacd371142954b65d20eb2c30dd05f3f9e548287f474cfdac6b5",
+      "cid": "bafybeidm5ga543mn7ijsdvoyu5lpo6b5g7vfgstkgazpufietaj4ptvoqm",
+      "source_page": "https://archive.org/details/Dance.Fabulous.nGage",
+      "download_url": "https://archive.org/download/Dance.Fabulous.nGage/N-Gage%202.0/Software/N-Gage%20Installer%20v1.40.1557/Other/N-Gage%20Aplicativo%201.40%202011/1%C2%BA%20N-gage_1.40_1557.sisx",
+      "archive_member": null,
+      "notes": "Original signed wrapper. Contains the actual signed client installer as a payload.",
+      "sis": {
+        "uid": "0x2000a2ae",
+        "version": [
+          1,
+          40,
+          1557
+        ],
+        "created": "2009-08-05T18:06:59",
+        "vendor": "Nokia",
+        "signatures": [
+          {
+            "subject": "CN=Nokia Content,O=Nokia",
+            "issuer": "CN=Nokia Online CA,O=Nokia",
+            "verified": true,
+            "signed_controller_range": [
+              8,
+              6512
+            ],
+            "certificate_sha256": "6d9311f87415b60db885f0fabe9803cff8c60457f1a3bcbac124f91720c20899"
+          },
+          {
+            "subject": "CN=Nokia Content,O=Nokia",
+            "issuer": "CN=Nokia Content Signing CA,O=Nokia",
+            "verified": true,
+            "signed_controller_range": [
+              8,
+              7784
+            ],
+            "certificate_sha256": "8b18c75c1c0fd938d6fa37251acd70cf816313b7efde62794240e83f73b38574"
+          }
+        ],
+        "payload_count": 24,
+        "checked_file_descriptions": 24,
+        "all_checked_payload_hashes_match": true
+      }
+    },
+    {
+      "filename": "N-Gage-1.40.1557-inner.sisx",
+      "bundle_path": "unchanged-extracted-components/N-Gage-1.40.1557-inner.sisx",
+      "game": "N-Gage runtime",
+      "release": "1.40.1557",
+      "platform": "Supported S60v3 devices",
+      "provenance": "publisher-signed original or unchanged extracted component",
+      "bytes": 12346300,
+      "sha256": "e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+      "cid": "bafybeigkftb66qpv2lq256qfr3jmlmwkj72v3bdsd4hpy63a6eutk27sxm",
+      "source_page": "https://archive.org/details/Dance.Fabulous.nGage",
+      "download_url": "https://archive.org/download/Dance.Fabulous.nGage/N-Gage%202.0/Software/N-Gage%20Installer%20v1.40.1557/Other/N-Gage%20Aplicativo%201.40%202011/1%C2%BA%20N-gage_1.40_1557.sisx",
+      "archive_member": "SIS payload index 28",
+      "notes": "Exact decompressed signed inner installer. This is the runtime installed directly for the browser test.",
+      "sis": {
+        "uid": "0x20003b78",
+        "version": [
+          1,
+          40,
+          1557
+        ],
+        "created": "2009-08-05T17:32:08",
+        "vendor": "Nokia",
+        "signatures": [
+          {
+            "subject": "CN=Nokia Content,O=Nokia",
+            "issuer": "CN=Nokia Online CA,O=Nokia",
+            "verified": true,
+            "signed_controller_range": [
+              8,
+              260120
+            ],
+            "certificate_sha256": "a36d8428a1b62f32ed771a70e46125f7ed368107cf78fbac10e9366b4ae92140"
+          },
+          {
+            "subject": "CN=Nokia Content,O=Nokia",
+            "issuer": "CN=Nokia Content Signing CA,O=Nokia",
+            "verified": true,
+            "signed_controller_range": [
+              8,
+              261392
+            ],
+            "certificate_sha256": "8b18c75c1c0fd938d6fa37251acd70cf816313b7efde62794240e83f73b38574"
+          }
+        ],
+        "payload_count": 803,
+        "checked_file_descriptions": 449,
+        "all_checked_payload_hashes_match": true
+      }
+    },
+    {
+      "filename": "Sky-Force-1.32-S60v5.sis",
+      "bundle_path": "official-touchscreen-extra/Sky-Force-1.32-S60v5.sis",
+      "game": "Sky Force",
+      "release": "1.32",
+      "platform": "S60v5 / touchscreen",
+      "provenance": "publisher-signed original or unchanged extracted component",
+      "bytes": 1343188,
+      "sha256": "9032d574f079318c7785aaf8afe588e20f34454e0492f2030e323f6b55fa983c",
+      "cid": "bafybeicvrjchyeni4t6izq526u44izuomx2kalfpa64n7ng34dqlhdeqmm",
+      "source_page": "https://www.myabandonware.com/game/sky-force-vxs",
+      "download_url": "https://www.myabandonware.com/download/pcqa-sky-force",
+      "archive_member": "Sky Force 1.32(0) Signed - SYMBIAN BELLE (S60 5th)(Action).sis",
+      "notes": "Publisher-signed later touchscreen port. Included for preservation, not as the keypad version; failed on stock 5320.",
+      "sis": {
+        "uid": "0x20025178",
+        "version": [
+          1,
+          32,
+          0
+        ],
+        "created": "2010-10-06T14:31:43",
+        "vendor": "Infinite Dreams Ltd.",
+        "signatures": [
+          {
+            "subject": "CN=Infinite Dreams sp. z o.o.,OU=Symbian Signed ContentID,OU=Sky Force  1.32,O=Infinite Dreams sp. z o.o.,L=Gliwice,ST=Slask,C=PL",
+            "issuer": "CN=Symbian CA I,O=Symbian Limited,C=GB",
+            "verified": true,
+            "signed_controller_range": [
+              8,
+              2192
+            ],
+            "certificate_sha256": "3b356b8ad76d7b953587793435573be4127eff37c1ce09536baa13dc6ef0ac09"
+          }
+        ],
+        "payload_count": 11,
+        "checked_file_descriptions": 11,
+        "all_checked_payload_hashes_match": true
+      }
+    }
+  ],
+  "tests": [
+    {
+      "id": "snakes",
+      "commit": "a7d35c108",
+      "observations": {
+        "before": {
+          "status": "Running: 0x2000730f \u00b7 Arrows/WASD to move, Enter to select \u00b7 Use Enable sound for audio",
+          "frames": 1514,
+          "monitor": "{\"guest_us\":98979921,\"instructions\":0,\"compiled_functions\":47688,\"aot_translation_us\":8292677,\"aot_emission_us\":374982,\"aot_installation_us\":732224,\"aot_eager_functions\":39723,\"aot_eager_passes\":12,\"allocated_bytes\":878708448,\"free_bytes\":87295392}"
+        },
+        "after": {
+          "status": "Running: 0x2000730f \u00b7 Arrows/WASD to move, Enter to select \u00b7 Use Enable sound for audio",
+          "frames": 1680,
+          "monitor": "{\"guest_us\":109394145,\"instructions\":0,\"compiled_functions\":47692,\"aot_translation_us\":8295353,\"aot_emission_us\":375086,\"aot_installation_us\":732893,\"aot_eager_functions\":39723,\"aot_eager_passes\":12,\"allocated_bytes\":878799496,\"free_bytes\":87204344}"
+        },
+        "seconds": 10.415548981,
+        "fps": 15.937710081611298
+      },
+      "evidence_directory": "evidence/snakes"
+    },
+    {
+      "id": "sky-force-official",
+      "commit": "a7d35c108",
+      "observations": {
+        "status": "KERN-EXEC 3 before gameplay",
+        "snapshot": {
+          "status": "Running: 0x20025178 \u00b7 Arrows/WASD to move, Enter to select \u00b7 Use Enable sound for audio",
+          "frames": 18,
+          "monitor": "{\"guest_us\":37511524,\"instructions\":0,\"compiled_functions\":19837,\"aot_translation_us\":2721859,\"aot_emission_us\":177919,\"aot_installation_us\":276860,\"aot_eager_functions\":12840,\"aot_eager_passes\":10,\"allocated_bytes\":800086344,\"free_bytes\":98743096}"
+        }
+      },
+      "evidence_directory": "evidence/sky-force-official"
+    },
+    {
+      "id": "sky-force-122c",
+      "commit": "2157bcbb3",
+      "observations": {
+        "outcome": "gameplay_verified",
+        "note": "Gameplay and left/right input verified; UI approximately 32 FPS, not an isolated benchmark",
+        "final": {
+          "status": "Running: 0xa020d913 \u00b7 Arrows/WASD to move, Enter to select \u00b7 Use Enable sound for audio",
+          "frames": 3070,
+          "monitor": "{\"guest_us\":101872942,\"instructions\":0,\"compiled_functions\":41785,\"aot_translation_us\":5908739,\"aot_emission_us\":269410,\"aot_installation_us\":604371,\"aot_eager_functions\":34245,\"aot_eager_passes\":12,\"allocated_bytes\":877253664,\"free_bytes\":88750176}"
+        }
+      },
+      "evidence_directory": "evidence/sky-force-122c"
+    },
+    {
+      "id": "k-rally",
+      "commit": "2157bcbb3",
+      "observations": {
+        "outcome": "gameplay_and_driving_verified",
+        "note": "Tutorial track, acceleration to 65 MPH and steering verified. Saved controls map acceleration to 4; guest scan 52 works, numeric-keypad scan 140 does not. Arrow left/right steer. Browser overlays showed roughly 16-32 FPS across these smoke checks, not an isolated performance benchmark.",
+        "final": {
+          "status": "Running: 0xa0000bf6 \u00b7 Arrows/WASD to move, Enter to select \u00b7 Use Enable sound for audio",
+          "frames": 28609,
+          "monitor": "{\"guest_us\":1021287870,\"instructions\":0,\"compiled_functions\":51165,\"aot_translation_us\":9465775,\"aot_emission_us\":501718,\"aot_installation_us\":1013513,\"aot_eager_functions\":43793,\"aot_eager_passes\":12,\"allocated_bytes\":880390304,\"free_bytes\":85613536}"
+        }
+      },
+      "evidence_directory": "evidence/k-rally"
+    },
+    {
+      "id": "asphalt",
+      "commit": "a7d35c108",
+      "observations": {
+        "status": "failed before gameplay",
+        "snapshot": {
+          "status": "Running: 0x2001302c \u00b7 Arrows/WASD to move, Enter to select \u00b7 Use Enable sound for audio",
+          "frames": 19,
+          "monitor": "{\"guest_us\":67654282,\"instructions\":0,\"compiled_functions\":18868,\"aot_translation_us\":4592831,\"aot_emission_us\":250803,\"aot_installation_us\":408916,\"aot_eager_functions\":11808,\"aot_eager_passes\":10,\"allocated_bytes\":800121232,\"free_bytes\":98708208}"
+        }
+      },
+      "evidence_directory": "evidence/asphalt"
+    },
+    {
+      "id": "asphalt-tlb",
+      "commit": "a7d35c108",
+      "observations": {
+        "status": "failed before gameplay; TLB fallback",
+        "snapshot": {
+          "status": "Running: 0x2001302c \u00b7 Arrows/WASD to move, Enter to select \u00b7 Use Enable sound for audio",
+          "frames": 18,
+          "monitor": "{\"guest_us\":22688279,\"instructions\":0,\"compiled_functions\":29662,\"aot_translation_us\":5217754,\"aot_emission_us\":177654,\"aot_installation_us\":410661,\"aot_eager_functions\":22646,\"aot_eager_passes\":10,\"allocated_bytes\":558482424,\"free_bytes\":50776200}"
+        }
+      },
+      "evidence_directory": "evidence/asphalt-tlb"
+    },
+    {
+      "id": "asphalt-n95",
+      "commit": "a7d35c108",
+      "observations": {
+        "outcome": "fails_before_gameplay",
+        "reason": "KERN-EXEC 3; read at 0x37e8",
+        "final": {
+          "status": "Running: 0x20008629 \u00b7 Arrows/WASD to move, Enter to select \u00b7 Use Enable sound for audio",
+          "frames": 17,
+          "monitor": "{\"guest_us\":150300510,\"instructions\":0,\"compiled_functions\":18847,\"aot_translation_us\":3084186,\"aot_emission_us\":134406,\"aot_installation_us\":258053,\"aot_eager_functions\":11816,\"aot_eager_passes\":10,\"allocated_bytes\":800188936,\"free_bytes\":98640504}"
+        }
+      },
+      "evidence_directory": "evidence/asphalt-n95"
+    },
+    {
+      "id": "asphalt-n91",
+      "commit": "a7d35c108",
+      "observations": {
+        "outcome": "fails_before_gameplay",
+        "reason": "Read faults at 0x37e8 and 0x37ec; PC 0x801900be",
+        "final": {
+          "status": "Running: 0x200042e9 \u00b7 Arrows/WASD to move, Enter to select \u00b7 Use Enable sound for audio",
+          "frames": 21,
+          "monitor": "{\"guest_us\":35129331,\"instructions\":0,\"compiled_functions\":18534,\"aot_translation_us\":3013253,\"aot_emission_us\":138667,\"aot_installation_us\":254339,\"aot_eager_functions\":11486,\"aot_eager_passes\":10,\"allocated_bytes\":799913384,\"free_bytes\":98916056}"
+        }
+      },
+      "evidence_directory": "evidence/asphalt-n91"
+    },
+    {
+      "id": "asphalt-device-uid",
+      "commit": "2157bcbb3",
+      "observations": {
+        "outcome": "Fails before gameplay with KERN-EXEC 3 and invalid read 0x37e8 after device UID fix",
+        "final": {
+          "status": "Running: 0x2001302c \u00b7 Arrows/WASD to move, Enter to select \u00b7 Use Enable sound for audio",
+          "frames": 18,
+          "monitor": "{\"guest_us\":148494233,\"instructions\":0,\"compiled_functions\":18824,\"aot_translation_us\":6593804,\"aot_emission_us\":290351,\"aot_installation_us\":545080,\"aot_eager_functions\":11808,\"aot_eager_passes\":10,\"allocated_bytes\":800167664,\"free_bytes\":98661776}"
+        }
+      },
+      "evidence_directory": "evidence/asphalt-device-uid"
+    },
+    {
+      "id": "hooked-container",
+      "commit": "2157bcbb3",
+      "observations": {
+        "outcome": "original_trial_gameplay_reached",
+        "note": "Original signed container installed through original N-Gage client. Try Game > English > Instant Play > boat map > fishing scene reached. Input moves boat and starts fishing. Roughly 3-8 FPS during this smoke, not a controlled performance run; full-game activation and audio not verified.",
+        "final": {
+          "status": "Running: 0x20003b78 \u00b7 Arrows/WASD to move, Enter to select \u00b7 Use Enable sound for audio",
+          "frames": 5061,
+          "monitor": "{\"guest_us\":656678456,\"instructions\":0,\"compiled_functions\":88235,\"aot_translation_us\":44232708,\"aot_emission_us\":1133556,\"aot_installation_us\":3521137,\"aot_eager_functions\":78412,\"aot_eager_passes\":129,\"allocated_bytes\":1574934336,\"free_bytes\":198538560}"
+        }
+      },
+      "evidence_directory": "evidence/hooked-container"
+    }
+  ]
+}
