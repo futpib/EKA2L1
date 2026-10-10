@@ -2,12 +2,12 @@
 
 Build `eka2l1_wasm` following the [browser build instructions](../benchmark/README.md),
 then run `npm ci --ignore-scripts` and `npm run serve -- 8188` in this directory.
-Choose **Sky Force**, **Snakes**, **Asphalt: Urban GT 2** or **Hooked On (trial)**
+Choose **Snakes**, **Sky Force**, **K-Rally**, **Asphalt: Urban GT 2** or **Hooked On (trial)**
 and press **Play**.
 Each launch starts a fresh session; saves are not persisted. **Load my own files** opens the
 ROM/RPKG/SIS upload controls. Changing the dropdown alone does not stop play.
 
-Direct links use `?game=sky-force`, `?game=snakes`, `?game=asphalt-2`,
+Direct links use `?game=sky-force`, `?game=snakes`, `?game=k-rally`, `?game=asphalt-2`,
 `?game=hooked-on` or `?game=custom`.
 All browser execution uses the watchdog without instruction accounting.
 Legacy `counting` URL parameters are ignored and removed on Play.
@@ -15,7 +15,8 @@ An optional
 third command-line argument, such as `node serve.ts 8188 Snakes`, selects an
 automatic default. Without it, the page waits for a choice.
 
-Use arrows/WASD to move, Enter/Space to select or fire, and F1/F2 for softkeys.
+Use arrows/WASD to move, Enter to select, Space for the configured action,
+and F1/F2 for softkeys. Number keys send the corresponding phone keys.
 During play, the FPS display below the menu button shows emulator presentations
 per second over a rolling window of about two seconds. It updates twice per
 second, includes stalls, and resets its sampling window after a background tab.
@@ -26,6 +27,12 @@ with fixed or floating movement, saved per-game layouts, handedness and an
 expandable phone keypad. See the [touch control guide](TOUCH_CONTROLS.md).
 Sky Force first shows a splash screen and language selection, followed by
 **Start game**, difficulty and ship selection.
+
+K-Rally uses arrows to navigate, Enter or touch **OK** to confirm, and
+left/right to steer. Hold **Space**, **4** or touch **Gas** to accelerate;
+**7** is turbo and up/down fire weapons. Set up a profile, then choose
+**Single Player → Tutorial** to learn the controls and unlock racing. Its 1.01
+package is the recovered Team SyMBiAN preservation copy; an original publisher installer was not recovered.
 
 Asphalt asks whether to enable sound: F1 selects **Yes**, F2 selects **No**.
 Enter advances past its title screen and selects **Instant Play**. Arrow keys

@@ -20,6 +20,18 @@
     "archive_member": "Infinite Dreams SkyForce v1.22 (240x320) (S60 3rd)(Space).sisx"
   },
   {
+    "id": "k-rally",
+    "title": "K-Rally",
+    "uid": "0xa0000bf6",
+    "file": "K-Rally-1.01-Team-SyMBiAN.sis",
+    "cid": "bafybeifjddozwm5cprnmzxp7cbixgnni6srx5nhga26yzokmvllacbbkay",
+    "sha256": "e93abd790e7c5b05427e5e141f34532b329982e89f1a0112c856b59eb03db9e4",
+    "version": "1.01, S60 3rd Edition, Team SyMBiAN preservation copy",
+    "source": "https://www.myabandonware.com/game/k-rally-xw4",
+    "download": "https://www.myabandonware.com/download/pcwv-k-rally",
+    "archive_member": "KRally V1.01 240x320 (S60 3rd)(Racing).sis"
+  },
+  {
     "id": "asphalt-2",
     "title": "Asphalt: Urban GT 2",
     "uid": "0x2001302c",

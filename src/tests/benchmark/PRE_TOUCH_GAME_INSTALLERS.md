@@ -137,9 +137,11 @@ Screenshots and logs are retained under
 
 K-Rally's saved controls map acceleration to **4**, turbo to **7**, steering to
 left/right, and weapons to up/down. Driving was verified with guest scan code
-52 for 4. The browser phone keypad currently emits numeric-keypad scan 140,
-which did not accelerate this game. Remap Accelerate in the game's own
-**Options > Game Controls** to a supported browser action key for normal play.
+52 for 4. The old browser keypad emitted PC numeric-keypad scan 140, which did not
+accelerate this game. The launcher now sends phone digit scans 48–57, matching
+the native frontend. K-Rally is in the normal picker with a Gas action (4) and
+a separate OK button. Space accelerates, Enter selects, and 7 activates turbo;
+no in-game remapping is needed.
 
 Snakes gameplay was about 16 presentations/s in a short paced sample;
 Sky Force was around 32; K-Rally showed roughly 16–32 across the driving/menu
@@ -184,6 +186,41 @@ The Snakes gameplay regression also passed, with 161 presentations in 10.06
 seconds. This is a compatibility check, not an Asphalt performance comparison.
 Final LAN evidence is in
 `/home/claude/.scratch/eka-asphalt-fix-20261010/{e2e,snakes-regression}/`.
+
+## Five-game LAN launcher and phone-key input
+
+The picker now contains all five games. A fresh Chromium 153 session for each
+selected the game through `https://claude-laptop.lan:8188/` and reached actual
+play using the stock 5320. The existing Snakes 0.6.0.19 and Sky Force 1.22
+launcher assets remain selected; the recovery table above describes the
+separately transferred newer installers.
+
+| # | Game | Live launcher verification |
+|---|---|---|
+| 1 | Snakes | Gameplay and directional input |
+| 2 | Sky Force | Combat and directional input |
+| 3 | K-Rally | Tutorial driving, touch Gas to 65 MPH, simultaneous touch steering and keyboard Space acceleration |
+| 4 | Asphalt: Urban GT 2 | Sound-enabled startup, Instant Play race and left/right steering |
+| 5 | Hooked On (trial) | Original client import, Costa Rica boat movement and fishing scene |
+
+K-Rally uses its existing individual SIS CID; no recovered binary is added to
+Git. Phone digits now use scan codes 48–57, with equivalent physical number
+keys. K-Rally's preset exposes Gas and a separate menu OK button. The input test
+checks the real browser event path, numeric keys, Space/touch ownership, menu
+selection and migration of old saved action codes.
+
+Build, API/resource smoke, compiler-policy and touch-control tests passed.
+All five gameplay checks had no page errors or observed fatal guest faults.
+The touch checks emulate contacts in desktop Chromium; physical phone input and
+hardware audio output are not certified here. This was a compatibility check,
+with overlapping sessions, not a performance comparison or full playthrough.
+Hooked On remains the original limited trial, with its slow import repeated on
+each fresh launch.
+
+Evidence, input assertions and visually inspected screenshots:
+`/home/claude/.scratch/eka-all-five-20261010/`. Served asset ETags match the
+staged build; WASM SHA-256 is
+`3d0bb2ee382bcef42c641ba1d609e019e65233b75310eabfd265fcd65b4b60ff`.
 
 ## Files for pinning
 

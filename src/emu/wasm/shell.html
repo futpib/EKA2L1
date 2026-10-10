@@ -178,6 +178,10 @@
         var _keyScans = {ArrowLeft:14, ArrowRight:15, ArrowUp:16, ArrowDown:17,
             KeyA:14, KeyD:15, KeyW:16, KeyS:17, Enter:167, NumpadEnter:167,
             Space:167, F1:164, F2:165, Escape:165};
+        // Phone digits use their character scan codes, as in the native frontend.
+        for (var digit = 0; digit <= 9; digit++) {
+            _keyScans['Digit' + digit] = _keyScans['Numpad' + digit] = 48 + digit;
+        }
         function _pressSource(source, scan) {
             if (!_gameRunning || _inputSources.has(source)) return;
             var alreadyDown = Array.from(_inputSources.values()).includes(scan);
@@ -258,7 +262,9 @@
 
         function setRunningStatus(title) {
             Module.setStatus('Running: ' + title
-                + ' · Arrows/WASD to move, Enter to select · Use Enable sound for audio');
+                + ' · Arrows/WASD to move, Enter to select'
+                + (window.ekaTouchControls?.profile === 'k-rally' ? ', Space/4 to accelerate, 7 for turbo' : '')
+                + ' · Use Enable sound for audio');
         }
 
         async function startEmulator(ngagePackage) {

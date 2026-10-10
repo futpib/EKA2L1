@@ -18,6 +18,7 @@ class EkaTouchControls {
             <div class="touch-zone" id="action-zone"><div class="touch-cluster" id="action-group">
                     <button type="button" data-scan="164" aria-label="Left softkey" title="Left softkey">L</button>
                     <button type="button" data-scan="165" aria-label="Right softkey" title="Right softkey">R</button>
+                <button type="button" id="menu-select" data-scan="167" hidden aria-label="Select">OK</button>
                 <button type="button" id="primary-action" data-scan="167">Select</button>
             </div></div>`;
         document.body.insertAdjacentHTML('beforeend', `
@@ -30,7 +31,7 @@ class EkaTouchControls {
                 <label>Spacing <input aria-label="Spacing" data-pref="gap" type="range" min="4" max="40" step="2"></label>
                 <label>Opacity <input aria-label="Opacity" data-pref="opacity" type="range" min="0.35" max="1" step="0.05"></label>
                 <label>Left-handed layout <input data-pref="leftHanded" type="checkbox"></label>
-                <label>Action button <select data-pref="action"><option value="167">Select / joystick press</option><option value="141">5</option><option value="146">0</option><option value="133">*</option><option value="127">#</option></select></label>
+                <label>Action button <select data-pref="action"><option value="167">Select / joystick press</option><option value="52">4 / accelerate</option><option value="53">5</option><option value="55">7 / turbo</option><option value="48">0</option><option value="133">*</option><option value="127">#</option></select></label>
                 <label>Tap action to hold / release <input data-pref="latch" type="checkbox"></label>
                 <p>The game keeps running while you edit. Hold mode releases when you open controls, switch apps or leave this page.</p>
                 <div class="dialog-actions"><button id="edit-touch-layout">Move controls</button><button id="reset-touch-layout">Reset</button><button data-close>Done</button></div>
@@ -44,7 +45,7 @@ class EkaTouchControls {
         this.moveZone = document.getElementById('move-zone'); this.pad = document.getElementById('movement-pad');
         this.actionZone = document.getElementById('action-zone'); this.actions = document.getElementById('action-group');
         this.primary = document.getElementById('primary-action'); this.knob = document.getElementById('stick-knob');
-        for (const [label, scan] of [['1',137],['2',138],['3',139],['4',140],['5',141],['6',142],['7',143],['8',144],['9',145],['*',133],['0',146],['#',127],['Left softkey',164],['Select',167],['Right softkey',165],['Clear',1]]) {
+        for (const [label, scan] of [['1',49],['2',50],['3',51],['4',52],['5',53],['6',54],['7',55],['8',56],['9',57],['*',133],['0',48],['#',127],['Left softkey',164],['Select',167],['Right softkey',165],['Clear',1]]) {
             const button = document.createElement('button'); button.type = 'button'; button.textContent = label;
             button.dataset.scan = scan; this.keypad.querySelector('.key-grid').append(button);
         }
@@ -119,12 +120,12 @@ class EkaTouchControls {
     clamp(value,min,max) { return Math.min(max,Math.max(min,value)); }
     defaults() {
         return {mode:this.profile==='snakes'?'pad':'stick', directions:this.profile==='snakes'?4:8,
-            size:132,gap:12,opacity:.55,leftHanded:false,action:167,latch:false,move:{x:.25,y:.75},buttons:{x:.75,y:.75}};
+            size:132,gap:12,opacity:.55,leftHanded:false,action:this.profile==='k-rally'?52:167,latch:false,move:{x:.25,y:.75},buttons:{x:.75,y:.75}};
     }
     configure(app) {
         this.releaseAll();
         const name=String(app).trim().toLowerCase();
-        this.profile=['0x2000730f','snakes'].includes(name)?'snakes':['0xa020d913','sky force','sky-force'].includes(name)?'sky-force':'generic';
+        this.profile=['0x2000730f','snakes'].includes(name)?'snakes':['0xa020d913','sky force','sky-force'].includes(name)?'sky-force':['0xa0000bf6','k-rally'].includes(name)?'k-rally':'generic';
         this.storageKey='eka-touch-v1:'+(this.profile==='generic'?(name||'generic'):this.profile);
         this.prefs=this.defaults();
         try {
@@ -132,7 +133,9 @@ class EkaTouchControls {
             if (saved && typeof saved==='object') {
                 if (['pad','stick'].includes(saved.mode)) this.prefs.mode=saved.mode;
                 if ([4,8].includes(saved.directions)) this.prefs.directions=saved.directions;
-                if ([167,141,146,133,127].includes(saved.action)) this.prefs.action=saved.action;
+                // Migrate saved numeric actions from the old PC keypad scan codes.
+                const action=({141:53,146:48})[saved.action] ?? saved.action;
+                if ([167,52,53,55,48,133,127].includes(action)) this.prefs.action=action;
                 for (const [key,min,max] of [['size',120,190],['gap',4,40],['opacity',.35,1]])
                     if (Number.isFinite(saved[key])) this.prefs[key]=this.clamp(saved[key],min,max);
                 for (const key of ['leftHanded','latch']) if (typeof saved[key]==='boolean') this.prefs[key]=saved[key];
@@ -140,7 +143,7 @@ class EkaTouchControls {
                     this.prefs[key]={x:this.clamp(saved[key].x,0,1),y:this.clamp(saved[key].y,0,1)};
             }
         } catch (_) { /* Private browsing and unavailable storage retain usable defaults. */ }
-        document.getElementById('touch-profile').textContent=(this.profile==='generic'?'General-purpose layout':this.profile==='snakes'?'Snakes':'Sky Force')+' · Saved on this device';
+        document.getElementById('touch-profile').textContent=(this.profile==='generic'?'General-purpose layout':this.profile==='snakes'?'Snakes':this.profile==='k-rally'?'K-Rally':'Sky Force')+' · Saved on this device';
         this.fillSettings(); this.layout();
     }
     save() { try { localStorage.setItem(this.storageKey,JSON.stringify(this.prefs)); } catch (_) {} }
@@ -148,7 +151,7 @@ class EkaTouchControls {
         this.configure(app); this.menu.close();
         this.menu.querySelector('[data-close]').hidden=false;
         this.menuButton.hidden=false;
-        document.getElementById('session-title').textContent=this.profile==='snakes'?'Snakes':this.profile==='sky-force'?'Sky Force':'Game options';
+        document.getElementById('session-title').textContent=this.profile==='snakes'?'Snakes':this.profile==='sky-force'?'Sky Force':this.profile==='k-rally'?'K-Rally':'Game options';
     }
     fillSettings() {
         for (const input of this.settings.querySelectorAll('[data-pref]')) {
@@ -182,14 +185,16 @@ class EkaTouchControls {
             group.style.left=(w-size)*p[key].x+'px'; group.style.top=(h-size)*p[key].y+'px';
         }
         this.primary.dataset.scan=p.action;
-        const label=p.action===167?(this.profile==='sky-force'?'Fire / OK':'Select'):({141:'5',146:'0',133:'*',127:'#'})[p.action];
+        document.getElementById('menu-select').hidden=p.action===167;
+        this.actions.classList.toggle('separate-select',p.action!==167);
+        const label=p.action===167?(this.profile==='sky-force'?'Fire / OK':'Select'):({52:this.profile==='k-rally'?'Gas':'4',53:'5',55:'7',48:'0',133:'*',127:'#'})[p.action];
         this.primary.innerHTML=p.action===167
             ? (this.profile==='sky-force'
                 ? '<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="9"/><path d="M16 2v8m0 12v8M2 16h8m12 0h8"/></svg>'
                 : '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="m8 16 6 6 11-13"/></svg>')
             : '<span>'+label+'</span>';
         this.primary.classList.toggle('hold-mode',p.latch);
-        this.primary.setAttribute('aria-label',label+(p.latch?' — tap to hold or release':''));
+        this.primary.setAttribute('aria-label',(this.profile==='k-rally'&&p.action===52?'Accelerate':label)+(p.latch?' — tap to hold or release':''));
         if (p.latch) this.primary.setAttribute('aria-pressed',String(this.owned.has('touch:latch')));
         else this.primary.removeAttribute('aria-pressed');
     }

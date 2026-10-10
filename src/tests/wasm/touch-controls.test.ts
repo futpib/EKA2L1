@@ -75,9 +75,9 @@ try {
     const actionX=(await rect('#primary-action')).x;
     await settings('leftHanded',true);assert.ok((await rect('#primary-action')).x<actionX);
     await settings('size',180);await settings('opacity',.55);await settings('mode','pad');
-    await settings('latch',true);await settings('action',141);
+    await settings('latch',true);await settings('action',53);
     action=await rect('#primary-action');await touch('touchStart',[point(action)]);await touch('touchEnd',[]);
-    assert.deepEqual(await down(),[141]);
+    assert.deepEqual(await down(),[53]);
     await controls();assert.deepEqual(await down(),[]);
     await page.click('#touch-settings [data-close]');
     await touch('touchStart',[point(action)]);await touch('touchCancel',[]);assert.deepEqual(await down(),[]);
@@ -91,8 +91,8 @@ try {
     assert.deepEqual(await down(),[]);assert.notDeepEqual((await prefs()).buttons,before.buttons);
     await page.click('#btn-game-menu');
     await menu();await page.click('#btn-keypad');
-    const five=await rect('#phone-keypad [data-scan="141"]');
-    await touch('touchStart',[point(five)]);assert.deepEqual(await down(),[141]);
+    const five=await rect('#phone-keypad [data-scan="53"]');
+    await touch('touchStart',[point(five)]);assert.deepEqual(await down(),[53]);
     await touch('touchCancel',[]);assert.deepEqual(await down(),[]);
     await page.click('#phone-keypad [data-close]');
     await controls();await page.click('#reset-touch-layout');await page.click('#touch-settings [data-close]');
@@ -110,6 +110,19 @@ try {
     await new Promise(resolve=>setTimeout(resolve,100));pad=await rect('#movement-pad');
     await touch('touchStart',[point(pad,.15,.5)]);await page.evaluate(()=>window.dispatchEvent(new Event('blur')));
     assert.deepEqual(await down(),[]);await touch('touchEnd',[]);
+    await configure('0xa0000bf6');assert.equal((await prefs()).action,52);
+    assert.equal(await page.$eval('#menu-select',e=>(e as HTMLButtonElement).hidden),false);
+    await page.focus('#canvas');await page.keyboard.down('Space');assert.deepEqual(await down(),[52]);
+    action=await rect('#primary-action');
+    await touch('touchStart',[point(action)]);await page.keyboard.up('Space');assert.deepEqual(await down(),[52]);
+    await touch('touchEnd',[]);assert.deepEqual(await down(),[]);
+    for (const [key,scan] of [['4',52],['Numpad7',55],['Enter',167]] as const) {
+        await page.keyboard.down(key);assert.deepEqual(await down(),[scan]);await page.keyboard.up(key);
+    }
+    const select=await rect('#menu-select');await touch('touchStart',[point(select)]);
+    assert.deepEqual(await down(),[167]);await touch('touchEnd',[]);
+    await page.evaluate(()=>localStorage.setItem('eka-touch-v1:sky-force','{"action":141}'));
+    await configure('sky-force');assert.equal((await prefs()).action,53);
     // Malformed persisted values and unavailable storage must not break input.
     await page.evaluate(()=>localStorage.setItem('eka-touch-v1:generic','{"size":1e99,"mode":"bad","move":{"x":-9,"y":9}}'));
     await configure('');assert.equal((await prefs()).size,190);assert.equal((await prefs()).mode,'stick');

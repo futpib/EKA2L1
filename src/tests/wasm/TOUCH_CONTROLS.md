@@ -9,7 +9,9 @@ The game keeps running while this menu is open.
 Snakes starts with a fixed four-way pad. Other apps get a floating eight-way stick
 and a Select action. Sky Force also uses eight directions, but its movement area
 covers the play surface and the stick only appears while touching it. Its action
-button maps to Fire / OK. Both movement styles remain available in every profile.
+button maps to Fire / OK. K-Rally gets a Gas action (phone key 4) and a separate
+OK button for menu selection. Any numeric action keeps that separate OK button.
+Both movement styles remain available in every profile.
 The floating stick starts at the initial touch and has a neutral zone; direction
 hysteresis prevents small finger movements from rapidly switching sectors.
 These controls send the original guest keys. In particular, Sky Force steering
@@ -30,7 +32,10 @@ The optional action hold mode toggles on each tap. It starts released, and relea
 on focus loss, hidden pages, opening dialogs, layout changes or game changes.
 **Phone keypad** exposes the numeric phone keys, star/hash, softkeys and Clear. Softkeys
 are labelled by position because their meaning is controlled by the guest game.
-Enter remains Select; Space uses the configured action key.
+Enter remains Select; Space uses the configured action key. Keyboard numbers
+(including PC number-pad keys) and the phone keypad send phone digit scan codes
+48–57, matching the native frontend. Old saved numeric action settings migrate
+to these codes.
 
 The game keeps running while settings are open. Use the game's pause controls
 before editing during play.
@@ -132,3 +137,15 @@ The served HTML and asset hashes match the tested files, and the runtime bytes
 and service settings were preserved. Evidence is in `overlay-staged-games2/`,
 `overlay-live-smoke.json`, `overlay-deployment.json` and `overlay-unit3.log` under
 `/home/claude/.scratch/eka-touch-controls/`.
+
+### K-Rally and phone digits, 2026-10-10
+
+The browser contract test passes the K-Rally preset, menu OK, phone-digit
+keyboard/keypad routing, Space/touch ownership and saved numeric-action
+migration. A fresh live LAN session reached K-Rally's tutorial without game
+remapping. At 390×844, trusted touch on Gas accelerated to 65 MPH; a second
+finger steered while Gas remained held, releasing steering preserved Gas, and
+lifting both contacts released all inputs. Keyboard Space also accelerated.
+Screenshots were inspected. The other four picker games reached gameplay in
+the same deployment; details and scope are in the
+[five-game launcher report](../benchmark/PRE_TOUCH_GAME_INSTALLERS.md#five-game-lan-launcher-and-phone-key-input).

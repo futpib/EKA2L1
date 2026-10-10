@@ -18,7 +18,8 @@
     "device_fix_wasm_sha256": "8177f5d6107093bc98fcc445e91a7d3118a316b54a06562f065a479b01cb0dca",
     "configuration": "Paced watchdog/no instruction accounting, AOT 5, IR policy 7, direct memory 2, unsafe code policy 3. asphalt-tlb uses memory 0.",
     "coverage": "Real browser WASM launches from fresh filesystems, visual checks and input. Smoke tests, not controlled performance comparisons, full playthroughs or audio certification.",
-    "midi_fix_wasm_sha256": "e1d7b25d767e83f7f045ab7cdbb2a39d82b3259fa5ef5e8f9387990ffc376f1c"
+    "midi_fix_wasm_sha256": "e1d7b25d767e83f7f045ab7cdbb2a39d82b3259fa5ef5e8f9387990ffc376f1c",
+    "five_game_launcher_wasm_sha256": "3d0bb2ee382bcef42c641ba1d609e019e65233b75310eabfd265fcd65b4b60ff"
   },
   "artifacts": [
     {
@@ -671,6 +672,56 @@
         "errors": []
       },
       "evidence_directory": "/home/claude/.scratch/eka-asphalt-fix-20261010/e2e"
+    },
+    {
+      "id": "snakes-five-game-lan",
+      "url": "https://claude-laptop.lan:8188/?game=snakes",
+      "observations": {
+        "outcome": "gameplay_and_input_verified",
+        "note": "Existing launcher 0.6.0.19 asset, directional input and animated gameplay.",
+        "errors": []
+      },
+      "evidence_directory": "/home/claude/.scratch/eka-all-five-20261010/snakes"
+    },
+    {
+      "id": "sky-force-five-game-lan",
+      "url": "https://claude-laptop.lan:8188/?game=sky-force",
+      "observations": {
+        "outcome": "gameplay_and_input_verified",
+        "note": "Existing launcher 1.22 asset, directional input and combat.",
+        "errors": []
+      },
+      "evidence_directory": "/home/claude/.scratch/eka-all-five-20261010/sky-force"
+    },
+    {
+      "id": "k-rally-five-game-lan",
+      "url": "https://claude-laptop.lan:8188/?game=k-rally",
+      "observations": {
+        "outcome": "gameplay_and_input_verified",
+        "note": "Fresh profile, tutorial track, touch Gas reaches 65 MPH and simultaneous steering rotates the car. Space accelerates too. No in-game remapping.",
+        "errors": []
+      },
+      "evidence_directory": "/home/claude/.scratch/eka-all-five-20261010/k-rally"
+    },
+    {
+      "id": "asphalt-2-five-game-lan",
+      "url": "https://claude-laptop.lan:8188/?game=asphalt-2",
+      "observations": {
+        "outcome": "gameplay_and_input_verified",
+        "note": "Original signed N95 8GB 1.0.1; sound enabled in game, Instant Play race and steering.",
+        "errors": []
+      },
+      "evidence_directory": "/home/claude/.scratch/eka-all-five-20261010/asphalt-2"
+    },
+    {
+      "id": "hooked-on-five-game-lan",
+      "url": "https://claude-laptop.lan:8188/?game=hooked-on",
+      "observations": {
+        "outcome": "trial_gameplay_and_input_verified",
+        "note": "Original N-Gage import completes, Try Game, Instant Play Costa Rica, boat movement and fishing scene. Touch action press/release consumed; this capture does not establish a completed cast or catch.",
+        "errors": []
+      },
+      "evidence_directory": "/home/claude/.scratch/eka-all-five-20261010/hooked-on"
     }
   ]
 }
