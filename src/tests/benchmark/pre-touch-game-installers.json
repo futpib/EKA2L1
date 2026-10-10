@@ -507,6 +507,34 @@
         "checked_file_descriptions": 11,
         "all_checked_payload_hashes_match": true
       }
+    },
+    {
+      "filename": "Hooked-On-0.74-BiNPDA.n-gage",
+      "bundle_path": null,
+      "game": "Hooked On: Creatures of the Deep",
+      "release": "0.74",
+      "platform": "N-Gage 2.0",
+      "provenance": "BiNPDA-modified full-game preservation copy",
+      "bytes": 28189115,
+      "sha256": "a52da7a5d3d9f7ebd3eb81e49e3294d8998060f7cc2539fe955b8bfe14e1745c",
+      "cid": "bafybeianu4wtg6sq36kcfoqjaknqjkmhju7idfk3b6pa27ljwop7fxftaa",
+      "source_page": "https://archive.org/details/Dance.Fabulous.nGage",
+      "download_url": "https://archive.org/download/Dance.Fabulous.nGage/N-Gage%202.0/Games/Full/Hooked.On.Creatures.of.the.Deep.n-gage",
+      "notes": "Complete preserved distribution container."
+    },
+    {
+      "filename": "Hooked-On-0.74-BiNPDA.sis",
+      "bundle_path": null,
+      "game": "Hooked On: Creatures of the Deep",
+      "release": "0.74",
+      "platform": "N-Gage 2.0",
+      "provenance": "BiNPDA-modified full-game preservation copy",
+      "bytes": 28135717,
+      "sha256": "ce8eeb53432f735ac2b2343290fb31ce37646f6231edc35610c0b07596d043f6",
+      "cid": "bafybeig3pdphcadg6mem3one5bcwx63bsledu2avtzfj7vsfrsq5vip26i",
+      "source_page": "https://archive.org/details/Dance.Fabulous.nGage",
+      "download_url": "https://archive.org/download/Dance.Fabulous.nGage/N-Gage%202.0/Games/Full/Hooked.On.Creatures.of.the.Deep.n-gage",
+      "notes": "Game SIS extracted unchanged from the preserved container. Requires N-Gage runtime and matching metadata for normal installation."
     }
   ],
   "tests": [
@@ -722,6 +750,29 @@
         "errors": []
       },
       "evidence_directory": "/home/claude/.scratch/eka-all-five-20261010/hooked-on"
+    },
+    {
+      "id": "hooked-on-full-binPDA",
+      "wasm_sha256": "3d0bb2ee382bcef42c641ba1d609e019e65233b75310eabfd265fcd65b4b60ff",
+      "observations": {
+        "outcome": "full_game_profile_and_gameplay_verified",
+        "checks": [
+          "original N-Gage 1.40 installs preserved full container",
+          "no activation prompt",
+          "save-slot selection",
+          "named profile creation",
+          "no in-game trial banner or Purchase Game item",
+          "Instant Play loads Costa Rica",
+          "boat movement"
+        ],
+        "limits": [
+          "N-Gage client tile still says TRIAL",
+          "no full playthrough or all-locations verification",
+          "production LAN picker not changed"
+        ],
+        "errors": []
+      },
+      "evidence_directory": "/home/claude/.scratch/eka-hooked-full-20261010/e2e"
     }
   ]
 }

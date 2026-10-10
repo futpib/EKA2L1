@@ -23,8 +23,8 @@ already stores them.
 “Selected” means the newest relevant-platform build recovered in this search,
 not proof that no later release ever existed. Modified copies are included
 only where an original relevant-platform package could not be recovered.
-Hooked On's original trial worked, so its recovered cracked alternative is
-not included. No game binary or firmware was patched during testing.
+Hooked On's original trial worked, so its recovered cracked alternative was
+not included in that five-file transfer. The later full-game search is recorded below. No game binary or firmware was patched during testing.
 
 ## Recovery and authenticity
 
@@ -221,6 +221,39 @@ Evidence, input assertions and visually inspected screenshots:
 `/home/claude/.scratch/eka-all-five-20261010/`. Served asset ETags match the
 staged build; WASM SHA-256 is
 `3d0bb2ee382bcef42c641ba1d609e019e65233b75310eabfd265fcd65b4b60ff`.
+
+## Hooked On full-game follow-up
+
+A later request for the full game recovered the **BiNPDA 0.74** copy in the
+[Internet Archive N-Gage collection](https://archive.org/details/Dance.Fabulous.nGage).
+The [direct full container download](https://archive.org/download/Dance.Fabulous.nGage/N-Gage%202.0/Games/Full/Hooked.On.Creatures.of.the.Deep.n-gage)
+is live and is 28,189,115 bytes. Its SHA-1 matches the archive's current metadata.
+This is a modified preservation release, not a Nokia-signed original. Its game
+SIS verifies against an embedded BiNPDA certificate and all 65 described payload
+hashes match. Compared with the original, it changes the executable, file-manager
+DLL and license data and adds a BiNPDA DLL.
+
+A fresh Chromium session used the existing WASM build and stock 5320, with the
+original N-Gage 1.40 runtime and this complete container. The client still labels
+the tile TRIAL, but the game skips the activation prompt, offers save slots and
+allows creating a named profile. Its menu has neither the Trial Version banner
+nor Purchase Game entry. Use up/down to choose letters in the profile-name
+screen and the left softkey to accept; Enter selects Instant Play. The test
+loaded Costa Rica and moved the boat, with no page errors or observed fatal
+guest faults. It does not establish a full playthrough or access to every location.
+
+The extracted game SIS is `Hooked-On-0.74-BiNPDA.sis`, 28,135,717 bytes,
+SHA-256 `ce8eeb53432f735ac2b2343290fb31ce37646f6231edc35610c0b07596d043f6`,
+CID `bafybeig3pdphcadg6mem3one5bcwx63bsledu2avtzfj7vsfrsq5vip26i`.
+The complete `.n-gage` container has SHA-256
+`a52da7a5d3d9f7ebd3eb81e49e3294d8998060f7cc2539fe955b8bfe14e1745c`,
+CID `bafybeianu4wtg6sq36kcfoqjaknqjkmhju7idfk3b6pa27ljwop7fxftaa`.
+These CIDs were calculated locally; remote pinning is not asserted. The game SIS
+still needs the N-Gage runtime and matching metadata for normal installation.
+
+The files, source metadata, logs and screenshots are retained outside Git in
+`/home/claude/.scratch/eka-hooked-full-20261010/`. The live picker continues to use
+the original trial; this search tested the full copy in a separate browser server.
 
 ## Files for pinning
 
