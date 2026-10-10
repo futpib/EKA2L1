@@ -6002,6 +6002,7 @@ static bool test_memory_implementations() {
 #include "svc_return_fixture.h"
 
 #include "test_region_fusion.inc"
+#include "test_thumb_complete.inc"
 #include "test_stack_return.inc"
 
 #include "test_watchdog.inc"
@@ -6106,6 +6107,8 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--hotpaths") {hotpath_policy=2;argc=1;}
     if(argc==2 && std::string(argv[1])=="--compiled-svc-only")return test_compiled_svc_boundary()?0:1;
     if(argc==2 && std::string(argv[1])=="--division-sequences-only")return test_division_sequences()?0:1;
+    if(argc==2 && std::string(argv[1])=="--thumb-complete-only")return test_thumb_complete_calls()?0:1;
+    if(argc==2 && std::string(argv[1])=="--thumb-complete-counts")return test_thumb_complete_calls(true)?0:1;
     if(argc==2 && std::string(argv[1])=="--region-fusion-counts")return test_region_fusion(true)?0:1;
     if(argc==2 && std::string(argv[1])=="--region-fusion-only")return test_region_fusion()?0:1;
     if(argc==2 && std::string(argv[1])=="--bounded-thumb-only") {
@@ -6834,6 +6837,7 @@ int main(int argc, char **argv) {
     if (test_list_scan_summary()) passed++; else failed++;
     printf("TEST test_region_fusion\n"); watchdog::request=0;
     if (test_region_fusion()) passed++; else failed++;
+    if (test_thumb_complete_calls()) passed++; else failed++;
     printf("TEST test_division_sequences\n"); watchdog::request=0;
     if (test_division_sequences()) passed++; else failed++;
     printf("TEST test_inlined_leaves\n"); watchdog::request=0;

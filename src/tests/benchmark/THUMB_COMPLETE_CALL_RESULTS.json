@@ -1,0 +1,1576 @@
+{
+  "decision": "Retained and enabled by default; helper workload gain, whole-game gain not established",
+  "scope": "Complete acyclic read-only Thumb leaves across known BL/BX-LR return; generic compiler",
+  "raw_artifacts": "/home/claude/.scratch/eka-thumb-complete-20261010",
+  "implementation_limits": {
+    "leaf_expanded_instructions": 32,
+    "inline_sites": 8,
+    "fusion_instructions": 512,
+    "memory_backend": 2
+  },
+  "runtime_hashes": {
+    "stock-build": "556c7cc6899b0bf7d31534ed3fa27983ddbd5f78a7c9b98586029deddb7c9954",
+    "candidate-build": "3b2a5324b74e9b78de134c3d377ff8ea63bbe93ba6932559d7bb794ba34a3fea",
+    "final-build": "8cea053b9b7dfe2b299a3b069172928fab7819d2a0267e9ed403283bca6d487a"
+  },
+  "micro_panels": {
+    "micro-3": {
+      "browser": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/153.0.8010.52",
+        "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "jsVersion": "15.3.76.13"
+      },
+      "pid": 249011,
+      "renderers": [
+        {
+          "type": "renderer",
+          "id": 249011,
+          "cpuTime": 0.28,
+          "delta": 0.15000000000000002
+        },
+        {
+          "type": "renderer",
+          "id": 248928,
+          "cpuTime": 0.4,
+          "delta": 0.040000000000000036
+        },
+        {
+          "type": "renderer",
+          "id": 249022,
+          "cpuTime": 0.02,
+          "delta": 0
+        },
+        {
+          "type": "renderer",
+          "id": 248958,
+          "cpuTime": 0.06,
+          "delta": 0
+        }
+      ],
+      "iterations": 10000000,
+      "entry": "thumb_complete_benchmark",
+      "builds": [
+        "/home/claude/.scratch/eka-thumb-complete-20261010/candidate-test"
+      ],
+      "fullWarmups": [
+        {
+          "variant": 0,
+          "status": 0,
+          "milliseconds": 311
+        },
+        {
+          "variant": 1,
+          "status": 0,
+          "milliseconds": 271.95500004291534
+        },
+        {
+          "variant": 0,
+          "status": 0,
+          "milliseconds": 310.1100000143051
+        },
+        {
+          "variant": 1,
+          "status": 0,
+          "milliseconds": 271.90499997138977
+        }
+      ],
+      "wasm_sha256": [
+        "d6ccc3a27c8c8ea6fc537e45b8f604c72822e16b97f695ec02ca1a81489306e6"
+      ],
+      "comparison": "disabled/enabled in one build",
+      "rows": [
+        {
+          "variant": 0,
+          "cpu_seconds": 0.3111144399999999,
+          "status": 0,
+          "milliseconds": 311.0499999523163,
+          "mhz": 2394.4016164378754,
+          "hardware": {
+            "events": {
+              "guest": {
+                "start_ticks": 94005303,
+                "user_cycles": {
+                  "raw": 744739614,
+                  "time_enabled_ns": 311392010,
+                  "time_running_ns": 311392010,
+                  "running_fraction": 1,
+                  "scaled": 744739614
+                },
+                "user_instructions": {
+                  "raw": 2220240149,
+                  "time_enabled_ns": 311392010,
+                  "time_running_ns": 311392010,
+                  "running_fraction": 1,
+                  "scaled": 2220240149
+                },
+                "user_reference_cycles": {
+                  "raw": 716621664,
+                  "time_enabled_ns": 311392010,
+                  "time_running_ns": 311392010,
+                  "running_fraction": 1,
+                  "scaled": 716621664
+                }
+              }
+            },
+            "errors": [],
+            "begin_ns": 921431795876583,
+            "enable_begin_ns": 921431825039821,
+            "enable_end_ns": 921431825092673,
+            "disable_begin_ns": 921432138384685,
+            "disable_end_ns": 921432138445583
+          }
+        },
+        {
+          "variant": 1,
+          "cpu_seconds": 0.27219387699999986,
+          "status": 0,
+          "milliseconds": 272.19000005722046,
+          "mhz": 2394.4055513278877,
+          "hardware": {
+            "events": {
+              "guest": {
+                "start_ticks": 94005303,
+                "user_cycles": {
+                  "raw": 651582599,
+                  "time_enabled_ns": 272431061,
+                  "time_running_ns": 272431061,
+                  "running_fraction": 1,
+                  "scaled": 651582599
+                },
+                "user_instructions": {
+                  "raw": 1840245086,
+                  "time_enabled_ns": 272431061,
+                  "time_running_ns": 272431061,
+                  "running_fraction": 1,
+                  "scaled": 1840245086
+                },
+                "user_reference_cycles": {
+                  "raw": 626980800,
+                  "time_enabled_ns": 272431061,
+                  "time_running_ns": 272431061,
+                  "running_fraction": 1,
+                  "scaled": 626980800
+                }
+              }
+            },
+            "errors": [],
+            "begin_ns": 921432141284991,
+            "enable_begin_ns": 921432141655981,
+            "enable_end_ns": 921432141696879,
+            "disable_begin_ns": 921432415573909,
+            "disable_end_ns": 921432415625891
+          }
+        },
+        {
+          "variant": 1,
+          "cpu_seconds": 0.2728106619999999,
+          "status": 0,
+          "milliseconds": 272.7999999523163,
+          "mhz": 2394.388649678831,
+          "hardware": {
+            "events": {
+              "guest": {
+                "start_ticks": 94005303,
+                "user_cycles": {
+                  "raw": 652985102,
+                  "time_enabled_ns": 273115285,
+                  "time_running_ns": 273115285,
+                  "running_fraction": 1,
+                  "scaled": 652985102
+                },
+                "user_instructions": {
+                  "raw": 1840261001,
+                  "time_enabled_ns": 273115285,
+                  "time_running_ns": 273115285,
+                  "running_fraction": 1,
+                  "scaled": 1840261001
+                },
+                "user_reference_cycles": {
+                  "raw": 628334784,
+                  "time_enabled_ns": 273115285,
+                  "time_running_ns": 273115285,
+                  "running_fraction": 1,
+                  "scaled": 628334784
+                }
+              }
+            },
+            "errors": [],
+            "begin_ns": 921432418114176,
+            "enable_begin_ns": 921432418537863,
+            "enable_end_ns": 921432418583160,
+            "disable_begin_ns": 921432692944090,
+            "disable_end_ns": 921432692995992
+          }
+        },
+        {
+          "variant": 0,
+          "cpu_seconds": 0.3102635789999999,
+          "status": 0,
+          "milliseconds": 310.22500002384186,
+          "mhz": 2394.4066667087536,
+          "hardware": {
+            "events": {
+              "guest": {
+                "start_ticks": 94005303,
+                "user_cycles": {
+                  "raw": 742752231,
+                  "time_enabled_ns": 310515839,
+                  "time_running_ns": 310515839,
+                  "running_fraction": 1,
+                  "scaled": 742752231
+                },
+                "user_instructions": {
+                  "raw": 2220230189,
+                  "time_enabled_ns": 310515839,
+                  "time_running_ns": 310515839,
+                  "running_fraction": 1,
+                  "scaled": 2220230189
+                },
+                "user_reference_cycles": {
+                  "raw": 714707808,
+                  "time_enabled_ns": 310515839,
+                  "time_running_ns": 310515839,
+                  "running_fraction": 1,
+                  "scaled": 714707808
+                }
+              }
+            },
+            "errors": [],
+            "begin_ns": 921432694762734,
+            "enable_begin_ns": 921432695176889,
+            "enable_end_ns": 921432695219780,
+            "disable_begin_ns": 921433007157282,
+            "disable_end_ns": 921433007212411
+          }
+        },
+        {
+          "variant": 1,
+          "cpu_seconds": 0.272034895,
+          "status": 0,
+          "milliseconds": 272.10000002384186,
+          "mhz": 2394.4024386824776,
+          "hardware": {
+            "events": {
+              "guest": {
+                "start_ticks": 94005303,
+                "user_cycles": {
+                  "raw": 651190766,
+                  "time_enabled_ns": 272293008,
+                  "time_running_ns": 272293008,
+                  "running_fraction": 1,
+                  "scaled": 651190766
+                },
+                "user_instructions": {
+                  "raw": 1840229952,
+                  "time_enabled_ns": 272293008,
+                  "time_running_ns": 272293008,
+                  "running_fraction": 1,
+                  "scaled": 1840229952
+                },
+                "user_reference_cycles": {
+                  "raw": 626604576,
+                  "time_enabled_ns": 272293008,
+                  "time_running_ns": 272293008,
+                  "running_fraction": 1,
+                  "scaled": 626604576
+                }
+              }
+            },
+            "errors": [],
+            "begin_ns": 921433009018178,
+            "enable_begin_ns": 921433009383854,
+            "enable_end_ns": 921433009424432,
+            "disable_begin_ns": 921433283074359,
+            "disable_end_ns": 921433283130808
+          }
+        },
+        {
+          "variant": 0,
+          "cpu_seconds": 0.3110767229999998,
+          "status": 0,
+          "milliseconds": 311.0699999332428,
+          "mhz": 2394.401379190035,
+          "hardware": {
+            "events": {
+              "guest": {
+                "start_ticks": 94005303,
+                "user_cycles": {
+                  "raw": 744610043,
+                  "time_enabled_ns": 311353532,
+                  "time_running_ns": 311353532,
+                  "running_fraction": 1,
+                  "scaled": 744610043
+                },
+                "user_instructions": {
+                  "raw": 2220240484,
+                  "time_enabled_ns": 311353532,
+                  "time_running_ns": 311353532,
+                  "running_fraction": 1,
+                  "scaled": 2220240484
+                },
+                "user_reference_cycles": {
+                  "raw": 716497056,
+                  "time_enabled_ns": 311353532,
+                  "time_running_ns": 311353532,
+                  "running_fraction": 1,
+                  "scaled": 716497056
+                }
+              }
+            },
+            "errors": [],
+            "begin_ns": 921433284922516,
+            "enable_begin_ns": 921433285287372,
+            "enable_end_ns": 921433285333419,
+            "disable_begin_ns": 921433598208158,
+            "disable_end_ns": 921433598271310
+          }
+        },
+        {
+          "variant": 0,
+          "cpu_seconds": 0.3103439410000002,
+          "status": 0,
+          "milliseconds": 310.39999997615814,
+          "mhz": 2394.3998720401737,
+          "hardware": {
+            "events": {
+              "guest": {
+                "start_ticks": 94005303,
+                "user_cycles": {
+                  "raw": 742871240,
+                  "time_enabled_ns": 310674152,
+                  "time_running_ns": 310674152,
+                  "running_fraction": 1,
+                  "scaled": 742871240
+                },
+                "user_instructions": {
+                  "raw": 2220245770,
+                  "time_enabled_ns": 310674152,
+                  "time_running_ns": 310674152,
+                  "running_fraction": 1,
+                  "scaled": 2220245770
+                },
+                "user_reference_cycles": {
+                  "raw": 714824352,
+                  "time_enabled_ns": 310674152,
+                  "time_running_ns": 310674152,
+                  "running_fraction": 1,
+                  "scaled": 714824352
+                }
+              }
+            },
+            "errors": [],
+            "begin_ns": 921433600482093,
+            "enable_begin_ns": 921433600934663,
+            "enable_end_ns": 921433600979461,
+            "disable_begin_ns": 921433912987785,
+            "disable_end_ns": 921433913045105
+          }
+        },
+        {
+          "variant": 1,
+          "cpu_seconds": 0.27212906699999984,
+          "status": 0,
+          "milliseconds": 272.1450001001358,
+          "mhz": 2394.392533635381,
+          "hardware": {
+            "events": {
+              "guest": {
+                "start_ticks": 94005303,
+                "user_cycles": {
+                  "raw": 651440082,
+                  "time_enabled_ns": 272400400,
+                  "time_running_ns": 272400400,
+                  "running_fraction": 1,
+                  "scaled": 651440082
+                },
+                "user_instructions": {
+                  "raw": 1840229985,
+                  "time_enabled_ns": 272400400,
+                  "time_running_ns": 272400400,
+                  "running_fraction": 1,
+                  "scaled": 1840229985
+                },
+                "user_reference_cycles": {
+                  "raw": 626847072,
+                  "time_enabled_ns": 272400400,
+                  "time_running_ns": 272400400,
+                  "running_fraction": 1,
+                  "scaled": 626847072
+                }
+              }
+            },
+            "errors": [],
+            "begin_ns": 921433914634473,
+            "enable_begin_ns": 921433914996173,
+            "enable_end_ns": 921433915041172,
+            "disable_begin_ns": 921434191841708,
+            "disable_end_ns": 921434191892220
+          }
+        }
+      ],
+      "tiering": {
+        "optimizedRoots": [
+          {
+            "name": "JS:f_4105-10-turbofan",
+            "timestamp": 921430565392000
+          },
+          {
+            "name": "JS:f_4099-7-turbofan",
+            "timestamp": 921430566390000
+          }
+        ],
+        "incompleteJitTails": [
+          {
+            "file": "jit-248928.dump",
+            "offset": 3039067,
+            "missingBytes": 2420
+          },
+          {
+            "file": "jit-248957.dump",
+            "offset": 2596650,
+            "missingBytes": 60
+          },
+          {
+            "file": "jit-248958.dump",
+            "offset": 2596650,
+            "missingBytes": 60
+          },
+          {
+            "file": "jit-249011.dump",
+            "offset": 6635368,
+            "missingBytes": 3587
+          },
+          {
+            "file": "jit-249022.dump",
+            "offset": 2596650,
+            "missingBytes": 60
+          }
+        ],
+        "finishedBeforeMeasurement": true
+      },
+      "means": [
+        {
+          "cpu_seconds": 0.31069967074999993,
+          "native_instructions": 2220239148
+        },
+        {
+          "cpu_seconds": 0.2722921252499999,
+          "native_instructions": 1840241506
+        }
+      ],
+      "cpu_throughput_change_percent": 14.105272219950127,
+      "native_instruction_change_percent": -17.115167181080626,
+      "native_roots": [
+        {
+          "name": "JS:f_4105-10-turbofan",
+          "id": 5400,
+          "pid": 249011,
+          "size": 1664,
+          "file": "/home/claude/.scratch/eka-thumb-complete-20261010/micro-3/native-249011-5400.bin"
+        },
+        {
+          "name": "JS:f_4099-7-turbofan",
+          "id": 5401,
+          "pid": 249011,
+          "size": 832,
+          "file": "/home/claude/.scratch/eka-thumb-complete-20261010/micro-3/native-249011-5401.bin"
+        }
+      ],
+      "guest_module_sha256": {
+        "module-22.wasm": "89148778c4430276b886c3c79d799572b47762a98eb1d56aebca0843c1e73b16",
+        "module-23.wasm": "626a028c55d00a4487108d7cfadf6af01538424f54bd5dd4679245b2fc691cb2"
+      }
+    },
+    "micro-final": {
+      "browser": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/153.0.8010.52",
+        "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "jsVersion": "15.3.76.13"
+      },
+      "pid": 291382,
+      "renderers": [
+        {
+          "type": "renderer",
+          "id": 291382,
+          "cpuTime": 0.29,
+          "delta": 0.15999999999999998
+        },
+        {
+          "type": "renderer",
+          "id": 291279,
+          "cpuTime": 0.39,
+          "delta": 0.04999999999999999
+        },
+        {
+          "type": "renderer",
+          "id": 291413,
+          "cpuTime": 0.03,
+          "delta": 0
+        },
+        {
+          "type": "renderer",
+          "id": 291297,
+          "cpuTime": 0.04,
+          "delta": 0
+        }
+      ],
+      "iterations": 10000000,
+      "entry": "thumb_complete_benchmark",
+      "builds": [
+        "/home/claude/.scratch/eka-thumb-complete-20261010/final-test"
+      ],
+      "fullWarmups": [
+        {
+          "variant": 0,
+          "status": 0,
+          "milliseconds": 312.8600000143051
+        },
+        {
+          "variant": 1,
+          "status": 0,
+          "milliseconds": 271.710000038147
+        },
+        {
+          "variant": 0,
+          "status": 0,
+          "milliseconds": 316.5749999284744
+        },
+        {
+          "variant": 1,
+          "status": 0,
+          "milliseconds": 271.6750000715256
+        }
+      ],
+      "wasm_sha256": [
+        "d8778c6a303d6f084ca433abb864a56dc5e4da9acbed1c58099a10023bdc6e65"
+      ],
+      "comparison": "disabled/enabled in one build",
+      "rows": [
+        {
+          "variant": 0,
+          "cpu_seconds": 0.31739083199999985,
+          "status": 0,
+          "milliseconds": 317.3600000143051,
+          "mhz": 2394.4102397295487,
+          "hardware": {
+            "events": {
+              "guest": {
+                "start_ticks": 94088914,
+                "user_cycles": {
+                  "raw": 759738687,
+                  "time_enabled_ns": 317659835,
+                  "time_running_ns": 317659835,
+                  "running_fraction": 1,
+                  "scaled": 759738687
+                },
+                "user_instructions": {
+                  "raw": 2220231846,
+                  "time_enabled_ns": 317659835,
+                  "time_running_ns": 317659835,
+                  "running_fraction": 1,
+                  "scaled": 2220231846
+                },
+                "user_reference_cycles": {
+                  "raw": 731051808,
+                  "time_enabled_ns": 317659835,
+                  "time_running_ns": 317659835,
+                  "running_fraction": 1,
+                  "scaled": 731051808
+                }
+              }
+            },
+            "errors": [],
+            "begin_ns": 922267888079864,
+            "enable_begin_ns": 922267918290762,
+            "enable_end_ns": 922267918346213,
+            "disable_begin_ns": 922268237829294,
+            "disable_end_ns": 922268237882508
+          }
+        },
+        {
+          "variant": 1,
+          "cpu_seconds": 0.27150714600000003,
+          "status": 0,
+          "milliseconds": 271.4300000667572,
+          "mhz": 2394.419562013411,
+          "hardware": {
+            "events": {
+              "guest": {
+                "start_ticks": 94088914,
+                "user_cycles": {
+                  "raw": 649984545,
+                  "time_enabled_ns": 271674007,
+                  "time_running_ns": 271674007,
+                  "running_fraction": 1,
+                  "scaled": 649984545
+                },
+                "user_instructions": {
+                  "raw": 1840245329,
+                  "time_enabled_ns": 271674007,
+                  "time_running_ns": 271674007,
+                  "running_fraction": 1,
+                  "scaled": 1840245329
+                },
+                "user_reference_cycles": {
+                  "raw": 625439424,
+                  "time_enabled_ns": 271674007,
+                  "time_running_ns": 271674007,
+                  "running_fraction": 1,
+                  "scaled": 625439424
+                }
+              }
+            },
+            "errors": [],
+            "begin_ns": 922268240581389,
+            "enable_begin_ns": 922268240947724,
+            "enable_end_ns": 922268240958147,
+            "disable_begin_ns": 922268513834753,
+            "disable_end_ns": 922268513885350
+          }
+        },
+        {
+          "variant": 1,
+          "cpu_seconds": 0.27182204600000004,
+          "status": 0,
+          "milliseconds": 271.7099999189377,
+          "mhz": 2394.424547187447,
+          "hardware": {
+            "events": {
+              "guest": {
+                "start_ticks": 94088914,
+                "user_cycles": {
+                  "raw": 650675293,
+                  "time_enabled_ns": 271982664,
+                  "time_running_ns": 271982664,
+                  "running_fraction": 1,
+                  "scaled": 650675293
+                },
+                "user_instructions": {
+                  "raw": 1840261612,
+                  "time_enabled_ns": 271982664,
+                  "time_running_ns": 271982664,
+                  "running_fraction": 1,
+                  "scaled": 1840261612
+                },
+                "user_reference_cycles": {
+                  "raw": 626102784,
+                  "time_enabled_ns": 271982664,
+                  "time_running_ns": 271982664,
+                  "running_fraction": 1,
+                  "scaled": 626102784
+                }
+              }
+            },
+            "errors": [],
+            "begin_ns": 922268515744631,
+            "enable_begin_ns": 922268516104707,
+            "enable_end_ns": 922268516145649,
+            "disable_begin_ns": 922268789354543,
+            "disable_end_ns": 922268789403252
+          }
+        },
+        {
+          "variant": 0,
+          "cpu_seconds": 0.3172743680000001,
+          "status": 0,
+          "milliseconds": 317.27499997615814,
+          "mhz": 2394.417506248591,
+          "hardware": {
+            "events": {
+              "guest": {
+                "start_ticks": 94088914,
+                "user_cycles": {
+                  "raw": 759520806,
+                  "time_enabled_ns": 317503210,
+                  "time_running_ns": 317503210,
+                  "running_fraction": 1,
+                  "scaled": 759520806
+                },
+                "user_instructions": {
+                  "raw": 2220230618,
+                  "time_enabled_ns": 317503210,
+                  "time_running_ns": 317503210,
+                  "running_fraction": 1,
+                  "scaled": 2220230618
+                },
+                "user_reference_cycles": {
+                  "raw": 730839936,
+                  "time_enabled_ns": 317503210,
+                  "time_running_ns": 317503210,
+                  "running_fraction": 1,
+                  "scaled": 730839936
+                }
+              }
+            },
+            "errors": [],
+            "begin_ns": 922268791073041,
+            "enable_begin_ns": 922268791450709,
+            "enable_end_ns": 922268791493557,
+            "disable_begin_ns": 922269110269441,
+            "disable_end_ns": 922269110317196
+          }
+        },
+        {
+          "variant": 1,
+          "cpu_seconds": 0.27200169500000015,
+          "status": 0,
+          "milliseconds": 271.9300000667572,
+          "mhz": 2394.4192054030327,
+          "hardware": {
+            "events": {
+              "guest": {
+                "start_ticks": 94088914,
+                "user_cycles": {
+                  "raw": 651152825,
+                  "time_enabled_ns": 272172716,
+                  "time_running_ns": 272172716,
+                  "running_fraction": 1,
+                  "scaled": 651152825
+                },
+                "user_instructions": {
+                  "raw": 1840232427,
+                  "time_enabled_ns": 272172716,
+                  "time_running_ns": 272172716,
+                  "running_fraction": 1,
+                  "scaled": 1840232427
+                },
+                "user_reference_cycles": {
+                  "raw": 626563680,
+                  "time_enabled_ns": 272172716,
+                  "time_running_ns": 272172716,
+                  "running_fraction": 1,
+                  "scaled": 626563680
+                }
+              }
+            },
+            "errors": [],
+            "begin_ns": 922269112069437,
+            "enable_begin_ns": 922269112421202,
+            "enable_end_ns": 922269112464292,
+            "disable_begin_ns": 922269385929684,
+            "disable_end_ns": 922269385978628
+          }
+        },
+        {
+          "variant": 0,
+          "cpu_seconds": 0.3154414029999999,
+          "status": 0,
+          "milliseconds": 315.41999995708466,
+          "mhz": 2394.422487559875,
+          "hardware": {
+            "events": {
+              "guest": {
+                "start_ticks": 94088914,
+                "user_cycles": {
+                  "raw": 755146579,
+                  "time_enabled_ns": 315629012,
+                  "time_running_ns": 315629012,
+                  "running_fraction": 1,
+                  "scaled": 755146579
+                },
+                "user_instructions": {
+                  "raw": 2220236808,
+                  "time_enabled_ns": 315629012,
+                  "time_running_ns": 315629012,
+                  "running_fraction": 1,
+                  "scaled": 2220236808
+                },
+                "user_reference_cycles": {
+                  "raw": 726629376,
+                  "time_enabled_ns": 315629012,
+                  "time_running_ns": 315629012,
+                  "running_fraction": 1,
+                  "scaled": 726629376
+                }
+              }
+            },
+            "errors": [],
+            "begin_ns": 922269387675126,
+            "enable_begin_ns": 922269388056171,
+            "enable_end_ns": 922269388095569,
+            "disable_begin_ns": 922269704987992,
+            "disable_end_ns": 922269705036929
+          }
+        },
+        {
+          "variant": 0,
+          "cpu_seconds": 0.3166551970000002,
+          "status": 0,
+          "milliseconds": 316.6100000143051,
+          "mhz": 2394.4227991762746,
+          "hardware": {
+            "events": {
+              "guest": {
+                "start_ticks": 94088914,
+                "user_cycles": {
+                  "raw": 758002226,
+                  "time_enabled_ns": 316858996,
+                  "time_running_ns": 316858996,
+                  "running_fraction": 1,
+                  "scaled": 758002226
+                },
+                "user_instructions": {
+                  "raw": 2220247552,
+                  "time_enabled_ns": 316858996,
+                  "time_running_ns": 316858996,
+                  "running_fraction": 1,
+                  "scaled": 2220247552
+                },
+                "user_reference_cycles": {
+                  "raw": 729377088,
+                  "time_enabled_ns": 316858996,
+                  "time_running_ns": 316858996,
+                  "running_fraction": 1,
+                  "scaled": 729377088
+                }
+              }
+            },
+            "errors": [],
+            "begin_ns": 922269706718208,
+            "enable_begin_ns": 922269707081975,
+            "enable_end_ns": 922269707122032,
+            "disable_begin_ns": 922270025285409,
+            "disable_end_ns": 922270025335828
+          }
+        },
+        {
+          "variant": 1,
+          "cpu_seconds": 0.27160368099999976,
+          "status": 0,
+          "milliseconds": 271.56000006198883,
+          "mhz": 2394.4234661677915,
+          "hardware": {
+            "events": {
+              "guest": {
+                "start_ticks": 94088914,
+                "user_cycles": {
+                  "raw": 650191625,
+                  "time_enabled_ns": 271791369,
+                  "time_running_ns": 271791369,
+                  "running_fraction": 1,
+                  "scaled": 650191625
+                },
+                "user_instructions": {
+                  "raw": 1840230701,
+                  "time_enabled_ns": 271791369,
+                  "time_running_ns": 271791369,
+                  "running_fraction": 1,
+                  "scaled": 1840230701
+                },
+                "user_reference_cycles": {
+                  "raw": 625637664,
+                  "time_enabled_ns": 271791369,
+                  "time_running_ns": 271791369,
+                  "running_fraction": 1,
+                  "scaled": 625637664
+                }
+              }
+            },
+            "errors": [],
+            "begin_ns": 922270027093308,
+            "enable_begin_ns": 922270027459205,
+            "enable_end_ns": 922270027499735,
+            "disable_begin_ns": 922270300607834,
+            "disable_end_ns": 922270300655382
+          }
+        }
+      ],
+      "tiering": {
+        "optimizedRoots": [
+          {
+            "name": "JS:f_4105-10-turbofan",
+            "timestamp": 922266655014000
+          },
+          {
+            "name": "JS:f_4099-7-turbofan",
+            "timestamp": 922266656330000
+          }
+        ],
+        "incompleteJitTails": [
+          {
+            "file": "jit-291279.dump",
+            "offset": 3039067,
+            "missingBytes": 2420
+          },
+          {
+            "file": "jit-291295.dump",
+            "offset": 2596650,
+            "missingBytes": 60
+          },
+          {
+            "file": "jit-291297.dump",
+            "offset": 2596650,
+            "missingBytes": 60
+          },
+          {
+            "file": "jit-291382.dump",
+            "offset": 6634856,
+            "missingBytes": 3075
+          },
+          {
+            "file": "jit-291413.dump",
+            "offset": 2596650,
+            "missingBytes": 60
+          }
+        ],
+        "finishedBeforeMeasurement": true
+      },
+      "means": [
+        {
+          "cpu_seconds": 0.31669045,
+          "native_instructions": 2220236706
+        },
+        {
+          "cpu_seconds": 0.271733642,
+          "native_instructions": 1840242517.25
+        }
+      ],
+      "cpu_throughput_change_percent": 16.544439499324138,
+      "native_instruction_change_percent": -17.115030470539384,
+      "native_roots": [
+        {
+          "name": "JS:f_4105-10-turbofan",
+          "pid": 291382,
+          "id": 5393,
+          "size": 1664,
+          "sha256": "7724d51bd047c7071aabb35350f8ae2bbc844cb58923aaf410527471b70899c1"
+        },
+        {
+          "name": "JS:f_4099-7-turbofan",
+          "pid": 291382,
+          "id": 5399,
+          "size": 832,
+          "sha256": "b16105e779c33dab981fc738360d1b31832f629bfbbbef36e56dc7c5b5058cbc"
+        }
+      ],
+      "guest_module_sha256": {
+        "module-22.wasm": "89148778c4430276b886c3c79d799572b47762a98eb1d56aebca0843c1e73b16",
+        "module-23.wasm": "626a028c55d00a4487108d7cfadf6af01538424f54bd5dd4679245b2fc691cb2"
+      }
+    }
+  },
+  "game_screen": {
+    "summary": {
+      "sky-force": {
+        "means": [
+          {
+            "cpu_seconds": 2.395348095,
+            "wall_seconds": 4.14825,
+            "native_instructions": 16109732631
+          },
+          {
+            "cpu_seconds": 2.3928479505,
+            "wall_seconds": 4.1686,
+            "native_instructions": 16130495388.5
+          }
+        ],
+        "cpu_throughput_change_percent": 0.10448405213032697,
+        "wall_throughput_change_percent": -0.48817348750178624,
+        "native_instruction_change_percent": 0.12888331529503638,
+        "paired_cpu_changes_percent": [
+          0.8833450384414521,
+          -0.6586009968163276
+        ]
+      },
+      "snakes": {
+        "means": [
+          {
+            "cpu_seconds": 2.78292609,
+            "wall_seconds": 3.525295,
+            "native_instructions": 15346109146
+          },
+          {
+            "cpu_seconds": 2.7724076450000004,
+            "wall_seconds": 3.516365,
+            "native_instructions": 15401810312.5
+          }
+        ],
+        "cpu_throughput_change_percent": 0.37939748936162143,
+        "wall_throughput_change_percent": 0.25395543409174604,
+        "native_instruction_change_percent": 0.3629660519814504,
+        "paired_cpu_changes_percent": [
+          1.5766854683904707,
+          -0.8122875568235544
+        ]
+      }
+    },
+    "rows": [
+      {
+        "game": "sky-force",
+        "index": 0,
+        "variant": "A",
+        "path": "/home/claude/.scratch/eka-thumb-complete-20261010/final-screen-sky-force-0-A",
+        "measurement": {
+          "diagnostics_available": false,
+          "detailed": false,
+          "capture_mode": 1,
+          "first_virtual_us": 58000000,
+          "last_virtual_us": 70000000,
+          "first_instructions": 0,
+          "last_instructions": 0,
+          "wall_seconds": 4.10711,
+          "presentations": 377
+        },
+        "validity": {
+          "valid": true,
+          "errors": [],
+          "mhz": 2394.338913901358,
+          "interval_min_mhz": 2394.1607662233228,
+          "interval_max_mhz": 2394.522816918866,
+          "worker_cpu_seconds": 2.389287123,
+          "instructions": 16008475187,
+          "cycles": 5680839434,
+          "worker": "251751:251816",
+          "sibling_busy_fraction": {
+            "15": 0.0
+          }
+        }
+      },
+      {
+        "game": "sky-force",
+        "index": 1,
+        "variant": "B",
+        "path": "/home/claude/.scratch/eka-thumb-complete-20261010/final-screen-sky-force-1-B",
+        "measurement": {
+          "diagnostics_available": false,
+          "detailed": false,
+          "capture_mode": 1,
+          "first_virtual_us": 58000000,
+          "last_virtual_us": 70000000,
+          "first_instructions": 0,
+          "last_instructions": 0,
+          "wall_seconds": 4.12586,
+          "presentations": 378
+        },
+        "validity": {
+          "valid": true,
+          "errors": [],
+          "mhz": 2394.350130514419,
+          "interval_min_mhz": 2394.1771937031,
+          "interval_max_mhz": 2394.512941090904,
+          "worker_cpu_seconds": 2.368366277,
+          "instructions": 16146058777,
+          "cycles": 5636496943,
+          "worker": "255097:255142",
+          "sibling_busy_fraction": {
+            "15": 0.0
+          }
+        }
+      },
+      {
+        "game": "sky-force",
+        "index": 2,
+        "variant": "B",
+        "path": "/home/claude/.scratch/eka-thumb-complete-20261010/final-screen-sky-force-2-B",
+        "measurement": {
+          "diagnostics_available": false,
+          "detailed": false,
+          "capture_mode": 1,
+          "first_virtual_us": 58000000,
+          "last_virtual_us": 70000000,
+          "first_instructions": 0,
+          "last_instructions": 0,
+          "wall_seconds": 4.21134,
+          "presentations": 380
+        },
+        "validity": {
+          "valid": true,
+          "errors": [],
+          "mhz": 2394.3575213660683,
+          "interval_min_mhz": 2394.1879585843494,
+          "interval_max_mhz": 2394.553482873733,
+          "worker_cpu_seconds": 2.417329624,
+          "instructions": 16114932000,
+          "cycles": 5750494539,
+          "worker": "257169:257233",
+          "sibling_busy_fraction": {
+            "15": 0.0
+          }
+        }
+      },
+      {
+        "game": "sky-force",
+        "index": 3,
+        "variant": "A",
+        "path": "/home/claude/.scratch/eka-thumb-complete-20261010/final-screen-sky-force-3-A",
+        "measurement": {
+          "diagnostics_available": false,
+          "detailed": false,
+          "capture_mode": 1,
+          "first_virtual_us": 58000000,
+          "last_virtual_us": 70000000,
+          "first_instructions": 0,
+          "last_instructions": 0,
+          "wall_seconds": 4.18939,
+          "presentations": 379
+        },
+        "validity": {
+          "valid": true,
+          "errors": [],
+          "mhz": 2394.3498462754646,
+          "interval_min_mhz": 2394.1452475850256,
+          "interval_max_mhz": 2394.50185645989,
+          "worker_cpu_seconds": 2.401409067,
+          "instructions": 16210990075,
+          "cycles": 5710853806,
+          "worker": "259238:259303",
+          "sibling_busy_fraction": {
+            "15": 0.0
+          }
+        }
+      },
+      {
+        "game": "snakes",
+        "index": 0,
+        "variant": "A",
+        "path": "/home/claude/.scratch/eka-thumb-complete-20261010/final-screen-snakes-0-A",
+        "measurement": {
+          "diagnostics_available": false,
+          "detailed": false,
+          "capture_mode": 1,
+          "first_virtual_us": 74000000,
+          "last_virtual_us": 86000000,
+          "first_instructions": 0,
+          "last_instructions": 0,
+          "wall_seconds": 3.58103,
+          "presentations": 158
+        },
+        "validity": {
+          "valid": true,
+          "errors": [],
+          "mhz": 2394.3827447591343,
+          "interval_min_mhz": 2394.2560854334424,
+          "interval_max_mhz": 2394.500716143779,
+          "worker_cpu_seconds": 2.80951506,
+          "instructions": 15645730263,
+          "cycles": 6703030996,
+          "worker": "261216:261278",
+          "sibling_busy_fraction": {
+            "15": 0.0
+          }
+        }
+      },
+      {
+        "game": "snakes",
+        "index": 1,
+        "variant": "B",
+        "path": "/home/claude/.scratch/eka-thumb-complete-20261010/final-screen-snakes-1-B",
+        "measurement": {
+          "diagnostics_available": false,
+          "detailed": false,
+          "capture_mode": 1,
+          "first_virtual_us": 74000000,
+          "last_virtual_us": 86000000,
+          "first_instructions": 0,
+          "last_instructions": 0,
+          "wall_seconds": 3.5194,
+          "presentations": 156
+        },
+        "validity": {
+          "valid": true,
+          "errors": [],
+          "mhz": 2394.377970632756,
+          "interval_min_mhz": 2394.160422559192,
+          "interval_max_mhz": 2394.5041403561518,
+          "worker_cpu_seconds": 2.765905431,
+          "instructions": 15448733197,
+          "cycles": 6593514346,
+          "worker": "265569:265615",
+          "sibling_busy_fraction": {
+            "15": 0.0
+          }
+        }
+      },
+      {
+        "game": "snakes",
+        "index": 2,
+        "variant": "B",
+        "path": "/home/claude/.scratch/eka-thumb-complete-20261010/final-screen-snakes-2-B",
+        "measurement": {
+          "diagnostics_available": false,
+          "detailed": false,
+          "capture_mode": 1,
+          "first_virtual_us": 74000000,
+          "last_virtual_us": 86000000,
+          "first_instructions": 0,
+          "last_instructions": 0,
+          "wall_seconds": 3.51333,
+          "presentations": 155
+        },
+        "validity": {
+          "valid": true,
+          "errors": [],
+          "mhz": 2394.3794496504456,
+          "interval_min_mhz": 2394.2656372722486,
+          "interval_max_mhz": 2394.502757059668,
+          "worker_cpu_seconds": 2.778909859,
+          "instructions": 15354887428,
+          "cycles": 6620550464,
+          "worker": "267644:267741",
+          "sibling_busy_fraction": {
+            "15": 0.0
+          }
+        }
+      },
+      {
+        "game": "snakes",
+        "index": 3,
+        "variant": "A",
+        "path": "/home/claude/.scratch/eka-thumb-complete-20261010/final-screen-snakes-3-A",
+        "measurement": {
+          "diagnostics_available": false,
+          "detailed": false,
+          "capture_mode": 1,
+          "first_virtual_us": 74000000,
+          "last_virtual_us": 86000000,
+          "first_instructions": 0,
+          "last_instructions": 0,
+          "wall_seconds": 3.46956,
+          "presentations": 151
+        },
+        "validity": {
+          "valid": true,
+          "errors": [],
+          "mhz": 2394.3744524337835,
+          "interval_min_mhz": 2394.1931712472956,
+          "interval_max_mhz": 2394.498872674315,
+          "worker_cpu_seconds": 2.75633712,
+          "instructions": 15046488029,
+          "cycles": 6572323323,
+          "worker": "269754:269799",
+          "sibling_busy_fraction": {
+            "15": 0.0
+          }
+        }
+      }
+    ],
+    "scene_review": [
+      {
+        "game": "sky-force",
+        "index": 0,
+        "variant": "A",
+        "start": "Active combat; score 0, stage 0%, three lives",
+        "end": "Active combat; score 775, stage 4%, three lives",
+        "screenshots": {
+          "browser-start.png": {
+            "path": "/home/claude/.scratch/eka-thumb-complete-20261010/final-screen-sky-force-0-A/profile/browser-start.png",
+            "sha256": "3ed31994270699d693d57080c867167461cdfbc2de78d32938585046c55627cb"
+          },
+          "browser.png": {
+            "path": "/home/claude/.scratch/eka-thumb-complete-20261010/final-screen-sky-force-0-A/profile/browser.png",
+            "sha256": "550160f831dded520800036c8f383b8c26ec4ac3a922c75a31ad937f1b4b784a"
+          }
+        }
+      },
+      {
+        "game": "sky-force",
+        "index": 1,
+        "variant": "B",
+        "start": "Active combat; score 0, stage 0%, three lives",
+        "end": "Active combat; score 825, stage 4%, three lives",
+        "screenshots": {
+          "browser-start.png": {
+            "path": "/home/claude/.scratch/eka-thumb-complete-20261010/final-screen-sky-force-1-B/profile/browser-start.png",
+            "sha256": "741387e39169be51566b1609ff1e308173eb4d90224284968a87c0b49c2e4cab"
+          },
+          "browser.png": {
+            "path": "/home/claude/.scratch/eka-thumb-complete-20261010/final-screen-sky-force-1-B/profile/browser.png",
+            "sha256": "6bab0a6e46f704b194acb54fd95c6a2455f376f50e7d83db08189225a7d89df8"
+          }
+        }
+      },
+      {
+        "game": "sky-force",
+        "index": 2,
+        "variant": "B",
+        "start": "Active combat; score 0, stage 0%, three lives",
+        "end": "Active combat; score 825, stage 4%, three lives",
+        "screenshots": {
+          "browser-start.png": {
+            "path": "/home/claude/.scratch/eka-thumb-complete-20261010/final-screen-sky-force-2-B/profile/browser-start.png",
+            "sha256": "4a4f6e1b77c9389cf750e049b8061e37a24c805f2dd2684030f627e22648ef96"
+          },
+          "browser.png": {
+            "path": "/home/claude/.scratch/eka-thumb-complete-20261010/final-screen-sky-force-2-B/profile/browser.png",
+            "sha256": "ab6c4e974e1d3981204a954f82fcf3ab98a5662d0b87dcbb4fd388af7bbc91be"
+          }
+        }
+      },
+      {
+        "game": "sky-force",
+        "index": 3,
+        "variant": "A",
+        "start": "Active combat; score 0, stage 0%, three lives",
+        "end": "Active combat; score 825, stage 4%, three lives",
+        "screenshots": {
+          "browser-start.png": {
+            "path": "/home/claude/.scratch/eka-thumb-complete-20261010/final-screen-sky-force-3-A/profile/browser-start.png",
+            "sha256": "8db3e2cfb8b9f776e44614677702e1265d3ad4359116d1260f4762d368eaca25"
+          },
+          "browser.png": {
+            "path": "/home/claude/.scratch/eka-thumb-complete-20261010/final-screen-sky-force-3-A/profile/browser.png",
+            "sha256": "f1f6064a4b3536f230ec37d7ad66e4024d3d32fa074669d12e0f547aa41f9fa5"
+          }
+        }
+      },
+      {
+        "game": "snakes",
+        "index": 0,
+        "variant": "A",
+        "start": "Active level gameplay; score 200",
+        "end": "Active level gameplay; score 200; playfield and pickups visible",
+        "screenshots": {
+          "browser-start.png": {
+            "path": "/home/claude/.scratch/eka-thumb-complete-20261010/final-screen-snakes-0-A/profile/browser-start.png",
+            "sha256": "7b6177ccfb1c18fd0b89185cbbc695ba3bf5402bf95ed26c63c091d55e46e3e8"
+          },
+          "browser.png": {
+            "path": "/home/claude/.scratch/eka-thumb-complete-20261010/final-screen-snakes-0-A/profile/browser.png",
+            "sha256": "0f8d6b39de3ecf8222fe700827c44ed1f19c908c34512ca4af54dcc917a6bbd1"
+          }
+        }
+      },
+      {
+        "game": "snakes",
+        "index": 1,
+        "variant": "B",
+        "start": "Active level gameplay; score 200",
+        "end": "Active level gameplay; score 200; playfield and pickups visible",
+        "screenshots": {
+          "browser-start.png": {
+            "path": "/home/claude/.scratch/eka-thumb-complete-20261010/final-screen-snakes-1-B/profile/browser-start.png",
+            "sha256": "92da157be78cf25c9f0ca66b3454c3f65ec35acaa05e622136685bca368169be"
+          },
+          "browser.png": {
+            "path": "/home/claude/.scratch/eka-thumb-complete-20261010/final-screen-snakes-1-B/profile/browser.png",
+            "sha256": "8aabad910174554e202bb7929d108e7886a1b4806d0b4aaa2fb141649587be7d"
+          }
+        }
+      },
+      {
+        "game": "snakes",
+        "index": 2,
+        "variant": "B",
+        "start": "Active level gameplay; score 200",
+        "end": "Active level gameplay; score 200; playfield and pickups visible",
+        "screenshots": {
+          "browser-start.png": {
+            "path": "/home/claude/.scratch/eka-thumb-complete-20261010/final-screen-snakes-2-B/profile/browser-start.png",
+            "sha256": "6be257fee914f5ad525a26a34245b12038bd4658f82f03aaaa3878bb324665f1"
+          },
+          "browser.png": {
+            "path": "/home/claude/.scratch/eka-thumb-complete-20261010/final-screen-snakes-2-B/profile/browser.png",
+            "sha256": "1fb7f99c1191667318d6dfb50417b5295eaaa3d307895cdf04759333b00bc62b"
+          }
+        }
+      },
+      {
+        "game": "snakes",
+        "index": 3,
+        "variant": "A",
+        "start": "Active level gameplay; score 200",
+        "end": "Active level gameplay; score 200; playfield and pickups visible",
+        "screenshots": {
+          "browser-start.png": {
+            "path": "/home/claude/.scratch/eka-thumb-complete-20261010/final-screen-snakes-3-A/profile/browser-start.png",
+            "sha256": "77163632f27127509416097ca441ae5c56f6235d19d708c65d2c3bfe9ad843bc"
+          },
+          "browser.png": {
+            "path": "/home/claude/.scratch/eka-thumb-complete-20261010/final-screen-snakes-3-A/profile/browser.png",
+            "sha256": "8f081a813073dac2c51555d2392a06630bf755f53aea05577766b30c8fe3cd00"
+          }
+        }
+      }
+    ],
+    "control_plan": {
+      "frequency_khz": 2400000,
+      "reference_mhz": 2304,
+      "worker_cpu": 7,
+      "support_cpus": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "panels": [
+        "ABBA"
+      ],
+      "clock_rules": {
+        "mean_relative_tolerance": 0.005,
+        "interval_relative_tolerance": 0.01,
+        "minimum_reference_interval_seconds": 0.02,
+        "max_sibling_busy_fraction": 0.02
+      },
+      "description": "Short complete Thumb calls versus retained runtime",
+      "isolated_cpus": [
+        7,
+        15
+      ],
+      "require_support_affinity": true,
+      "platform_profile": "performance",
+      "purpose": "ABBA screen after functional and selected-hot-callee checks. Inspect scenes and unequal-work limitation; graduate only a repeatable runtime gain.",
+      "windows": {
+        "sky-force": [
+          58000000,
+          70000000
+        ],
+        "snakes": [
+          74000000,
+          86000000
+        ]
+      },
+      "stop_on_clock_failure": true
+    }
+  },
+  "native_gameplay": {
+    "candidate_root": {
+      "pid": 282578,
+      "tid": 282625,
+      "id": 199983,
+      "name": "JS:f_2149191761-2522-turbofan",
+      "size": 14400,
+      "sha256": "ba0a288786da48bfae11bc7ec5f18566ef1cb77c1e4b3e1942e16b07d6a04773",
+      "samples": 4,
+      "function_index": 2522
+    },
+    "baseline_root": {
+      "pid": 189872,
+      "id": 200225,
+      "name": "f_2149191761",
+      "size": 7936,
+      "artifact_directory": "/home/claude/.scratch/eka-partial-fusion-native-20261010"
+    },
+    "successful_load_offset": "0x818",
+    "helper_result_offset": "0x87f",
+    "caller_conditional_offset": "0x8a8",
+    "limitation": "Root code grows to contain continuation; native shape does not establish whole-game speedup"
+  },
+  "correctness": {
+    "full_suite_passed": 183,
+    "failed": 0,
+    "new_chain_checks": 4800,
+    "new_interpreter_checks": 600,
+    "fixture_calls": [
+      8952,
+      7608
+    ],
+    "selected_sites": 44,
+    "operation_paths": {
+      "shorter": 216,
+      "equal": 336,
+      "longer": 48
+    },
+    "growth_reason": "Read miss adds dispatch before ordinary helper",
+    "full_log": "/home/claude/.scratch/eka-thumb-complete-20261010/full-final-tests.log",
+    "focused_log": "/home/claude/.scratch/eka-thumb-complete-20261010/focused-final.log",
+    "operation_log": "/home/claude/.scratch/eka-thumb-complete-20261010/counts.log"
+  },
+  "excluded_attempts": [
+    {
+      "path": "focused.log",
+      "reason": "Fixture missing code/literal bytes in actual memory; corrected before comparison"
+    },
+    {
+      "path": "micro",
+      "reason": "Incorrect Thumb registry keys; setup failed before timing"
+    },
+    {
+      "path": "micro-2",
+      "reason": "Candidate optimized root not installed before timing; tiering assertion rejected panel"
+    }
+  ],
+  "host_restoration": {
+    "host-micro-2.json": {
+      "restored": true,
+      "restoration_errors": [],
+      "returncode": 1,
+      "start": 1791634457.1122427,
+      "end": 1791634462.049166
+    },
+    "host-micro-3.json": {
+      "restored": true,
+      "restoration_errors": [],
+      "returncode": 0,
+      "start": 1791634567.9906342,
+      "end": 1791634572.9710839
+    },
+    "host-screen.json": {
+      "restored": true,
+      "restoration_errors": [],
+      "returncode": 0,
+      "start": 1791634605.805508,
+      "end": 1791635014.3765066
+    },
+    "host-micro-final.json": {
+      "restored": true,
+      "restoration_errors": [],
+      "returncode": 0,
+      "start": 1791635404.1407614,
+      "end": 1791635409.0676541
+    },
+    "host-micro.json": {
+      "restored": true,
+      "restoration_errors": [],
+      "returncode": 1,
+      "start": 1791634366.5642014,
+      "end": 1791634367.7330472
+    }
+  },
+  "deployment": {
+    "url": "https://claude-laptop.lan:8188/",
+    "downloaded_wasm_sha256": "8cea053b9b7dfe2b299a3b069172928fab7819d2a0267e9ed403283bca6d487a",
+    "matches_final": true,
+    "gameplay": {
+      "sky-force": {
+        "report": "/home/claude/.scratch/eka-thumb-complete-20261010/lan-sky-force/report.json",
+        "passed": true,
+        "sound": "muted",
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+        "input_check": "At least four guest-consumed keyboard events after gameplay start",
+        "screenshots": {
+          "gameplay-start.png": {
+            "path": "/home/claude/.scratch/eka-thumb-complete-20261010/lan-sky-force/gameplay-start.png",
+            "sha256": "5a9c6759eba794d356fef892c1316276b9747c01bf68110185a7be807cdde499"
+          },
+          "gameplay-end.png": {
+            "path": "/home/claude/.scratch/eka-thumb-complete-20261010/lan-sky-force/gameplay-end.png",
+            "sha256": "1e6d76f7eb5a2b9d06e3e2f8de36e032567eebe09727e2ed370717ed9d58a565"
+          }
+        },
+        "scene_review": "Gameplay, score 0/stage 0% to score 1625/stage 7%, three lives"
+      },
+      "snakes": {
+        "report": "/home/claude/.scratch/eka-thumb-complete-20261010/lan-snakes/report.json",
+        "passed": true,
+        "sound": "muted",
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+        "input_check": "At least four guest-consumed keyboard events after gameplay start",
+        "screenshots": {
+          "gameplay-start.png": {
+            "path": "/home/claude/.scratch/eka-thumb-complete-20261010/lan-snakes/gameplay-start.png",
+            "sha256": "ab3d4e2ca74f168c94b642a4a5186db27a6e43157147ef5b0f8c2d77e5f45b17"
+          },
+          "gameplay-end.png": {
+            "path": "/home/claude/.scratch/eka-thumb-complete-20261010/lan-snakes/gameplay-end.png",
+            "sha256": "b82481e2094efadbacc8f184aab00e053be44263ed588f107eb4265c19a8c055"
+          }
+        },
+        "scene_review": "Active level gameplay, score 200, visible snake and playfield at both endpoints"
+      }
+    }
+  }
+}

@@ -31,6 +31,7 @@ namespace eka2l1::arm::aot {
     // Pre-initialization experiment, shared by eager ROM and hot translations.
     inline bool thumb_direct_memory = false;
     inline bool thumb_region_fusion = true;
+    inline bool thumb_complete_calls = true;
     // ARMul_State field offsets (must match the actual struct layout)
     struct state_offsets {
         static constexpr std::uint32_t REG = 0;          // Reg[0]
@@ -86,6 +87,7 @@ namespace eka2l1::arm::aot {
         unsigned watchdog_safepoints = 0, proved_terminating_loops = 0;
         unsigned summarized_helpers = 0;
         unsigned fused_edges = 0;
+        unsigned inlined_thumb_helpers = 0;
         unsigned stack_calls = 0, proved_stack_returns = 0;
         bool complete;  // true if entire block was translated without bailing
         // Addresses where execution may resume after a bail-out call

@@ -45,6 +45,12 @@ try{
  const pid=renderers[0].id;assert.ok(renderers[0].delta>.005);execFileSync('taskset',['-pc',String(cpuId),String(pid)]);
  // Short calls discover the renderer but may not finish normal WASM tiering.
  // Exercise both complete workloads before starting hardware measurements.
+ // A fused loop may run millions of iterations in one invocation. Exercise
+ // enough entries for normal tiering as well as enough total guest work.
+ if(entry==='thumb_complete_benchmark')await page.evaluate(()=>{
+  for(let i=0;i<2048;i++)for(let variant=0;variant<2;variant++)
+   if(Module._thumb_complete_benchmark(variant,16)!==0)throw Error('Thumb warmup failed');
+ });
  const fullWarmups=[];
  for(const variant of [0,1,0,1]){
   const result=await runVariant(variant,iterations);assert.equal(result.status,0);
@@ -77,7 +83,7 @@ try{
  }
  await client.send('Debugger.disable');
  counter.stdin.end();await browser.close();browser=null;log.end();
- const rootName=entry==='tile_call_benchmark'?'f_4096-':'f_1879182840-';
+ const rootNames=entry==='thumb_complete_benchmark'?['f_4105-','f_4099-']:[entry==='tile_call_benchmark'?'f_4096-':'f_1879182840-'];
  const optimizedRoots=[],incompleteJitTails=[];
  for(const file of fs.readdirSync(out).filter(f=>/^jit-.*\.dump$/.test(f))){
   const bytes=fs.readFileSync(path.join(out,file));
@@ -88,14 +94,14 @@ try{
    if(kind===0){
     const end=bytes.indexOf(0,at+56);assert.ok(end>=at+56&&end<at+size);
     const name=bytes.toString('utf8',at+56,end);
-    if(name.startsWith(`JS:${rootName}`)&&name.endsWith('-turbofan'))
+    if(rootNames.some(root=>name.startsWith(`JS:${root}`))&&name.endsWith('-turbofan'))
      optimizedRoots.push({name,timestamp:Number(bytes.readBigUInt64LE(at+8))});
    }
    at+=size;
   }
  }
  const firstMeasurement=report.rows[0].hardware.enable_begin_ns;
- report.tiering={optimizedRoots,incompleteJitTails,finishedBeforeMeasurement:optimizedRoots.length>=2&&optimizedRoots.every(r=>r.timestamp<firstMeasurement)};
+ report.tiering={optimizedRoots,incompleteJitTails,finishedBeforeMeasurement:optimizedRoots.length>=2&&rootNames.every(root=>optimizedRoots.some(r=>r.name.startsWith(`JS:${root}`)))&&optimizedRoots.every(r=>r.timestamp<firstMeasurement)};
  fs.writeFileSync(out+'/report.json',JSON.stringify(report,null,2));
  assert.ok(report.tiering.finishedBeforeMeasurement,'Root WASM optimization did not finish before measurement');
 }catch(e){console.error(e);process.exitCode=1;}finally{counter?.stdin.end();await browser?.close();server.close();}

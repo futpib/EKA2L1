@@ -24,6 +24,7 @@
 #include <cpu/aot/wasm_cost.h>
 #include <cpu/aot/memory_emission.h>
 #include <cpu/aot/exit_census.h>
+#include <cpu/aot/execution_limits.h>
 #include <cpu/12l1r/tlb.h>
 #include <common/code_tracking.h>
 
@@ -469,6 +470,130 @@ namespace eka2l1::arm::aot {
         return false;
     }
 
+    static bool emit_thumb_condition(emit &w, unsigned cond) {
+        switch (cond) {
+        case 0: w.load_i32(S::ZFLAG); return true;
+        case 1: w.load_i32(S::ZFLAG); w.op(op_i32_eqz); return true;
+        case 2: w.load_i32(S::CFLAG); return true;
+        case 3: w.load_i32(S::CFLAG); w.op(op_i32_eqz); return true;
+        case 4: w.load_i32(S::NFLAG); return true;
+        case 5: w.load_i32(S::NFLAG); w.op(op_i32_eqz); return true;
+        case 6: w.load_i32(S::VFLAG); return true;
+        case 7: w.load_i32(S::VFLAG); w.op(op_i32_eqz); return true;
+        case 8:
+            w.load_i32(S::CFLAG); w.load_i32(S::ZFLAG); w.op(op_i32_eqz); w.op(op_i32_and); return true;
+        case 9:
+            w.load_i32(S::CFLAG); w.op(op_i32_eqz); w.load_i32(S::ZFLAG); w.op(op_i32_or); return true;
+        case 10: case 11:
+            w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(cond == 10 ? op_i32_eq : op_i32_ne); return true;
+        case 12:
+            w.load_i32(S::ZFLAG); w.op(op_i32_eqz); w.load_i32(S::NFLAG); w.load_i32(S::VFLAG);
+            w.op(op_i32_eq); w.op(op_i32_and); return true;
+        case 13:
+            w.load_i32(S::ZFLAG); w.load_i32(S::NFLAG); w.load_i32(S::VFLAG);
+            w.op(op_i32_ne); w.op(op_i32_or); return true;
+        default: return false;
+        }
+    }
+
+    static bool emit_leaf_alu(emit &w, std::uint16_t insn) {
+        if (emit_bounded_alu(w, insn)) return true;
+        if ((insn & 0xf800) == 0x2000) {
+            w.store_i32_const(S::reg((insn >> 8) & 7), insn & 255);
+            w.store_i32_const(S::NFLAG, 0); w.store_i32_const(S::ZFLAG, !(insn & 255));
+            return true;
+        }
+        if ((insn & 0xff00) == 0x4600) {
+            const auto rd = (insn & 7) | ((insn >> 4) & 8), rm = (insn >> 3) & 15;
+            if (rd >= 13 || rm == 15) return false;
+            w.load_reg(rm); w.set_local(1); w.store_reg(rd, 1); return true;
+        }
+        return false;
+    }
+
+    static unsigned leaf_read_size(std::uint16_t insn) {
+        switch (insn & 0xf800) {
+        case 0x4800: case 0x6800: case 0x9800: return 4;
+        case 0x7800: return 1;
+        case 0x8800: return 2;
+        default: return 0;
+        }
+    }
+
+    // Enumerate short, acyclic ROM leaves before changing the caller. Count
+    // duplicated paths against the existing leaf bound; there is no runtime
+    // instruction accumulator or recursive guest call on the selected path.
+    struct thumb_leaf {
+        const code_window *rom;
+        std::uint32_t entry;
+        unsigned expanded = 0;
+
+        bool analyze(std::uint32_t pc) {
+            std::uint16_t insn;
+            if (!rom || ++expanded > leaf_instruction_limit || pc < entry
+                    || std::uint64_t(pc) >= std::uint64_t(entry) + leaf_instruction_limit * 2
+                    || !rom->read(pc, &insn, 2)) return false;
+            if (insn == 0x4770) return true;
+            if ((insn & 0xf000) == 0xd000 && ((insn >> 8) & 15) < 14) {
+                const auto target = pc + 4 + static_cast<std::int8_t>(insn & 255) * 2;
+                return target > pc && analyze(target) && analyze(pc + 2);
+            }
+            if ((insn & 0xf800) == 0xe000) {
+                const auto target = pc + 4 + (static_cast<std::int16_t>((insn & 2047) << 5) >> 5) * 2;
+                return target > pc && analyze(target);
+            }
+            if (!leaf_read_size(insn)) {
+                std::vector<std::uint8_t> bytes;
+                emit probe{bytes};
+                if (!emit_leaf_alu(probe, insn)) return false;
+            }
+            return analyze(pc + 2);
+        }
+    };
+
+    static void emit_thumb_leaf(emit &w, const thumb_leaf &leaf, std::uint32_t pc,
+            unsigned count, std::uint32_t return_pc, unsigned depth = 0) {
+        std::uint16_t insn = 0;
+        leaf.rom->read(pc, &insn, 2);
+        w.source.pc = pc; w.source.kind = source_kind::guest;
+        w.census_pc = pc | 1; w.census_opcode = insn;
+        w.store_i32_const(S::PC, pc);
+        if (insn == 0x4770) {
+            w.store_i32_const(S::PC, return_pc);
+            w.op(op_br); leb(w.b, depth); return;
+        }
+        if ((insn & 0xf000) == 0xd000) {
+            const auto target = pc + 4 + static_cast<std::int8_t>(insn & 255) * 2;
+            emit_thumb_condition(w, (insn >> 8) & 15);
+            w.op(op_if); w.op(type_void);
+            emit_thumb_leaf(w, leaf, target, count + 1, return_pc, depth + 1);
+            w.op(op_else);
+            emit_thumb_leaf(w, leaf, pc + 2, count + 1, return_pc, depth + 1);
+            w.op(op_end); return;
+        }
+        if ((insn & 0xf800) == 0xe000) {
+            const auto target = pc + 4 + (static_cast<std::int16_t>((insn & 2047) << 5) >> 5) * 2;
+            emit_thumb_leaf(w, leaf, target, count + 1, return_pc, depth); return;
+        }
+        if (const auto size = leaf_read_size(insn)) {
+            unsigned rd = insn & 7;
+            if ((insn & 0xf800) == 0x4800) {
+                rd = (insn >> 8) & 7; w.i32_const(((pc + 4) & ~3u) + (insn & 255) * 4);
+            } else if ((insn & 0xf800) == 0x9800) {
+                rd = (insn >> 8) & 7; w.load_reg(13); w.i32_const((insn & 255) * 4); w.op(op_i32_add);
+            } else {
+                w.load_reg((insn >> 3) & 7); w.i32_const(((insn >> 6) & 31) * size); w.op(op_i32_add);
+            }
+            w.set_local(emit::ADDRESS);
+            // A miss resumes the original instruction. No helper can change
+            // flags, mappings or interrupt state inside this inlined leaf.
+            direct_access(w, size, false, [&] { w.bail(pc, count, exit_census::guard); });
+            w.set_local(1); w.store_reg(rd, 1);
+        } else emit_leaf_alu(w, insn);
+        emit_thumb_leaf(w, leaf, pc + 2, count + 1, return_pc, depth);
+    }
+
+
     // Walk the code slice linearly from offset 0, following branches and
     // stopping at unconditional terminators (POP {PC}, BX LR, BX Rm, B imm
     // that falls outside the slice, or the end of the slice).
@@ -699,6 +824,7 @@ namespace eka2l1::arm::aot {
     }
 
     struct thumb_fusion_context {
+        static constexpr unsigned instruction_limit = 512;
         const code_window *code = nullptr;
         std::set<std::uint32_t> path;
         unsigned emitted = 0;
@@ -717,7 +843,7 @@ namespace eka2l1::arm::aot {
         const std::uint32_t FTMP1 = 7, FTMP2 = 8, DTMP1 = 9;
         const auto branch = [&](std::uint32_t target, unsigned count, bool checked = false) {
             std::uint16_t first = 0;
-            const bool candidate = fusion && count < 128 && fusion->emitted < 512
+            const bool candidate = fusion && count < 128 && fusion->emitted < thumb_fusion_context::instruction_limit
                 && tr.fused_edges < 8 && !fusion->path.count(target) && !(target & 1)
                 && fusion->code->read(target, &first, sizeof(first))
                 && first < 0xe800 && (first & 0xff00) != 0xdf00;
@@ -999,6 +1125,22 @@ namespace eka2l1::arm::aot {
                                 w.set_local(TMP2); w.store_i32(S::TFLAG, TMP2);
                                 w.bail_preserve_pc();
                             } else if (kind == 0xF800) {
+                                thumb_leaf leaf{immutable_code, target};
+                                if (thumb_complete_calls && memory_experiment::enabled() && fusion
+                                        && fusion->emitted + leaf_instruction_limit <= thumb_fusion_context::instruction_limit
+                                        && tr.inlined_thumb_helpers < inline_site_limit && leaf.analyze(target)) {
+                                    ++tr.inlined_thumb_helpers;
+                                    fusion->emitted += leaf.expanded;
+                                    w.op(op_block); w.op(type_void);
+                                    emit_thumb_leaf(w, leaf, target, insn_idx + 2, insn_addr + 4);
+                                    w.op(op_end);
+                                    tr.resume_points.push_back(insn_addr + 2);
+                                    tr.resume_points.push_back(insn_addr + 4);
+                                    decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                                    insn_idx += 2;
+                                    i += 2;
+                                    continue;
+                                }
                                 branch(target, insn_idx + 2, true);
                             } else {
                                 w.bail(target, insn_idx + 2);
