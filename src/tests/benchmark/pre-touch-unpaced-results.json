@@ -1,0 +1,130 @@
+{
+  "date": "2026-10-10",
+  "sourceHead": "17da60af0",
+  "servedWasmSha256": "3d0bb2ee382bcef42c641ba1d609e019e65233b75310eabfd265fcd65b4b60ff",
+  "url": "https://claude-laptop.lan:8188/?game=custom",
+  "browser": "Chrome/153.0.8010.52",
+  "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+  "hardwareGraphics": true,
+  "device": "stock Nokia 5320",
+  "instructionAccounting": false,
+  "sampling": "Serial runs, one emulator at a time; continuous unpaced execution during every accepted window",
+  "sound": "Browser output muted; normal audio emulation retained, audio performance not verified",
+  "harness": "/home/claude/.scratch/eka-unpaced-five-20261010/run.mjs",
+  "limitations": [
+    "Single samples on shared host, with VM and build activity during parts of campaign; not isolated peak performance",
+    "Short Sky Force and K-Rally windows avoid Game Over and tutorial-dialog transitions",
+    "Presentation counts are not display refresh, unique-image counts, or proof of equivalent game logic",
+    "Guest clock speed is approximate virtual-time progression, not a gameplay speedup claim",
+    "Controlled startup pauses for Sky Force, K-Rally and Hooked On are outside the timing windows",
+    "Hooked On uses the recovered full 0.74 BiNPDA container; production picker still selects original trial"
+  ],
+  "measurements": [
+    {
+      "game": "snakes",
+      "edition": "launcher default",
+      "seconds": 30.385340000033377,
+      "frames": 1041,
+      "fps": 34.25994245905613,
+      "guestSeconds": 123.1,
+      "guestSpeed": 4.051295789346598,
+      "compiledFunctions": 106,
+      "compilationUs": {
+        "aot_translation_us": 33680,
+        "aot_emission_us": 2526,
+        "aot_installation_us": 6928
+      },
+      "errors": [],
+      "scene": "Opening level",
+      "report": "/home/claude/.scratch/eka-unpaced-five-20261010/snakes/gameplay.json",
+      "startScreenshot": "/home/claude/.scratch/eka-unpaced-five-20261010/snakes/gameplay-start.png",
+      "endScreenshot": "/home/claude/.scratch/eka-unpaced-five-20261010/snakes/gameplay-end.png"
+    },
+    {
+      "game": "sky-force",
+      "edition": "1.22, S60 3rd Edition, 240x320",
+      "seconds": 5.023284999966622,
+      "frames": 1241,
+      "fps": 247.04949052427764,
+      "guestSeconds": 38.846024,
+      "guestSpeed": 7.7331913280369555,
+      "compiledFunctions": 27,
+      "compilationUs": {
+        "aot_translation_us": 4731,
+        "aot_emission_us": 328,
+        "aot_installation_us": 918
+      },
+      "errors": [],
+      "scene": "Stage 1, shooting",
+      "report": "/home/claude/.scratch/eka-unpaced-five-20261010/sky-controlled/stage1.json",
+      "startScreenshot": "/home/claude/.scratch/eka-unpaced-five-20261010/sky-controlled/stage1-start.png",
+      "endScreenshot": "/home/claude/.scratch/eka-unpaced-five-20261010/sky-controlled/stage1-end.png"
+    },
+    {
+      "game": "k-rally",
+      "edition": "1.01, S60 3rd Edition, Team SyMBiAN preservation copy",
+      "seconds": 3.0139350000619887,
+      "frames": 249,
+      "fps": 82.61624752852292,
+      "guestSeconds": 15.17,
+      "guestSpeed": 5.033287048223666,
+      "compiledFunctions": 66,
+      "compilationUs": {
+        "aot_translation_us": 15244,
+        "aot_emission_us": 1214,
+        "aot_installation_us": 12866
+      },
+      "errors": [],
+      "scene": "Tutorial track, accelerating and steering",
+      "report": "/home/claude/.scratch/eka-unpaced-five-20261010/k-controlled/driving.json",
+      "startScreenshot": "/home/claude/.scratch/eka-unpaced-five-20261010/k-controlled/driving-start.png",
+      "endScreenshot": "/home/claude/.scratch/eka-unpaced-five-20261010/k-controlled/driving-end.png"
+    },
+    {
+      "game": "asphalt-2",
+      "edition": "1.0.1, N95 8GB, original Gameloft-signed S60v3 release",
+      "seconds": 20.20831499993801,
+      "frames": 336,
+      "fps": 16.626819207886985,
+      "guestSeconds": 106.18,
+      "guestSpeed": 5.254272808016191,
+      "compiledFunctions": 1079,
+      "compilationUs": {
+        "aot_translation_us": 138733,
+        "aot_emission_us": 5069,
+        "aot_installation_us": 29554
+      },
+      "errors": [],
+      "scene": "Instant Play motorcycle race",
+      "report": "/home/claude/.scratch/eka-unpaced-five-20261010/asphalt-2/racing.json",
+      "startScreenshot": "/home/claude/.scratch/eka-unpaced-five-20261010/asphalt-2/racing-start.png",
+      "endScreenshot": "/home/claude/.scratch/eka-unpaced-five-20261010/asphalt-2/racing-end.png"
+    },
+    {
+      "game": "hooked-on",
+      "edition": "0.74 BiNPDA full",
+      "seconds": 15.105220000028611,
+      "frames": 337,
+      "fps": 22.31016827291239,
+      "guestSeconds": 64.12,
+      "guestSpeed": 4.244890177030096,
+      "compiledFunctions": 0,
+      "compilationUs": {
+        "aot_translation_us": 0,
+        "aot_emission_us": 0,
+        "aot_installation_us": 0
+      },
+      "errors": [],
+      "scene": "Costa Rica, boat movement",
+      "report": "/home/claude/.scratch/eka-unpaced-five-20261010/hooked-controlled/boat-gameplay.json",
+      "startScreenshot": "/home/claude/.scratch/eka-unpaced-five-20261010/hooked-controlled/boat-gameplay-start.png",
+      "endScreenshot": "/home/claude/.scratch/eka-unpaced-five-20261010/hooked-controlled/boat-gameplay-end.png"
+    }
+  ],
+  "excluded": [
+    "snakes/warm-gameplay.json: high-score screen",
+    "sky-force/gameplay.json: transitions to high scores",
+    "k-rally/driving.json: transitions to tutorial dialog",
+    "hooked-on: reached virtual-time safety deadline before launching game; no measurement"
+  ]
+}
