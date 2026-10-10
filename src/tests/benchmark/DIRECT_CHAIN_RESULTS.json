@@ -1,0 +1,1756 @@
+{
+  "baseline": {
+    "commit": "ebb614bcab57f9ecc30014d325412fc7cfed518c",
+    "wasm_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+    "branch": "wasm-port",
+    "production": "unchanged"
+  },
+  "candidate_wasm_sha256": "632051d72e9964d12265d9955e69c3c268dfb80d9edd976327bc8e2564e2143d",
+  "decision": "Archive prototype; no default or LAN change. Local handoff gain is established in synthetic exact work, game gain is not.",
+  "plan": {
+    "frequency_khz": 3600000,
+    "reference_mhz": 2304,
+    "worker_cpu": 7,
+    "support_cpus": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ],
+    "panels": [
+      "ABBA"
+    ],
+    "clock_rules": {
+      "mean_relative_tolerance": 0.005,
+      "interval_relative_tolerance": 0.01,
+      "minimum_reference_interval_seconds": 0.02,
+      "max_sibling_busy_fraction": 0.02
+    },
+    "description": "Direct same-module tail chaining versus frozen stock ebb614bca; ABBA per game; native tiering; no diagnostics",
+    "isolated_cpus": [
+      7,
+      15
+    ],
+    "require_support_affinity": true,
+    "platform_profile": "performance",
+    "purpose": "Short unprofiled screen: inspect first game scene before continuing. Count-free schedule/output equivalence is audited separately; no speed claim from mismatched work.",
+    "windows": {
+      "snakes": [
+        42000000,
+        46000000
+      ],
+      "sky-force": [
+        58000000,
+        62000000
+      ]
+    },
+    "stop_on_clock_failure": true
+  },
+  "summary": [
+    {
+      "game": "snakes",
+      "means": {
+        "A": {
+          "worker_cpu_seconds": 0.815033259,
+          "native_instructions": 6633723252.5,
+          "wall_seconds": 1.047085,
+          "presentations": [
+            67,
+            66
+          ]
+        },
+        "B": {
+          "worker_cpu_seconds": 0.8134897395,
+          "native_instructions": 6625402083,
+          "wall_seconds": 1.05454,
+          "presentations": [
+            67,
+            69
+          ]
+        }
+      },
+      "observed_cpu_throughput_change_percent": 0.18974050010129861,
+      "native_instruction_change_percent": -0.12543739289793132,
+      "established_gain": false
+    },
+    {
+      "game": "sky-force",
+      "means": {
+        "A": {
+          "worker_cpu_seconds": 0.7592461275,
+          "native_instructions": 7504211022.5,
+          "wall_seconds": 1.1794850000000001,
+          "presentations": [
+            128,
+            128
+          ]
+        },
+        "B": {
+          "worker_cpu_seconds": 0.7588473495,
+          "native_instructions": 7366594134,
+          "wall_seconds": 1.180585,
+          "presentations": [
+            128,
+            127
+          ]
+        }
+      },
+      "observed_cpu_throughput_change_percent": 0.052550489932223776,
+      "native_instruction_change_percent": -1.833862188674884,
+      "established_gain": false
+    }
+  ],
+  "observations": [
+    {
+      "game": "snakes",
+      "index": 0,
+      "variant": "A",
+      "path": "/home/claude/.scratch/eka-direct-chain-20261010/screen-snakes-0-A",
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 42000000,
+        "last_virtual_us": 46000000,
+        "first_instructions": 0,
+        "last_instructions": 0,
+        "wall_seconds": 1.04711,
+        "presentations": 67
+      },
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.557966009241,
+        "interval_min_mhz": 3591.3851283695335,
+        "interval_max_mhz": 3591.6645699098895,
+        "worker_cpu_seconds": 0.821941035,
+        "instructions": 6702807586,
+        "cycles": 2932194913,
+        "worker": "2605919:2605964",
+        "sibling_busy_fraction": {
+          "15": 0.0
+        }
+      }
+    },
+    {
+      "game": "snakes",
+      "index": 1,
+      "variant": "B",
+      "path": "/home/claude/.scratch/eka-direct-chain-20261010/screen-snakes-1-B",
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 42000000,
+        "last_virtual_us": 46000000,
+        "first_instructions": 0,
+        "last_instructions": 0,
+        "wall_seconds": 1.03504,
+        "presentations": 67
+      },
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.568904253958,
+        "interval_min_mhz": 3591.2578620059535,
+        "interval_max_mhz": 3591.731130704535,
+        "worker_cpu_seconds": 0.792423532,
+        "instructions": 6517115269,
+        "cycles": 2836370459,
+        "worker": "2609644:2609689",
+        "sibling_busy_fraction": {
+          "15": 0.0
+        }
+      }
+    },
+    {
+      "game": "snakes",
+      "index": 2,
+      "variant": "B",
+      "path": "/home/claude/.scratch/eka-direct-chain-20261010/screen-snakes-2-B",
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 42000000,
+        "last_virtual_us": 46000000,
+        "first_instructions": 0,
+        "last_instructions": 0,
+        "wall_seconds": 1.07404,
+        "presentations": 69
+      },
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.567569913076,
+        "interval_min_mhz": 3591.3282759663803,
+        "interval_max_mhz": 3591.669611022702,
+        "worker_cpu_seconds": 0.834555947,
+        "instructions": 6733688897,
+        "cycles": 2979736103,
+        "worker": "2612110:2612155",
+        "sibling_busy_fraction": {
+          "15": 0.0
+        }
+      }
+    },
+    {
+      "game": "snakes",
+      "index": 3,
+      "variant": "A",
+      "path": "/home/claude/.scratch/eka-direct-chain-20261010/screen-snakes-3-A",
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 42000000,
+        "last_virtual_us": 46000000,
+        "first_instructions": 0,
+        "last_instructions": 0,
+        "wall_seconds": 1.04706,
+        "presentations": 66
+      },
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.5545494849903,
+        "interval_min_mhz": 3591.278823466311,
+        "interval_max_mhz": 3591.6999870581617,
+        "worker_cpu_seconds": 0.808125483,
+        "instructions": 6564638919,
+        "cycles": 2883606322,
+        "worker": "2614604:2614668",
+        "sibling_busy_fraction": {
+          "15": 0.0
+        }
+      }
+    },
+    {
+      "game": "sky-force",
+      "index": 0,
+      "variant": "A",
+      "path": "/home/claude/.scratch/eka-direct-chain-20261010/screen-sky-force-0-A",
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 58000000,
+        "last_virtual_us": 62000000,
+        "first_instructions": 0,
+        "last_instructions": 0,
+        "wall_seconds": 1.17695,
+        "presentations": 128
+      },
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.5474709355462,
+        "interval_min_mhz": 3591.329244188369,
+        "interval_max_mhz": 3591.7363513046344,
+        "worker_cpu_seconds": 0.750469027,
+        "instructions": 7409255154,
+        "cycles": 2678728146,
+        "worker": "2616080:2616143",
+        "sibling_busy_fraction": {
+          "15": 0.0
+        }
+      }
+    },
+    {
+      "game": "sky-force",
+      "index": 1,
+      "variant": "B",
+      "path": "/home/claude/.scratch/eka-direct-chain-20261010/screen-sky-force-1-B",
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 58000000,
+        "last_virtual_us": 62000000,
+        "first_instructions": 0,
+        "last_instructions": 0,
+        "wall_seconds": 1.19966,
+        "presentations": 128
+      },
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.5237446128485,
+        "interval_min_mhz": 3591.0782386627457,
+        "interval_max_mhz": 3591.6856738323722,
+        "worker_cpu_seconds": 0.756057978,
+        "instructions": 7521671199,
+        "cycles": 2705900679,
+        "worker": "2618353:2618406",
+        "sibling_busy_fraction": {
+          "15": 0.0
+        }
+      }
+    },
+    {
+      "game": "sky-force",
+      "index": 2,
+      "variant": "B",
+      "path": "/home/claude/.scratch/eka-direct-chain-20261010/screen-sky-force-2-B",
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 58000000,
+        "last_virtual_us": 62000000,
+        "first_instructions": 0,
+        "last_instructions": 0,
+        "wall_seconds": 1.16151,
+        "presentations": 127
+      },
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.551370030063,
+        "interval_min_mhz": 3591.379006959869,
+        "interval_max_mhz": 3591.7112436787247,
+        "worker_cpu_seconds": 0.761636721,
+        "instructions": 7211517069,
+        "cycles": 2718170179,
+        "worker": "2620796:2620841",
+        "sibling_busy_fraction": {
+          "15": 0.0
+        }
+      }
+    },
+    {
+      "game": "sky-force",
+      "index": 3,
+      "variant": "A",
+      "path": "/home/claude/.scratch/eka-direct-chain-20261010/screen-sky-force-3-A",
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 58000000,
+        "last_virtual_us": 62000000,
+        "first_instructions": 0,
+        "last_instructions": 0,
+        "wall_seconds": 1.18202,
+        "presentations": 128
+      },
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.5369070829256,
+        "interval_min_mhz": 3591.382072424261,
+        "interval_max_mhz": 3591.711399115697,
+        "worker_cpu_seconds": 0.768023228,
+        "instructions": 7599166891,
+        "cycles": 2741561089,
+        "worker": "2623337:2623382",
+        "sibling_busy_fraction": {
+          "15": 0.0
+        }
+      }
+    }
+  ],
+  "micro": {
+    "browser": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/153.0.8010.52",
+      "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "jsVersion": "15.3.76.13"
+    },
+    "pid": 2631274,
+    "renderers": [
+      {
+        "type": "renderer",
+        "id": 2631274,
+        "cpuTime": 0.14,
+        "delta": 0.05000000000000002
+      },
+      {
+        "type": "renderer",
+        "id": 2631217,
+        "cpuTime": 0.26,
+        "delta": 0.04000000000000001
+      },
+      {
+        "type": "renderer",
+        "id": 2631284,
+        "cpuTime": 0.01,
+        "delta": 0
+      },
+      {
+        "type": "renderer",
+        "id": 2631228,
+        "cpuTime": 0.02,
+        "delta": 0
+      }
+    ],
+    "iterations": 10000000,
+    "rows": [
+      {
+        "variant": 0,
+        "cpu_seconds": 0.24769885600000002,
+        "status": 0,
+        "milliseconds": 247.48500001430511,
+        "mhz": 3591.6093937699247,
+        "hardware": {
+          "events": {
+            "guest": {
+              "start_ticks": 90488621,
+              "user_cycles": {
+                "raw": 889474637,
+                "time_enabled_ns": 247845792,
+                "time_running_ns": 247845792,
+                "running_fraction": 1,
+                "scaled": 889474637
+              },
+              "user_instructions": {
+                "raw": 2130429891,
+                "time_enabled_ns": 247845792,
+                "time_running_ns": 247845792,
+                "running_fraction": 1,
+                "scaled": 2130429891
+              },
+              "user_reference_cycles": {
+                "raw": 570593664,
+                "time_enabled_ns": 247845792,
+                "time_running_ns": 247845792,
+                "running_fraction": 1,
+                "scaled": 570593664
+              }
+            }
+          },
+          "errors": [],
+          "begin_ns": 886263719353617,
+          "enable_begin_ns": 886263755092206,
+          "enable_end_ns": 886263755143551,
+          "disable_begin_ns": 886264004332278,
+          "disable_end_ns": 886264004385913
+        }
+      },
+      {
+        "variant": 1,
+        "cpu_seconds": 0.053143412,
+        "status": 0,
+        "milliseconds": 52.9650000333786,
+        "mhz": 3591.5921363163984,
+        "hardware": {
+          "events": {
+            "guest": {
+              "start_ticks": 90488621,
+              "user_cycles": {
+                "raw": 190799591,
+                "time_enabled_ns": 53172207,
+                "time_running_ns": 53172207,
+                "running_fraction": 1,
+                "scaled": 190799591
+              },
+              "user_instructions": {
+                "raw": 810235481,
+                "time_enabled_ns": 53172207,
+                "time_running_ns": 53172207,
+                "running_fraction": 1,
+                "scaled": 810235481
+              },
+              "user_reference_cycles": {
+                "raw": 122397600,
+                "time_enabled_ns": 53172207,
+                "time_running_ns": 53172207,
+                "running_fraction": 1,
+                "scaled": 122397600
+              }
+            }
+          },
+          "errors": [],
+          "begin_ns": 886264006939315,
+          "enable_begin_ns": 886264007213207,
+          "enable_end_ns": 886264007253207,
+          "disable_begin_ns": 886264061460613,
+          "disable_end_ns": 886264061507635
+        }
+      },
+      {
+        "variant": 1,
+        "cpu_seconds": 0.053050474000000014,
+        "status": 0,
+        "milliseconds": 52.949999928474426,
+        "mhz": 3591.6257047498725,
+        "hardware": {
+          "events": {
+            "guest": {
+              "start_ticks": 90488621,
+              "user_cycles": {
+                "raw": 190474686,
+                "time_enabled_ns": 53074707,
+                "time_running_ns": 53074707,
+                "running_fraction": 1,
+                "scaled": 190474686
+              },
+              "user_instructions": {
+                "raw": 810203983,
+                "time_enabled_ns": 53074707,
+                "time_running_ns": 53074707,
+                "running_fraction": 1,
+                "scaled": 810203983
+              },
+              "user_reference_cycles": {
+                "raw": 122188032,
+                "time_enabled_ns": 53074707,
+                "time_running_ns": 53074707,
+                "running_fraction": 1,
+                "scaled": 122188032
+              }
+            }
+          },
+          "errors": [],
+          "begin_ns": 886264063365875,
+          "enable_begin_ns": 886264063637184,
+          "enable_end_ns": 886264063676661,
+          "disable_begin_ns": 886264117665869,
+          "disable_end_ns": 886264117708310
+        }
+      },
+      {
+        "variant": 0,
+        "cpu_seconds": 0.24780541399999995,
+        "status": 0,
+        "milliseconds": 247.74499988555908,
+        "mhz": 3591.6145072359773,
+        "hardware": {
+          "events": {
+            "guest": {
+              "start_ticks": 90488621,
+              "user_cycles": {
+                "raw": 889892381,
+                "time_enabled_ns": 247923115,
+                "time_running_ns": 247923115,
+                "running_fraction": 1,
+                "scaled": 889892381
+              },
+              "user_instructions": {
+                "raw": 2130203666,
+                "time_enabled_ns": 247923115,
+                "time_running_ns": 247923115,
+                "running_fraction": 1,
+                "scaled": 2130203666
+              },
+              "user_reference_cycles": {
+                "raw": 570860832,
+                "time_enabled_ns": 247923115,
+                "time_running_ns": 247923115,
+                "running_fraction": 1,
+                "scaled": 570860832
+              }
+            }
+          },
+          "errors": [],
+          "begin_ns": 886264121356660,
+          "enable_begin_ns": 886264121609797,
+          "enable_end_ns": 886264121646642,
+          "disable_begin_ns": 886264370680009,
+          "disable_end_ns": 886264370727659
+        }
+      },
+      {
+        "variant": 1,
+        "cpu_seconds": 0.053070218999999974,
+        "status": 0,
+        "milliseconds": 52.980000019073486,
+        "mhz": 3591.628493614695,
+        "hardware": {
+          "events": {
+            "guest": {
+              "start_ticks": 90488621,
+              "user_cycles": {
+                "raw": 190506111,
+                "time_enabled_ns": 53122044,
+                "time_running_ns": 53122044,
+                "running_fraction": 1,
+                "scaled": 190506111
+              },
+              "user_instructions": {
+                "raw": 810205170,
+                "time_enabled_ns": 53122044,
+                "time_running_ns": 53122044,
+                "running_fraction": 1,
+                "scaled": 810205170
+              },
+              "user_reference_cycles": {
+                "raw": 122208096,
+                "time_enabled_ns": 53122044,
+                "time_running_ns": 53122044,
+                "running_fraction": 1,
+                "scaled": 122208096
+              }
+            }
+          },
+          "errors": [],
+          "begin_ns": 886264372647180,
+          "enable_begin_ns": 886264372912880,
+          "enable_end_ns": 886264372952668,
+          "disable_begin_ns": 886264426947337,
+          "disable_end_ns": 886264426995410
+        }
+      },
+      {
+        "variant": 0,
+        "cpu_seconds": 0.2473910520000001,
+        "status": 0,
+        "milliseconds": 247.28999996185303,
+        "mhz": 3591.6248149766716,
+        "hardware": {
+          "events": {
+            "guest": {
+              "start_ticks": 90488621,
+              "user_cycles": {
+                "raw": 888289329,
+                "time_enabled_ns": 247503554,
+                "time_running_ns": 247503554,
+                "running_fraction": 1,
+                "scaled": 888289329
+              },
+              "user_instructions": {
+                "raw": 2130329921,
+                "time_enabled_ns": 247503554,
+                "time_running_ns": 247503554,
+                "running_fraction": 1,
+                "scaled": 2130329921
+              },
+              "user_reference_cycles": {
+                "raw": 569830848,
+                "time_enabled_ns": 247503554,
+                "time_running_ns": 247503554,
+                "running_fraction": 1,
+                "scaled": 569830848
+              }
+            }
+          },
+          "errors": [],
+          "begin_ns": 886264430685538,
+          "enable_begin_ns": 886264430939148,
+          "enable_end_ns": 886264430977533,
+          "disable_begin_ns": 886264679369564,
+          "disable_end_ns": 886264679410857
+        }
+      },
+      {
+        "variant": 0,
+        "cpu_seconds": 0.24794516300000002,
+        "status": 0,
+        "milliseconds": 247.91499996185303,
+        "mhz": 3591.6250441401467,
+        "hardware": {
+          "events": {
+            "guest": {
+              "start_ticks": 90488621,
+              "user_cycles": {
+                "raw": 890393629,
+                "time_enabled_ns": 248061637,
+                "time_running_ns": 248061637,
+                "running_fraction": 1,
+                "scaled": 890393629
+              },
+              "user_instructions": {
+                "raw": 2130204585,
+                "time_enabled_ns": 248061637,
+                "time_running_ns": 248061637,
+                "running_fraction": 1,
+                "scaled": 2130204585
+              },
+              "user_reference_cycles": {
+                "raw": 571180704,
+                "time_enabled_ns": 248061637,
+                "time_running_ns": 248061637,
+                "running_fraction": 1,
+                "scaled": 571180704
+              }
+            }
+          },
+          "errors": [],
+          "begin_ns": 886264683210631,
+          "enable_begin_ns": 886264683473188,
+          "enable_end_ns": 886264683514470,
+          "disable_begin_ns": 886264932557361,
+          "disable_end_ns": 886264932603987
+        }
+      },
+      {
+        "variant": 1,
+        "cpu_seconds": 0.05312879299999995,
+        "status": 0,
+        "milliseconds": 52.980000019073486,
+        "mhz": 3591.5591140851548,
+        "hardware": {
+          "events": {
+            "guest": {
+              "start_ticks": 90488621,
+              "user_cycles": {
+                "raw": 190716877,
+                "time_enabled_ns": 53156644,
+                "time_running_ns": 53156644,
+                "running_fraction": 1,
+                "scaled": 190716877
+              },
+              "user_instructions": {
+                "raw": 810203961,
+                "time_enabled_ns": 53156644,
+                "time_running_ns": 53156644,
+                "running_fraction": 1,
+                "scaled": 810203961
+              },
+              "user_reference_cycles": {
+                "raw": 122345664,
+                "time_enabled_ns": 53156644,
+                "time_running_ns": 53156644,
+                "running_fraction": 1,
+                "scaled": 122345664
+              }
+            }
+          },
+          "errors": [],
+          "begin_ns": 886264934454359,
+          "enable_begin_ns": 886264934723005,
+          "enable_end_ns": 886264934764555,
+          "disable_begin_ns": 886264988904888,
+          "disable_end_ns": 886264988948804
+        }
+      }
+    ]
+  },
+  "native_coverage": {
+    "scope": "Samples inside functions containing a linked edge are an upper bound on execution coverage; these are not counts of taken edges. Only snapshotted and unambiguously matched functions are included.",
+    "totals": {
+      "samples": 3755,
+      "no_instruction_position": 3000,
+      "mapped_cpp": 184,
+      "mapped_arm": 321,
+      "jit_without_snapshot": 139,
+      "outside_jit": 111
+    },
+    "functions": [
+      {
+        "name": "JS:r_5468_pc_1879065340-21-turbofan",
+        "samples": 292,
+        "code_id": 199849,
+        "links": [],
+        "module_sha256": "391fee0816f7dba735e1572dbad635521fde31ff55bfd4f8e0be626440cd1c5d",
+        "assembly": "native-2637326-199849.asm"
+      },
+      {
+        "name": "JS:r_256_pc_1879061180-9-turbofan",
+        "samples": 241,
+        "code_id": 199846,
+        "links": [],
+        "module_sha256": "602c2166f17c1cc1e99b8a61d63a538d317124b20fec51ae92bb82b545de0814",
+        "assembly": "native-2637326-199846.asm"
+      },
+      {
+        "name": "JS:r_260_pc_1879063492-13-turbofan",
+        "samples": 203,
+        "code_id": 204691,
+        "links": [],
+        "module_sha256": "602c2166f17c1cc1e99b8a61d63a538d317124b20fec51ae92bb82b545de0814",
+        "assembly": "native-2637326-204691.asm"
+      },
+      {
+        "name": "JS:r_254_pc_1879062072-7-turbofan",
+        "samples": 138,
+        "code_id": 204734,
+        "links": [],
+        "module_sha256": "602c2166f17c1cc1e99b8a61d63a538d317124b20fec51ae92bb82b545de0814",
+        "assembly": "native-2637326-204734.asm"
+      },
+      {
+        "name": "JS:f_2149177368-15-turbofan",
+        "samples": 130,
+        "code_id": 200432,
+        "links": [],
+        "module_sha256": "2b09500cf93c0b62024e46c239af6a839df107c9e7430e68b1aa2f6c52da61db",
+        "assembly": "native-2637326-200432.asm"
+      },
+      {
+        "name": "JS:r_255_pc_1879062296-8-turbofan",
+        "samples": 92,
+        "code_id": 204668,
+        "links": [],
+        "module_sha256": "602c2166f17c1cc1e99b8a61d63a538d317124b20fec51ae92bb82b545de0814",
+        "assembly": "native-2637326-204668.asm"
+      },
+      {
+        "name": "JS:r_5719_pc_1879182840-13-turbofan",
+        "samples": 90,
+        "code_id": 199847,
+        "links": [
+          {
+            "wasm_offset": 16211,
+            "target": 216
+          }
+        ],
+        "module_sha256": "707bd71800ffe47875a4ebd90bb8a1e051b867b3ec43995f074afdddb8804599",
+        "assembly": "native-2637326-199847.asm"
+      },
+      {
+        "name": "JS:r_261_pc_1879063732-14-turbofan",
+        "samples": 85,
+        "code_id": 204517,
+        "links": [],
+        "module_sha256": "602c2166f17c1cc1e99b8a61d63a538d317124b20fec51ae92bb82b545de0814",
+        "assembly": "native-2637326-204517.asm"
+      },
+      {
+        "name": "JS:r_5272_pc_1879049760-103-turbofan",
+        "samples": 79,
+        "code_id": 200486,
+        "links": [],
+        "module_sha256": "399fa035ab140ff203ba2ade88fbb0991c351245c8374894093640714abc49c5",
+        "assembly": "native-2637326-200486.asm"
+      },
+      {
+        "name": "JS:f_2149191749-2506-turbofan",
+        "samples": 40,
+        "code_id": 200504,
+        "links": [],
+        "module_sha256": "e492370d698898f39c95a715cd7d1617113300f99ce787a1a61136c0cc75833f",
+        "assembly": "native-2637326-200504.asm"
+      },
+      {
+        "name": "JS:r_5623_pc_1879182988-36-turbofan",
+        "samples": 38,
+        "code_id": 199834,
+        "links": [
+          {
+            "wasm_offset": 5712,
+            "target": 33
+          }
+        ],
+        "module_sha256": "83b883d0419c9fa41410454cf25c0cf661b427f4fd8cff88555008de63b3818c",
+        "assembly": "native-2637326-199834.asm"
+      },
+      {
+        "name": "JS:r_258_pc_1879063036-11-turbofan",
+        "samples": 36,
+        "code_id": 204094,
+        "links": [],
+        "module_sha256": "602c2166f17c1cc1e99b8a61d63a538d317124b20fec51ae92bb82b545de0814",
+        "assembly": "native-2637326-204094.asm"
+      },
+      {
+        "name": "JS:r_5497_pc_1879199960-50-turbofan",
+        "samples": 36,
+        "code_id": 199981,
+        "links": [],
+        "module_sha256": "391fee0816f7dba735e1572dbad635521fde31ff55bfd4f8e0be626440cd1c5d",
+        "assembly": "native-2637326-199981.asm"
+      },
+      {
+        "name": "JS:r_3698_pc_1879081368-176-turbofan",
+        "samples": 35,
+        "code_id": 200472,
+        "links": [],
+        "module_sha256": "f34d8553ac952728804ad4007df36b22f02c80ae365e67414716d14755c6452a",
+        "assembly": "native-2637326-200472.asm"
+      },
+      {
+        "name": "JS:r_289_pc_1879063976-39-turbofan",
+        "samples": 32,
+        "code_id": 201814,
+        "links": [],
+        "module_sha256": "602c2166f17c1cc1e99b8a61d63a538d317124b20fec51ae92bb82b545de0814",
+        "assembly": "native-2637326-201814.asm"
+      },
+      {
+        "name": "JS:r_250_pc_1879062496-259-turbofan",
+        "samples": 30,
+        "code_id": 201243,
+        "links": [],
+        "module_sha256": "b27036165959b54cc051d46be86d6f5c527200db987ece88c38921843b043ae5",
+        "assembly": "native-2637326-201243.asm"
+      },
+      {
+        "name": "JS:f_2149191779-2509-turbofan",
+        "samples": 30,
+        "code_id": 200539,
+        "links": [],
+        "module_sha256": "e492370d698898f39c95a715cd7d1617113300f99ce787a1a61136c0cc75833f",
+        "assembly": "native-2637326-200539.asm"
+      },
+      {
+        "name": "JS:r_5498_pc_1879182800-51-turbofan",
+        "samples": 27,
+        "code_id": 200558,
+        "links": [],
+        "module_sha256": "391fee0816f7dba735e1572dbad635521fde31ff55bfd4f8e0be626440cd1c5d",
+        "assembly": "native-2637326-200558.asm"
+      },
+      {
+        "name": "JS:f_2149177400-6-turbofan",
+        "samples": 25,
+        "code_id": 200666,
+        "links": [],
+        "module_sha256": "ba78a3f76180074e314adceab491d018ba9e28db319dd0bda12af46f997f6c2e",
+        "assembly": "native-2637326-200666.asm"
+      },
+      {
+        "name": "JS:r_293_pc_1879064688-43-turbofan",
+        "samples": 25,
+        "code_id": 202042,
+        "links": [],
+        "module_sha256": "602c2166f17c1cc1e99b8a61d63a538d317124b20fec51ae92bb82b545de0814",
+        "assembly": "native-2637326-202042.asm"
+      },
+      {
+        "name": "JS:r_5609_pc_1879196756-22-turbofan",
+        "samples": 22,
+        "code_id": 204103,
+        "links": [
+          {
+            "wasm_offset": 3037,
+            "target": 25
+          }
+        ],
+        "module_sha256": "83b883d0419c9fa41410454cf25c0cf661b427f4fd8cff88555008de63b3818c",
+        "assembly": "native-2637326-204103.asm"
+      },
+      {
+        "name": "JS:r_288_pc_1879065056-38-turbofan",
+        "samples": 22,
+        "code_id": 204100,
+        "links": [],
+        "module_sha256": "602c2166f17c1cc1e99b8a61d63a538d317124b20fec51ae92bb82b545de0814",
+        "assembly": "native-2637326-204100.asm"
+      },
+      {
+        "name": "JS:f_2149247201-13-turbofan",
+        "samples": 21,
+        "code_id": 200543,
+        "links": [],
+        "module_sha256": "cb73a9638200383a87aac1513fe46b83a3acbd19e0f8adb5646e9dfc0a3f0030",
+        "assembly": "native-2637326-200543.asm"
+      },
+      {
+        "name": "JS:r_1729_pc_1879081572-78-turbofan",
+        "samples": 21,
+        "code_id": 200505,
+        "links": [],
+        "module_sha256": "951d4981eff1d0d2044b01706794e08b19378a1875c6f6dd8f2cf1300d465e73",
+        "assembly": "native-2637326-200505.asm"
+      },
+      {
+        "name": "JS:f_2149191761-2507-turbofan",
+        "samples": 18,
+        "code_id": 200468,
+        "links": [
+          {
+            "wasm_offset": 6290,
+            "target": 2253
+          }
+        ],
+        "module_sha256": "e492370d698898f39c95a715cd7d1617113300f99ce787a1a61136c0cc75833f",
+        "assembly": "native-2637326-200468.asm"
+      },
+      {
+        "name": "JS:f_2149247187-482-turbofan",
+        "samples": 17,
+        "code_id": 200421,
+        "links": [],
+        "module_sha256": "e492370d698898f39c95a715cd7d1617113300f99ce787a1a61136c0cc75833f",
+        "assembly": "native-2637326-200421.asm"
+      },
+      {
+        "name": "JS:f_2152417839-11-turbofan",
+        "samples": 16,
+        "code_id": 200540,
+        "links": [],
+        "module_sha256": "2b09500cf93c0b62024e46c239af6a839df107c9e7430e68b1aa2f6c52da61db",
+        "assembly": "native-2637326-200540.asm"
+      },
+      {
+        "name": "JS:f_2153195931-8-turbofan",
+        "samples": 15,
+        "code_id": 200541,
+        "links": [],
+        "module_sha256": "2b09500cf93c0b62024e46c239af6a839df107c9e7430e68b1aa2f6c52da61db",
+        "assembly": "native-2637326-200541.asm"
+      },
+      {
+        "name": "JS:r_252_pc_1879061648-261-turbofan",
+        "samples": 14,
+        "code_id": 204104,
+        "links": [],
+        "module_sha256": "b27036165959b54cc051d46be86d6f5c527200db987ece88c38921843b043ae5",
+        "assembly": "native-2637326-204104.asm"
+      },
+      {
+        "name": "JS:f_2152404689-133-turbofan",
+        "samples": 14,
+        "code_id": 200467,
+        "links": [],
+        "module_sha256": "b90386ebd56b793d881234e4f34049d32a8722708e669261507c26de33789a2b",
+        "assembly": "native-2637326-200467.asm"
+      },
+      {
+        "name": "JS:r_75_pc_1879081700-100-turbofan",
+        "samples": 14,
+        "code_id": 200548,
+        "links": [],
+        "module_sha256": "b27036165959b54cc051d46be86d6f5c527200db987ece88c38921843b043ae5",
+        "assembly": "native-2637326-200548.asm"
+      },
+      {
+        "name": "JS:f_2149192181-443-turbofan",
+        "samples": 14,
+        "code_id": 200553,
+        "links": [],
+        "module_sha256": "e492370d698898f39c95a715cd7d1617113300f99ce787a1a61136c0cc75833f",
+        "assembly": "native-2637326-200553.asm"
+      },
+      {
+        "name": "JS:r_5862_pc_1879199268-123-turbofan",
+        "samples": 13,
+        "code_id": 200871,
+        "links": [],
+        "module_sha256": "3a5e4fe47f9c327d97d3a9e72103c164ba29dfc92b1aad3fbcccb5d25c0609b5",
+        "assembly": "native-2637326-200871.asm"
+      },
+      {
+        "name": "JS:f_2149191769-678-turbofan",
+        "samples": 13,
+        "code_id": 200547,
+        "links": [],
+        "module_sha256": "e492370d698898f39c95a715cd7d1617113300f99ce787a1a61136c0cc75833f",
+        "assembly": "native-2637326-200547.asm"
+      },
+      {
+        "name": "JS:f_2153195939-14-turbofan",
+        "samples": 13,
+        "code_id": 200768,
+        "links": [],
+        "module_sha256": "2b09500cf93c0b62024e46c239af6a839df107c9e7430e68b1aa2f6c52da61db",
+        "assembly": "native-2637326-200768.asm"
+      },
+      {
+        "name": "JS:f_2149213699-672-turbofan",
+        "samples": 13,
+        "code_id": 200560,
+        "links": [],
+        "module_sha256": "e492370d698898f39c95a715cd7d1617113300f99ce787a1a61136c0cc75833f",
+        "assembly": "native-2637326-200560.asm"
+      },
+      {
+        "name": "JS:f_2153195895-17-turbofan",
+        "samples": 11,
+        "code_id": 200546,
+        "links": [],
+        "module_sha256": "2b09500cf93c0b62024e46c239af6a839df107c9e7430e68b1aa2f6c52da61db",
+        "assembly": "native-2637326-200546.asm"
+      },
+      {
+        "name": "JS:f_2149177344-16-turbofan",
+        "samples": 11,
+        "code_id": 200544,
+        "links": [],
+        "module_sha256": "2b09500cf93c0b62024e46c239af6a839df107c9e7430e68b1aa2f6c52da61db",
+        "assembly": "native-2637326-200544.asm"
+      },
+      {
+        "name": "JS:f_2149192187-12-turbofan",
+        "samples": 10,
+        "code_id": 200631,
+        "links": [],
+        "module_sha256": "2b09500cf93c0b62024e46c239af6a839df107c9e7430e68b1aa2f6c52da61db",
+        "assembly": "native-2637326-200631.asm"
+      },
+      {
+        "name": "JS:f_2149180628-1703-turbofan",
+        "samples": 10,
+        "code_id": 200665,
+        "links": [],
+        "module_sha256": "e492370d698898f39c95a715cd7d1617113300f99ce787a1a61136c0cc75833f",
+        "assembly": "native-2637326-200665.asm"
+      },
+      {
+        "name": "JS:f_2149191581-2490-turbofan",
+        "samples": 10,
+        "code_id": 200433,
+        "links": [
+          {
+            "wasm_offset": 5429,
+            "target": 2253
+          }
+        ],
+        "module_sha256": "e492370d698898f39c95a715cd7d1617113300f99ce787a1a61136c0cc75833f",
+        "assembly": "native-2637326-200433.asm"
+      },
+      {
+        "name": "JS:r_1730_pc_1879081724-79-turbofan",
+        "samples": 10,
+        "code_id": 200545,
+        "links": [],
+        "module_sha256": "951d4981eff1d0d2044b01706794e08b19378a1875c6f6dd8f2cf1300d465e73",
+        "assembly": "native-2637326-200545.asm"
+      },
+      {
+        "name": "JS:f_2149213053-624-turbofan",
+        "samples": 10,
+        "code_id": 200559,
+        "links": [],
+        "module_sha256": "e492370d698898f39c95a715cd7d1617113300f99ce787a1a61136c0cc75833f",
+        "assembly": "native-2637326-200559.asm"
+      },
+      {
+        "name": "JS:r_7975_pc_1879065360-6-turbofan",
+        "samples": 9,
+        "code_id": 201196,
+        "links": [],
+        "module_sha256": "2b09500cf93c0b62024e46c239af6a839df107c9e7430e68b1aa2f6c52da61db",
+        "assembly": "native-2637326-201196.asm"
+      },
+      {
+        "name": "JS:r_5273_pc_1879060616-104-turbofan",
+        "samples": 9,
+        "code_id": 200076,
+        "links": [],
+        "module_sha256": "399fa035ab140ff203ba2ade88fbb0991c351245c8374894093640714abc49c5",
+        "assembly": "native-2637326-200076.asm"
+      },
+      {
+        "name": "JS:f_2149180652-13-turbofan",
+        "samples": 9,
+        "code_id": 200629,
+        "links": [],
+        "module_sha256": "2b09500cf93c0b62024e46c239af6a839df107c9e7430e68b1aa2f6c52da61db",
+        "assembly": "native-2637326-200629.asm"
+      },
+      {
+        "name": "JS:r_5617_pc_1879199188-30-turbofan",
+        "samples": 8,
+        "code_id": 200802,
+        "links": [
+          {
+            "wasm_offset": 20324,
+            "target": 260
+          },
+          {
+            "wasm_offset": 20352,
+            "target": 261
+          }
+        ],
+        "module_sha256": "83b883d0419c9fa41410454cf25c0cf661b427f4fd8cff88555008de63b3818c",
+        "assembly": "native-2637326-200802.asm"
+      },
+      {
+        "name": "JS:r_2779_pc_1879081348-190-turbofan",
+        "samples": 7,
+        "code_id": 200542,
+        "links": [],
+        "module_sha256": "f8f5b67831b94d729efc427e54aa24e4e6dc304ed615026de59b78de63527ab1",
+        "assembly": "native-2637326-200542.asm"
+      },
+      {
+        "name": "JS:f_2153195907-21-turbofan",
+        "samples": 7,
+        "code_id": 200556,
+        "links": [],
+        "module_sha256": "2b09500cf93c0b62024e46c239af6a839df107c9e7430e68b1aa2f6c52da61db",
+        "assembly": "native-2637326-200556.asm"
+      },
+      {
+        "name": "JS:r_8126_pc_1879061212-7-turbofan",
+        "samples": 7,
+        "code_id": 204118,
+        "links": [],
+        "module_sha256": "50d0cc7a7cc3bb05cf680b47de1b5cf23c7fb4d5d1c4e5371c191a1bbf94a292",
+        "assembly": "native-2637326-204118.asm"
+      },
+      {
+        "name": "JS:r_6086_pc_1879148568-159-turbofan",
+        "samples": 7,
+        "code_id": 204406,
+        "links": [
+          {
+            "wasm_offset": 15700,
+            "target": 163
+          }
+        ],
+        "module_sha256": "c69043db49d57f880eec0f5b3fc67f983540b9fffe3c93801d94908de7a3bbf1",
+        "assembly": "native-2637326-204406.asm"
+      },
+      {
+        "name": "JS:r_291_pc_1879064332-41-turbofan",
+        "samples": 6,
+        "code_id": 201812,
+        "links": [],
+        "module_sha256": "602c2166f17c1cc1e99b8a61d63a538d317124b20fec51ae92bb82b545de0814",
+        "assembly": "native-2637326-201812.asm"
+      },
+      {
+        "name": "JS:r_2783_pc_1879081664-194-turbofan",
+        "samples": 6,
+        "code_id": 200555,
+        "links": [],
+        "module_sha256": "f8f5b67831b94d729efc427e54aa24e4e6dc304ed615026de59b78de63527ab1",
+        "assembly": "native-2637326-200555.asm"
+      },
+      {
+        "name": "JS:r_1792_pc_1879064640-139-turbofan",
+        "samples": 6,
+        "code_id": 202063,
+        "links": [],
+        "module_sha256": "951d4981eff1d0d2044b01706794e08b19378a1875c6f6dd8f2cf1300d465e73",
+        "assembly": "native-2637326-202063.asm"
+      },
+      {
+        "name": "JS:f_2152417853-24-turbofan",
+        "samples": 5,
+        "code_id": 200630,
+        "links": [],
+        "module_sha256": "2b09500cf93c0b62024e46c239af6a839df107c9e7430e68b1aa2f6c52da61db",
+        "assembly": "native-2637326-200630.asm"
+      },
+      {
+        "name": "JS:f_2149191793-2510-turbofan",
+        "samples": 5,
+        "code_id": 200561,
+        "links": [],
+        "module_sha256": "e492370d698898f39c95a715cd7d1617113300f99ce787a1a61136c0cc75833f",
+        "assembly": "native-2637326-200561.asm"
+      },
+      {
+        "name": "JS:r_5861_pc_1879199296-122-turbofan",
+        "samples": 4,
+        "code_id": 200872,
+        "links": [
+          {
+            "wasm_offset": 6417,
+            "target": 123
+          }
+        ],
+        "module_sha256": "3a5e4fe47f9c327d97d3a9e72103c164ba29dfc92b1aad3fbcccb5d25c0609b5",
+        "assembly": "native-2637326-200872.asm"
+      },
+      {
+        "name": "JS:r_5710_pc_1879199924-260-turbofan",
+        "samples": 4,
+        "code_id": 201242,
+        "links": [],
+        "module_sha256": "83b883d0419c9fa41410454cf25c0cf661b427f4fd8cff88555008de63b3818c",
+        "assembly": "native-2637326-201242.asm"
+      },
+      {
+        "name": "JS:f_2153195943-9-turbofan",
+        "samples": 4,
+        "code_id": 200628,
+        "links": [],
+        "module_sha256": "2b09500cf93c0b62024e46c239af6a839df107c9e7430e68b1aa2f6c52da61db",
+        "assembly": "native-2637326-200628.asm"
+      },
+      {
+        "name": "JS:f_2149191767-2508-turbofan",
+        "samples": 4,
+        "code_id": 200554,
+        "links": [],
+        "module_sha256": "e492370d698898f39c95a715cd7d1617113300f99ce787a1a61136c0cc75833f",
+        "assembly": "native-2637326-200554.asm"
+      },
+      {
+        "name": "JS:r_5360_pc_1879195984-24-turbofan",
+        "samples": 4,
+        "code_id": 201817,
+        "links": [],
+        "module_sha256": "7c171fb1b3becd3a5e6a5a4cfd19fba73f44809d489972ecba6279112739b81d",
+        "assembly": "native-2637326-201817.asm"
+      },
+      {
+        "name": "JS:f_2149180668-7-turbofan",
+        "samples": 3,
+        "code_id": 200767,
+        "links": [],
+        "module_sha256": "ba78a3f76180074e314adceab491d018ba9e28db319dd0bda12af46f997f6c2e",
+        "assembly": "native-2637326-200767.asm"
+      },
+      {
+        "name": "JS:r_5049_pc_1879142316-131-turbofan",
+        "samples": 3,
+        "code_id": 200836,
+        "links": [],
+        "module_sha256": "41fc9c10c61690cb5cacb77d7dcb83772d91c01acfb9cd941da3e78a15b98c20",
+        "assembly": "native-2637326-200836.asm"
+      },
+      {
+        "name": "JS:r_5620_pc_1879182784-33-turbofan",
+        "samples": 3,
+        "code_id": 201692,
+        "links": [],
+        "module_sha256": "83b883d0419c9fa41410454cf25c0cf661b427f4fd8cff88555008de63b3818c",
+        "assembly": "native-2637326-201692.asm"
+      },
+      {
+        "name": "JS:r_5494_pc_1879188516-47-turbofan",
+        "samples": 3,
+        "code_id": 201658,
+        "links": [],
+        "module_sha256": "391fee0816f7dba735e1572dbad635521fde31ff55bfd4f8e0be626440cd1c5d",
+        "assembly": "native-2637326-201658.asm"
+      },
+      {
+        "name": "JS:f_2149218333-2265-turbofan",
+        "samples": 3,
+        "code_id": 200549,
+        "links": [],
+        "module_sha256": "e492370d698898f39c95a715cd7d1617113300f99ce787a1a61136c0cc75833f",
+        "assembly": "native-2637326-200549.asm"
+      },
+      {
+        "name": "JS:r_1793_pc_1879064576-140-turbofan",
+        "samples": 3,
+        "code_id": 202061,
+        "links": [],
+        "module_sha256": "951d4981eff1d0d2044b01706794e08b19378a1875c6f6dd8f2cf1300d465e73",
+        "assembly": "native-2637326-202061.asm"
+      },
+      {
+        "name": "JS:r_5355_pc_1879141748-19-turbofan",
+        "samples": 3,
+        "code_id": 205061,
+        "links": [],
+        "module_sha256": "7c171fb1b3becd3a5e6a5a4cfd19fba73f44809d489972ecba6279112739b81d",
+        "assembly": "native-2637326-205061.asm"
+      },
+      {
+        "name": "JS:f_2149188704-14-turbofan",
+        "samples": 2,
+        "code_id": 176018,
+        "links": [],
+        "module_sha256": "8fe1b5b4fd2ffc1e487baba0a49bce448a502ef2c2f29197056a791843d22f90",
+        "assembly": "native-2637326-176018.asm"
+      },
+      {
+        "name": "JS:r_5364_pc_1879188632-28-turbofan",
+        "samples": 2,
+        "code_id": 201576,
+        "links": [],
+        "module_sha256": "7c171fb1b3becd3a5e6a5a4cfd19fba73f44809d489972ecba6279112739b81d",
+        "assembly": "native-2637326-201576.asm"
+      },
+      {
+        "name": "JS:r_5618_pc_1879200268-31-turbofan",
+        "samples": 2,
+        "code_id": 201149,
+        "links": [],
+        "module_sha256": "83b883d0419c9fa41410454cf25c0cf661b427f4fd8cff88555008de63b3818c",
+        "assembly": "native-2637326-201149.asm"
+      },
+      {
+        "name": "JS:r_2576_pc_1879289204-174-liftoff",
+        "samples": 2,
+        "code_id": 205283,
+        "links": [],
+        "module_sha256": "4a2ae52beb04490761bfb23275213300bdd65f30aff37922a9e043a80cd0f3fe",
+        "assembly": "native-2637326-205283.asm"
+      },
+      {
+        "name": "JS:r_2774_pc_1879208568-185-turbofan",
+        "samples": 2,
+        "code_id": 192830,
+        "links": [],
+        "module_sha256": "f8f5b67831b94d729efc427e54aa24e4e6dc304ed615026de59b78de63527ab1",
+        "assembly": "native-2637326-192830.asm"
+      },
+      {
+        "name": "JS:r_5224_pc_1879182392-242-turbofan",
+        "samples": 2,
+        "code_id": 201613,
+        "links": [],
+        "module_sha256": "239cebbb29a1c27020006cd27e3759eaf9bb16625f50d216dc0b2241af2e4513",
+        "assembly": "native-2637326-201613.asm"
+      },
+      {
+        "name": "JS:r_6085_pc_1879147572-158-turbofan",
+        "samples": 2,
+        "code_id": 204447,
+        "links": [
+          {
+            "wasm_offset": 14102,
+            "target": 78
+          }
+        ],
+        "module_sha256": "c69043db49d57f880eec0f5b3fc67f983540b9fffe3c93801d94908de7a3bbf1",
+        "assembly": "native-2637326-204447.asm"
+      },
+      {
+        "name": "JS:r_5964_pc_1879147152-120-turbofan",
+        "samples": 2,
+        "code_id": 204472,
+        "links": [],
+        "module_sha256": "8ebea5593030f3bd9dfbfc1be613e35a54cb892d079a547be573026a8145a804",
+        "assembly": "native-2637326-204472.asm"
+      },
+      {
+        "name": "JS:r_5361_pc_1879206524-25-turbofan",
+        "samples": 2,
+        "code_id": 202065,
+        "links": [],
+        "module_sha256": "7c171fb1b3becd3a5e6a5a4cfd19fba73f44809d489972ecba6279112739b81d",
+        "assembly": "native-2637326-202065.asm"
+      },
+      {
+        "name": "JS:r_2822_pc_1879064548-233-turbofan",
+        "samples": 2,
+        "code_id": 202062,
+        "links": [],
+        "module_sha256": "f8f5b67831b94d729efc427e54aa24e4e6dc304ed615026de59b78de63527ab1",
+        "assembly": "native-2637326-202062.asm"
+      },
+      {
+        "name": "JS:r_8030_pc_2227187588-10-liftoff",
+        "samples": 2,
+        "code_id": 202045,
+        "links": [],
+        "module_sha256": "6a6a3dab55a1b78cb9e99eebac8bbe96737f00efd814a3a6086f7b0e23f5b3dc",
+        "assembly": "native-2637326-202045.asm"
+      },
+      {
+        "name": "JS:r_6081_pc_1879147652-154-turbofan",
+        "samples": 2,
+        "code_id": 204408,
+        "links": [
+          {
+            "wasm_offset": 16250,
+            "target": 158
+          }
+        ],
+        "module_sha256": "c69043db49d57f880eec0f5b3fc67f983540b9fffe3c93801d94908de7a3bbf1",
+        "assembly": "native-2637326-204408.asm"
+      },
+      {
+        "name": "JS:r_3263_pc_1879193828-184-turbofan",
+        "samples": 2,
+        "code_id": 202109,
+        "links": [],
+        "module_sha256": "7895791a531d0a1047ffd77138a7e77c666e347b5db1f929c0ece53fb78bd9d4",
+        "assembly": "native-2637326-202109.asm"
+      },
+      {
+        "name": "JS:f_2149191369-1049-turbofan",
+        "samples": 2,
+        "code_id": 205417,
+        "links": [],
+        "module_sha256": "e492370d698898f39c95a715cd7d1617113300f99ce787a1a61136c0cc75833f",
+        "assembly": "native-2637326-205417.asm"
+      },
+      {
+        "name": "JS:r_5605_pc_1879141688-18-turbofan",
+        "samples": 2,
+        "code_id": 205044,
+        "links": [],
+        "module_sha256": "83b883d0419c9fa41410454cf25c0cf661b427f4fd8cff88555008de63b3818c",
+        "assembly": "native-2637326-205044.asm"
+      },
+      {
+        "name": "JS:r_5350_pc_1879060512-14-turbofan",
+        "samples": 2,
+        "code_id": 204670,
+        "links": [],
+        "module_sha256": "7c171fb1b3becd3a5e6a5a4cfd19fba73f44809d489972ecba6279112739b81d",
+        "assembly": "native-2637326-204670.asm"
+      },
+      {
+        "name": "JS:r_5849_pc_1879148920-110-turbofan",
+        "samples": 2,
+        "code_id": 204671,
+        "links": [
+          {
+            "wasm_offset": 8982,
+            "target": 255
+          }
+        ],
+        "module_sha256": "3a5e4fe47f9c327d97d3a9e72103c164ba29dfc92b1aad3fbcccb5d25c0609b5",
+        "assembly": "native-2637326-204671.asm"
+      },
+      {
+        "name": "JS:r_2679_pc_1879335960-21-liftoff",
+        "samples": 2,
+        "code_id": 204007,
+        "links": [],
+        "module_sha256": "f8f5b67831b94d729efc427e54aa24e4e6dc304ed615026de59b78de63527ab1",
+        "assembly": "native-2637326-204007.asm"
+      },
+      {
+        "name": "JS:r_3057_pc_1879206560-234-turbofan",
+        "samples": 2,
+        "code_id": 204134,
+        "links": [],
+        "module_sha256": "f17bef436a131bd7aeded2510b8407b63ef892a789aedc00096a3489e9ed3397",
+        "assembly": "native-2637326-204134.asm"
+      },
+      {
+        "name": "JS:r_3847_pc_1879206668-234-turbofan",
+        "samples": 2,
+        "code_id": 204130,
+        "links": [],
+        "module_sha256": "027c635a13ac33d7f84fd22829d9e90d1cd1e469b726b1f51c82af4bb353f065",
+        "assembly": "native-2637326-204130.asm"
+      },
+      {
+        "name": "JS:r_8014_pc_1879261148-17-turbofan",
+        "samples": 2,
+        "code_id": 204129,
+        "links": [],
+        "module_sha256": "189ef2edaedac207b1641852b84b6beb32496a357ad829b9fc69a8d8f55f6f16",
+        "assembly": "native-2637326-204129.asm"
+      },
+      {
+        "name": "JS:r_5363_pc_1879151588-27-turbofan",
+        "samples": 2,
+        "code_id": 204127,
+        "links": [],
+        "module_sha256": "7c171fb1b3becd3a5e6a5a4cfd19fba73f44809d489972ecba6279112739b81d",
+        "assembly": "native-2637326-204127.asm"
+      },
+      {
+        "name": "JS:r_2392_pc_1879218964-246-liftoff",
+        "samples": 2,
+        "code_id": 204976,
+        "links": [
+          {
+            "wasm_offset": 6668,
+            "target": 195
+          }
+        ],
+        "module_sha256": "54f16799f61f1a21021bda6a80bcfcac039f2d5c11ab5c8921465f7b61181864",
+        "assembly": "native-2637326-204976.asm"
+      },
+      {
+        "name": "JS:r_1258_pc_1879224456-128-liftoff",
+        "samples": 2,
+        "code_id": 204971,
+        "links": [],
+        "module_sha256": "2f100d6f4830b76906448605ad44e393060fbd84b9a040edfb4329918ba27d48",
+        "assembly": "native-2637326-204971.asm"
+      },
+      {
+        "name": "JS:r_2396_pc_1879223348-250-liftoff",
+        "samples": 2,
+        "code_id": 204990,
+        "links": [
+          {
+            "wasm_offset": 2721,
+            "target": 19
+          }
+        ],
+        "module_sha256": "54f16799f61f1a21021bda6a80bcfcac039f2d5c11ab5c8921465f7b61181864",
+        "assembly": "native-2637326-204990.asm"
+      },
+      {
+        "name": "JS:r_2612_pc_1879305672-210-turbofan",
+        "samples": 2,
+        "code_id": 205225,
+        "links": [
+          {
+            "wasm_offset": 2678,
+            "target": 260
+          }
+        ],
+        "module_sha256": "4a2ae52beb04490761bfb23275213300bdd65f30aff37922a9e043a80cd0f3fe",
+        "assembly": "native-2637326-205225.asm"
+      },
+      {
+        "name": "JS:r_4260_pc_1879208296-158-turbofan",
+        "samples": 1,
+        "code_id": 191972,
+        "links": [],
+        "module_sha256": "dc7a4de93a8afdd833944fac3eee3e4f90f531d63faa965ef4a485b70f4e8809",
+        "assembly": "native-2637326-191972.asm"
+      },
+      {
+        "name": "JS:f_2153127849-48-liftoff",
+        "samples": 1,
+        "code_id": 178705,
+        "links": [],
+        "module_sha256": "fc445380d4c4a23372730c7374c885bac33131745887fa1e1fd1eb350157b67e",
+        "assembly": "native-2637326-178705.asm"
+      },
+      {
+        "name": "JS:f_2152152851-147-liftoff",
+        "samples": 1,
+        "code_id": 188857,
+        "links": [],
+        "module_sha256": "60dc6fc599a14c3971e1e3add4ed2438075e28218597e92805e72557a0bedff3",
+        "assembly": "native-2637326-188857.asm"
+      },
+      {
+        "name": "JS:r_5107_pc_1879056384-23-liftoff",
+        "samples": 1,
+        "code_id": 198937,
+        "links": [],
+        "module_sha256": "239cebbb29a1c27020006cd27e3759eaf9bb16625f50d216dc0b2241af2e4513",
+        "assembly": "native-2637326-198937.asm"
+      },
+      {
+        "name": "JS:r_918_pc_1879113932-73-liftoff",
+        "samples": 1,
+        "code_id": 199735,
+        "links": [],
+        "module_sha256": "5a73c67397b93dc5a86f459ff75501c14db5f4a584b57b1efac59ebedf2edb40",
+        "assembly": "native-2637326-199735.asm"
+      },
+      {
+        "name": "JS:r_5207_pc_1879081568-225-liftoff",
+        "samples": 1,
+        "code_id": 199840,
+        "links": [],
+        "module_sha256": "239cebbb29a1c27020006cd27e3759eaf9bb16625f50d216dc0b2241af2e4513",
+        "assembly": "native-2637326-199840.asm"
+      },
+      {
+        "name": "JS:r_3699_pc_1879081680-177-liftoff",
+        "samples": 1,
+        "code_id": 200416,
+        "links": [],
+        "module_sha256": "f34d8553ac952728804ad4007df36b22f02c80ae365e67414716d14755c6452a",
+        "assembly": "native-2637326-200416.asm"
+      },
+      {
+        "name": "JS:r_5367_pc_1879182624-31-turbofan",
+        "samples": 1,
+        "code_id": 201911,
+        "links": [],
+        "module_sha256": "7c171fb1b3becd3a5e6a5a4cfd19fba73f44809d489972ecba6279112739b81d",
+        "assembly": "native-2637326-201911.asm"
+      },
+      {
+        "name": "JS:r_5152_pc_1879172416-166-liftoff",
+        "samples": 1,
+        "code_id": 201986,
+        "links": [],
+        "module_sha256": "239cebbb29a1c27020006cd27e3759eaf9bb16625f50d216dc0b2241af2e4513",
+        "assembly": "native-2637326-201986.asm"
+      },
+      {
+        "name": "JS:r_8001_pc_2224032710-14-liftoff",
+        "samples": 1,
+        "code_id": 201653,
+        "links": [],
+        "module_sha256": "ed390a8c1f27494c321e9723974fa28392f2bcfc43515c5ce85e8ac67c00d8c8",
+        "assembly": "native-2637326-201653.asm"
+      },
+      {
+        "name": "JS:r_5612_pc_1879196380-25-turbofan",
+        "samples": 1,
+        "code_id": 202214,
+        "links": [],
+        "module_sha256": "83b883d0419c9fa41410454cf25c0cf661b427f4fd8cff88555008de63b3818c",
+        "assembly": "native-2637326-202214.asm"
+      },
+      {
+        "name": "JS:r_3098_pc_1879137856-19-turbofan",
+        "samples": 1,
+        "code_id": 205004,
+        "links": [],
+        "module_sha256": "7895791a531d0a1047ffd77138a7e77c666e347b5db1f929c0ece53fb78bd9d4",
+        "assembly": "native-2637326-205004.asm"
+      },
+      {
+        "name": "JS:r_4550_pc_1879324508-62-liftoff",
+        "samples": 1,
+        "code_id": 204354,
+        "links": [],
+        "module_sha256": "1fd853522ee32e61f02669318890db8c322b02318bb078dfa3b3f1294f3793a7",
+        "assembly": "native-2637326-204354.asm"
+      },
+      {
+        "name": "JS:r_2165_pc_1879137776-19-turbofan",
+        "samples": 1,
+        "code_id": 204739,
+        "links": [],
+        "module_sha256": "54f16799f61f1a21021bda6a80bcfcac039f2d5c11ab5c8921465f7b61181864",
+        "assembly": "native-2637326-204739.asm"
+      },
+      {
+        "name": "JS:r_6012_pc_1879148452-240-turbofan",
+        "samples": 1,
+        "code_id": 204696,
+        "links": [
+          {
+            "wasm_offset": 20540,
+            "target": 120
+          }
+        ],
+        "module_sha256": "8ebea5593030f3bd9dfbfc1be613e35a54cb892d079a547be573026a8145a804",
+        "assembly": "native-2637326-204696.asm"
+      },
+      {
+        "name": "JS:r_6051_pc_1879148548-82-turbofan",
+        "samples": 1,
+        "code_id": 204759,
+        "links": [
+          {
+            "wasm_offset": 515,
+            "target": 78
+          }
+        ],
+        "module_sha256": "c69043db49d57f880eec0f5b3fc67f983540b9fffe3c93801d94908de7a3bbf1",
+        "assembly": "native-2637326-204759.asm"
+      }
+    ],
+    "linked_function_samples": 211,
+    "generated_snapshotted_samples": 2236
+  },
+  "restoration": {
+    "host.json": {
+      "restored": true,
+      "restoration_errors": []
+    },
+    "micro-host.json": {
+      "restored": true,
+      "restoration_errors": []
+    },
+    "micro2-host.json": {
+      "restored": true,
+      "restoration_errors": []
+    }
+  },
+  "raw_artifacts": "/home/claude/.scratch/eka-direct-chain-20261010",
+  "failed_attempts": [
+    {
+      "path": "micro-failed-logging",
+      "reason": "Missing standalone test logging initialization; failed before measurement; corrected."
+    },
+    {
+      "path": "sky-native",
+      "reason": "Copied harness omitted watchdog.js; failed before gameplay; corrected resource resolution."
+    }
+  ],
+  "validation": {
+    "focused_checks": 146,
+    "reported_full_suite_passed": 182,
+    "full_suite_failed": 0,
+    "gameplay_replays": "Both games reach expected scenes; not bit-exact replays. Diagnostics-only suite cases skipped by diagnostics-free build.",
+    "restored_suite_passed": 181,
+    "restored_suite_failed": 0,
+    "lan_http_status": 200,
+    "restored_build_wasm_sha256": "a62e6b920d773d1c3f14dd2213fe28d8a1d3f64e8165b4309cee797138f29597"
+  },
+  "native_example": {
+    "name": "JS:r_5719_pc_1879182840-13-turbofan",
+    "code_id": 199847,
+    "native_sha256": "37214cc672467f93ca4741f0a916f60c190b16d04757d690246610fc7f38806b",
+    "module_sha256": "707bd71800ffe47875a4ebd90bb8a1e051b867b3ec43995f074afdddb8804599",
+    "samples": 90,
+    "assembly": "native-2637326-199847.asm",
+    "guest_entry": "0x70020df8",
+    "guest_successor": "0x70020ff8",
+    "fixed_jump_native_offset": "0x6413",
+    "worker_sample_count": 3755
+  }
+}

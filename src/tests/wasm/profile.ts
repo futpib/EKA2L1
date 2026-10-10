@@ -450,6 +450,7 @@ try {
     }), names.slice(i, i+25));
     for (const [name, bytes] of data) fs.writeFileSync(path.join(output, name), Buffer.from(bytes, 'base64'));
   }
+  await page.evaluate(() => document.querySelector<HTMLDialogElement>('#session-panel')?.close());
   await page.screenshot({path: path.join(output, 'browser.png')});
   if (failures.length) throw new Error(failures.join('\n'));
 

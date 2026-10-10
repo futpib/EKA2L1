@@ -1,0 +1,821 @@
+diff --git a/src/emu/cpu/CMakeLists.txt b/src/emu/cpu/CMakeLists.txt
+index 156b21a9d..f10a9027b 100644
+--- a/src/emu/cpu/CMakeLists.txt
++++ b/src/emu/cpu/CMakeLists.txt
+@@ -96,6 +96,7 @@ set(SOURCE_AOT
+         src/aot/arm_translator.cpp
+         src/aot/thumb_translator.cpp
+         src/aot/wasm_emitter.cpp)
++list(APPEND SOURCE_AOT src/aot/direct_chain.cpp include/cpu/aot/direct_chain.h)
+ 
+ add_library(cpu
+         include/cpu/arm_analyser.h
+diff --git a/src/emu/cpu/include/cpu/aot/code_cache.h b/src/emu/cpu/include/cpu/aot/code_cache.h
+index 479bd722f..e185a84ea 100644
+--- a/src/emu/cpu/include/cpu/aot/code_cache.h
++++ b/src/emu/cpu/include/cpu/aot/code_cache.h
+@@ -155,6 +155,39 @@ namespace eka2l1::arm::aot {
+             entry.guard_end = std::max(entry.guard_end, begin + bytes.size());
+         }
+ 
++        static void add_chain_dependencies(const std::vector<block *> &entries,
++            const std::vector<std::vector<std::uint32_t>> &edges) {
++            // Entry validation covers every reachable RAM body before the first
++            // direct call. Snapshot before extending entries so cycles do not
++            // recursively duplicate an already expanded dependency list.
++            std::vector<std::vector<dependency>> originals(entries.size());
++            for (unsigned i = 0; i < entries.size(); ++i) if (entries[i]) {
++                const auto &entry = *entries[i];
++                originals[i] = entry.dependencies;
++                originals[i].push_back({static_cast<std::uint32_t>(entry.key) & ~1u, entry.backing, entry.code});
++            }
++            for (unsigned i = 0; i < entries.size(); ++i) if (entries[i] && !edges[i].empty()) {
++                auto &entry = *entries[i];
++                std::vector<bool> visited(entries.size());
++                std::vector<unsigned> pending{edges[i].begin(), edges[i].end()};
++                while (!pending.empty()) {
++                    const auto target = pending.back(); pending.pop_back();
++                    if (visited[target]) continue;
++                    visited[target] = true;
++                    pending.insert(pending.end(), edges[target].begin(), edges[target].end());
++                    if (target == i || !entries[target]) continue;
++                    for (const auto &dependency : originals[target]) {
++                        const bool exists = std::any_of(entry.dependencies.begin(), entry.dependencies.end(),
++                            [&](const auto &old) { return old.address == dependency.address
++                                && old.backing == dependency.backing && old.code.size() == dependency.code.size(); });
++                        if (!exists) add_dependency(entry, dependency.address, dependency.backing, dependency.code);
++                    }
++                }
++                entry.mapping_generation = 0;
++                entry.mapping_source = nullptr;
++            }
++        }
++
+         static bool diagnostic_code_overlap(const block &entry, std::uintptr_t host, std::size_t size) {
+             const auto overlaps=[&](const std::uint8_t *backing,std::size_t bytes) {
+                 const auto begin=static_cast<std::uint64_t>(reinterpret_cast<std::uintptr_t>(backing));
+diff --git a/src/emu/cpu/include/cpu/aot/wasm_cost_model.def b/src/emu/cpu/include/cpu/aot/wasm_cost_model.def
+index 3d7e36d05..fb0cbf9cc 100644
+--- a/src/emu/cpu/include/cpu/aot/wasm_cost_model.def
++++ b/src/emu/cpu/include/cpu/aot/wasm_cost_model.def
+@@ -10,6 +10,7 @@ WASM_COST(0x0e, 0x0e, control, table)
+ WASM_COST(0x0f, 0x0f, control, none)
+ WASM_COST(0x10, 0x10, call, leb)
+ WASM_COST(0x11, 0x11, call, pair)
++WASM_COST(0x12, 0x12, call, leb)
+ WASM_COST(0x1a, 0x1b, arithmetic, none)
+ WASM_COST(0x20, 0x22, local, leb)
+ WASM_COST(0x23, 0x24, global, leb)
+diff --git a/src/emu/cpu/include/cpu/aot/wasm_emitter.h b/src/emu/cpu/include/cpu/aot/wasm_emitter.h
+index 6af2fe2f0..bb7ccffd2 100644
+--- a/src/emu/cpu/include/cpu/aot/wasm_emitter.h
++++ b/src/emu/cpu/include/cpu/aot/wasm_emitter.h
+@@ -195,6 +195,7 @@ namespace eka2l1::arm::aot {
+         std::uint32_t num_f32_locals = 0;     // f32 locals (after i32 locals)
+         std::uint32_t num_f64_locals = 0;     // f64 locals (after f32 locals)
+         std::uint32_t num_prefix_i64_locals = 0; // before i32 scratch/cache locals
++        std::uint32_t num_trailing_i32_locals = 0;
+         // Optional private cold callee. The call operand at this body offset
+         // reserves five unsigned-LEB bytes; the module builder supplies its
+         // final index after all public functions, preserving sibling indices.
+@@ -206,6 +207,12 @@ namespace eka2l1::arm::aot {
+         };
+         std::vector<private_call> outlined_calls;
+         source_marks sources;
++        struct chain_info {
++            std::uint32_t pc_mode;
++            std::uint64_t domain; // zero: immutable ROM; ASID + 1: RAM
++            std::vector<std::uint32_t> targets;
++        };
++        std::shared_ptr<chain_info> chain;
+     };
+ 
+     // Describes an imported function.
+diff --git a/src/emu/cpu/src/aot/aot_runtime.cpp b/src/emu/cpu/src/aot/aot_runtime.cpp
+index 4c6b0536f..bc8222b60 100644
+--- a/src/emu/cpu/src/aot/aot_runtime.cpp
++++ b/src/emu/cpu/src/aot/aot_runtime.cpp
+@@ -19,6 +19,7 @@
+ 
+ #include <cpu/aot/aot_runtime.h>
+ #include <cpu/aot/watchdog.h>
++#include <cpu/aot/direct_chain.h>
+ #include <cpu/aot/memory_experiment.h>
+ #include <cpu/aot/aot_registry.h>
+ #include <cpu/aot/code_cache.h>
+@@ -82,6 +83,7 @@ static std::uint64_t hot_dispatches = 0;
+ static std::uint32_t hot_compiled = 0;
+ static std::unordered_map<std::uint32_t, unsigned> hot_counts;
+ static std::vector<wasm_func_def> hot_pending;
++static std::vector<validated_code_cache::block *> hot_pending_entries;
+ struct precompile_image {
+     std::uint32_t space, base, size;
+     std::vector<std::uint32_t> entries;
+@@ -116,6 +118,12 @@ static void flush_hot_blocks() {
+         {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
+         {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
+     if (arm_exclusive_memory) imports.push_back({"env","arm_exclusive",2,false});
++    const auto links = link_direct_chains(hot_pending, imports.size());
++    if (links.links) {
++        validated_code_cache::add_chain_dependencies(hot_pending_entries, links.edges);
++        fprintf(stderr, "AOT: direct-chain functions=%u links=%u cycle_polls=%u batch=%zu\n",
++            links.functions, links.links, links.polls, hot_pending.size());
++    }
+     auto bytes = [&] {
+         compilation_timer timer{compilation.emission_us};
+         return build_wasm_module(hot_pending, imports);
+@@ -123,6 +131,7 @@ static void flush_hot_blocks() {
+     stage_aot_module(std::move(bytes), "hot-rom");
+     instantiate_staged_modules();
+     hot_pending.clear();
++    hot_pending_entries.clear();
+ }
+ 
+ void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32_t size, bool enabled) {
+@@ -135,6 +144,7 @@ void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32
+     { const std::lock_guard<std::mutex> lock(precompile_mutex);
+       precompile_images.clear(); precompile_pending = false; }
+     hot_dispatches = 0; hot_compiled = 0; hot_counts.clear(); hot_pending.clear();
++    hot_pending_entries.clear();
+     ram_cache = {}; ram_counts.clear();
+     const char *ram = std::getenv("EKA2L1_AOT_RAM");
+     ram_compilation_enabled = enabled && ram && ram[0] == '1';
+@@ -333,13 +343,15 @@ static void compile_at(core &cpu, std::uint32_t key, std::vector<std::uint32_t>
+             validated_code_cache::add_dependency(entry, dependency.address, leaf.bytes, dependency.bytes);
+         }
+         tr.func.export_name = "r_" + std::to_string(entry.version) + "_pc_" + std::to_string(pc);
++        describe_direct_chain(tr.func, key, std::uint64_t(view.address_space) + 1, tr.dispatch_entries);
+         if (successors) {
+             discover_successors(cpu, tr, thumb, *successors);
+             ++compilation.eager_functions;
+         }
+         hot_pending.push_back(std::move(tr.func));
++        hot_pending_entries.push_back(&entry);
+         if (common::performance::counting()) ++common::performance::ram_blocks_compiled;
+-        if (hot_pending.size() >= 32) flush_hot_blocks();
++        if (hot_pending.size() >= (direct_chain_enabled ? 256u : 32u)) flush_hot_blocks();
+         return;
+     }
+     if (global_registry().lookup(key)) return;
+@@ -357,12 +369,14 @@ static void compile_at(core &cpu, std::uint32_t key, std::vector<std::uint32_t>
+     auto tr = [&] { compilation_timer timer{compilation.translation_us}; return translate(); }();
+     if (tr.func.body.empty() || !tr.entry_supported) return;
+     tr.func.export_name = "f_" + std::to_string(key);
++    describe_direct_chain(tr.func, key, 0, tr.dispatch_entries);
+     if (successors) {
+         discover_successors(cpu, tr, thumb, *successors);
+         ++compilation.eager_functions;
+     }
+     hot_pending.push_back(std::move(tr.func));
+-    if (hot_pending.size() >= 32) flush_hot_blocks();
++    hot_pending_entries.push_back(nullptr);
++    if (hot_pending.size() >= (direct_chain_enabled ? 256u : 32u)) flush_hot_blocks();
+     if (!successors) ++hot_compiled;
+ }
+ #endif
+diff --git a/src/emu/cpu/src/aot/wasm_emitter.cpp b/src/emu/cpu/src/aot/wasm_emitter.cpp
+index c057bc3c8..5b7cfb3e4 100644
+--- a/src/emu/cpu/src/aot/wasm_emitter.cpp
++++ b/src/emu/cpu/src/aot/wasm_emitter.cpp
+@@ -186,6 +186,7 @@ namespace eka2l1::arm::aot {
+                     if (func.num_locals > 0) num_groups++;
+                     if (func.num_f32_locals > 0) num_groups++;
+                     if (func.num_f64_locals > 0) num_groups++;
++                    if (func.num_trailing_i32_locals > 0) num_groups++;
+                     leb128(body, num_groups);
+                     if (func.num_prefix_i64_locals > 0) {
+                         leb128(body, func.num_prefix_i64_locals);
+@@ -203,6 +204,10 @@ namespace eka2l1::arm::aot {
+                         leb128(body, func.num_f64_locals);
+                         body.push_back(type_f64);
+                     }
++                    if (func.num_trailing_i32_locals > 0) {
++                        leb128(body, func.num_trailing_i32_locals);
++                        body.push_back(type_i32);
++                    }
+                 }
+ 
+                 // Body bytecode
+diff --git a/src/emu/system/src/aot_setup.cpp b/src/emu/system/src/aot_setup.cpp
+index 31c98c9e9..4ca00c2fa 100644
+--- a/src/emu/system/src/aot_setup.cpp
++++ b/src/emu/system/src/aot_setup.cpp
+@@ -22,6 +22,7 @@
+ 
+ #include <cpu/aot/aot_registry.h>
+ #include <cpu/aot/aot_runtime.h>
++#include <cpu/aot/direct_chain.h>
+ #include <cpu/aot/state_locals.h>
+ #include <cpu/aot/arm_translator.h>
+ #include <cpu/aot/thumb_translator.h>
+@@ -283,6 +284,7 @@ namespace eka2l1::arm::aot {
+                 auto tr=translate();
+                 if (tr.func.body.empty() || !tr.entry_supported) continue;
+                 tr.func.export_name = "f_" + std::to_string(key);
++                describe_direct_chain(tr.func, key, 0, tr.dispatch_entries);
+                 all_funcs.push_back(std::move(tr.func));
+                 ++accepted;
+                 if (max_exports >= 0 && accepted >= static_cast<std::size_t>(max_exports)) break;
+@@ -324,6 +326,9 @@ namespace eka2l1::arm::aot {
+         if (arm_exclusive_memory) imports.push_back({"env", "arm_exclusive", 2, false});
+ 
+         const auto emission_start = std::chrono::steady_clock::now();
++        const auto links = link_direct_chains(all_funcs, imports.size());
++        if (links.links) fprintf(stderr, "AOT: direct-chain functions=%u links=%u cycle_polls=%u batch=%zu\n",
++            links.functions, links.links, links.polls, all_funcs.size());
+         auto wasm_bytes = build_wasm_module(all_funcs, imports);
+         compilation.translation_us.fetch_add(std::chrono::duration_cast<std::chrono::microseconds>(
+             emission_start - eager_start).count(), std::memory_order_relaxed);
+diff --git a/src/emu/wasm/main.cpp b/src/emu/wasm/main.cpp
+index 26a02e1fb..0b82e214e 100644
+--- a/src/emu/wasm/main.cpp
++++ b/src/emu/wasm/main.cpp
+@@ -32,6 +32,7 @@
+ #include <common/deterministic.h>
+ #include <system/deterministic.h>
+ #include <cpu/aot/watchdog.h>
++#include <cpu/aot/direct_chain.h>
+ #include <cpu/dyncom/arm_dyncom_interpreter.h>
+ #include <cpu/aot/aot_runtime.h>
+ #include <cpu/aot/memory_experiment.h>
+@@ -211,6 +212,15 @@ int eka2l1_ir_configure(int mode) {
+     return 0;
+ }
+ 
++EMSCRIPTEN_KEEPALIVE
++int eka2l1_direct_chain_configure(int enabled) {
++    if (g_state || (enabled != 0 && enabled != 1)) return -1;
++    eka2l1::arm::aot::direct_chain_enabled = enabled != 0;
++    return 0;
++}
++EMSCRIPTEN_KEEPALIVE
++int eka2l1_direct_chain_report() { return eka2l1::arm::aot::direct_chain_enabled; }
++
+ EMSCRIPTEN_KEEPALIVE
+ int eka2l1_sparse_rom_lookup_configure(int mode) {
+     if (g_state || mode < 0 || mode > 1) return -1;
+@@ -528,6 +538,7 @@ int eka2l1_benchmark_configure(int frames, int start_us, int unique) {
+ 
+ EMSCRIPTEN_KEEPALIVE
+ int eka2l1_init(const char *data_path) {
++    if (eka2l1::arm::aot::direct_chain_enabled && !common::code_tracking::skip_code_write_guards()) return -3;
+     // Raw API clients also need a clock independent of executed instructions.
+     // Benchmark and route clients have already selected their unpaced clock.
+     if (!common::benchmark::enabled()) {
+diff --git a/src/tests/aot/test_aot_wasm.cpp b/src/tests/aot/test_aot_wasm.cpp
+index 944c45dad..5ee353479 100644
+--- a/src/tests/aot/test_aot_wasm.cpp
++++ b/src/tests/aot/test_aot_wasm.cpp
+@@ -6004,6 +6004,7 @@ static bool test_memory_implementations() {
+ #include "test_region_fusion.inc"
+ 
+ #include "test_watchdog.inc"
++#include "test_direct_chain.inc"
+ 
+ // Eager preparation must follow known exits without running guest code, keep
+ // ARM/Thumb tags, defer another process's RAM and reject changed mappings.
+@@ -6082,6 +6083,7 @@ int main(int argc, char **argv) {
+ #endif
+     if(argc==2 && std::string(argv[1])=="--precompile-only") return test_precompile()?0:1;
+     if(argc==2 && std::string(argv[1])=="--watchdog-only") return test_watchdog()?0:1;
++    if(argc==2 && std::string(argv[1])=="--direct-chain-only") return test_direct_chain()?0:1;
+     if(argc==2 && std::string(argv[1])=="--shared-spans-only")return test_thumb_transfer_spans()
+         && test_thumb_direct_memory() && test_invariant_reads(arm_ir_policy::write_spans)
+         && test_invariant_writes(arm_ir_policy::write_spans) && test_block_transfer_callback_pc()?0:1;
+@@ -6772,6 +6774,8 @@ int main(int argc, char **argv) {
+ 
+     printf("\nRunning ARM translator-level tests...\n\n");
+     if (test_watchdog()) passed++; else failed++;
++    printf("TEST test_direct_chain\n"); watchdog::request=0;
++    if (test_direct_chain()) passed++; else failed++;
+     printf("TEST test_inlined_leaves\n"); watchdog::request=0;
+     if (test_inlined_leaves()) passed++; else failed++;
+     printf("TEST test_sparse_rom_registry\n"); watchdog::request=0;
+diff --git a/src/emu/cpu/include/cpu/aot/direct_chain.h b/src/emu/cpu/include/cpu/aot/direct_chain.h
+new file mode 100644
+index 000000000..477877eba
+--- /dev/null
++++ b/src/emu/cpu/include/cpu/aot/direct_chain.h
+@@ -0,0 +1,16 @@
++#pragma once
++
++#include <cpu/aot/wasm_emitter.h>
++
++namespace eka2l1::arm::aot {
++    // Experiment selection is frozen before loading or translating guest code.
++    inline bool direct_chain_enabled = false;
++    struct direct_chain_result {
++        std::vector<std::vector<std::uint32_t>> edges;
++        unsigned functions = 0, links = 0, polls = 0;
++    };
++    void describe_direct_chain(wasm_func_def &function, std::uint32_t pc_mode,
++        std::uint64_t domain, const std::vector<std::uint32_t> &targets);
++    direct_chain_result link_direct_chains(std::vector<wasm_func_def> &functions,
++        unsigned imports);
++}
+diff --git a/src/emu/cpu/src/aot/direct_chain.cpp b/src/emu/cpu/src/aot/direct_chain.cpp
+new file mode 100644
+index 000000000..9250a315c
+--- /dev/null
++++ b/src/emu/cpu/src/aot/direct_chain.cpp
+@@ -0,0 +1,196 @@
++#include <cpu/aot/direct_chain.h>
++#include <cpu/aot/thumb_translator.h>
++#include <cpu/aot/watchdog.h>
++#include <algorithm>
++#include <functional>
++#include <map>
++#include <set>
++
++namespace eka2l1::arm::aot {
++    namespace {
++        struct instruction {
++            unsigned begin, end, opcode, first = 0, second = 0;
++        };
++        bool decode(const wasm_func_def &function, std::vector<instruction> &instructions) {
++            enum immediate { none, leb, pair, table, float32, float64, unknown };
++            const auto &body = function.body;
++            unsigned position = 0, depth = 0;
++            const auto read = [&]() {
++                unsigned value = 0, shift = 0;
++                while (position < body.size() && shift < 70) {
++                    const auto byte = body[position++];
++                    if (shift < 32) value |= unsigned(byte & 127) << shift;
++                    shift += 7;
++                    if (!(byte & 128)) return value;
++                }
++                position = static_cast<unsigned>(body.size()) + 1;
++                return 0u;
++            };
++            while (position < body.size()) {
++                instruction insn{position, 0, body[position++]};
++                immediate encoding = unknown;
++#define WASM_COST(first, last, category, format) if (insn.opcode >= first && insn.opcode <= last) encoding = format;
++#include <cpu/aot/wasm_cost_model.def>
++#undef WASM_COST
++                // The only atomic emitted by ordinary region bodies is the
++                // watchdog i32 load. Unknown extensions leave a body untouched.
++                if (insn.opcode == 0xfe) {
++                    if (read() != 0x10) return false;
++                    encoding = pair;
++                }
++                switch (encoding) {
++                case none: break;
++                case leb: insn.first = read(); break;
++                case pair: insn.first = read(); insn.second = read(); break;
++                case table: {
++                    const auto count = read();
++                    if (count > body.size()) return false;
++                    for (unsigned i = 0; i <= count; ++i) read();
++                    break;
++                }
++                case float32: position += 4; break;
++                case float64: position += 8; break;
++                default: return false;
++                }
++                if (position > body.size()) return false;
++                if (insn.opcode == op_block || insn.opcode == op_loop || insn.opcode == op_if) ++depth;
++                if (insn.opcode == op_end) { if (!depth) return false; --depth; }
++                // A module must not be linked twice, or contain a call whose
++                // exceptional/control behavior this pass cannot represent.
++                if (insn.opcode == 0x12 || insn.opcode == 0x11) return false;
++                insn.end = position;
++                instructions.push_back(insn);
++            }
++            return depth == 0;
++        }
++        void leb(std::vector<std::uint8_t> &out, unsigned value) {
++            do { const auto byte = value & 127; value >>= 7;
++                out.push_back(byte | (value ? 128 : 0)); } while (value);
++        }
++        void constant(std::vector<std::uint8_t> &out, std::uint32_t bits) {
++            out.push_back(op_i32_const);
++            auto value = static_cast<std::int32_t>(bits);
++            while (true) {
++                const auto byte = value & 127; value >>= 7;
++                const bool last = (value == 0 && !(byte & 64)) || (value == -1 && (byte & 64));
++                out.push_back(byte | (last ? 0 : 128));
++                if (last) return;
++            }
++        }
++    }
++
++    void describe_direct_chain(wasm_func_def &function, std::uint32_t pc_mode,
++            std::uint64_t domain, const std::vector<std::uint32_t> &targets) {
++        if (direct_chain_enabled)
++            function.chain = std::make_shared<wasm_func_def::chain_info>(wasm_func_def::chain_info{pc_mode, domain, targets});
++    }
++
++    direct_chain_result link_direct_chains(std::vector<wasm_func_def> &functions, unsigned imports) {
++        direct_chain_result result;
++        result.edges.resize(functions.size());
++        if (!direct_chain_enabled) return result;
++        using identity = std::pair<std::uint64_t, std::uint32_t>;
++        std::map<identity, unsigned> entries;
++        std::set<identity> duplicates;
++        std::vector<std::vector<instruction>> decoded(functions.size());
++        for (unsigned i = 0; i < functions.size(); ++i) if (functions[i].chain) {
++            const auto &info = *functions[i].chain;
++            const identity key{info.domain, info.pc_mode};
++            if (!entries.emplace(key, i).second) duplicates.insert(key);
++        }
++        for (const auto &key : duplicates) entries.erase(key);
++        for (unsigned i = 0; i < functions.size(); ++i) {
++            const auto &function = functions[i];
++            if (!function.chain || !decode(function, decoded[i])) continue;
++            for (const auto target : function.chain->targets) {
++                auto found = entries.find({function.chain->domain, target});
++                if (found == entries.end()) found = entries.find({0, target});
++                if (found != entries.end()) result.edges[i].push_back(found->second);
++            }
++            auto &edges = result.edges[i];
++            std::sort(edges.begin(), edges.end());
++            edges.erase(std::unique(edges.begin(), edges.end()), edges.end());
++        }
++        // DFS backedges intersect every directed cycle. Only those edges poll;
++        // finite acyclic chains retain the existing run-to-completion policy.
++        std::vector<unsigned> colors(functions.size());
++        std::set<std::pair<unsigned, unsigned>> polls;
++        std::function<void(unsigned)> visit = [&](unsigned source) {
++            colors[source] = 1;
++            for (auto target : result.edges[source]) {
++                if (colors[target] == 1) polls.emplace(source, target);
++                else if (!colors[target]) visit(target);
++            }
++            colors[source] = 2;
++        };
++        for (unsigned i = 0; i < functions.size(); ++i) if (!colors[i]) visit(i);
++        for (unsigned i = 0; i < functions.size(); ++i) {
++            if (result.edges[i].empty()) continue;
++            auto &function = functions[i];
++            const auto first_local = 1 + function.num_prefix_i64_locals + function.num_locals
++                + function.num_f32_locals + function.num_f64_locals + function.num_trailing_i32_locals;
++            const auto progress = first_local, callback = first_local + 1, pc_mode = first_local + 2;
++            std::vector<std::uint8_t> body{op_block, type_i32};
++            source_marks sources{{0, function.chain->pc_mode, source_kind::dispatch}};
++            std::map<unsigned, unsigned> call_offsets;
++            unsigned depth = 0;
++            bool calls = false, writes_exit = false;
++            const auto op = [&](unsigned opcode, unsigned operand) { body.push_back(opcode); leb(body, operand); };
++            const auto load = [&](unsigned offset) {
++                op(op_local_get, 0); body.push_back(op_i32_load); leb(body, 2); leb(body, offset);
++            };
++            const auto return_progress = [&] { op(op_local_get, progress); body.push_back(op_return); };
++            for (const auto &insn : decoded[i]) {
++                if (insn.opcode == op_call) {
++                    // Only an actually executed callback/private helper ends
++                    // the proof. Successful inline memory accesses add no store.
++                    constant(body, 1); op(op_local_set, callback); calls = true;
++                    call_offsets[insn.begin + 1] = static_cast<unsigned>(body.size()) + 1;
++                }
++                writes_exit |= insn.opcode == op_i32_store && insn.second == state_offsets::AOT_EXIT;
++                copy_source_marks(function.sources, insn.begin, insn.end, body.size(), sources);
++                if (insn.opcode == op_return) op(op_br, depth);
++                else body.insert(body.end(), function.body.begin() + insn.begin, function.body.begin() + insn.end);
++                if (insn.opcode == op_block || insn.opcode == op_loop || insn.opcode == op_if) ++depth;
++                else if (insn.opcode == op_end) --depth;
++            }
++            body.push_back(op_end);
++            sources.push_back({static_cast<unsigned>(body.size()), function.chain->pc_mode, source_kind::dispatch});
++            op(op_local_tee, progress); body.push_back(op_i32_eqz);
++            body.insert(body.end(), {op_if, type_void}); return_progress(); body.push_back(op_end);
++            if (calls) {
++                op(op_local_get, callback); body.insert(body.end(), {op_if, type_void});
++                return_progress(); body.push_back(op_end);
++            }
++            if (writes_exit) {
++                load(state_offsets::AOT_EXIT); body.insert(body.end(), {op_if, type_void});
++                return_progress(); body.push_back(op_end);
++            }
++            load(state_offsets::PC); load(state_offsets::TFLAG); body.push_back(op_i32_or); op(op_local_set, pc_mode);
++            for (auto target : result.edges[i]) {
++                const auto key = functions[target].chain->pc_mode;
++                op(op_local_get, pc_mode); constant(body, key); body.push_back(op_i32_eq);
++                body.insert(body.end(), {op_if, type_void});
++                if (polls.count({i, target})) {
++                    constant(body, static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(&watchdog::request)));
++                    body.insert(body.end(), {0xfe, 0x10, 0x02, 0x00, op_if, type_void});
++                    return_progress(); body.push_back(op_end); ++result.polls;
++                }
++                // Match the outer runner's aligned architectural PC, including
++                // an indirect exit that happens to match a known successor.
++                op(op_local_get, 0); constant(body, key & ~1u);
++                body.push_back(op_i32_store); leb(body, 2); leb(body, state_offsets::PC);
++                op(op_local_get, 0); op(0x12, imports + target); // return_call: bounded host stack
++                body.push_back(op_end); ++result.links;
++            }
++            return_progress();
++            if (function.outlined_callee) function.outlined_call_offset = call_offsets.at(function.outlined_call_offset);
++            for (auto &call : function.outlined_calls) call.call_offset = call_offsets.at(call.call_offset);
++            function.body = std::move(body);
++            function.sources = std::move(sources);
++            function.num_trailing_i32_locals += 3;
++            ++result.functions;
++        }
++        return result;
++    }
++}
+diff --git a/src/tests/aot/test_direct_chain.inc b/src/tests/aot/test_direct_chain.inc
+new file mode 100644
+index 000000000..3d3cd80ca
+--- /dev/null
++++ b/src/tests/aot/test_direct_chain.inc
+@@ -0,0 +1,239 @@
++#include <cpu/aot/direct_chain.h>
++
++#ifdef __EMSCRIPTEN__
++EM_JS(int, direct_chain_test_run, (const std::uint8_t *bytes, unsigned size, unsigned state), {
++    try {
++        const instance = new WebAssembly.Instance(new WebAssembly.Module(new Uint8Array(wasmMemory.buffer, bytes, size)),
++          {env: {memory: wasmMemory, tlb_read32: Module._test_tlb_read32, tlb_write32: Module._test_tlb_write32,
++            tlb_read8: Module._test_tlb_read8, tlb_write8: Module._test_tlb_write8,
++            tlb_read16: Module._test_tlb_read16, tlb_write16: Module._test_tlb_write16}});
++        const words = new Uint32Array(wasmMemory.buffer, state, 256);
++        let calls = 0;
++        while (calls < 1000) {
++            const f = instance.exports['f_' + ((words[15] | words[828 / 4]) >>> 0)];
++            if (!f) return calls;
++            words[860 / 4] = 0;
++            const progress = f(state); ++calls;
++            if (!progress || !(words[840 / 4] | words[844 / 4]) || (!words[872 / 4] && !(words[784 / 4] & 128))) return calls;
++            words[15] &= words[828 / 4] ? ~1 : ~3;
++        }
++        return -2;
++    } catch (error) { console.error(error); return -1; }
++});
++#endif
++
++static bool test_direct_chain() {
++#ifdef __EMSCRIPTEN__
++    using S = state_offsets;
++    struct restore {
++        bool direct = direct_chain_enabled, thumb = thumb_direct_memory;
++        unsigned mode = memory_experiment::mode, unsafe = eka2l1::common::code_tracking::unsafe_code_mode;
++        ~restore() { direct_chain_enabled = direct; thumb_direct_memory = thumb; memory_experiment::mode = mode;
++            eka2l1::common::code_tracking::unsafe_code_mode = unsafe; watchdog::request = 0;
++            g_test_mem = nullptr; g_memory_boundary = {}; }
++    } saved;
++    direct_chain_enabled = true; thumb_direct_memory = true;
++    eka2l1::common::code_tracking::unsafe_code_mode = 3;
++    const std::vector<wasm_import_func> imports{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
++        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
++    const auto arm = [](unsigned pc, std::initializer_list<unsigned> words) {
++        return translate_arm_block(reinterpret_cast<const std::uint8_t *>(words.begin()), words.size()*4,
++            pc, nullptr, nullptr, true, false, true, true);
++    };
++    const auto thumb = [](unsigned pc, std::initializer_list<std::uint16_t> words) {
++        return translate_thumb_block(reinterpret_cast<const std::uint8_t *>(words.begin()), words.size()*2,
++            pc, nullptr, nullptr, true, false, true);
++    };
++    const auto initial = [](std::uint32_t *state, bool thumb) {
++        std::fill(state, state + 256, 0); state[14] = 0x3000 | thumb; state[15] = 0x1000;
++        state[S::TFLAG/4] = thumb; state[S::MODE/4] = 16; state[S::CPSR/4] = 16 | (thumb ? 32 : 0);
++        state[S::NUM_INSTRS_TO_EXECUTE/4] = UINT32_MAX; state[S::NIRQ/4] = 1;
++    };
++    const auto collect = [](std::vector<translate_result> translations, bool thumb, unsigned space) {
++        std::vector<wasm_func_def> functions;
++        for (unsigned i = 0; i < translations.size(); ++i) {
++            auto &tr = translations[i];
++            const unsigned address = i == 0 ? 0x1000 : i == 1 ? 0x1020 : thumb ? 0x1024 : 0x1028;
++            const auto key = address | thumb;
++            tr.func.export_name = "f_" + std::to_string(key);
++            describe_direct_chain(tr.func, key, space, tr.dispatch_entries);
++            functions.push_back(std::move(tr.func));
++        }
++        return functions;
++    };
++    unsigned checks = 0;
++    for (bool t : {false, true}) for (unsigned domain : {0u, 8u}) {
++        auto functions = collect(t ? std::vector<translate_result>{thumb(0x1000,{0x3001,0xe00d}),
++                thumb(0x1020,{0x3a01,0xd1ed}),thumb(0x1024,{0x3307,0x4770})}
++            : std::vector<translate_result>{arm(0x1000,{0xe2800001,0xea000005}),
++                arm(0x1020,{0xe2522001,0x1afffff5}),arm(0x1028,{0xe2833007,0xe12fff1e})},t,domain);
++        const auto original = build_wasm_module(functions, imports);
++        const auto links = link_direct_chains(functions, imports.size());
++        if (links.links != 3 || links.polls != 1) {
++            printf("FAIL direct cycle graph thumb=%u links=%u polls=%u\n",t,links.links,links.polls); { printf("FAIL direct-chain assertion line %u\n",__LINE__); return false; }
++        }
++        const auto linked = build_wasm_module(functions, imports);
++        for (unsigned input : {1u,2u,31u,97u}) for (unsigned flags : {0u,5u,10u,15u}) {
++            alignas(8) std::uint32_t states[2][256]{};
++            int calls[2]{};
++            for (unsigned v = 0; v < 2; ++v) {
++                initial(states[v],t); states[v][2] = input;
++                states[v][S::NFLAG/4] = (flags>>3)&1; states[v][S::ZFLAG/4] = (flags>>2)&1;
++                states[v][S::CFLAG/4] = (flags>>1)&1; states[v][S::VFLAG/4] = flags&1;
++                const auto &module = v ? linked : original; watchdog::request = 0;
++                calls[v] = direct_chain_test_run(module.data(),module.size(),reinterpret_cast<unsigned>(states[v]));
++            }
++            if (calls[0] != int(2*input+1) || calls[1] != 1 || std::memcmp(states[0],states[1],sizeof(states[0]))
++                    || states[1][0] != input || states[1][2] || states[1][3] != 7) {
++                printf("FAIL direct cycle state thumb=%u input=%u calls=%d/%d r0=%u r2=%u r3=%u\n",t,input,calls[0],calls[1],states[1][0],states[1][2],states[1][3]);{ printf("FAIL direct-chain assertion line %u\n",__LINE__); return false; }
++            }
++            ++checks;
++        }
++        alignas(8) unsigned state[256]; initial(state,t); state[2] = 1000000; watchdog::request = 0;
++        if (js_run_aot_wasm(linked.data(),linked.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state)) != 1
++                || state[0] != 1000000 || state[2] || state[3] != 7) { printf("FAIL direct-chain assertion line %u\n",__LINE__); return false; }
++        initial(state,t); state[2] = 100; watchdog::request = 1;
++        if (js_run_aot_wasm(linked.data(),linked.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state)) != 1
++                || state[0] != 1 || state[2] != 99 || state[15] != 0x1000) { printf("FAIL direct-chain assertion line %u\n",__LINE__); return false; }
++        initial(state,t); state[2] = UINT32_MAX; watchdog::request = 0;
++        std::atomic<std::uint32_t> handshake{0};
++        watchdog_test_arm(reinterpret_cast<unsigned>(&watchdog::request),reinterpret_cast<unsigned>(&handshake));
++        if (watchdog_test_run(linked.data(),linked.size(),reinterpret_cast<unsigned>(state),reinterpret_cast<unsigned>(&handshake)) != 1
++                || !watchdog::requested() || !state[0] || !state[2] || state[15] != 0x1000) { printf("FAIL direct-chain assertion line %u\n",__LINE__); return false; }
++        checks += 3;
++    }
++    // Finite chains ignore an expired request, while real callbacks end the
++    // chain before a successor regardless of whether that callback stops it.
++    for (bool t : {false,true}) for (unsigned mode : {0u,2u}) for (bool memory : {false,true}) {
++        memory_experiment::mode = mode;
++        auto functions = collect(t ? std::vector<translate_result>{thumb(0x1000,{std::uint16_t(memory?0x6808:0x202a),0xe00d}),thumb(0x1020,{0x3001,0x4770})}
++            : std::vector<translate_result>{arm(0x1000,{memory?0xe5910000u:0xe3a0002au,0xea000005}),arm(0x1020,{0xe2800001,0xe12fff1e})},t,1);
++        const auto original = build_wasm_module(functions,imports);
++        const auto links = link_direct_chains(functions,imports.size());
++        if (links.links != 1 || links.polls) { printf("FAIL direct-chain assertion line %u\n",__LINE__); return false; }
++        const auto linked = build_wasm_module(functions,imports);
++        for (bool mapped : {false,true}) for (unsigned event : {0u,1u,2u,3u}) {
++            test_mem memories[2]; for (auto &m : memories) m.write32(0x8000,42);
++            alignas(8) unsigned states[2][256]{}; int calls[2]{};
++            for (unsigned variant = 0; variant < 2; ++variant) {
++                auto *state = states[variant]; initial(state,t); state[1] = 0x8000;
++                r12l1::tlb tlb(12); if (mapped) tlb.add(0x8000,memories[variant].data.data()+0x8000,3);
++                memory_experiment::view view;
++                const auto pointer = view.enter(1,1,[&]{return std::vector<memory_experiment::binding>{{0x8000,
++                    reinterpret_cast<unsigned>(memories[variant].data.data()+0x8000),mapped?3u:0u}};});
++                state[S::AOT_TLB/4] = mode ? pointer : reinterpret_cast<unsigned>(tlb.entries);
++                g_test_mem = &memories[variant];
++                g_memory_boundary = [&](bool after,unsigned address) {
++                    if (!after) return; auto *s = reinterpret_cast<unsigned*>(address);
++                    if (event==1) s[S::NUM_INSTRS_TO_EXECUTE/4]=0;
++                    if (event==2) s[S::NIRQ/4]=0;
++                    if (event==3) s[S::AOT_EXIT/4]=1;
++                };
++                const auto &module = variant ? linked : original; watchdog::request = !memory || mapped;
++                calls[variant] = direct_chain_test_run(module.data(),module.size(),reinterpret_cast<unsigned>(state));
++                state[S::AOT_TLB/4] = 0;
++            }
++            if (calls[0]<1 || calls[1]<1 || std::memcmp(states[0],states[1],sizeof(states[0]))) {
++                printf("FAIL direct callback thumb=%u mode=%u memory=%u mapped=%u event=%u calls=%d/%d\n",t,mode,memory,mapped,event,calls[0],calls[1]);{ printf("FAIL direct-chain assertion line %u\n",__LINE__); return false; }
++            }
++            if ((!memory || mapped) && calls[1] != 1) { printf("fast path thumb=%u mode=%u memory=%u mapped=%u event=%u calls=%d/%d\n",t,mode,memory,mapped,event,calls[0],calls[1]); }
++            if ((!memory || mapped) && calls[1] != 1) { printf("FAIL direct-chain assertion line %u\n",__LINE__); return false; }
++            if (memory && !mapped && !event && calls[1] != calls[0]) { printf("FAIL slow callback thumb=%u mode=%u calls=%d/%d pc=%x r0=%u\n",t,mode,calls[0],calls[1],states[1][15],states[1][0]); return false; }
++            ++checks;
++        }
++    }
++    // Pending syscalls and missing/foreign address-space successors never link
++    // past a runtime boundary merely because the PC matches a known entry.
++    {
++        auto functions = collect({thumb(0x1000,{0xdf80}),thumb(0x1020,{0x3001,0x4770})},true,1);
++        functions[0].chain->targets={0x1021};
++        link_direct_chains(functions,imports.size());
++        const auto module=build_wasm_module(functions,imports);
++        alignas(8) unsigned state[256]; initial(state,true);
++        if(js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state)) != 0
++            || state[0] || !(state[S::AOT_EXIT/4] & svc_pending)){ printf("FAIL direct-chain assertion line %u\n",__LINE__); return false; }
++        functions=collect({thumb(0x1000,{0x202a,0xe00d}),thumb(0x1020,{0x3001,0x4770})},true,1);
++        functions[1].chain->domain=2;
++        if(link_direct_chains(functions,imports.size()).links){ printf("FAIL direct-chain assertion line %u\n",__LINE__); return false; }
++        functions[0].chain->domain=0;
++        if(link_direct_chains(functions,imports.size()).links){ printf("FAIL direct-chain assertion line %u\n",__LINE__); return false; }
++        functions[1].chain->domain=0;
++        if(link_direct_chains(functions,imports.size()).links!=1){ printf("FAIL direct-chain assertion line %u\n",__LINE__); return false; }
++        checks+=4;
++    }
++    {
++        test_mem memory; r12l1::exclusive_monitor monitor(1); auto cpu=make_cpu(memory,monitor);
++        std::array<std::array<std::uint8_t,16>,4> bytes{};
++        std::atomic<std::uint64_t> generation{1}; cpu->code_mapping_generation=&generation;cpu->code_address_space=7;
++        unsigned changed=99;
++        cpu->resolve_code=[&](unsigned address,core::code_mapping &view) {
++            const unsigned index=(address-0x1000)/0x20;
++            if(index>=3){ printf("FAIL direct-chain assertion line %u\n",__LINE__); return false; }
++            view={cpu->code_address_space,bytes[index==changed?3:index].data(),16}; return true;
++        };
++        for(unsigned target : {1u,2u}) {
++            validated_code_cache cache; std::vector<validated_code_cache::block*> entries;
++            for(unsigned i=0;i<3;++i)entries.push_back(&cache.insert(0x1000+i*0x20,{7,bytes[i].data(),16},8));
++            validated_code_cache::add_chain_dependencies(entries,{{1},{2},{}});
++            for(auto *entry:entries)cache.attach(entry->version,publication_test_function);
++            changed=99;++generation;
++            if(!cache.lookup_trusted(0x1000,*cpu)){ printf("FAIL direct-chain assertion line %u\n",__LINE__); return false; }
++            changed=target;++generation;
++            if(cache.lookup_trusted(0x1000,*cpu)){ printf("FAIL direct-chain assertion line %u\n",__LINE__); return false; }
++            ++checks;
++        }
++    }
++    printf("PASS direct chains: %u ARM/Thumb state, callback, finite/cyclic, tail-stack, async yield, ASID and transitive mapping checks\n",checks);
++#endif
++    return true;
++}
++
++
++#ifdef __EMSCRIPTEN__
++// Exact-work diagnostic through the real compiled runner, independent of guest
++// clock advancement. This fixture isolates small-region handoff cost; it is not
++// a game-speed estimate. The caller times repeated warmed invocations.
++extern "C" EMSCRIPTEN_KEEPALIVE int direct_chain_benchmark(unsigned variant, unsigned iterations) {
++    if(!eka2l1::log::filterings) {
++        eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
++        eka2l1::log::filterings->reset_all(spdlog::level::off);
++    }
++    static test_mem memory;
++    static r12l1::exclusive_monitor monitor(1);
++    static auto core = make_cpu(memory,monitor);
++    static aot_func entries[2][3]{};
++    static bool ready=false;
++    const unsigned pcs[]{0x1000,0x1020,0x1028};
++    if(!ready) {
++        direct_chain_enabled=true;hotpath_policy=2;memory_experiment::mode=2;
++        eka2l1::common::code_tracking::unsafe_code_mode=3;
++        global_registry().configure_rom_index(0x1000,0x2000,true);
++        std::vector<wasm_func_def> functions;
++        const std::vector<std::vector<unsigned>> words{{0xe2800001,0xea000005},
++            {0xe2522001,0x1afffff5},{0xe2833007,0xe12fff1e}};
++        for(unsigned i=0;i<3;++i) {
++            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(words[i].data()),
++                words[i].size()*4,pcs[i],nullptr,nullptr,true,false,true,true);
++            tr.func.export_name="f_"+std::to_string(pcs[i]);
++            describe_direct_chain(tr.func,pcs[i],0,tr.dispatch_entries);
++            functions.push_back(std::move(tr.func));
++        }
++        const std::vector<wasm_import_func> imports{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
++            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
++        for(unsigned v=0;v<2;++v) {
++            if(v)link_direct_chains(functions,imports.size());
++            stage_aot_module(build_wasm_module(functions,imports),"direct-chain-benchmark");instantiate_staged_modules();
++            for(unsigned i=0;i<3;++i)if(!(entries[v][i]=global_registry().lookup(pcs[i])))return -1;
++        }
++        ready=true;
++    }
++    if(variant>1 || !iterations)return -2;
++    for(unsigned i=0;i<3;++i)global_registry().register_function(pcs[i],entries[variant][i]);
++    auto *cpu=matched_kernel_access::state(*core);
++    cpu->Reset();for(auto &reg:cpu->Reg)reg=0;cpu->NFlag=cpu->ZFlag=cpu->CFlag=cpu->VFlag=0;cpu->Reg[14]=0x5000;cpu->Reg[15]=0x1000;cpu->Reg[2]=iterations;
++    cpu->Cpsr=16;cpu->TFlag=0;cpu->NirqSig=1;cpu->NumInstrsToExecute=UINT32_MAX;
++    watchdog::request=0;
++    const auto progress=execute_chain(cpu,entries[variant][0]).progress;
++    return progress==1 && cpu->Reg[0]==iterations && !cpu->Reg[2] && cpu->Reg[3]==7 && cpu->Reg[15]==0x5000 ? 0 : -3;
++}
++#endif
+diff --git a/src/tests/wasm/profile.ts b/src/tests/wasm/profile.ts
+index 81b4451df..c323d7547 100644
+--- a/src/tests/wasm/profile.ts
++++ b/src/tests/wasm/profile.ts
+@@ -24,6 +24,8 @@ if (!assetArg || !outputArg) throw new Error('Usage: node profile.ts ASSETS NEW_
+ const guestProfile = Number(process.env.EKA2L1_GUEST_PROFILE || "0");
+ if (!Number.isSafeInteger(guestProfile) || guestProfile < 0 || guestProfile > 2147483647)
+   throw new Error('EKA2L1_GUEST_PROFILE must be a nonnegative sample stride');
++const directChain = Number(process.env.EKA2L1_DIRECT_CHAIN ?? '0');
++if (![0,1].includes(directChain)) throw Error('Direct chain must be 0 or 1');
+ const exitCensus = process.env.EKA2L1_EXIT_CENSUS === "1";
+ if(exitCensus && !guestProfile) throw new Error("Exit census requires guest profiling");
+ const sparseRom = Number(process.env.EKA2L1_SPARSE_ROM_LOOKUP ?? compilerDefaults.sparseRom);
+@@ -167,7 +169,7 @@ try {
+   if (diagnosticsAvailable === false && (detailedProfile || guestProfile || exitCensus || aotDiagnostics))
+     throw new Error('Custom diagnostics require a build with -DEKA2L1_WASM_DIAGNOSTICS=ON');
+   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
+-  await page.evaluate(async ({ sparseRom, compiledSvc, hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
++  await page.evaluate(async ({ directChain, sparseRom, compiledSvc, hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
+     const g = window as any;
+     const call = (name: string, types: string[], args: unknown[]) => {
+       const code = g.Module.ccall(name, 'number', types, args);
+@@ -179,6 +181,10 @@ try {
+     call('eka2l1_benchmark_configure', ['number', 'number', 'number'], [count, startUs, 1]);
+     if (sharedAudio) call('eka2l1_audio_configure', [], []);
+     call('eka2l1_aot_configure', ['number', 'number', 'number'], [aot, verifyAot, aotDiagnostics ? 1 : 0]);
++    if (typeof g.Module._eka2l1_direct_chain_configure === 'function') {
++      call('eka2l1_direct_chain_configure', ['number'], [directChain]);
++      if (g.Module._eka2l1_direct_chain_report() !== directChain) throw Error('Direct-chain readback mismatch');
++    } else if (directChain) throw Error('Build lacks direct chaining');
+     if (hotpathPolicy !== -1) {
+       call('eka2l1_hotpath_configure', ['number'], [hotpathPolicy]);
+       if (g.Module._eka2l1_hotpath_configure(-1) !== -1 || g.Module._eka2l1_hotpath_configure(8) !== -1)
+@@ -251,6 +257,7 @@ try {
+         || g.Module._eka2l1_hotpath_report() !== hotpathPolicy)) throw Error('Hotpath policy changed after initialization');
+     if (thumbMemory !== -1 && g.Module._eka2l1_thumb_memory_configure(1 - thumbMemory) !== -1)
+       throw Error('Thumb memory policy changed after initialization');
++    if (g.Module._eka2l1_direct_chain_configure && g.Module._eka2l1_direct_chain_configure(1-directChain) !== -1) throw Error('Direct chaining changed after initialization');
+     if (g.Module._eka2l1_sparse_rom_lookup_configure(1-sparseRom) !== -1) throw Error('sparseRom changed after initialization');
+     if (g.Module._eka2l1_compiled_svc_configure(1-compiledSvc) !== -1) throw Error('Compiled syscall policy changed after initialization');
+     if (armExclusive !== -1 && g.Module._eka2l1_arm_exclusive_configure(1-armExclusive) !== -1) throw Error('ARM exclusive changed after initialization');
+@@ -278,7 +285,7 @@ try {
+       }
+     }
+     call('eka2l1_run', ['string'], [appUid]);
+-  }, { sparseRom, compiledSvc, hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio});
++  }, { directChain, sparseRom, compiledSvc, hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio});
+   async function waitPhase(phase: number) {
+     const deadline = performance.now() + 1800000;
+     while (await page.evaluate(() => (window as any).Module._eka2l1_profile_phase()) !== phase) {
+@@ -454,7 +461,7 @@ try {
+   await page.screenshot({path: path.join(output, 'browser.png')});
+   if (failures.length) throw new Error(failures.join('\n'));
+ 
+-  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({watchdog_us: watchdogInterval(), watchdog_requests: await page.evaluate(() => (globalThis as any).ekaWatchdog ? Atomics.load((globalThis as any).ekaWatchdog.control, 1) : 0), sparse_rom_lookup: await page.evaluate(() => (globalThis as any).sparseRomActual), compiled_svc: await page.evaluate(() => (globalThis as any).compiledSvcActual), hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, app_uid: appUid, measurement: measured, warmup_seconds: warmupSeconds,
++  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({direct_chain: directChain, watchdog_us: watchdogInterval(), watchdog_requests: await page.evaluate(() => (globalThis as any).ekaWatchdog ? Atomics.load((globalThis as any).ekaWatchdog.control, 1) : 0), sparse_rom_lookup: await page.evaluate(() => (globalThis as any).sparseRomActual), compiled_svc: await page.evaluate(() => (globalThis as any).compiledSvcActual), hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, app_uid: appUid, measurement: measured, warmup_seconds: warmupSeconds,
+     purpose: nativeSampling || sampling || monitorCpuStart || traceScope !== 'off' || detailedProfile || guestProfile || aotDiagnostics || monitor || glDiagnostics || !glDiagnosticsSupported || verifyAot || process.env.EKA2L1_COMPILE_CENSUS === '1' ? 'diagnostic' : 'throughput',
+     cpu_time: cpuTime,
+     chrome_trace: {scope: traceScope, ...traceReport}, diagnostics_available: diagnosticsAvailable,
