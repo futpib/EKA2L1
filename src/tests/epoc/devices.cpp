@@ -220,6 +220,34 @@ TEST_CASE("devices_yml_without_isolation_key_is_shared", "devices") {
     REQUIRE_FALSE(manager.get("RM-409")->isolated_drives);
 }
 
+TEST_CASE("machine_uid_is_available_before_the_first_device_reload", "devices") {
+    storage_test_env env("first_install_machine_uid");
+    config::state conf;
+    conf.storage = env.root;
+
+    std::string firmcode = "RM-409";
+    std::uint32_t supplied_uid = 0;
+    std::uint32_t expected_uid = 0x2000DA5A;
+    SECTION("known firmware uses its hardware identity") {}
+    SECTION("an explicit dump identity is preserved") {
+        supplied_uid = expected_uid = 0x12345678;
+    }
+    SECTION("unknown firmware keeps an unknown identity") {
+        firmcode = "unknown-firmware";
+        expected_uid = 0;
+    }
+
+    {
+        device_manager manager(&conf);
+        REQUIRE(manager.add_new_device(firmcode, "5320", "Nokia", epocver::epoc93fp2, supplied_uid, false) == add_device_none);
+        REQUIRE(manager.get(firmcode)->machine_uid == expected_uid);
+        manager.save_devices();
+    }
+
+    device_manager reloaded(&conf);
+    REQUIRE(reloaded.get(firmcode)->machine_uid == expected_uid);
+}
+
 TEST_CASE("device_marked_for_deletion_goes_on_next_load", "devices") {
     storage_test_env env("marked_for_deletion");
 

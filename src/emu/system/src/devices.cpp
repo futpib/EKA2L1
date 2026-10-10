@@ -213,14 +213,6 @@ namespace eka2l1 {
                 machine_uid = 0;
             }
 
-            if (machine_uid == 0) {
-                auto ite = DEVICE_UID_MAP.find(common::lowercase_string(firmcode));
-
-                if (ite != DEVICE_UID_MAP.end()) {
-                    machine_uid = ite->second;
-                }
-            }
-
             if (device_node.second["pending-deletion"].as<bool>(false)) {
                 delete_device_storage(conf->storage, firmcode);
                 continue;
@@ -363,6 +355,12 @@ namespace eka2l1 {
         dvc.languages = languages;
         dvc.default_language_code = default_language;
         dvc.machine_uid = machine_uid;
+        if (dvc.machine_uid == 0) {
+            const auto known_device = DEVICE_UID_MAP.find(common::lowercase_string(firmcode));
+            if (known_device != DEVICE_UID_MAP.end()) {
+                dvc.machine_uid = known_device->second;
+            }
+        }
         dvc.isolated_drives = isolated_drives;
 
         // rescan_devices() recognises isolated drives by this folder, so it must exist before the first boot.
