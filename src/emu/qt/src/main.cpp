@@ -19,6 +19,7 @@
 
 #include <drivers/input/common.h>
 
+#include <qt/cmdhandler.h>
 #include <qt/state.h>
 #include <qt/thread.h>
 #include <qt/utils.h>
@@ -58,6 +59,10 @@ static void prefer_selfcontained_media_backend() {
 #endif
 
 int main(int argc, char *argv[]) {
+    if (handle_command_line_help(argc, const_cast<const char **>(argv))) {
+        return 0;
+    }
+
     if (eka2l1::common::benchmark::enabled() && std::getenv("EKA2L1_QT_PROFILE_OUTPUT")) {
         namespace common = eka2l1::common;
         common::performance::enabled = true;
