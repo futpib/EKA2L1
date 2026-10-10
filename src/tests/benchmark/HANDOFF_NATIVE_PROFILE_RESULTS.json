@@ -1,0 +1,2931 @@
+{
+  "source_commit": "0e354cd12",
+  "method": "Warmed natural-tier V8 Linux task-clock:u native samples. No guest counters, CDP sampler, forced optimizing tier or pre-sampling Debugger attachment. Manual native ranges are not latency measurements.",
+  "captures": [
+    {
+      "game": "snakes",
+      "path": "/home/claude/.scratch/eka-handoff-native-20261010/snakes-native",
+      "build_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+      "version": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/153.0.8010.52",
+        "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "jsVersion": "15.3.76.13"
+      },
+      "guest_thread": [
+        2362354,
+        2362598
+      ],
+      "totals": {
+        "samples": 5362,
+        "no_instruction_position": 3540,
+        "jit_without_snapshot": 504,
+        "outside_jit": 302,
+        "mapped_cpp": 316,
+        "mapped_arm": 700
+      },
+      "runner": {
+        "name": "JS:eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))-806-turbofan",
+        "pid": 2362354,
+        "code_id": 336581,
+        "address": 30148671814400,
+        "timestamp": 881490826730000,
+        "native_sha256": "d2f7d59a6dd9fd7e0b63e3e3b99aba7b3a1e86ebe0df7a5781c99a14892d51d0",
+        "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+        "samples": 1563,
+        "native_bytes": 4480,
+        "positions": 152,
+        "traps": 104,
+        "assembly": "native-2362354-336581.asm",
+        "hot_instructions": [
+          {
+            "offset": 3457,
+            "samples": 242,
+            "instruction": {
+              "bytes": 2,
+              "asm": "je     0xd84"
+            },
+            "location": null
+          },
+          {
+            "offset": 3395,
+            "samples": 166,
+            "instruction": {
+              "bytes": 6,
+              "asm": "mov    r15d,0x21"
+            },
+            "location": null
+          },
+          {
+            "offset": 3987,
+            "samples": 117,
+            "instruction": {
+              "bytes": 4,
+              "asm": "shl    rcx,0x20"
+            },
+            "location": null
+          },
+          {
+            "offset": 3410,
+            "samples": 42,
+            "instruction": {
+              "bytes": 5,
+              "asm": "mov    r12d,DWORD PTR [r11+r9*1+0x1b]"
+            },
+            "location": null
+          },
+          {
+            "offset": 3488,
+            "samples": 42,
+            "instruction": {
+              "bytes": 9,
+              "asm": "cmp    QWORD PTR [rbx+r8*1+0x348],0x0"
+            },
+            "location": null
+          },
+          {
+            "offset": 4004,
+            "samples": 40,
+            "instruction": {
+              "bytes": 5,
+              "asm": "mov    rcx,QWORD PTR [rbx+r15*1+0x8]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 471,
+              "native_anchor": 4004,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/include/cpu/aot/code_cache.h",
+              "line": 70,
+              "column": 53
+            }
+          },
+          {
+            "offset": 3369,
+            "samples": 38,
+            "instruction": {
+              "bytes": 7,
+              "asm": "or     r11,QWORD PTR [r13+0x288]"
+            },
+            "location": null
+          },
+          {
+            "offset": 3346,
+            "samples": 35,
+            "instruction": {
+              "bytes": 4,
+              "asm": "mov    r8,QWORD PTR [rbp-0x18]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 111,
+              "native_anchor": 3346,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/src/aot/aot_runtime.cpp",
+              "line": 228,
+              "column": 23
+            }
+          },
+          {
+            "offset": 4036,
+            "samples": 34,
+            "instruction": {
+              "bytes": 5,
+              "asm": "mov    r11d,DWORD PTR [rbx+r15*1+0x14]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 491,
+              "native_anchor": 4036,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/include/cpu/aot/code_cache.h",
+              "line": 71,
+              "column": 50
+            }
+          },
+          {
+            "offset": 3328,
+            "samples": 32,
+            "instruction": {
+              "bytes": 3,
+              "asm": "mov    rbx,r8"
+            },
+            "location": null
+          },
+          {
+            "offset": 3863,
+            "samples": 32,
+            "instruction": {
+              "bytes": 2,
+              "asm": "test   edx,edx"
+            },
+            "location": null
+          },
+          {
+            "offset": 4085,
+            "samples": 29,
+            "instruction": {
+              "bytes": 3,
+              "asm": "mov    edx,r11d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3460,
+            "samples": 28,
+            "instruction": {
+              "bytes": 4,
+              "asm": "call   QWORD PTR [r10+r12*1]"
+            },
+            "location": null
+          },
+          {
+            "offset": 3427,
+            "samples": 27,
+            "instruction": {
+              "bytes": 3,
+              "asm": "mov    rsi,r9"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 119,
+              "native_anchor": 3427,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/src/aot/aot_runtime.cpp",
+              "line": 229,
+              "column": 20
+            }
+          },
+          {
+            "offset": 3892,
+            "samples": 26,
+            "instruction": {
+              "bytes": 3,
+              "asm": "test   r11d,r11d"
+            },
+            "location": null
+          },
+          {
+            "offset": 4020,
+            "samples": 25,
+            "instruction": {
+              "bytes": 5,
+              "asm": "mov    r12d,DWORD PTR [rbx+r15*1+0x10]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 481,
+              "native_anchor": 4020,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/include/cpu/aot/code_cache.h",
+              "line": 71,
+              "column": 25
+            }
+          },
+          {
+            "offset": 3929,
+            "samples": 24,
+            "instruction": {
+              "bytes": 4,
+              "asm": "mov    r12,QWORD PTR [rbx+r11*1]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 402,
+              "native_anchor": 3929,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__atomic/support/c11.h",
+              "line": 81,
+              "column": 10
+            }
+          },
+          {
+            "offset": 3444,
+            "samples": 24,
+            "instruction": {
+              "bytes": 4,
+              "asm": "shr    r12d,0x5"
+            },
+            "location": null
+          },
+          {
+            "offset": 3631,
+            "samples": 23,
+            "instruction": {
+              "bytes": 3,
+              "asm": "or     r9d,r11d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3917,
+            "samples": 21,
+            "instruction": {
+              "bytes": 3,
+              "asm": "mov    r12d,r12d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3654,
+            "samples": 20,
+            "instruction": {
+              "bytes": 3,
+              "asm": "cmp    r11d,r12d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3971,
+            "samples": 20,
+            "instruction": {
+              "bytes": 6,
+              "asm": "and    edi,0xfff"
+            },
+            "location": null
+          },
+          {
+            "offset": 3497,
+            "samples": 20,
+            "instruction": {
+              "bytes": 6,
+              "asm": "je     0x3a4"
+            },
+            "location": null
+          },
+          {
+            "offset": 3464,
+            "samples": 18,
+            "instruction": {
+              "bytes": 2,
+              "asm": "test   eax,eax"
+            },
+            "location": null
+          },
+          {
+            "offset": 3550,
+            "samples": 18,
+            "instruction": {
+              "bytes": 7,
+              "asm": "lea    r9,[rbx+0x2469c0]"
+            },
+            "location": null
+          },
+          {
+            "offset": 3942,
+            "samples": 17,
+            "instruction": {
+              "bytes": 7,
+              "asm": "mov    r15d,DWORD PTR [rbx+0x2533b8]"
+            },
+            "location": null
+          },
+          {
+            "offset": 3415,
+            "samples": 17,
+            "instruction": {
+              "bytes": 5,
+              "asm": "mov    r9d,DWORD PTR [r11+r9*1+0x23]"
+            },
+            "location": null
+          },
+          {
+            "offset": 3962,
+            "samples": 16,
+            "instruction": {
+              "bytes": 3,
+              "asm": "mov    edi,r9d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3503,
+            "samples": 16,
+            "instruction": {
+              "bytes": 8,
+              "asm": "mov    r9d,DWORD PTR [rbx+r8*1+0x368]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 138,
+              "native_anchor": 3503,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/src/aot/aot_runtime.cpp",
+              "line": 231,
+              "column": 23
+            }
+          },
+          {
+            "offset": 3626,
+            "samples": 15,
+            "instruction": {
+              "bytes": 5,
+              "asm": "mov    DWORD PTR [rbx+r8*1+0x3c],r11d"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 193,
+              "native_anchor": 3626,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/src/aot/aot_runtime.cpp",
+              "line": 233,
+              "column": 22
+            }
+          },
+          {
+            "offset": 3621,
+            "samples": 15,
+            "instruction": {
+              "bytes": 5,
+              "asm": "and    r11d,DWORD PTR [rbx+r8*1+0x3c]"
+            },
+            "location": null
+          },
+          {
+            "offset": 3573,
+            "samples": 14,
+            "instruction": {
+              "bytes": 7,
+              "asm": "mov    r9d,DWORD PTR [rbx+0x2469c0]"
+            },
+            "location": null
+          },
+          {
+            "offset": 3909,
+            "samples": 14,
+            "instruction": {
+              "bytes": 4,
+              "asm": "lea    r12,[r11+rbx*1]"
+            },
+            "location": null
+          },
+          {
+            "offset": 3920,
+            "samples": 13,
+            "instruction": {
+              "bytes": 3,
+              "asm": "test   r12d,r12d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3602,
+            "samples": 13,
+            "instruction": {
+              "bytes": 6,
+              "asm": "mov    r11d,0xfffffffc"
+            },
+            "location": null
+          },
+          {
+            "offset": 3967,
+            "samples": 12,
+            "instruction": {
+              "bytes": 2,
+              "asm": "xor    edi,esi"
+            },
+            "location": null
+          },
+          {
+            "offset": 3520,
+            "samples": 11,
+            "instruction": {
+              "bytes": 6,
+              "asm": "jne    0xdde"
+            },
+            "location": null
+          },
+          {
+            "offset": 3594,
+            "samples": 11,
+            "instruction": {
+              "bytes": 8,
+              "asm": "mov    r9d,DWORD PTR [rbx+r8*1+0x33c]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 183,
+              "native_anchor": 3594,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/src/aot/aot_runtime.cpp",
+              "line": 233,
+              "column": 30
+            }
+          },
+          {
+            "offset": 3839,
+            "samples": 10,
+            "instruction": {
+              "bytes": 3,
+              "asm": "test   r9d,r9d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3634,
+            "samples": 10,
+            "instruction": {
+              "bytes": 7,
+              "asm": "cmp    BYTE PTR [rbx+0x24f3a9],0x1"
+            },
+            "location": null
+          },
+          {
+            "offset": 3977,
+            "samples": 10,
+            "instruction": {
+              "bytes": 3,
+              "asm": "imul   esi,edi,0x18"
+            },
+            "location": null
+          },
+          {
+            "offset": 3511,
+            "samples": 10,
+            "instruction": {
+              "bytes": 9,
+              "asm": "cmp    DWORD PTR [rbx+r8*1+0x368],0x0"
+            },
+            "location": null
+          },
+          {
+            "offset": 4009,
+            "samples": 9,
+            "instruction": {
+              "bytes": 5,
+              "asm": "cmp    QWORD PTR [rbx+r15*1+0x8],r12"
+            },
+            "location": null
+          },
+          {
+            "offset": 3647,
+            "samples": 9,
+            "instruction": {
+              "bytes": 7,
+              "asm": "mov    r12d,DWORD PTR [rbx+0x253448]"
+            },
+            "location": null
+          },
+          {
+            "offset": 3476,
+            "samples": 9,
+            "instruction": {
+              "bytes": 4,
+              "asm": "mov    r8,QWORD PTR [rbp-0x20]"
+            },
+            "location": null
+          },
+          {
+            "offset": 3480,
+            "samples": 9,
+            "instruction": {
+              "bytes": 8,
+              "asm": "mov    r9,QWORD PTR [rbx+r8*1+0x348]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 129,
+              "native_anchor": 3480,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/src/aot/aot_runtime.cpp",
+              "line": 230,
+              "column": 32
+            }
+          },
+          {
+            "offset": 3617,
+            "samples": 8,
+            "instruction": {
+              "bytes": 4,
+              "asm": "cmovne r11d,r12d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3876,
+            "samples": 8,
+            "instruction": {
+              "bytes": 8,
+              "asm": "mov    edx,DWORD PTR [rbx+r8*1+0x7d083a4]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 384,
+              "native_anchor": 3876,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/src/dyncom/armstate.cpp",
+              "line": 391,
+              "column": 50
+            }
+          },
+          {
+            "offset": 3933,
+            "samples": 8,
+            "instruction": {
+              "bytes": 3,
+              "asm": "test   r12,r12"
+            },
+            "location": null
+          },
+          {
+            "offset": 3557,
+            "samples": 8,
+            "instruction": {
+              "bytes": 4,
+              "asm": "and    r9d,0x3"
+            },
+            "location": null
+          },
+          {
+            "offset": 3980,
+            "samples": 8,
+            "instruction": {
+              "bytes": 3,
+              "asm": "add    r15d,esi"
+            },
+            "location": null
+          },
+          {
+            "offset": 3956,
+            "samples": 7,
+            "instruction": {
+              "bytes": 3,
+              "asm": "mov    esi,r9d"
+            },
+            "location": null
+          },
+          {
+            "offset": 4025,
+            "samples": 7,
+            "instruction": {
+              "bytes": 5,
+              "asm": "cmp    DWORD PTR [rbx+r15*1+0x10],r11d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3472,
+            "samples": 6,
+            "instruction": {
+              "bytes": 4,
+              "asm": "mov    rbx,QWORD PTR [rbp-0x18]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 129,
+              "native_anchor": 3472,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/src/aot/aot_runtime.cpp",
+              "line": 230,
+              "column": 32
+            }
+          },
+          {
+            "offset": 3608,
+            "samples": 6,
+            "instruction": {
+              "bytes": 6,
+              "asm": "mov    r12d,0xfffffffe"
+            },
+            "location": null
+          },
+          {
+            "offset": 3949,
+            "samples": 5,
+            "instruction": {
+              "bytes": 7,
+              "asm": "mov    ecx,DWORD PTR [rbx+rdx*1+0x120]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 425,
+              "native_anchor": 3949,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/include/cpu/aot/code_cache.h",
+              "line": 70,
+              "column": 28
+            }
+          },
+          {
+            "offset": 3965,
+            "samples": 5,
+            "instruction": {
+              "bytes": 2,
+              "asm": "shr    edi,1"
+            },
+            "location": null
+          },
+          {
+            "offset": 3641,
+            "samples": 5,
+            "instruction": {
+              "bytes": 6,
+              "asm": "jne    0xe5f"
+            },
+            "location": null
+          },
+          {
+            "offset": 3420,
+            "samples": 5,
+            "instruction": {
+              "bytes": 7,
+              "asm": "or     r9,QWORD PTR [r13+0x288]"
+            },
+            "location": null
+          },
+          {
+            "offset": 3448,
+            "samples": 5,
+            "instruction": {
+              "bytes": 9,
+              "asm": "cmp    QWORD PTR [r10+r12*1+0x8],0x8000001"
+            },
+            "location": null
+          },
+          {
+            "offset": 3561,
+            "samples": 4,
+            "instruction": {
+              "bytes": 3,
+              "asm": "mov    r9d,r9d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3580,
+            "samples": 4,
+            "instruction": {
+              "bytes": 3,
+              "asm": "test   r9d,r9d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3825,
+            "samples": 4,
+            "instruction": {
+              "bytes": 7,
+              "asm": "and    r12d,0x3ffffc"
+            },
+            "location": null
+          },
+          {
+            "offset": 3433,
+            "samples": 4,
+            "instruction": {
+              "bytes": 7,
+              "asm": "mov    r10,QWORD PTR [rip+0xfffffffffffff3f7]        # 0x167"
+            },
+            "location": null
+          },
+          {
+            "offset": 3821,
+            "samples": 4,
+            "instruction": {
+              "bytes": 4,
+              "asm": "shr    r12d,0xa"
+            },
+            "location": null
+          },
+          {
+            "offset": 3564,
+            "samples": 3,
+            "instruction": {
+              "bytes": 3,
+              "asm": "test   r9d,r9d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3884,
+            "samples": 3,
+            "instruction": {
+              "bytes": 8,
+              "asm": "mov    r11d,DWORD PTR [rbx+rdx*1+0x11c]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 392,
+              "native_anchor": 3884,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/include/cpu/aot/code_cache.h",
+              "line": 66,
+              "column": 38
+            }
+          },
+          {
+            "offset": 3340,
+            "samples": 3,
+            "instruction": {
+              "bytes": 6,
+              "asm": "jne    0x10b7"
+            },
+            "location": null
+          },
+          {
+            "offset": 3811,
+            "samples": 3,
+            "instruction": {
+              "bytes": 7,
+              "asm": "mov    r9d,DWORD PTR [rbx+0x24ea98]"
+            },
+            "location": null
+          },
+          {
+            "offset": 3614,
+            "samples": 3,
+            "instruction": {
+              "bytes": 3,
+              "asm": "test   r9d,r9d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3991,
+            "samples": 2,
+            "instruction": {
+              "bytes": 3,
+              "asm": "or     rcx,r9"
+            },
+            "location": null
+          },
+          {
+            "offset": 3994,
+            "samples": 2,
+            "instruction": {
+              "bytes": 4,
+              "asm": "cmp    QWORD PTR [rbx+r15*1],rcx"
+            },
+            "location": null
+          },
+          {
+            "offset": 3365,
+            "samples": 2,
+            "instruction": {
+              "bytes": 4,
+              "asm": "mov    r11d,DWORD PTR [rsi+0x7]"
+            },
+            "location": null
+          },
+          {
+            "offset": 3679,
+            "samples": 2,
+            "instruction": {
+              "bytes": 3,
+              "asm": "mov    r11d,r9d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3848,
+            "samples": 2,
+            "instruction": {
+              "bytes": 7,
+              "asm": "and    r11d,0xfff"
+            },
+            "location": null
+          },
+          {
+            "offset": 3589,
+            "samples": 2,
+            "instruction": {
+              "bytes": 5,
+              "asm": "mov    r9d,DWORD PTR [rbx+r8*1+0x3c]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 174,
+              "native_anchor": 3589,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/src/aot/aot_runtime.cpp",
+              "line": 233,
+              "column": 22
+            }
+          },
+          {
+            "offset": 3386,
+            "samples": 2,
+            "instruction": {
+              "bytes": 4,
+              "asm": "imul   r9,r9,0xc"
+            },
+            "location": null
+          },
+          {
+            "offset": 3362,
+            "samples": 2,
+            "instruction": {
+              "bytes": 3,
+              "asm": "mov    r9d,edx"
+            },
+            "location": null
+          },
+          {
+            "offset": 3390,
+            "samples": 2,
+            "instruction": {
+              "bytes": 5,
+              "asm": "mov    r12d,DWORD PTR [r11+r9*1+0x1f]"
+            },
+            "location": null
+          },
+          {
+            "offset": 3835,
+            "samples": 2,
+            "instruction": {
+              "bytes": 4,
+              "asm": "mov    r9d,DWORD PTR [rbx+r9*1]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 293,
+              "native_anchor": 3835,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__memory/unique_ptr.h",
+              "line": 287,
+              "column": 12
+            }
+          },
+          {
+            "offset": 3666,
+            "samples": 2,
+            "instruction": {
+              "bytes": 7,
+              "asm": "cmp    DWORD PTR [rbx+0x25344c],r11d"
+            },
+            "location": null
+          },
+          {
+            "offset": 4050,
+            "samples": 1,
+            "instruction": {
+              "bytes": 4,
+              "asm": "mov    QWORD PTR [rbp-0x28],rax"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 503,
+              "native_anchor": 4050,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/include/cpu/aot/code_cache.h",
+              "line": 72,
+              "column": 20
+            }
+          },
+          {
+            "offset": 15,
+            "samples": 1,
+            "instruction": {
+              "bytes": 4,
+              "asm": "mov    QWORD PTR [rbp-0x28],rdx"
+            },
+            "location": null
+          },
+          {
+            "offset": 3832,
+            "samples": 1,
+            "instruction": {
+              "bytes": 3,
+              "asm": "add    r9d,r12d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3440,
+            "samples": 1,
+            "instruction": {
+              "bytes": 4,
+              "asm": "shl    r12d,0x9"
+            },
+            "location": null
+          },
+          {
+            "offset": 3401,
+            "samples": 1,
+            "instruction": {
+              "bytes": 3,
+              "asm": "cmp    r15d,r12d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3983,
+            "samples": 1,
+            "instruction": {
+              "bytes": 4,
+              "asm": "mov    rsi,QWORD PTR [rbx+r15*1]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 453,
+              "native_anchor": 3983,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/include/cpu/aot/code_cache.h",
+              "line": 70,
+              "column": 36
+            }
+          },
+          {
+            "offset": 3818,
+            "samples": 1,
+            "instruction": {
+              "bytes": 3,
+              "asm": "mov    r12d,r11d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3682,
+            "samples": 1,
+            "instruction": {
+              "bytes": 7,
+              "asm": "sub    r11d,DWORD PTR [rbx+0x24eaa4]"
+            },
+            "location": null
+          },
+          {
+            "offset": 4093,
+            "samples": 1,
+            "instruction": {
+              "bytes": 2,
+              "asm": "xor    eax,eax"
+            },
+            "location": null
+          },
+          {
+            "offset": 3331,
+            "samples": 1,
+            "instruction": {
+              "bytes": 4,
+              "asm": "mov    rsi,QWORD PTR [rbp-0x10]"
+            },
+            "location": null
+          },
+          {
+            "offset": 4088,
+            "samples": 1,
+            "instruction": {
+              "bytes": 5,
+              "asm": "jmp    0xd00"
+            },
+            "location": null
+          },
+          {
+            "offset": 4054,
+            "samples": 1,
+            "instruction": {
+              "bytes": 4,
+              "asm": "mov    rsi,QWORD PTR [rbp-0x10]"
+            },
+            "location": null
+          }
+        ]
+      },
+      "runner_percent": 29.149571055576278,
+      "ranges": [
+        {
+          "name": "V8 loop poll and reloads",
+          "ranges": [
+            [
+              "0xd00",
+              "0xd16"
+            ]
+          ],
+          "samples": 71,
+          "worker_percent": 1.3241327862737784
+        },
+        {
+          "name": "Exit flag clear",
+          "ranges": [
+            [
+              "0xd16",
+              "0xd22"
+            ]
+          ],
+          "samples": 0,
+          "worker_percent": 0.0
+        },
+        {
+          "name": "V8 indirect call",
+          "ranges": [
+            [
+              "0xd22",
+              "0xd88"
+            ]
+          ],
+          "samples": 608,
+          "worker_percent": 11.3390525923163
+        },
+        {
+          "name": "Progress, stop and return reloads",
+          "ranges": [
+            [
+              "0xd88",
+              "0xdaf"
+            ]
+          ],
+          "samples": 104,
+          "worker_percent": 1.939574785527788
+        },
+        {
+          "name": "IRQ",
+          "ranges": [
+            [
+              "0xdaf",
+              "0xdde"
+            ]
+          ],
+          "samples": 37,
+          "worker_percent": 0.6900410294666169
+        },
+        {
+          "name": "Watchdog",
+          "ranges": [
+            [
+              "0xdde",
+              "0xe05"
+            ]
+          ],
+          "samples": 51,
+          "worker_percent": 0.9511376352107423
+        },
+        {
+          "name": "PC alignment and mode tag",
+          "ranges": [
+            [
+              "0xe05",
+              "0xe32"
+            ]
+          ],
+          "samples": 96,
+          "worker_percent": 1.7903767251025735
+        },
+        {
+          "name": "ROM/RAM classifier",
+          "ranges": [
+            [
+              "0xe32",
+              "0xe5f"
+            ]
+          ],
+          "samples": 46,
+          "worker_percent": 0.8578888474449832
+        },
+        {
+          "name": "ROM lookup",
+          "ranges": [
+            [
+              "0xe5f",
+              "0xf24"
+            ]
+          ],
+          "samples": 62,
+          "worker_percent": 1.1562849682954122
+        },
+        {
+          "name": "RAM lookup hit",
+          "ranges": [
+            [
+              "0xf24",
+              "0xfd2"
+            ]
+          ],
+          "samples": 454,
+          "worker_percent": 8.466989929130921
+        },
+        {
+          "name": "RAM miss call site",
+          "ranges": [
+            [
+              "0xfd2",
+              "0xff5"
+            ]
+          ],
+          "samples": 2,
+          "worker_percent": 0.03729951510630362
+        },
+        {
+          "name": "RAM backedge",
+          "ranges": [
+            [
+              "0xff5",
+              "0xffd"
+            ]
+          ],
+          "samples": 30,
+          "worker_percent": 0.5594927265945543
+        }
+      ],
+      "ram_lookup_out_of_line": {
+        "samples": 83,
+        "worker_percent": 1.5479298769116001
+      },
+      "metadata": {
+        "selected": 160,
+        "found": 160,
+        "errors": []
+      },
+      "sampling": {
+        "event": "task-clock:u",
+        "period_us": 1000,
+        "losses": [],
+        "errors": [],
+        "new_tids": [
+          2369352
+        ],
+        "missing_tids": [],
+        "start_ns": 881534592699671,
+        "end_ns": 881549881230160
+      },
+      "measurement": {
+        "hostSeconds": 15.106005518999998,
+        "guestSeconds": 15.106046,
+        "guestSpeed": 1.0000026797951285,
+        "presentations": 241,
+        "presentationsPerSecond": 15.95391976369104,
+        "instructions": 0,
+        "installedCompiledFunctions": 64,
+        "maxQueryMs": 6.005606999999145,
+        "maxObservedFrameGapMs": 100.56499993801117,
+        "compilationUs": {
+          "aot_translation_us": 11001,
+          "aot_emission_us": 584,
+          "aot_installation_us": 1453
+        }
+      },
+      "screenshots_reviewed": [
+        "gameplay-start.png",
+        "gameplay-end.png"
+      ],
+      "artifacts": {
+        "native-attribution.json": "828ec07c750a88b5e8391c4e4c176ac4b3c95664a79a78da8f85be9a52c5a7f0",
+        "native-metadata.json": "70a959836119543989fd6839457fc6d6d6647826c44cdbb10f71d1b9b2a3bcb6",
+        "native-samples.json": "85ed6a38dbd11e1d6885cd0f842c62424c1f510a14597eb941b5b77078eae048",
+        "runtime.wasm.map": "03d379538b773deecb00257a1d9f4772ec619578e55297193fd74459b58b9111",
+        "runtime-source-map.json": "d92b08d7a59f566bc15ee2be22d5d3ae0b42034b5816212a0d357f19a7fa9ccf"
+      }
+    },
+    {
+      "game": "sky-force",
+      "path": "/home/claude/.scratch/eka-handoff-native-20261010/sky-combat-native",
+      "build_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+      "version": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/153.0.8010.52",
+        "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "jsVersion": "15.3.76.13"
+      },
+      "guest_thread": [
+        2425224,
+        2425779
+      ],
+      "totals": {
+        "samples": 3394,
+        "no_instruction_position": 2713,
+        "mapped_cpp": 123,
+        "outside_jit": 147,
+        "mapped_arm": 287,
+        "jit_without_snapshot": 124
+      },
+      "runner": {
+        "name": "JS:eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))-806-turbofan",
+        "pid": 2425224,
+        "code_id": 335156,
+        "address": 43353832369344,
+        "timestamp": 882101110970000,
+        "native_sha256": "70c28b97aec2e3f456c126d8af9a9d5f0fda8447f9a1147d2680106d0fa8ccfb",
+        "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+        "samples": 506,
+        "native_bytes": 4480,
+        "positions": 152,
+        "traps": 104,
+        "assembly": "native-2425224-335156.asm",
+        "hot_instructions": [
+          {
+            "offset": 3457,
+            "samples": 93,
+            "instruction": {
+              "bytes": 2,
+              "asm": "je     0xd84"
+            },
+            "location": null
+          },
+          {
+            "offset": 3395,
+            "samples": 70,
+            "instruction": {
+              "bytes": 6,
+              "asm": "mov    r15d,0x21"
+            },
+            "location": null
+          },
+          {
+            "offset": 3863,
+            "samples": 53,
+            "instruction": {
+              "bytes": 2,
+              "asm": "test   edx,edx"
+            },
+            "location": null
+          },
+          {
+            "offset": 3987,
+            "samples": 37,
+            "instruction": {
+              "bytes": 4,
+              "asm": "shl    rcx,0x20"
+            },
+            "location": null
+          },
+          {
+            "offset": 3839,
+            "samples": 17,
+            "instruction": {
+              "bytes": 3,
+              "asm": "test   r9d,r9d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3415,
+            "samples": 12,
+            "instruction": {
+              "bytes": 5,
+              "asm": "mov    r9d,DWORD PTR [r11+r9*1+0x23]"
+            },
+            "location": null
+          },
+          {
+            "offset": 3631,
+            "samples": 11,
+            "instruction": {
+              "bytes": 3,
+              "asm": "or     r9d,r11d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3488,
+            "samples": 11,
+            "instruction": {
+              "bytes": 9,
+              "asm": "cmp    QWORD PTR [rbx+r8*1+0x348],0x0"
+            },
+            "location": null
+          },
+          {
+            "offset": 3573,
+            "samples": 9,
+            "instruction": {
+              "bytes": 7,
+              "asm": "mov    r9d,DWORD PTR [rbx+0x2469c0]"
+            },
+            "location": null
+          },
+          {
+            "offset": 3410,
+            "samples": 9,
+            "instruction": {
+              "bytes": 5,
+              "asm": "mov    r12d,DWORD PTR [r11+r9*1+0x1b]"
+            },
+            "location": null
+          },
+          {
+            "offset": 3369,
+            "samples": 8,
+            "instruction": {
+              "bytes": 7,
+              "asm": "or     r11,QWORD PTR [r13+0x288]"
+            },
+            "location": null
+          },
+          {
+            "offset": 4004,
+            "samples": 8,
+            "instruction": {
+              "bytes": 5,
+              "asm": "mov    rcx,QWORD PTR [rbx+r15*1+0x8]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 471,
+              "native_anchor": 4004,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/include/cpu/aot/code_cache.h",
+              "line": 70,
+              "column": 53
+            }
+          },
+          {
+            "offset": 3460,
+            "samples": 7,
+            "instruction": {
+              "bytes": 4,
+              "asm": "call   QWORD PTR [r10+r12*1]"
+            },
+            "location": null
+          },
+          {
+            "offset": 3328,
+            "samples": 6,
+            "instruction": {
+              "bytes": 3,
+              "asm": "mov    rbx,r8"
+            },
+            "location": null
+          },
+          {
+            "offset": 3892,
+            "samples": 6,
+            "instruction": {
+              "bytes": 3,
+              "asm": "test   r11d,r11d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3444,
+            "samples": 6,
+            "instruction": {
+              "bytes": 4,
+              "asm": "shr    r12d,0x5"
+            },
+            "location": null
+          },
+          {
+            "offset": 3346,
+            "samples": 5,
+            "instruction": {
+              "bytes": 4,
+              "asm": "mov    r8,QWORD PTR [rbp-0x18]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 111,
+              "native_anchor": 3346,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/src/aot/aot_runtime.cpp",
+              "line": 228,
+              "column": 23
+            }
+          },
+          {
+            "offset": 3511,
+            "samples": 5,
+            "instruction": {
+              "bytes": 9,
+              "asm": "cmp    DWORD PTR [rbx+r8*1+0x368],0x0"
+            },
+            "location": null
+          },
+          {
+            "offset": 3962,
+            "samples": 5,
+            "instruction": {
+              "bytes": 3,
+              "asm": "mov    edi,r9d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3580,
+            "samples": 5,
+            "instruction": {
+              "bytes": 3,
+              "asm": "test   r9d,r9d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3654,
+            "samples": 5,
+            "instruction": {
+              "bytes": 3,
+              "asm": "cmp    r11d,r12d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3608,
+            "samples": 5,
+            "instruction": {
+              "bytes": 6,
+              "asm": "mov    r12d,0xfffffffe"
+            },
+            "location": null
+          },
+          {
+            "offset": 3929,
+            "samples": 4,
+            "instruction": {
+              "bytes": 4,
+              "asm": "mov    r12,QWORD PTR [rbx+r11*1]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 402,
+              "native_anchor": 3929,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__atomic/support/c11.h",
+              "line": 81,
+              "column": 10
+            }
+          },
+          {
+            "offset": 3848,
+            "samples": 4,
+            "instruction": {
+              "bytes": 7,
+              "asm": "and    r11d,0xfff"
+            },
+            "location": null
+          },
+          {
+            "offset": 3427,
+            "samples": 4,
+            "instruction": {
+              "bytes": 3,
+              "asm": "mov    rsi,r9"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 119,
+              "native_anchor": 3427,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/src/aot/aot_runtime.cpp",
+              "line": 229,
+              "column": 20
+            }
+          },
+          {
+            "offset": 3909,
+            "samples": 4,
+            "instruction": {
+              "bytes": 4,
+              "asm": "lea    r12,[r11+rbx*1]"
+            },
+            "location": null
+          },
+          {
+            "offset": 3557,
+            "samples": 4,
+            "instruction": {
+              "bytes": 4,
+              "asm": "and    r9d,0x3"
+            },
+            "location": null
+          },
+          {
+            "offset": 3920,
+            "samples": 3,
+            "instruction": {
+              "bytes": 3,
+              "asm": "test   r12d,r12d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3942,
+            "samples": 3,
+            "instruction": {
+              "bytes": 7,
+              "asm": "mov    r15d,DWORD PTR [rbx+0x2533b8]"
+            },
+            "location": null
+          },
+          {
+            "offset": 4025,
+            "samples": 3,
+            "instruction": {
+              "bytes": 5,
+              "asm": "cmp    DWORD PTR [rbx+r15*1+0x10],r11d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3480,
+            "samples": 3,
+            "instruction": {
+              "bytes": 8,
+              "asm": "mov    r9,QWORD PTR [rbx+r8*1+0x348]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 129,
+              "native_anchor": 3480,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/src/aot/aot_runtime.cpp",
+              "line": 230,
+              "column": 32
+            }
+          },
+          {
+            "offset": 3386,
+            "samples": 3,
+            "instruction": {
+              "bytes": 4,
+              "asm": "imul   r9,r9,0xc"
+            },
+            "location": null
+          },
+          {
+            "offset": 3550,
+            "samples": 3,
+            "instruction": {
+              "bytes": 7,
+              "asm": "lea    r9,[rbx+0x2469c0]"
+            },
+            "location": null
+          },
+          {
+            "offset": 3666,
+            "samples": 3,
+            "instruction": {
+              "bytes": 7,
+              "asm": "cmp    DWORD PTR [rbx+0x25344c],r11d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3617,
+            "samples": 3,
+            "instruction": {
+              "bytes": 4,
+              "asm": "cmovne r11d,r12d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3821,
+            "samples": 3,
+            "instruction": {
+              "bytes": 4,
+              "asm": "shr    r12d,0xa"
+            },
+            "location": null
+          },
+          {
+            "offset": 3561,
+            "samples": 3,
+            "instruction": {
+              "bytes": 3,
+              "asm": "mov    r9d,r9d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3331,
+            "samples": 2,
+            "instruction": {
+              "bytes": 4,
+              "asm": "mov    rsi,QWORD PTR [rbp-0x10]"
+            },
+            "location": null
+          },
+          {
+            "offset": 0,
+            "samples": 2,
+            "instruction": {
+              "bytes": 1,
+              "asm": "push   rbp"
+            },
+            "location": null
+          },
+          {
+            "offset": 3980,
+            "samples": 2,
+            "instruction": {
+              "bytes": 3,
+              "asm": "add    r15d,esi"
+            },
+            "location": null
+          },
+          {
+            "offset": 3520,
+            "samples": 2,
+            "instruction": {
+              "bytes": 6,
+              "asm": "jne    0xdde"
+            },
+            "location": null
+          },
+          {
+            "offset": 3464,
+            "samples": 2,
+            "instruction": {
+              "bytes": 2,
+              "asm": "test   eax,eax"
+            },
+            "location": null
+          },
+          {
+            "offset": 3602,
+            "samples": 2,
+            "instruction": {
+              "bytes": 6,
+              "asm": "mov    r11d,0xfffffffc"
+            },
+            "location": null
+          },
+          {
+            "offset": 3376,
+            "samples": 2,
+            "instruction": {
+              "bytes": 4,
+              "asm": "cmp    DWORD PTR [r11+0x7],edx"
+            },
+            "location": null
+          },
+          {
+            "offset": 3476,
+            "samples": 2,
+            "instruction": {
+              "bytes": 4,
+              "asm": "mov    r8,QWORD PTR [rbp-0x20]"
+            },
+            "location": null
+          },
+          {
+            "offset": 3641,
+            "samples": 2,
+            "instruction": {
+              "bytes": 6,
+              "asm": "jne    0xe5f"
+            },
+            "location": null
+          },
+          {
+            "offset": 3967,
+            "samples": 2,
+            "instruction": {
+              "bytes": 2,
+              "asm": "xor    edi,esi"
+            },
+            "location": null
+          },
+          {
+            "offset": 3917,
+            "samples": 2,
+            "instruction": {
+              "bytes": 3,
+              "asm": "mov    r12d,r12d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3971,
+            "samples": 2,
+            "instruction": {
+              "bytes": 6,
+              "asm": "and    edi,0xfff"
+            },
+            "location": null
+          },
+          {
+            "offset": 4036,
+            "samples": 2,
+            "instruction": {
+              "bytes": 5,
+              "asm": "mov    r11d,DWORD PTR [rbx+r15*1+0x14]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 491,
+              "native_anchor": 4036,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/include/cpu/aot/code_cache.h",
+              "line": 71,
+              "column": 50
+            }
+          },
+          {
+            "offset": 3503,
+            "samples": 2,
+            "instruction": {
+              "bytes": 8,
+              "asm": "mov    r9d,DWORD PTR [rbx+r8*1+0x368]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 138,
+              "native_anchor": 3503,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/src/aot/aot_runtime.cpp",
+              "line": 231,
+              "column": 23
+            }
+          },
+          {
+            "offset": 3663,
+            "samples": 2,
+            "instruction": {
+              "bytes": 3,
+              "asm": "sub    r11d,r12d"
+            },
+            "location": null
+          },
+          {
+            "offset": 4085,
+            "samples": 2,
+            "instruction": {
+              "bytes": 3,
+              "asm": "mov    edx,r11d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3420,
+            "samples": 2,
+            "instruction": {
+              "bytes": 7,
+              "asm": "or     r9,QWORD PTR [r13+0x288]"
+            },
+            "location": null
+          },
+          {
+            "offset": 57,
+            "samples": 2,
+            "instruction": {
+              "bytes": 4,
+              "asm": "sete   r9b"
+            },
+            "location": null
+          },
+          {
+            "offset": 3621,
+            "samples": 2,
+            "instruction": {
+              "bytes": 5,
+              "asm": "and    r11d,DWORD PTR [rbx+r8*1+0x3c]"
+            },
+            "location": null
+          },
+          {
+            "offset": 3835,
+            "samples": 1,
+            "instruction": {
+              "bytes": 4,
+              "asm": "mov    r9d,DWORD PTR [rbx+r9*1]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 293,
+              "native_anchor": 3835,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__memory/unique_ptr.h",
+              "line": 287,
+              "column": 12
+            }
+          },
+          {
+            "offset": 3682,
+            "samples": 1,
+            "instruction": {
+              "bytes": 7,
+              "asm": "sub    r11d,DWORD PTR [rbx+0x24eaa4]"
+            },
+            "location": null
+          },
+          {
+            "offset": 3832,
+            "samples": 1,
+            "instruction": {
+              "bytes": 3,
+              "asm": "add    r9d,r12d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3679,
+            "samples": 1,
+            "instruction": {
+              "bytes": 3,
+              "asm": "mov    r11d,r9d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3472,
+            "samples": 1,
+            "instruction": {
+              "bytes": 4,
+              "asm": "mov    rbx,QWORD PTR [rbp-0x18]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 129,
+              "native_anchor": 3472,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/src/aot/aot_runtime.cpp",
+              "line": 230,
+              "column": 32
+            }
+          },
+          {
+            "offset": 3626,
+            "samples": 1,
+            "instruction": {
+              "bytes": 5,
+              "asm": "mov    DWORD PTR [rbx+r8*1+0x3c],r11d"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 193,
+              "native_anchor": 3626,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/src/aot/aot_runtime.cpp",
+              "line": 233,
+              "column": 22
+            }
+          },
+          {
+            "offset": 3365,
+            "samples": 1,
+            "instruction": {
+              "bytes": 4,
+              "asm": "mov    r11d,DWORD PTR [rsi+0x7]"
+            },
+            "location": null
+          },
+          {
+            "offset": 3594,
+            "samples": 1,
+            "instruction": {
+              "bytes": 8,
+              "asm": "mov    r9d,DWORD PTR [rbx+r8*1+0x33c]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 183,
+              "native_anchor": 3594,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/src/aot/aot_runtime.cpp",
+              "line": 233,
+              "column": 30
+            }
+          },
+          {
+            "offset": 2701,
+            "samples": 1,
+            "instruction": {
+              "bytes": 8,
+              "asm": "mov    r9d,DWORD PTR [rbx+r11*1+0x110]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 79,
+              "native_anchor": 2701,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/src/aot/aot_runtime.cpp",
+              "line": 219,
+              "column": 79
+            }
+          },
+          {
+            "offset": 3362,
+            "samples": 1,
+            "instruction": {
+              "bytes": 3,
+              "asm": "mov    r9d,edx"
+            },
+            "location": null
+          },
+          {
+            "offset": 4009,
+            "samples": 1,
+            "instruction": {
+              "bytes": 5,
+              "asm": "cmp    QWORD PTR [rbx+r15*1+0x8],r12"
+            },
+            "location": null
+          },
+          {
+            "offset": 3825,
+            "samples": 1,
+            "instruction": {
+              "bytes": 7,
+              "asm": "and    r12d,0x3ffffc"
+            },
+            "location": null
+          },
+          {
+            "offset": 3983,
+            "samples": 1,
+            "instruction": {
+              "bytes": 4,
+              "asm": "mov    rsi,QWORD PTR [rbx+r15*1]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 453,
+              "native_anchor": 3983,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/include/cpu/aot/code_cache.h",
+              "line": 70,
+              "column": 36
+            }
+          },
+          {
+            "offset": 3647,
+            "samples": 1,
+            "instruction": {
+              "bytes": 7,
+              "asm": "mov    r12d,DWORD PTR [rbx+0x253448]"
+            },
+            "location": null
+          },
+          {
+            "offset": 6,
+            "samples": 1,
+            "instruction": {
+              "bytes": 1,
+              "asm": "push   rsi"
+            },
+            "location": null
+          },
+          {
+            "offset": 2692,
+            "samples": 1,
+            "instruction": {
+              "bytes": 3,
+              "asm": "test   r12d,r12d"
+            },
+            "location": null
+          },
+          {
+            "offset": 3933,
+            "samples": 1,
+            "instruction": {
+              "bytes": 3,
+              "asm": "test   r12,r12"
+            },
+            "location": null
+          },
+          {
+            "offset": 3589,
+            "samples": 1,
+            "instruction": {
+              "bytes": 5,
+              "asm": "mov    r9d,DWORD PTR [rbx+r8*1+0x3c]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 174,
+              "native_anchor": 3589,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/src/aot/aot_runtime.cpp",
+              "line": 233,
+              "column": 22
+            }
+          },
+          {
+            "offset": 3811,
+            "samples": 1,
+            "instruction": {
+              "bytes": 7,
+              "asm": "mov    r9d,DWORD PTR [rbx+0x24ea98]"
+            },
+            "location": null
+          },
+          {
+            "offset": 4054,
+            "samples": 1,
+            "instruction": {
+              "bytes": 4,
+              "asm": "mov    rsi,QWORD PTR [rbp-0x10]"
+            },
+            "location": null
+          },
+          {
+            "offset": 15,
+            "samples": 1,
+            "instruction": {
+              "bytes": 4,
+              "asm": "mov    QWORD PTR [rbp-0x28],rdx"
+            },
+            "location": null
+          },
+          {
+            "offset": 3350,
+            "samples": 1,
+            "instruction": {
+              "bytes": 12,
+              "asm": "mov    DWORD PTR [r8+rbx*1+0x35c],0x0"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 111,
+              "native_anchor": 3350,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/src/aot/aot_runtime.cpp",
+              "line": 228,
+              "column": 23
+            }
+          },
+          {
+            "offset": 4093,
+            "samples": 1,
+            "instruction": {
+              "bytes": 2,
+              "asm": "xor    eax,eax"
+            },
+            "location": null
+          },
+          {
+            "offset": 3859,
+            "samples": 1,
+            "instruction": {
+              "bytes": 4,
+              "asm": "mov    edx,DWORD PTR [rbx+r9*1]"
+            },
+            "location": {
+              "module_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+              "wasm_function_index": 806,
+              "wasm_offset": 313,
+              "native_anchor": 3859,
+              "v8_inlining_id": -1,
+              "domain": "cpp",
+              "file": "/home/claude/code/EKA2L1/src/emu/cpu/include/cpu/aot/aot_registry.h",
+              "line": 91,
+              "column": 31
+            }
+          },
+          {
+            "offset": 3497,
+            "samples": 1,
+            "instruction": {
+              "bytes": 6,
+              "asm": "je     0x3a4"
+            },
+            "location": null
+          }
+        ]
+      },
+      "runner_percent": 14.908662345315262,
+      "ranges": [
+        {
+          "name": "V8 loop poll and reloads",
+          "ranges": [
+            [
+              "0xd00",
+              "0xd16"
+            ]
+          ],
+          "samples": 13,
+          "worker_percent": 0.3830288744843842
+        },
+        {
+          "name": "Exit flag clear",
+          "ranges": [
+            [
+              "0xd16",
+              "0xd22"
+            ]
+          ],
+          "samples": 1,
+          "worker_percent": 0.02946375957572186
+        },
+        {
+          "name": "V8 indirect call",
+          "ranges": [
+            [
+              "0xd22",
+              "0xd88"
+            ]
+          ],
+          "samples": 218,
+          "worker_percent": 6.423099587507367
+        },
+        {
+          "name": "Progress, stop and return reloads",
+          "ranges": [
+            [
+              "0xd88",
+              "0xdaf"
+            ]
+          ],
+          "samples": 20,
+          "worker_percent": 0.5892751915144373
+        },
+        {
+          "name": "IRQ",
+          "ranges": [
+            [
+              "0xdaf",
+              "0xdde"
+            ]
+          ],
+          "samples": 9,
+          "worker_percent": 0.26517383618149676
+        },
+        {
+          "name": "Watchdog",
+          "ranges": [
+            [
+              "0xdde",
+              "0xe05"
+            ]
+          ],
+          "samples": 24,
+          "worker_percent": 0.7071302298173248
+        },
+        {
+          "name": "PC alignment and mode tag",
+          "ranges": [
+            [
+              "0xe05",
+              "0xe32"
+            ]
+          ],
+          "samples": 26,
+          "worker_percent": 0.7660577489687684
+        },
+        {
+          "name": "ROM/RAM classifier",
+          "ranges": [
+            [
+              "0xe32",
+              "0xe5f"
+            ]
+          ],
+          "samples": 13,
+          "worker_percent": 0.3830288744843842
+        },
+        {
+          "name": "ROM lookup",
+          "ranges": [
+            [
+              "0xe5f",
+              "0xf24"
+            ]
+          ],
+          "samples": 84,
+          "worker_percent": 2.4749558043606363
+        },
+        {
+          "name": "RAM lookup hit",
+          "ranges": [
+            [
+              "0xf24",
+              "0xfd2"
+            ]
+          ],
+          "samples": 86,
+          "worker_percent": 2.53388332351208
+        },
+        {
+          "name": "RAM miss call site",
+          "ranges": [
+            [
+              "0xfd2",
+              "0xff5"
+            ]
+          ],
+          "samples": 1,
+          "worker_percent": 0.02946375957572186
+        },
+        {
+          "name": "RAM backedge",
+          "ranges": [
+            [
+              "0xff5",
+              "0xffd"
+            ]
+          ],
+          "samples": 2,
+          "worker_percent": 0.05892751915144372
+        }
+      ],
+      "ram_lookup_out_of_line": {
+        "samples": 25,
+        "worker_percent": 0.7365939893930465
+      },
+      "metadata": {
+        "selected": 160,
+        "found": 160,
+        "errors": []
+      },
+      "sampling": {
+        "event": "task-clock:u",
+        "period_us": 1000,
+        "losses": [],
+        "errors": [],
+        "new_tids": [],
+        "missing_tids": [],
+        "start_ns": 882475379630707,
+        "end_ns": 882485643281603
+      },
+      "measurement": {
+        "hostSeconds": 10.07292564750003,
+        "guestSeconds": 10.073711,
+        "guestSpeed": 1.0000779666729858,
+        "presentations": 322,
+        "presentationsPerSecond": 31.966879461670228,
+        "instructions": 0,
+        "installedCompiledFunctions": 0,
+        "maxQueryMs": 8.547740000009071,
+        "maxObservedFrameGapMs": 51.99500000476837,
+        "compilationUs": {
+          "aot_translation_us": 275,
+          "aot_emission_us": 0,
+          "aot_installation_us": 0
+        }
+      },
+      "screenshots_reviewed": [
+        "gameplay-start.png",
+        "gameplay-end.png"
+      ],
+      "artifacts": {
+        "native-attribution.json": "f3a3a54381d5ba2392718d7934936db37a68c55387a5e02bbb381facb29653e0",
+        "native-metadata.json": "d6bfff81887b24af4c21bb37ef52a5d8d210214c8ed8c943a0960eeb281df83a",
+        "native-samples.json": "3871a468d9f4ad16628d557ad58bab4a92b390a7952188544d711ca1cc57e5a5",
+        "runtime.wasm.map": "03d379538b773deecb00257a1d9f4772ec619578e55297193fd74459b58b9111",
+        "runtime-source-map.json": "d92b08d7a59f566bc15ee2be22d5d3ae0b42034b5816212a0d357f19a7fa9ccf"
+      }
+    }
+  ],
+  "rejected_captures": [
+    {
+      "path": "/home/claude/.scratch/eka-handoff-native-20261010/sky-native",
+      "reason": "Language menu at both endpoints; excluded from gameplay conclusions."
+    }
+  ],
+  "native_experiments": [
+    {
+      "name": "combined-ram-identity",
+      "status": "Rejected at native code gate; removed",
+      "path": "/home/claude/.scratch/eka-handoff-native-20261010/snakes-combined-identity",
+      "patch": "HANDOFF_COMBINED_IDENTITY_EXPERIMENT.patch",
+      "success_hit_identity_instructions_before": 14,
+      "success_hit_identity_instructions_after": 14,
+      "conditional_branches_before": 4,
+      "conditional_branches_after": 2,
+      "native_function_bytes_before": 4480,
+      "native_function_bytes_after": 4416,
+      "note": "Three duplicate load/folded-memory-operation pairs remain. No throughput claim."
+    },
+    {
+      "name": "pc-alignment-mask",
+      "status": "Not adopted; native instructions decrease but timing/work-equivalence screen is inconclusive; removed",
+      "path": "/home/claude/.scratch/eka-handoff-native-20261010/snakes-pc-mask",
+      "patch": "HANDOFF_PC_MASK_EXPERIMENT.patch",
+      "alignment_and_tag_instructions_before": 9,
+      "alignment_and_tag_instructions_after": 7,
+      "native_function_bytes_before": 4480,
+      "native_function_bytes_after": 4416,
+      "native_sha256": "c7255369dc6ca7fa4c9dba1c29e88181f9a4150509ee0de05c7ce27af5c47ea9",
+      "code_version": {
+        "pid": 2449819,
+        "code_id": 336705
+      }
+    }
+  ],
+  "limitations": [
+    "Source anchors are sparse; exact C++/guest attribution does not cover every native instruction.",
+    "Samples can skid after a load or accumulate on dependency stalls; branch samples are not branch misprediction evidence.",
+    "Native captures are diagnostic, not controlled timing. Other host activity and some capture/postprocessing overlap occurred.",
+    "Sky Force gameplay was restarted and visually gated; its accepted scene differs from the earlier focused CDP capture.",
+    "Count-free fixed-clock screens do not establish identical gameplay work: frame/image mismatches in Snakes and different endpoint stage progress in Sky Force. Raw small timing deltas are not adoption evidence."
+  ],
+  "disposition": "No runtime change adopted; both prototypes archived and removed",
+  "timing_screens": [
+    {
+      "plan": {
+        "frequency_khz": 3600000,
+        "reference_mhz": 2304,
+        "worker_cpu": 7,
+        "support_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14
+        ],
+        "panels": [
+          "ABBA"
+        ],
+        "clock_rules": {
+          "mean_relative_tolerance": 0.005,
+          "interval_relative_tolerance": 0.01,
+          "minimum_reference_interval_seconds": 0.02,
+          "max_sibling_busy_fraction": 0.02
+        },
+        "description": "PC alignment arithmetic mask versus source-mapped 0e354cd12; short fixed-clock ABBA screen with visual review and separate count-free work-equivalence audit.",
+        "isolated_cpus": [
+          7,
+          15
+        ],
+        "require_support_affinity": true,
+        "platform_profile": "performance",
+        "purpose": "Short unprofiled screen: inspect first game scene before continuing. Count-free schedule/output equivalence is audited separately; no speed claim from mismatched work.",
+        "windows": [
+          42000000,
+          46000000
+        ],
+        "stop_on_clock_failure": true
+      },
+      "observations": [
+        {
+          "game": "snakes",
+          "index": 0,
+          "variant": "A",
+          "path": "/home/claude/.scratch/eka-handoff-native-20261010/screen-snakes-0-A",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 0,
+            "first_virtual_us": 42000000,
+            "last_virtual_us": 46000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 1.50867,
+            "presentations": 65
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 3591.5501973977566,
+            "interval_min_mhz": 3591.348377516983,
+            "interval_max_mhz": 3591.8444231689805,
+            "worker_cpu_seconds": 0.803665003,
+            "instructions": 6496920685,
+            "cycles": 2867450579,
+            "worker": "2471439:2471484",
+            "sibling_busy_fraction": {
+              "15": 0.0
+            }
+          }
+        },
+        {
+          "game": "snakes",
+          "index": 1,
+          "variant": "B",
+          "path": "/home/claude/.scratch/eka-handoff-native-20261010/screen-snakes-1-B",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 0,
+            "first_virtual_us": 42000000,
+            "last_virtual_us": 46000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 1.50897,
+            "presentations": 65
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 3591.536206907726,
+            "interval_min_mhz": 3591.322536314715,
+            "interval_max_mhz": 3591.755378418202,
+            "worker_cpu_seconds": 0.815392085,
+            "instructions": 6446000820,
+            "cycles": 2909296070,
+            "worker": "2476140:2476185",
+            "sibling_busy_fraction": {
+              "15": 0.0
+            }
+          }
+        },
+        {
+          "game": "snakes",
+          "index": 2,
+          "variant": "B",
+          "path": "/home/claude/.scratch/eka-handoff-native-20261010/screen-snakes-2-B",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 0,
+            "first_virtual_us": 42000000,
+            "last_virtual_us": 46000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 1.53316,
+            "presentations": 66
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 3591.557419914469,
+            "interval_min_mhz": 3591.198448844008,
+            "interval_max_mhz": 3591.7359383383464,
+            "worker_cpu_seconds": 0.821617218,
+            "instructions": 6588491371,
+            "cycles": 2932490621,
+            "worker": "2477482:2477527",
+            "sibling_busy_fraction": {
+              "15": 0.0
+            }
+          }
+        },
+        {
+          "game": "snakes",
+          "index": 3,
+          "variant": "A",
+          "path": "/home/claude/.scratch/eka-handoff-native-20261010/screen-snakes-3-A",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 0,
+            "first_virtual_us": 42000000,
+            "last_virtual_us": 46000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 1.51619,
+            "presentations": 65
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 3591.536037600536,
+            "interval_min_mhz": 3591.2628231911563,
+            "interval_max_mhz": 3591.7874445044577,
+            "worker_cpu_seconds": 0.81225363,
+            "instructions": 6446977494,
+            "cycles": 2897131101,
+            "worker": "2479083:2479128",
+            "sibling_busy_fraction": {
+              "15": 0.0
+            }
+          }
+        },
+        {
+          "game": "sky-force",
+          "index": 0,
+          "variant": "A",
+          "path": "/home/claude/.scratch/eka-handoff-native-20261010/screen-sky-force-0-A",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 0,
+            "first_virtual_us": 42000000,
+            "last_virtual_us": 46000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 3.15055,
+            "presentations": 128
+          },
+          "validity": {
+            "valid": false,
+            "errors": [
+              "Pinned thread was not the dominant measured worker"
+            ]
+          }
+        }
+      ],
+      "host_restoration": {
+        "restored": true,
+        "errors": [],
+        "returncode": 1,
+        "policies_restored": 16,
+        "placements_restored": 11,
+        "platform_profile": {
+          "before": "balanced",
+          "requested": "performance",
+          "applied": "performance",
+          "after": "balanced"
+        }
+      },
+      "driver": "/home/claude/.scratch/eka-handoff-native-20261010/screen.py",
+      "driver_sha256": "cd3d87c76ac55229ffdc630159c684b9544e4e67ce03f59aa00e8ed29465a1d3",
+      "host_log": "/home/claude/.scratch/eka-handoff-native-20261010/screen-host.json",
+      "host_log_sha256": "84588db7f2417dba6ada81e2cc18a14dc8bb4bd6be8d8ac6226394a1007c83e8"
+    },
+    {
+      "plan": {
+        "frequency_khz": 3600000,
+        "reference_mhz": 2304,
+        "worker_cpu": 7,
+        "support_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14
+        ],
+        "panels": [
+          "ABBA"
+        ],
+        "clock_rules": {
+          "mean_relative_tolerance": 0.005,
+          "interval_relative_tolerance": 0.01,
+          "minimum_reference_interval_seconds": 0.02,
+          "max_sibling_busy_fraction": 0.02
+        },
+        "description": "Sky Force PC alignment screen retry with count-free menu route and PNG compression excluded; same predeclared clock limits and ABBA order.",
+        "isolated_cpus": [
+          7,
+          15
+        ],
+        "require_support_affinity": true,
+        "platform_profile": "performance",
+        "purpose": "Short unprofiled screen: inspect first game scene before continuing. Count-free schedule/output equivalence is audited separately; no speed claim from mismatched work.",
+        "windows": [
+          58000000,
+          62000000
+        ],
+        "stop_on_clock_failure": true,
+        "capture_mode": 1,
+        "input_sha256": "8088daa26ba4c22c2ba9f2248fe53c4ec3b983db11a257a8cc2804d9157bde93"
+      },
+      "observations": [
+        {
+          "game": "sky-force",
+          "index": 0,
+          "variant": "A",
+          "path": "/home/claude/.scratch/eka-handoff-native-20261010/screen2-sky-force-0-A",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 58000000,
+            "last_virtual_us": 62000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 1.11174,
+            "presentations": 128
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 3591.5344628397324,
+            "interval_min_mhz": 3591.1974408519545,
+            "interval_max_mhz": 3591.700091142712,
+            "worker_cpu_seconds": 0.739924632,
+            "instructions": 7257854541,
+            "cycles": 2639853851,
+            "worker": "2486864:2486911",
+            "sibling_busy_fraction": {
+              "15": 0.0
+            }
+          }
+        },
+        {
+          "game": "sky-force",
+          "index": 1,
+          "variant": "B",
+          "path": "/home/claude/.scratch/eka-handoff-native-20261010/screen2-sky-force-1-B",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 58000000,
+            "last_virtual_us": 62000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 1.12824,
+            "presentations": 128
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 3591.5419141250177,
+            "interval_min_mhz": 3591.2736307645378,
+            "interval_max_mhz": 3591.727989023831,
+            "worker_cpu_seconds": 0.745479652,
+            "instructions": 7279083414,
+            "cycles": 2659790889,
+            "worker": "2492667:2492729",
+            "sibling_busy_fraction": {
+              "15": 0.0
+            }
+          }
+        },
+        {
+          "game": "sky-force",
+          "index": 2,
+          "variant": "B",
+          "path": "/home/claude/.scratch/eka-handoff-native-20261010/screen2-sky-force-2-B",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 58000000,
+            "last_virtual_us": 62000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 1.12455,
+            "presentations": 128
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 3591.552985321072,
+            "interval_min_mhz": 3591.059813729673,
+            "interval_max_mhz": 3591.733838867375,
+            "worker_cpu_seconds": 0.732761342,
+            "instructions": 7206329089,
+            "cycles": 2615606525,
+            "worker": "2494526:2494573",
+            "sibling_busy_fraction": {
+              "15": 0.0
+            }
+          }
+        },
+        {
+          "game": "sky-force",
+          "index": 3,
+          "variant": "A",
+          "path": "/home/claude/.scratch/eka-handoff-native-20261010/screen2-sky-force-3-A",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 58000000,
+            "last_virtual_us": 62000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 1.13389,
+            "presentations": 128
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 3591.5373172250593,
+            "interval_min_mhz": 3591.436959285525,
+            "interval_max_mhz": 3591.724907976445,
+            "worker_cpu_seconds": 0.742140565,
+            "instructions": 7225074039,
+            "cycles": 2643341536,
+            "worker": "2496062:2496107",
+            "sibling_busy_fraction": {
+              "15": 0.0
+            }
+          }
+        }
+      ],
+      "host_restoration": {
+        "restored": true,
+        "errors": [],
+        "returncode": 0,
+        "policies_restored": 16,
+        "placements_restored": 11,
+        "platform_profile": {
+          "before": "balanced",
+          "requested": "performance",
+          "applied": "performance",
+          "after": "balanced"
+        }
+      },
+      "driver": "/home/claude/.scratch/eka-handoff-native-20261010/screen2.py",
+      "driver_sha256": "5f1abd4494b5410755be62b19e83f49f5e1126cecc9dd621fcde71880142371d",
+      "host_log": "/home/claude/.scratch/eka-handoff-native-20261010/screen2-host.json",
+      "host_log_sha256": "b8a9edbf7a6de8a52be333e30bf9b8d2b2d32ae904bd0cd2eff47e753eac4d4a"
+    }
+  ],
+  "screen_summary": [
+    {
+      "game": "snakes",
+      "mean_worker_cpu_seconds": {
+        "A": 0.8079593165,
+        "B": 0.8185046515000001
+      },
+      "raw_cpu_throughput_change_percent": -1.2883659220109034,
+      "paired_cpu_throughput_changes_percent": [
+        -1.4382138624757457,
+        -1.139653331851187
+      ],
+      "disposition": "Inconclusive; short screen without equivalent gameplay work. Not an established gain or regression."
+    },
+    {
+      "game": "sky-force",
+      "mean_worker_cpu_seconds": {
+        "A": 0.7410325985,
+        "B": 0.739120497
+      },
+      "raw_cpu_throughput_change_percent": 0.25869956357060797,
+      "paired_cpu_throughput_changes_percent": [
+        -0.7451605131135075,
+        1.2799833264129923
+      ],
+      "disposition": "Inconclusive; short screen without equivalent gameplay work. Not an established gain or regression."
+    }
+  ],
+  "work_equivalence": {
+    "snakes": [
+      {
+        "control": "screen-snakes-0-A",
+        "candidate": "screen-snakes-1-B",
+        "frames": [
+          65,
+          65
+        ],
+        "exact_pairs": 0,
+        "mean_changed_pixel_fraction": 0.4799437099358974,
+        "max_changed_pixel_fraction": 0.6037109375,
+        "journal_sha256": [
+          "9159fd62dbea14945f79795d552613bb76cfcc92e6fc255267aa9c7d9fe138d7",
+          "04287502b158a13149e22705c477691df2ff41d58ebb53f8c7458d62530c0a73"
+        ]
+      },
+      {
+        "control": "screen-snakes-3-A",
+        "candidate": "screen-snakes-2-B",
+        "frames": [
+          65,
+          66
+        ],
+        "exact_pairs": 0,
+        "mean_changed_pixel_fraction": 0.4201838942307692,
+        "max_changed_pixel_fraction": 0.5003645833333333,
+        "journal_sha256": [
+          "566aa7ee62cf001181f4f8d0a2b28e807a2e27d46af7b1e728605f43e218148f",
+          "4754a473bf0d6abd6c2b4bc337dd345f88b1f59623f6d1c011d40bac91c3069f"
+        ]
+      }
+    ],
+    "sky_force": {
+      "presentations": [
+        128,
+        128,
+        128,
+        128
+      ],
+      "endpoint_hud_stage_percent": [
+        2,
+        2,
+        2,
+        4
+      ],
+      "endpoint_hud_score": [
+        650,
+        650,
+        650,
+        1300
+      ],
+      "note": "All four screenshots show combat behind the harness launcher dialog. Mode 1 retains no pixel hashes. Matching frame counts do not establish identical work."
+    }
+  },
+  "driver": {
+    "path": "/home/claude/.scratch/eka-handoff-native-20261010/paced-native.ts",
+    "sha256": "d710d8e165ef998b903b698d88f4b7c7e9914e571416133e8de5e29c2a305812",
+    "scope": "Post-sampling module selection uses worker 13, verified for these captures; recheck for other builds."
+  },
+  "artifacts": {
+    "baseline-chain.wat": {
+      "path": "/home/claude/.scratch/eka-handoff-native-20261010/baseline-chain.wat",
+      "sha256": "a7366241e629f204e90fca504d8fb5a8fab80714b610b53720b2e484b41c872b"
+    },
+    "combined-identity-chain.wat": {
+      "path": "/home/claude/.scratch/eka-handoff-native-20261010/combined-identity-chain.wat",
+      "sha256": "cae11e2dd636458c1f95f4099cfff82776b47905bc8d9ff5dc3588743cc0f221"
+    },
+    "pc-mask-tests.log": {
+      "path": "/home/claude/.scratch/eka-handoff-native-20261010/pc-mask-tests.log",
+      "sha256": "2700b008b4789667a20cfb8c49ffa370c42bb9325e3da3421cc39d97a92761a3"
+    },
+    "combined-identity-tests.log": {
+      "path": "/home/claude/.scratch/eka-handoff-native-20261010/combined-identity-tests.log",
+      "sha256": "46e52a259d60582bb58adc9e48ea74548dbf1c59324e88bc63a7f9940c4dfb31"
+    },
+    "build-restored.log": {
+      "path": "/home/claude/.scratch/eka-handoff-native-20261010/build-restored.log",
+      "sha256": "ffb23a62869e687a58f3a8b0652760715bf91021f33c30228912f5c30d6a794f"
+    },
+    "sky-countfree.input": {
+      "path": "/home/claude/.scratch/eka-handoff-native-20261010/sky-countfree.input",
+      "sha256": "8088daa26ba4c22c2ba9f2248fe53c4ec3b983db11a257a8cc2804d9157bde93"
+    }
+  },
+  "restored_baseline": {
+    "wasm_sha256": "e8dabc480c34780348ee6c3c3f731cde1eff36822d5cbcc224834dfecf7d840f",
+    "matches_frozen_profile_baseline": true,
+    "source_metadata_enabled": true,
+    "tests": "TEST_UNSAFE_CODE_DEFAULT 3\nTEST_MEMORY_DEFAULT 2\n PASS execution limits validation and 56 real runner budget/zero/stop/IRQ/masked-IRQ/missing-successor/registry-mutation checks across eight policy combinations\n PASS inline leaf/site bounds and 7 exact interpreter budget comparisons\n",
+    "cleanup": {
+      "live_restoration_discrepancies": [],
+      "stopped_temporary_servers": [
+        2330489,
+        2421889
+      ]
+    },
+    "lan_service": "active; HTTPS localhost:8188 returned 200 after temporary servers stopped; production artifact unchanged"
+  }
+}

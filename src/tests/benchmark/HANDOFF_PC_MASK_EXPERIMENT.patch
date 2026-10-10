@@ -1,0 +1,57 @@
+diff --git a/src/emu/cpu/src/aot/aot_runtime.cpp b/src/emu/cpu/src/aot/aot_runtime.cpp
+index 4c6b0536f..79f408aad 100644
+--- a/src/emu/cpu/src/aot/aot_runtime.cpp
++++ b/src/emu/cpu/src/aot/aot_runtime.cpp
+@@ -230,7 +230,9 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
+         if (!progress || !cpu->NumInstrsToExecute
+             || (!cpu->NirqSig && !(cpu->Cpsr & 0x80)) || watchdog::requested()) break;
+         // Each body has completed; indirect successors may cycle.
+-        cpu->Reg[15] &= cpu->TFlag ? ~1u : ~3u;
++        // TFlag is the architectural one-bit Thumb flag. Form the alignment
++        // mask arithmetically so every handoff avoids selecting two constants.
++        cpu->Reg[15] &= ~3u | (cpu->TFlag << 1);
+         function = lookup_compiled_impl<false, TrustBytes>(cpu, functions);
+     }
+     return {progress};
+diff --git a/src/tests/aot/test_aot_wasm.cpp b/src/tests/aot/test_aot_wasm.cpp
+index 944c45dad..855ce7795 100644
+--- a/src/tests/aot/test_aot_wasm.cpp
++++ b/src/tests/aot/test_aot_wasm.cpp
+@@ -5249,6 +5249,15 @@ static std::uint32_t runner_test_function(ARMul_State *cpu) {
+     if(runner_test_action==6)global_registry().unregister_function(0x54300);
+     return 1;
+ }
++static unsigned runner_alignment_target=0,runner_alignment_observed=0;
++static std::uint32_t runner_alignment_function(ARMul_State *cpu) {
++    if (++runner_test_calls == 1) cpu->Reg[15]=runner_alignment_target;
++    else {
++        runner_alignment_observed=cpu->Reg[15];
++        cpu->NumInstrsToExecute=0;
++    }
++    return 1;
++}
+ static bool test_execution_limits() {
+     struct restore {bool ram=ram_compilation_enabled;unsigned path=hotpath_policy, memory=memory_experiment::mode, unsafe=eka2l1::common::code_tracking::unsafe_code_mode;
+         ~restore(){hotpath_policy=path;memory_experiment::mode=memory;eka2l1::common::code_tracking::unsafe_code_mode=unsafe;ram_compilation_enabled=ram;global_registry().unregister_function(0x54300);}} saved;
+@@ -5275,6 +5284,21 @@ static bool test_execution_limits() {
+         ++checks;
+     }
+     watchdog::request=0;
++    for (unsigned thumb : {0u,1u}) for (unsigned low=0;low<8;++low) {
++        runner_alignment_target=0x54400+low;
++        const auto aligned=runner_alignment_target & (thumb?~1u:~3u);
++        global_registry().register_function(aligned|thumb,runner_alignment_function);
++        runner_test_calls=0;runner_alignment_observed=~0u;
++        auto &cpu=*state;cpu.Reg[15]=0x54300;cpu.TFlag=thumb;
++        cpu.NumInstrsToExecute=UINT32_MAX;cpu.NirqSig=1;
++        const auto result=execute_chain(&cpu,runner_alignment_function);
++        global_registry().unregister_function(aligned|thumb);
++        if (result.progress!=1 || runner_test_calls!=2 || runner_alignment_observed!=aligned) {
++            printf(" FAIL runner successor alignment T=%u raw=%x observed=%x calls=%u\n",
++                thumb,runner_alignment_target,runner_alignment_observed,runner_test_calls);return false;
++        }
++    }
++    printf(" PASS 16 ARM/Thumb low-bit successor alignment checks through the real runner\n");
+     printf(" PASS execution limits validation and %u real runner budget/zero/stop/IRQ/masked-IRQ/missing-successor/registry-mutation checks across eight policy combinations\n",checks);
+     return true;
+ }

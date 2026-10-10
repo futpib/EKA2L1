@@ -1,0 +1,18 @@
+diff --git a/src/emu/cpu/include/cpu/aot/code_cache.h b/src/emu/cpu/include/cpu/aot/code_cache.h
+index 479bd722f..5cd9b4d07 100644
+--- a/src/emu/cpu/include/cpu/aot/code_cache.h
++++ b/src/emu/cpu/include/cpu/aot/code_cache.h
+@@ -67,7 +67,11 @@ namespace eka2l1::arm::aot {
+             const auto generation = source ? source->load(std::memory_order_acquire) : 0;
+             const auto k = key(cpu.code_address_space, pc_mode);
+             auto &slot = dispatch_[recent_index(k)];
+-            if (generation && slot.key == k && slot.generation == generation
+-                && slot.source == source && slot.function) return slot.function;
++            // Combine independent identity checks on the common cached hit.
++            // Mapping/source changes still take the full validation path.
++            if (generation && !((slot.key ^ k) | (slot.generation ^ generation)
++                    | (reinterpret_cast<std::uintptr_t>(slot.source)
++                        ^ reinterpret_cast<std::uintptr_t>(source)))
++                && slot.function) return slot.function;
+             return lookup_trusted_uncached(pc_mode, cpu);
+         }

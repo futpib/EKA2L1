@@ -43,12 +43,16 @@ use its asset directory and add:
 ```sh
 EKA2L1_APP_UID=0xa020d913
 EKA2L1_ASSET_MANIFEST=../benchmark/sky-force-assets.json
-EKA2L1_PROFILE_INPUT=../benchmark/sky-force-combat.input
-EKA2L1_PROFILE_START_US=42000000
+EKA2L1_PROFILE_INPUT=../benchmark/watchdog-sky-force-countfree.input
+EKA2L1_PROFILE_START_US=58000000
 ```
 
-Pass these as environment variables on the command and use `46000000` as its
-endpoint. `EKA2L1_WASM_BUILD_DIR` selects an archived build for either game.
+Pass these as environment variables on the command and use `62000000` as its
+endpoint. Review the captured scene: the older Sky Force route can remain in a
+menu under watchdog-only scheduling. The new route reaches combat, but equal
+guest-clock windows and frame counts do not guarantee equal gameplay progress;
+see the [handoff investigation](HANDOFF_NATIVE_PROFILE_RESULTS.md).
+`EKA2L1_WASM_BUILD_DIR` selects an archived build for either game.
 
 The capture produces:
 
