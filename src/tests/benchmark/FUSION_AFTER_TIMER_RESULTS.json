@@ -1,0 +1,2027 @@
+{
+  "date": "2026-10-10",
+  "timer_fix": "7f1671110, enabled in every arm",
+  "production_fused_wasm_sha256": "83d6da16a57678aa143d42154d440710b172e076fca065afd12e7c461104497f",
+  "focused_compiler_tests": "TEST_UNSAFE_CODE_DEFAULT 3\nTEST_MEMORY_DEFAULT 2\n PASS complete Thumb calls (4800 chain/state/memory/callback checks; 600 independent interpreter checks; calls 8952 -> 7608; 44 selected sites)\n",
+  "panels": {
+    "complete_thumb": {
+      "plan": {
+        "frequency_khz": 2400000,
+        "reference_mhz": 2304,
+        "worker_cpu": 7,
+        "support_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14
+        ],
+        "panels": [
+          "A,B,B,A"
+        ],
+        "clock_rules": {
+          "mean_relative_tolerance": 0.005,
+          "interval_relative_tolerance": 0.01,
+          "minimum_reference_interval_seconds": 0.02,
+          "max_sibling_busy_fraction": 0.02
+        },
+        "description": "Complete Thumb call/return fusion off vs on, timer correction baked into both",
+        "isolated_cpus": [
+          7,
+          15
+        ],
+        "require_support_affinity": true,
+        "platform_profile": "performance",
+        "purpose": "Report game presentations per wall second and per CPU second alongside guest-time ratios. Review every scene; guest-time windows do not imply equal work.",
+        "windows": {
+          "sky-force": [
+            58000000,
+            70000000
+          ],
+          "snakes": [
+            74000000,
+            86000000
+          ]
+        },
+        "stop_on_clock_failure": true,
+        "variants": {
+          "A": {
+            "name": "unfused recent Thumb extension",
+            "thumb_complete_calls": false,
+            "earlier_fusion": true
+          },
+          "B": {
+            "name": "current default fused Thumb extension",
+            "thumb_complete_calls": true,
+            "earlier_fusion": true
+          }
+        },
+        "source_commit": "7f16711101e208e2f95267645511af84ee2688e1"
+      },
+      "build_hashes": {
+        "fused": {
+          "eka2l1.js": "13132de7984c951b8c31ae316720f9ad6814a05e8a97c75efbdb19a723f22f2d",
+          "touch-controls.js": "95ed7d7f131bb23a3f0c02faf44ef74e628cc8d85cb27599a37e2ffc53f6c648",
+          "touch-controls.css": "b94844897aeef4298aa36f13cd85cbe32d3065e319ec418f12b6cf3df7d95823",
+          "eka2l1.html": "021fc7ecc11ad9a216472b86f098d4d7122a3553b665886a13032031c2c75ea9",
+          "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+          "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+          "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+          "eka2l1.wasm.map": "5bec6a12c939c9f29f8c37afc807f994494f2b4ec373133dfcd1092384314d06",
+          "eka2l1.wasm": "83d6da16a57678aa143d42154d440710b172e076fca065afd12e7c461104497f"
+        },
+        "unfused": {
+          "eka2l1.js": "b1bb8429596cafcd812dc228f3c2be33688464972f2e8317620847efafc1a1ce",
+          "touch-controls.js": "95ed7d7f131bb23a3f0c02faf44ef74e628cc8d85cb27599a37e2ffc53f6c648",
+          "touch-controls.css": "b94844897aeef4298aa36f13cd85cbe32d3065e319ec418f12b6cf3df7d95823",
+          "eka2l1.html": "021fc7ecc11ad9a216472b86f098d4d7122a3553b665886a13032031c2c75ea9",
+          "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+          "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+          "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+          "eka2l1.wasm.map": "5bec6a12c939c9f29f8c37afc807f994494f2b4ec373133dfcd1092384314d06",
+          "eka2l1.wasm": "36fb0664697329e65200581c9205d5950c877295819332a8f9dbb2864c7a3d6c"
+        }
+      },
+      "control_patch": "diff --git a/src/emu/cpu/include/cpu/aot/thumb_translator.h b/src/emu/cpu/include/cpu/aot/thumb_translator.h\nindex 68c41e87f..2b874b548 100644\n--- a/src/emu/cpu/include/cpu/aot/thumb_translator.h\n+++ b/src/emu/cpu/include/cpu/aot/thumb_translator.h\n@@ -31,7 +31,7 @@ namespace eka2l1::arm::aot {\n     // Pre-initialization experiment, shared by eager ROM and hot translations.\n     inline bool thumb_direct_memory = false;\n     inline bool thumb_region_fusion = true;\n-    inline bool thumb_complete_calls = true;\n+    inline bool thumb_complete_calls = false;\n     // ARMul_State field offsets (must match the actual struct layout)\n     struct state_offsets {\n         static constexpr std::uint32_t REG = 0;          // Reg[0]\n",
+      "control_patch_sha256": "5d398b7c5523d649b707977e914d7d2af9e3288f73b14ea5d5078013d0c60d41",
+      "summary": {
+        "sky-force": {
+          "A": {
+            "runs": 2,
+            "valid": true,
+            "total_presentations": 759,
+            "mean_worker_cpu_seconds": 2.0174487395,
+            "mean_wall_seconds": 3.68918,
+            "mean_presentations": 379.5,
+            "presentations_per_wall_second": 102.86838809708391,
+            "presentations_per_worker_cpu_second": 188.1088686764128,
+            "worker_cpu_ms_per_presentation": 5.316070459815546,
+            "renderer_cpu_ms_per_presentation": 10.09222661396573,
+            "native_instructions_per_presentation": 36057203.5942029,
+            "guest_seconds_per_wall_second": 3.252755354848503
+          },
+          "B": {
+            "runs": 2,
+            "valid": true,
+            "total_presentations": 758,
+            "mean_worker_cpu_seconds": 2.009422178,
+            "mean_wall_seconds": 3.720595,
+            "mean_presentations": 379.0,
+            "presentations_per_wall_second": 101.86542743835328,
+            "presentations_per_worker_cpu_second": 188.61143474450097,
+            "worker_cpu_ms_per_presentation": 5.3019054828496035,
+            "renderer_cpu_ms_per_presentation": 10.197889182058047,
+            "native_instructions_per_presentation": 36078807.71635884,
+            "guest_seconds_per_wall_second": 3.225290578523059
+          },
+          "change_percent": {
+            "presentations_per_wall_second": -0.9749940455799355,
+            "presentations_per_worker_cpu_second": 0.2671676628669184,
+            "worker_cpu_ms_per_presentation": -0.2664557791891009,
+            "renderer_cpu_ms_per_presentation": 1.0469698326640797,
+            "native_instructions_per_presentation": 0.05991624419652286,
+            "guest_seconds_per_wall_second": -0.8443541960358458
+          },
+          "pairs": [
+            {
+              "control_index": 0,
+              "fused_index": 1,
+              "wall_frame_throughput_change_percent": -1.5421641985700507,
+              "cpu_frame_throughput_change_percent": -0.22810784632250058,
+              "native_instructions_per_frame_change_percent": 0.4143358708365463
+            },
+            {
+              "control_index": 3,
+              "fused_index": 2,
+              "wall_frame_throughput_change_percent": -0.40342044446362024,
+              "cpu_frame_throughput_change_percent": 0.763845145028319,
+              "native_instructions_per_frame_change_percent": -0.2934779227167228
+            }
+          ]
+        },
+        "snakes": {
+          "A": {
+            "runs": 2,
+            "valid": true,
+            "total_presentations": 304,
+            "mean_worker_cpu_seconds": 2.758612498,
+            "mean_wall_seconds": 3.48706,
+            "mean_presentations": 152.0,
+            "presentations_per_wall_second": 43.589728883357324,
+            "presentations_per_worker_cpu_second": 55.100163618558355,
+            "worker_cpu_ms_per_presentation": 18.14876643421053,
+            "renderer_cpu_ms_per_presentation": 22.79605263157895,
+            "native_instructions_per_presentation": 99334515.92105263,
+            "guest_seconds_per_wall_second": 3.44129438552821
+          },
+          "B": {
+            "runs": 2,
+            "valid": true,
+            "total_presentations": 311,
+            "mean_worker_cpu_seconds": 2.7829184810000003,
+            "mean_wall_seconds": 3.51408,
+            "mean_presentations": 155.5,
+            "presentations_per_wall_second": 44.250557756226385,
+            "presentations_per_worker_cpu_second": 55.87659180879901,
+            "worker_cpu_ms_per_presentation": 17.896581871382637,
+            "renderer_cpu_ms_per_presentation": 22.540192926045034,
+            "native_instructions_per_presentation": 99086502.79099679,
+            "guest_seconds_per_wall_second": 3.4148340390657017
+          },
+          "change_percent": {
+            "presentations_per_wall_second": 1.5160196904123513,
+            "presentations_per_worker_cpu_second": 1.4091213877614583,
+            "worker_cpu_ms_per_presentation": -1.389541067389144,
+            "renderer_cpu_ms_per_presentation": -1.1223860098457439,
+            "native_instructions_per_presentation": -0.2496746752689183,
+            "guest_seconds_per_wall_second": -0.768906797796276
+          },
+          "pairs": [
+            {
+              "control_index": 0,
+              "fused_index": 1,
+              "wall_frame_throughput_change_percent": 2.0798620456905725,
+              "cpu_frame_throughput_change_percent": 2.148041741492279,
+              "native_instructions_per_frame_change_percent": -0.3182177551558474
+            },
+            {
+              "control_index": 3,
+              "fused_index": 2,
+              "wall_frame_throughput_change_percent": 0.9554484566067112,
+              "cpu_frame_throughput_change_percent": 0.6770360356088467,
+              "native_instructions_per_frame_change_percent": -0.17760516564022666
+            }
+          ]
+        }
+      },
+      "observations": [
+        {
+          "game": "sky-force",
+          "index": 0,
+          "variant": "A",
+          "thumb_complete_calls": false,
+          "timer_fix": true,
+          "path": "/home/claude/.scratch/eka-fusion-after-20261010/screen-sky-force-0-A",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 58000000,
+            "last_virtual_us": 70000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 3.68503,
+            "presentations": 380
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 2394.3371763919636,
+            "interval_min_mhz": 2394.1281494396567,
+            "interval_max_mhz": 2394.5551489269906,
+            "worker_cpu_seconds": 2.010390887,
+            "instructions": 13670144279,
+            "cycles": 4776902195,
+            "worker": "707412:707457",
+            "sibling_busy_fraction": {
+              "15": 0.0
+            }
+          },
+          "renderer_cpu_seconds": 3.819999999999994,
+          "browser": "Chrome/153.0.8010.52",
+          "wasm_sha256": "36fb0664697329e65200581c9205d5950c877295819332a8f9dbb2864c7a3d6c",
+          "input_sha256": "10dc1630bc1a6763cf88bc5e976b05a5b1da4c402a42108ffe01569557912fcc",
+          "runtime_footprint": {
+            "guest_us": 70000000,
+            "instructions": 0,
+            "compiled_functions": 41730,
+            "aot_translation_us": 8904176,
+            "aot_emission_us": 386438,
+            "aot_installation_us": 826385,
+            "aot_eager_functions": 34187,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 890877880,
+            "free_bytes": 61822024
+          },
+          "command": {
+            "args": [
+              "python3",
+              "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+              "/home/claude/.scratch/eka-sky-performance/assets",
+              "/home/claude/.scratch/eka-fusion-after-20261010/unfused-build",
+              "/home/claude/.scratch/eka-fusion-after-20261010/screen-sky-force-0-A",
+              "--hardware-counters",
+              "--start-us",
+              "58000000",
+              "--end-us",
+              "70000000",
+              "--capture-mode",
+              "1",
+              "--worker-cpu",
+              "7",
+              "--support-cpus",
+              "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "--reference-mhz",
+              "2304",
+              "--harness",
+              "/home/claude/.scratch/eka-fusion-after-20261010/harness"
+            ],
+            "env": {
+              "EKA2L1_CHROME_TRACE": "off",
+              "EKA2L1_SHARED_AUDIO": "1",
+              "EKA2L1_WATCHDOG_US": "2000",
+              "EKA2L1_PROFILE_INPUT": "/home/claude/.scratch/eka-fusion-after-20261010/sky-force.input",
+              "EKA2L1_APP_UID": "0xa020d913",
+              "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json"
+            },
+            "quiet": {
+              "waited_seconds": 1.0387939020292833,
+              "observed_builds": {},
+              "required_quiet_seconds": 1,
+              "quiet_seconds": 1.0190787160536274
+            }
+          },
+          "profile_report_sha256": "448105ca06f6938680fded8a8d7282cfcda1a6f81e3e6ab29f0c0d42392f6cbc",
+          "scheduler_sha256": "39a13fdb84c355ca13e711a78f204633c5218531c7c494865a71625d8cc9ef1a"
+        },
+        {
+          "game": "sky-force",
+          "index": 1,
+          "variant": "B",
+          "thumb_complete_calls": true,
+          "timer_fix": true,
+          "path": "/home/claude/.scratch/eka-fusion-after-20261010/screen-sky-force-1-B",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 58000000,
+            "last_virtual_us": 70000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 3.7329,
+            "presentations": 379
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 2394.3263679032016,
+            "interval_min_mhz": 2394.038024336164,
+            "interval_max_mhz": 2394.5128909947675,
+            "worker_cpu_seconds": 2.009684633,
+            "instructions": 13690661473,
+            "cycles": 4774091640,
+            "worker": "709276:709321",
+            "sibling_busy_fraction": {
+              "15": 0.0026595744680851063
+            }
+          },
+          "renderer_cpu_seconds": 3.839999999999997,
+          "browser": "Chrome/153.0.8010.52",
+          "wasm_sha256": "83d6da16a57678aa143d42154d440710b172e076fca065afd12e7c461104497f",
+          "input_sha256": "10dc1630bc1a6763cf88bc5e976b05a5b1da4c402a42108ffe01569557912fcc",
+          "runtime_footprint": {
+            "guest_us": 70000000,
+            "instructions": 0,
+            "compiled_functions": 41832,
+            "aot_translation_us": 9532578,
+            "aot_emission_us": 427667,
+            "aot_installation_us": 838397,
+            "aot_eager_functions": 34228,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 890668664,
+            "free_bytes": 111183240
+          },
+          "command": {
+            "args": [
+              "python3",
+              "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+              "/home/claude/.scratch/eka-sky-performance/assets",
+              "/home/claude/.scratch/eka-fusion-after-20261010/fused-build",
+              "/home/claude/.scratch/eka-fusion-after-20261010/screen-sky-force-1-B",
+              "--hardware-counters",
+              "--start-us",
+              "58000000",
+              "--end-us",
+              "70000000",
+              "--capture-mode",
+              "1",
+              "--worker-cpu",
+              "7",
+              "--support-cpus",
+              "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "--reference-mhz",
+              "2304",
+              "--harness",
+              "/home/claude/.scratch/eka-fusion-after-20261010/harness"
+            ],
+            "env": {
+              "EKA2L1_CHROME_TRACE": "off",
+              "EKA2L1_SHARED_AUDIO": "1",
+              "EKA2L1_WATCHDOG_US": "2000",
+              "EKA2L1_PROFILE_INPUT": "/home/claude/.scratch/eka-fusion-after-20261010/sky-force.input",
+              "EKA2L1_APP_UID": "0xa020d913",
+              "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json"
+            },
+            "quiet": {
+              "waited_seconds": 1.0384326810017228,
+              "observed_builds": {},
+              "required_quiet_seconds": 1,
+              "quiet_seconds": 1.0195533110527322
+            }
+          },
+          "profile_report_sha256": "7a7cb114672ced2687019638839007d995bca86fb5b313be70d2282a3cfdd1a4",
+          "scheduler_sha256": "1ab7428bae53d5951fb531452bd99f06ae398aae36b178b1a3802132aef47d0f"
+        },
+        {
+          "game": "sky-force",
+          "index": 2,
+          "variant": "B",
+          "thumb_complete_calls": true,
+          "timer_fix": true,
+          "path": "/home/claude/.scratch/eka-fusion-after-20261010/screen-sky-force-2-B",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 58000000,
+            "last_virtual_us": 70000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 3.70829,
+            "presentations": 379
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 2394.350949142,
+            "interval_min_mhz": 2394.1753289052226,
+            "interval_max_mhz": 2394.5394691857095,
+            "worker_cpu_seconds": 2.009159723,
+            "instructions": 13657074776,
+            "cycles": 4774336890,
+            "worker": "711333:711399",
+            "sibling_busy_fraction": {
+              "15": 0.002849002849002849
+            }
+          },
+          "renderer_cpu_seconds": 3.8900000000000023,
+          "browser": "Chrome/153.0.8010.52",
+          "wasm_sha256": "83d6da16a57678aa143d42154d440710b172e076fca065afd12e7c461104497f",
+          "input_sha256": "10dc1630bc1a6763cf88bc5e976b05a5b1da4c402a42108ffe01569557912fcc",
+          "runtime_footprint": {
+            "guest_us": 70000000,
+            "instructions": 0,
+            "compiled_functions": 41750,
+            "aot_translation_us": 9525301,
+            "aot_emission_us": 435232,
+            "aot_installation_us": 849363,
+            "aot_eager_functions": 34237,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 890863528,
+            "free_bytes": 110988376
+          },
+          "command": {
+            "args": [
+              "python3",
+              "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+              "/home/claude/.scratch/eka-sky-performance/assets",
+              "/home/claude/.scratch/eka-fusion-after-20261010/fused-build",
+              "/home/claude/.scratch/eka-fusion-after-20261010/screen-sky-force-2-B",
+              "--hardware-counters",
+              "--start-us",
+              "58000000",
+              "--end-us",
+              "70000000",
+              "--capture-mode",
+              "1",
+              "--worker-cpu",
+              "7",
+              "--support-cpus",
+              "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "--reference-mhz",
+              "2304",
+              "--harness",
+              "/home/claude/.scratch/eka-fusion-after-20261010/harness"
+            ],
+            "env": {
+              "EKA2L1_CHROME_TRACE": "off",
+              "EKA2L1_SHARED_AUDIO": "1",
+              "EKA2L1_WATCHDOG_US": "2000",
+              "EKA2L1_PROFILE_INPUT": "/home/claude/.scratch/eka-fusion-after-20261010/sky-force.input",
+              "EKA2L1_APP_UID": "0xa020d913",
+              "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json"
+            },
+            "quiet": {
+              "waited_seconds": 1.0386868269415572,
+              "observed_builds": {},
+              "required_quiet_seconds": 1,
+              "quiet_seconds": 1.0192591889062896
+            }
+          },
+          "profile_report_sha256": "19b6a5b18e088dfc74d065f73bc5ce8f128dcf852e9027f17dadac96153896aa",
+          "scheduler_sha256": "1e8d74d3ff11450e63b22e1b655b17ec29718d5c211c99bcc59055cc20b649da"
+        },
+        {
+          "game": "sky-force",
+          "index": 3,
+          "variant": "A",
+          "thumb_complete_calls": false,
+          "timer_fix": true,
+          "path": "/home/claude/.scratch/eka-fusion-after-20261010/screen-sky-force-3-A",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 58000000,
+            "last_virtual_us": 70000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 3.69333,
+            "presentations": 379
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 2394.339838758442,
+            "interval_min_mhz": 2394.1622361083873,
+            "interval_max_mhz": 2394.535767007189,
+            "worker_cpu_seconds": 2.024506592,
+            "instructions": 13697273249,
+            "cycles": 4797481171,
+            "worker": "713304:713349",
+            "sibling_busy_fraction": {
+              "15": 0.0
+            }
+          },
+          "renderer_cpu_seconds": 3.839999999999996,
+          "browser": "Chrome/153.0.8010.52",
+          "wasm_sha256": "36fb0664697329e65200581c9205d5950c877295819332a8f9dbb2864c7a3d6c",
+          "input_sha256": "10dc1630bc1a6763cf88bc5e976b05a5b1da4c402a42108ffe01569557912fcc",
+          "runtime_footprint": {
+            "guest_us": 70000000,
+            "instructions": 0,
+            "compiled_functions": 41729,
+            "aot_translation_us": 8865403,
+            "aot_emission_us": 391868,
+            "aot_installation_us": 841508,
+            "aot_eager_functions": 34165,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 890993832,
+            "free_bytes": 61706072
+          },
+          "command": {
+            "args": [
+              "python3",
+              "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+              "/home/claude/.scratch/eka-sky-performance/assets",
+              "/home/claude/.scratch/eka-fusion-after-20261010/unfused-build",
+              "/home/claude/.scratch/eka-fusion-after-20261010/screen-sky-force-3-A",
+              "--hardware-counters",
+              "--start-us",
+              "58000000",
+              "--end-us",
+              "70000000",
+              "--capture-mode",
+              "1",
+              "--worker-cpu",
+              "7",
+              "--support-cpus",
+              "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "--reference-mhz",
+              "2304",
+              "--harness",
+              "/home/claude/.scratch/eka-fusion-after-20261010/harness"
+            ],
+            "env": {
+              "EKA2L1_CHROME_TRACE": "off",
+              "EKA2L1_SHARED_AUDIO": "1",
+              "EKA2L1_WATCHDOG_US": "2000",
+              "EKA2L1_PROFILE_INPUT": "/home/claude/.scratch/eka-fusion-after-20261010/sky-force.input",
+              "EKA2L1_APP_UID": "0xa020d913",
+              "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json"
+            },
+            "quiet": {
+              "waited_seconds": 1.0387562470277771,
+              "observed_builds": {},
+              "required_quiet_seconds": 1,
+              "quiet_seconds": 1.01960007508751
+            }
+          },
+          "profile_report_sha256": "7cbd49d8b21e8b58d8e3d1b0c6d9bc27f83605b54e1a55d9c66973241c5c88a8",
+          "scheduler_sha256": "68657b8568bc126b4f67dd79a287faf33ab7f31036917193880b028c74154f4d"
+        },
+        {
+          "game": "snakes",
+          "index": 0,
+          "variant": "A",
+          "thumb_complete_calls": false,
+          "timer_fix": true,
+          "path": "/home/claude/.scratch/eka-fusion-after-20261010/screen-snakes-0-A",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 74000000,
+            "last_virtual_us": 86000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 3.46678,
+            "presentations": 151
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 2394.3845979884236,
+            "interval_min_mhz": 2394.259851058018,
+            "interval_max_mhz": 2394.5210247552905,
+            "worker_cpu_seconds": 2.74525932,
+            "instructions": 14973915649,
+            "cycles": 6545325154,
+            "worker": "715229:715274",
+            "sibling_busy_fraction": {
+              "15": 0.0
+            }
+          },
+          "renderer_cpu_seconds": 3.5,
+          "browser": "Chrome/153.0.8010.52",
+          "wasm_sha256": "36fb0664697329e65200581c9205d5950c877295819332a8f9dbb2864c7a3d6c",
+          "input_sha256": "26124da784af2508ad056cdff1dd23d13ae48a239a6be34ebff60774649e5dfd",
+          "runtime_footprint": {
+            "guest_us": 86000000,
+            "instructions": 0,
+            "compiled_functions": 44368,
+            "aot_translation_us": 9989360,
+            "aot_emission_us": 420763,
+            "aot_installation_us": 903286,
+            "aot_eager_functions": 35448,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 891564328,
+            "free_bytes": 61135576
+          },
+          "command": {
+            "args": [
+              "python3",
+              "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+              "/home/claude/.scratch/eka-benchmark/assets",
+              "/home/claude/.scratch/eka-fusion-after-20261010/unfused-build",
+              "/home/claude/.scratch/eka-fusion-after-20261010/screen-snakes-0-A",
+              "--hardware-counters",
+              "--start-us",
+              "74000000",
+              "--end-us",
+              "86000000",
+              "--capture-mode",
+              "1",
+              "--worker-cpu",
+              "7",
+              "--support-cpus",
+              "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "--reference-mhz",
+              "2304",
+              "--harness",
+              "/home/claude/.scratch/eka-fusion-after-20261010/harness"
+            ],
+            "env": {
+              "EKA2L1_CHROME_TRACE": "off",
+              "EKA2L1_SHARED_AUDIO": "1",
+              "EKA2L1_WATCHDOG_US": "2000",
+              "EKA2L1_PROFILE_INPUT": "/home/claude/.scratch/eka-fusion-after-20261010/snakes.input"
+            },
+            "quiet": {
+              "waited_seconds": 1.040643512038514,
+              "observed_builds": {},
+              "required_quiet_seconds": 1,
+              "quiet_seconds": 1.0210160340648144
+            }
+          },
+          "profile_report_sha256": "e63b78286916ff40249000e72bf6ebe359bfe357ccc64c2f6c434e109aab009e",
+          "scheduler_sha256": "f9b185c1096e18d1a50418d757ad43e36a1e02f41674abb17c72a15e7c67d65c"
+        },
+        {
+          "game": "snakes",
+          "index": 1,
+          "variant": "B",
+          "thumb_complete_calls": true,
+          "timer_fix": true,
+          "path": "/home/claude/.scratch/eka-fusion-after-20261010/screen-snakes-1-B",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 74000000,
+            "last_virtual_us": 86000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 3.5086,
+            "presentations": 156
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 2394.3720841448535,
+            "interval_min_mhz": 2394.2566106725835,
+            "interval_max_mhz": 2394.5025961637684,
+            "worker_cpu_seconds": 2.776521114,
+            "instructions": 15420513209,
+            "cycles": 6619826452,
+            "worker": "717349:717394",
+            "sibling_busy_fraction": {
+              "15": 0.0
+            }
+          },
+          "renderer_cpu_seconds": 3.5,
+          "browser": "Chrome/153.0.8010.52",
+          "wasm_sha256": "83d6da16a57678aa143d42154d440710b172e076fca065afd12e7c461104497f",
+          "input_sha256": "26124da784af2508ad056cdff1dd23d13ae48a239a6be34ebff60774649e5dfd",
+          "runtime_footprint": {
+            "guest_us": 86000000,
+            "instructions": 0,
+            "compiled_functions": 44375,
+            "aot_translation_us": 10725328,
+            "aot_emission_us": 463471,
+            "aot_installation_us": 918263,
+            "aot_eager_functions": 35490,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 891710520,
+            "free_bytes": 115056584
+          },
+          "command": {
+            "args": [
+              "python3",
+              "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+              "/home/claude/.scratch/eka-benchmark/assets",
+              "/home/claude/.scratch/eka-fusion-after-20261010/fused-build",
+              "/home/claude/.scratch/eka-fusion-after-20261010/screen-snakes-1-B",
+              "--hardware-counters",
+              "--start-us",
+              "74000000",
+              "--end-us",
+              "86000000",
+              "--capture-mode",
+              "1",
+              "--worker-cpu",
+              "7",
+              "--support-cpus",
+              "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "--reference-mhz",
+              "2304",
+              "--harness",
+              "/home/claude/.scratch/eka-fusion-after-20261010/harness"
+            ],
+            "env": {
+              "EKA2L1_CHROME_TRACE": "off",
+              "EKA2L1_SHARED_AUDIO": "1",
+              "EKA2L1_WATCHDOG_US": "2000",
+              "EKA2L1_PROFILE_INPUT": "/home/claude/.scratch/eka-fusion-after-20261010/snakes.input"
+            },
+            "quiet": {
+              "waited_seconds": 1.0381804789649323,
+              "observed_builds": {},
+              "required_quiet_seconds": 1,
+              "quiet_seconds": 1.0190377560211346
+            }
+          },
+          "profile_report_sha256": "af7bb08cdf4b597b2b961876f07cfdc1972baeea79449bb3a2488746da63eb86",
+          "scheduler_sha256": "d73e51c2993bd13aa691c006037b20abd6c4a1fe0ef2572db6b111d8a5433ea6"
+        },
+        {
+          "game": "snakes",
+          "index": 2,
+          "variant": "B",
+          "thumb_complete_calls": true,
+          "timer_fix": true,
+          "path": "/home/claude/.scratch/eka-fusion-after-20261010/screen-snakes-2-B",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 74000000,
+            "last_virtual_us": 86000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 3.51956,
+            "presentations": 155
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 2394.3774287150895,
+            "interval_min_mhz": 2394.247051926129,
+            "interval_max_mhz": 2394.5058309800006,
+            "worker_cpu_seconds": 2.789315848,
+            "instructions": 15395389159,
+            "cycles": 6650870165,
+            "worker": "719367:719412",
+            "sibling_busy_fraction": {
+              "15": 0.0
+            }
+          },
+          "renderer_cpu_seconds": 3.510000000000005,
+          "browser": "Chrome/153.0.8010.52",
+          "wasm_sha256": "83d6da16a57678aa143d42154d440710b172e076fca065afd12e7c461104497f",
+          "input_sha256": "26124da784af2508ad056cdff1dd23d13ae48a239a6be34ebff60774649e5dfd",
+          "runtime_footprint": {
+            "guest_us": 86000000,
+            "instructions": 0,
+            "compiled_functions": 44431,
+            "aot_translation_us": 10673596,
+            "aot_emission_us": 464001,
+            "aot_installation_us": 924006,
+            "aot_eager_functions": 35491,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 891578688,
+            "free_bytes": 114336448
+          },
+          "command": {
+            "args": [
+              "python3",
+              "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+              "/home/claude/.scratch/eka-benchmark/assets",
+              "/home/claude/.scratch/eka-fusion-after-20261010/fused-build",
+              "/home/claude/.scratch/eka-fusion-after-20261010/screen-snakes-2-B",
+              "--hardware-counters",
+              "--start-us",
+              "74000000",
+              "--end-us",
+              "86000000",
+              "--capture-mode",
+              "1",
+              "--worker-cpu",
+              "7",
+              "--support-cpus",
+              "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "--reference-mhz",
+              "2304",
+              "--harness",
+              "/home/claude/.scratch/eka-fusion-after-20261010/harness"
+            ],
+            "env": {
+              "EKA2L1_CHROME_TRACE": "off",
+              "EKA2L1_SHARED_AUDIO": "1",
+              "EKA2L1_WATCHDOG_US": "2000",
+              "EKA2L1_PROFILE_INPUT": "/home/claude/.scratch/eka-fusion-after-20261010/snakes.input"
+            },
+            "quiet": {
+              "waited_seconds": 1.0411078319884837,
+              "observed_builds": {},
+              "required_quiet_seconds": 1,
+              "quiet_seconds": 1.020655793021433
+            }
+          },
+          "profile_report_sha256": "166fb22266df7a0447da3f74aab846b1a4411bf09ab6c9e9c710275ee62a2a67",
+          "scheduler_sha256": "52e397e737ad9f73e48fffc1f1f026ff8497cf839b293fb1d74e433333eb2ae0"
+        },
+        {
+          "game": "snakes",
+          "index": 3,
+          "variant": "A",
+          "thumb_complete_calls": false,
+          "timer_fix": true,
+          "path": "/home/claude/.scratch/eka-fusion-after-20261010/screen-snakes-3-A",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 74000000,
+            "last_virtual_us": 86000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 3.50734,
+            "presentations": 153
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 2394.375284200027,
+            "interval_min_mhz": 2394.278242646108,
+            "interval_max_mhz": 2394.4899691733135,
+            "worker_cpu_seconds": 2.771965676,
+            "instructions": 15223777191,
+            "cycles": 6600301886,
+            "worker": "721437:721500",
+            "sibling_busy_fraction": {
+              "15": 0.0
+            }
+          },
+          "renderer_cpu_seconds": 3.4299999999999997,
+          "browser": "Chrome/153.0.8010.52",
+          "wasm_sha256": "36fb0664697329e65200581c9205d5950c877295819332a8f9dbb2864c7a3d6c",
+          "input_sha256": "26124da784af2508ad056cdff1dd23d13ae48a239a6be34ebff60774649e5dfd",
+          "runtime_footprint": {
+            "guest_us": 86000000,
+            "instructions": 0,
+            "compiled_functions": 44387,
+            "aot_translation_us": 10039122,
+            "aot_emission_us": 421721,
+            "aot_installation_us": 906109,
+            "aot_eager_functions": 35444,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 891606408,
+            "free_bytes": 61093496
+          },
+          "command": {
+            "args": [
+              "python3",
+              "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+              "/home/claude/.scratch/eka-benchmark/assets",
+              "/home/claude/.scratch/eka-fusion-after-20261010/unfused-build",
+              "/home/claude/.scratch/eka-fusion-after-20261010/screen-snakes-3-A",
+              "--hardware-counters",
+              "--start-us",
+              "74000000",
+              "--end-us",
+              "86000000",
+              "--capture-mode",
+              "1",
+              "--worker-cpu",
+              "7",
+              "--support-cpus",
+              "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "--reference-mhz",
+              "2304",
+              "--harness",
+              "/home/claude/.scratch/eka-fusion-after-20261010/harness"
+            ],
+            "env": {
+              "EKA2L1_CHROME_TRACE": "off",
+              "EKA2L1_SHARED_AUDIO": "1",
+              "EKA2L1_WATCHDOG_US": "2000",
+              "EKA2L1_PROFILE_INPUT": "/home/claude/.scratch/eka-fusion-after-20261010/snakes.input"
+            },
+            "quiet": {
+              "waited_seconds": 1.038174121058546,
+              "observed_builds": {},
+              "required_quiet_seconds": 1,
+              "quiet_seconds": 1.018972860998474
+            }
+          },
+          "profile_report_sha256": "04e6ce275a2763eccd90b9b6ba8d1a9e4abca8b514044c3d3340b2df57ada6db",
+          "scheduler_sha256": "739f809527b114ec3cf5d37b1c38bc641279b10652cd8f808b2da76951718b1e"
+        }
+      ],
+      "scene_reviews": [
+        {
+          "game": "sky-force",
+          "index": 0,
+          "variant": "A",
+          "reviewed": true,
+          "scene": "Active opening combat, stage 0% to 4%, three lives",
+          "screenshots": {
+            "browser-start.png": "3a6ea4581cd6c5802207f3b8a016959497dce2d8377acc84ad6ee2a540b760ed",
+            "browser.png": "65483820adfb2cc8bdf7ccfff4fefb6a8fa3ad1cc8b3fb6359d4d186dc9ff302"
+          }
+        },
+        {
+          "game": "sky-force",
+          "index": 1,
+          "variant": "B",
+          "reviewed": true,
+          "scene": "Active opening combat, stage 0% to 4%, three lives",
+          "screenshots": {
+            "browser-start.png": "4a4f6e1b77c9389cf750e049b8061e37a24c805f2dd2684030f627e22648ef96",
+            "browser.png": "840723c5c8deb0023793632b957c8150ccb4a2f43c94f0154ffb4d44741fa9ee"
+          }
+        },
+        {
+          "game": "sky-force",
+          "index": 2,
+          "variant": "B",
+          "reviewed": true,
+          "scene": "Active opening combat, stage 0% to 4%, three lives",
+          "screenshots": {
+            "browser-start.png": "3ed31994270699d693d57080c867167461cdfbc2de78d32938585046c55627cb",
+            "browser.png": "d9cecd08619c3c4325e3fd98dea3db468269e0cefb27ef629bddd651585295ec"
+          }
+        },
+        {
+          "game": "sky-force",
+          "index": 3,
+          "variant": "A",
+          "reviewed": true,
+          "scene": "Active opening combat, stage 0% to 4%, three lives",
+          "screenshots": {
+            "browser-start.png": "4a4f6e1b77c9389cf750e049b8061e37a24c805f2dd2684030f627e22648ef96",
+            "browser.png": "2c97366aa72ff7863c96d079a18fd4b0e419bbadc2e784234a7f70eb330daa56"
+          }
+        },
+        {
+          "game": "snakes",
+          "index": 0,
+          "variant": "A",
+          "reviewed": true,
+          "scene": "Active red-snake arena, score 200, differing positions",
+          "screenshots": {
+            "browser-start.png": "dcd595e56567bcbf204ac9cf2914c21443916130163cd37f4e8a6bdf8cdb3595",
+            "browser.png": "3b44ea7325851de1d4b5ac6395a539e803a62b51d75405fd4e1f048f612534c4"
+          }
+        },
+        {
+          "game": "snakes",
+          "index": 1,
+          "variant": "B",
+          "reviewed": true,
+          "scene": "Active red-snake arena, score 200, differing positions",
+          "screenshots": {
+            "browser-start.png": "e197bc3291d4472b4aaf48650795915d70af231fe59edd85e972de1e8906b48b",
+            "browser.png": "715494d4cf24582c70d5ec0d679993bc23d6d061940f91c83fb43235cfde89d1"
+          }
+        },
+        {
+          "game": "snakes",
+          "index": 2,
+          "variant": "B",
+          "reviewed": true,
+          "scene": "Active red-snake arena, score 200, differing positions",
+          "screenshots": {
+            "browser-start.png": "dcd595e56567bcbf204ac9cf2914c21443916130163cd37f4e8a6bdf8cdb3595",
+            "browser.png": "e7fd36cf3fc4024fd6943bfdd64fdbd220f4e088cf9f26e5c49fcea2cf5bc777"
+          }
+        },
+        {
+          "game": "snakes",
+          "index": 3,
+          "variant": "A",
+          "reviewed": true,
+          "scene": "Active red-snake arena, score 200, differing positions",
+          "screenshots": {
+            "browser-start.png": "6be257fee914f5ad525a26a34245b12038bd4658f82f03aaaa3878bb324665f1",
+            "browser.png": "36466d0c01036dfc936752c226b3741557f42b348b6eb5367972330d9912678a"
+          }
+        }
+      ],
+      "host_restoration": {
+        "restored": true,
+        "restoration_errors": [],
+        "record": "/home/claude/.scratch/eka-fusion-after-20261010/host-screen.json",
+        "record_sha256": "265d300407490f4e64a8bf2c15772b257bfbe4c9a8b667e9869e3c9af5b795d2"
+      }
+    },
+    "cross_region": {
+      "plan": {
+        "frequency_khz": 2400000,
+        "reference_mhz": 2304,
+        "worker_cpu": 7,
+        "support_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14
+        ],
+        "panels": [
+          "A,B,B,A"
+        ],
+        "clock_rules": {
+          "mean_relative_tolerance": 0.005,
+          "interval_relative_tolerance": 0.01,
+          "minimum_reference_interval_seconds": 0.02,
+          "max_sibling_busy_fraction": 0.02
+        },
+        "description": "All cross-call/external-branch guest fusion off vs current default, timer correction baked in both",
+        "isolated_cpus": [
+          7,
+          15
+        ],
+        "require_support_affinity": true,
+        "platform_profile": "performance",
+        "purpose": "Report game presentations per wall second and per CPU second alongside guest-time ratios. Review every scene; guest-time windows do not imply equal work.",
+        "windows": {
+          "sky-force": [
+            58000000,
+            70000000
+          ],
+          "snakes": [
+            74000000,
+            86000000
+          ]
+        },
+        "stop_on_clock_failure": true,
+        "variants": {
+          "A": {
+            "name": "cross-region fusion disabled",
+            "arm_leaf_resolver": null,
+            "thumb_immutable_code_window": null
+          },
+          "B": {
+            "name": "all retained fusion enabled",
+            "configuration": "current production default"
+          }
+        },
+        "source_commit": "7f16711101e208e2f95267645511af84ee2688e1",
+        "scope": "Disable ARM direct leaves, prefixes/veneers and guarded indirect fusion; disable Thumb external branch/callee-entry/complete-return fusion and folded ARM import/syscall veneers. Keep ordinary region compilation, internal branches/loops, direct memory, semantic lowering and standalone compiled syscalls."
+      },
+      "build_hashes": {
+        "fused": {
+          "eka2l1.js": "13132de7984c951b8c31ae316720f9ad6814a05e8a97c75efbdb19a723f22f2d",
+          "touch-controls.js": "95ed7d7f131bb23a3f0c02faf44ef74e628cc8d85cb27599a37e2ffc53f6c648",
+          "touch-controls.css": "b94844897aeef4298aa36f13cd85cbe32d3065e319ec418f12b6cf3df7d95823",
+          "eka2l1.html": "021fc7ecc11ad9a216472b86f098d4d7122a3553b665886a13032031c2c75ea9",
+          "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+          "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+          "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+          "eka2l1.wasm.map": "5bec6a12c939c9f29f8c37afc807f994494f2b4ec373133dfcd1092384314d06",
+          "eka2l1.wasm": "83d6da16a57678aa143d42154d440710b172e076fca065afd12e7c461104497f"
+        },
+        "unfused": {
+          "eka2l1.js": "a34718a8fb99a7124edfd09d75390f2d296d286623e444c889856e7be8b83c91",
+          "touch-controls.js": "95ed7d7f131bb23a3f0c02faf44ef74e628cc8d85cb27599a37e2ffc53f6c648",
+          "touch-controls.css": "b94844897aeef4298aa36f13cd85cbe32d3065e319ec418f12b6cf3df7d95823",
+          "eka2l1.html": "021fc7ecc11ad9a216472b86f098d4d7122a3553b665886a13032031c2c75ea9",
+          "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+          "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+          "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+          "eka2l1.wasm.map": "a83bb9c8d555735dbfcca8af439ac84f776c38625e9c6581016112b00af09c29",
+          "eka2l1.wasm": "678f6c4f667cdfd03117f50ad198768bcc04d5d3aaddc3b8dad6a9aa250d4983"
+        }
+      },
+      "control_patch": "diff --git a/src/emu/cpu/src/aot/arm_translator.cpp b/src/emu/cpu/src/aot/arm_translator.cpp\nindex e02a2864f..4e39c0200 100644\n--- a/src/emu/cpu/src/aot/arm_translator.cpp\n+++ b/src/emu/cpu/src/aot/arm_translator.cpp\n@@ -2913,6 +2913,7 @@ namespace eka2l1::arm::aot {\n         bool stop_after_store, bool cache_registers, bool region,\n         const leaf_resolver *leaves, bool defer_memory, arm_ir_policy ir_policy)\n     {\n+        if (bounded) leaves = nullptr;\n         auto precise = translate_arm_block_impl(code, code_size, start_address, siblings,\n             dll_code, bounded, stop_after_store, cache_registers, region, leaves,\n             defer_memory, true, ir_policy);\ndiff --git a/src/emu/cpu/src/aot/thumb_translator.cpp b/src/emu/cpu/src/aot/thumb_translator.cpp\nindex 80434d1d1..78a2b099d 100644\n--- a/src/emu/cpu/src/aot/thumb_translator.cpp\n+++ b/src/emu/cpu/src/aot/thumb_translator.cpp\n@@ -4654,6 +4654,7 @@ namespace eka2l1::arm::aot {\n         bool stop_after_store, bool cache_registers, const code_window *immutable_code)\n     {\n         // Finite bodies complete; the outer successor dispatch polls for yields.\n+        if (bounded) immutable_code = nullptr;\n         return translate_thumb_block_impl(code, code_size, start_address,\n             siblings, dll_code, bounded, stop_after_store, cache_registers, immutable_code);\n     }\n",
+      "control_patch_sha256": "68905b8ef54ab22b110badb978f802cd775083ee40f0e150b16f1c0e76f2c313",
+      "summary": {
+        "sky-force": {
+          "A": {
+            "runs": 2,
+            "valid": true,
+            "total_presentations": 760,
+            "mean_worker_cpu_seconds": 2.0836281515,
+            "mean_wall_seconds": 3.76089,
+            "mean_presentations": 380.0,
+            "presentations_per_wall_second": 101.03991342474787,
+            "presentations_per_worker_cpu_second": 182.3741917320702,
+            "worker_cpu_ms_per_presentation": 5.483231977631579,
+            "renderer_cpu_ms_per_presentation": 10.052631578947363,
+            "native_instructions_per_presentation": 36704800.16973684,
+            "guest_seconds_per_wall_second": 3.1907341081499325
+          },
+          "B": {
+            "runs": 2,
+            "valid": true,
+            "total_presentations": 761,
+            "mean_worker_cpu_seconds": 1.9979236114999999,
+            "mean_wall_seconds": 3.7039299999999997,
+            "mean_presentations": 380.5,
+            "presentations_per_wall_second": 102.72872327500791,
+            "presentations_per_worker_cpu_second": 190.4477217296253,
+            "worker_cpu_ms_per_presentation": 5.250784787122207,
+            "renderer_cpu_ms_per_presentation": 10.236530880420503,
+            "native_instructions_per_presentation": 35870833.245729305,
+            "guest_seconds_per_wall_second": 3.2398020480948615
+          },
+          "change_percent": {
+            "presentations_per_wall_second": 1.671428441511713,
+            "presentations_per_worker_cpu_second": 4.426903785496195,
+            "worker_cpu_ms_per_presentation": -4.239236848953731,
+            "renderer_cpu_ms_per_presentation": 1.8293647790521783,
+            "native_instructions_per_presentation": -2.272092260824077,
+            "guest_seconds_per_wall_second": 1.5378260388290377
+          },
+          "pairs": [
+            {
+              "control_index": 0,
+              "fused_index": 1,
+              "wall_frame_throughput_change_percent": 3.1695792983450044,
+              "cpu_frame_throughput_change_percent": 5.137573716403887,
+              "native_instructions_per_frame_change_percent": -2.758144009261354
+            },
+            {
+              "control_index": 3,
+              "fused_index": 2,
+              "wall_frame_throughput_change_percent": 0.18309872464519206,
+              "cpu_frame_throughput_change_percent": 3.722772091670401,
+              "native_instructions_per_frame_change_percent": -1.7843564556474067
+            }
+          ]
+        },
+        "snakes": {
+          "A": {
+            "runs": 2,
+            "valid": true,
+            "total_presentations": 179,
+            "mean_worker_cpu_seconds": 2.680914962,
+            "mean_wall_seconds": 3.098155,
+            "mean_presentations": 89.5,
+            "presentations_per_wall_second": 28.888160857026197,
+            "presentations_per_worker_cpu_second": 33.38412492324328,
+            "worker_cpu_ms_per_presentation": 29.954357117318438,
+            "renderer_cpu_ms_per_presentation": 37.15083798882681,
+            "native_instructions_per_presentation": 154523653.59217876,
+            "guest_seconds_per_wall_second": 3.8732729640705514
+          },
+          "B": {
+            "runs": 2,
+            "valid": true,
+            "total_presentations": 307,
+            "mean_worker_cpu_seconds": 2.747185062,
+            "mean_wall_seconds": 3.477475,
+            "mean_presentations": 153.5,
+            "presentations_per_wall_second": 44.14122315760717,
+            "presentations_per_worker_cpu_second": 55.8753766257921,
+            "worker_cpu_ms_per_presentation": 17.89697108794788,
+            "renderer_cpu_ms_per_presentation": 22.73615635179152,
+            "native_instructions_per_presentation": 99475700.15309446,
+            "guest_seconds_per_wall_second": 3.450779660529551
+          },
+          "change_percent": {
+            "presentations_per_wall_second": 52.800392437828435,
+            "presentations_per_worker_cpu_second": 67.37109855136435,
+            "worker_cpu_ms_per_presentation": -40.252528145227494,
+            "renderer_cpu_ms_per_presentation": -38.80042124856116,
+            "native_instructions_per_presentation": -35.62428933007741,
+            "guest_seconds_per_wall_second": -10.907914506933903
+          },
+          "pairs": [
+            {
+              "control_index": 0,
+              "fused_index": 1,
+              "wall_frame_throughput_change_percent": 52.670018841667,
+              "cpu_frame_throughput_change_percent": 68.11118143544755,
+              "native_instructions_per_frame_change_percent": -35.70699750714566
+            },
+            {
+              "control_index": 3,
+              "fused_index": 2,
+              "wall_frame_throughput_change_percent": 52.931780874004566,
+              "cpu_frame_throughput_change_percent": 66.62964764792048,
+              "native_instructions_per_frame_change_percent": -35.540887823438716
+            }
+          ]
+        }
+      },
+      "observations": [
+        {
+          "game": "sky-force",
+          "index": 0,
+          "variant": "A",
+          "cross_region_fusion": false,
+          "timer_fix": true,
+          "path": "/home/claude/.scratch/eka-fusion-after-20261010/broad/screen-sky-force-0-A",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 58000000,
+            "last_virtual_us": 70000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 3.80285,
+            "presentations": 379
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 2394.3496884082642,
+            "interval_min_mhz": 2394.18513827176,
+            "interval_max_mhz": 2394.559231031244,
+            "worker_cpu_seconds": 2.08232988,
+            "instructions": 13938964378,
+            "cycles": 4943664083,
+            "worker": "729980:730025",
+            "sibling_busy_fraction": {
+              "15": 0.002652519893899204
+            }
+          },
+          "renderer_cpu_seconds": 3.809999999999997,
+          "browser": "Chrome/153.0.8010.52",
+          "wasm_sha256": "678f6c4f667cdfd03117f50ad198768bcc04d5d3aaddc3b8dad6a9aa250d4983",
+          "input_sha256": "10dc1630bc1a6763cf88bc5e976b05a5b1da4c402a42108ffe01569557912fcc",
+          "runtime_footprint": {
+            "guest_us": 70000000,
+            "instructions": 0,
+            "compiled_functions": 68951,
+            "aot_translation_us": 8680799,
+            "aot_emission_us": 355337,
+            "aot_installation_us": 1093532,
+            "aot_eager_functions": 60692,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 893093632,
+            "free_bytes": 21071104
+          },
+          "command": {
+            "args": [
+              "python3",
+              "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+              "/home/claude/.scratch/eka-sky-performance/assets",
+              "/home/claude/.scratch/eka-fusion-after-20261010/broad/unfused-build",
+              "/home/claude/.scratch/eka-fusion-after-20261010/broad/screen-sky-force-0-A",
+              "--hardware-counters",
+              "--start-us",
+              "58000000",
+              "--end-us",
+              "70000000",
+              "--capture-mode",
+              "1",
+              "--worker-cpu",
+              "7",
+              "--support-cpus",
+              "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "--reference-mhz",
+              "2304",
+              "--harness",
+              "/home/claude/.scratch/eka-fusion-after-20261010/broad/harness"
+            ],
+            "env": {
+              "EKA2L1_CHROME_TRACE": "off",
+              "EKA2L1_SHARED_AUDIO": "1",
+              "EKA2L1_WATCHDOG_US": "2000",
+              "EKA2L1_PROFILE_INPUT": "/home/claude/.scratch/eka-fusion-after-20261010/broad/sky-force.input",
+              "EKA2L1_APP_UID": "0xa020d913",
+              "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json"
+            },
+            "quiet": {
+              "waited_seconds": 1.0379337790654972,
+              "observed_builds": {},
+              "required_quiet_seconds": 1,
+              "quiet_seconds": 1.0187984621152282
+            }
+          },
+          "profile_report_sha256": "09b546a7134dd7745cf54831b647d6b589b14cc900dcfa6998aee5f2fee16096",
+          "scheduler_sha256": "10bfd86d6aa5ff8aaba6c4a9f7da155d970ce1c711cecde5172354ffb7d0964f"
+        },
+        {
+          "game": "sky-force",
+          "index": 1,
+          "variant": "B",
+          "cross_region_fusion": true,
+          "timer_fix": true,
+          "path": "/home/claude/.scratch/eka-fusion-after-20261010/broad/screen-sky-force-1-B",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 58000000,
+            "last_virtual_us": 70000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 3.70547,
+            "presentations": 381
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 2394.322260542721,
+            "interval_min_mhz": 2394.050284754719,
+            "interval_max_mhz": 2394.5398265165045,
+            "worker_cpu_seconds": 1.991027902,
+            "instructions": 13626035412,
+            "cycles": 4732742284,
+            "worker": "731730:731775",
+            "sibling_busy_fraction": {
+              "15": 0.002840909090909091
+            }
+          },
+          "renderer_cpu_seconds": 3.830000000000002,
+          "browser": "Chrome/153.0.8010.52",
+          "wasm_sha256": "83d6da16a57678aa143d42154d440710b172e076fca065afd12e7c461104497f",
+          "input_sha256": "10dc1630bc1a6763cf88bc5e976b05a5b1da4c402a42108ffe01569557912fcc",
+          "runtime_footprint": {
+            "guest_us": 70000000,
+            "instructions": 0,
+            "compiled_functions": 41836,
+            "aot_translation_us": 9509527,
+            "aot_emission_us": 430737,
+            "aot_installation_us": 841258,
+            "aot_eager_functions": 34268,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 890735592,
+            "free_bytes": 111116312
+          },
+          "command": {
+            "args": [
+              "python3",
+              "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+              "/home/claude/.scratch/eka-sky-performance/assets",
+              "/home/claude/.scratch/eka-fusion-after-20261010/broad/fused-build",
+              "/home/claude/.scratch/eka-fusion-after-20261010/broad/screen-sky-force-1-B",
+              "--hardware-counters",
+              "--start-us",
+              "58000000",
+              "--end-us",
+              "70000000",
+              "--capture-mode",
+              "1",
+              "--worker-cpu",
+              "7",
+              "--support-cpus",
+              "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "--reference-mhz",
+              "2304",
+              "--harness",
+              "/home/claude/.scratch/eka-fusion-after-20261010/broad/harness"
+            ],
+            "env": {
+              "EKA2L1_CHROME_TRACE": "off",
+              "EKA2L1_SHARED_AUDIO": "1",
+              "EKA2L1_WATCHDOG_US": "2000",
+              "EKA2L1_PROFILE_INPUT": "/home/claude/.scratch/eka-fusion-after-20261010/broad/sky-force.input",
+              "EKA2L1_APP_UID": "0xa020d913",
+              "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json"
+            },
+            "quiet": {
+              "waited_seconds": 1.038116226089187,
+              "observed_builds": {},
+              "required_quiet_seconds": 1,
+              "quiet_seconds": 1.0190795740345493
+            }
+          },
+          "profile_report_sha256": "2bad5491f3cf580604d1187b91ba4354a7e9202e0810c06f16c7d08764fb54f0",
+          "scheduler_sha256": "724f48d6ddb7ada6da9b37d6b949a25fb6ab62997296e008e60ab6f31081c982"
+        },
+        {
+          "game": "sky-force",
+          "index": 2,
+          "variant": "B",
+          "cross_region_fusion": true,
+          "timer_fix": true,
+          "path": "/home/claude/.scratch/eka-fusion-after-20261010/broad/screen-sky-force-2-B",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 58000000,
+            "last_virtual_us": 70000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 3.70239,
+            "presentations": 380
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 2394.345950371726,
+            "interval_min_mhz": 2394.1681208178006,
+            "interval_max_mhz": 2394.5927675934627,
+            "worker_cpu_seconds": 2.004819321,
+            "instructions": 13671668688,
+            "cycles": 4763722464,
+            "worker": "733533:733578",
+            "sibling_busy_fraction": {
+              "15": 0.0
+            }
+          },
+          "renderer_cpu_seconds": 3.9600000000000004,
+          "browser": "Chrome/153.0.8010.52",
+          "wasm_sha256": "83d6da16a57678aa143d42154d440710b172e076fca065afd12e7c461104497f",
+          "input_sha256": "10dc1630bc1a6763cf88bc5e976b05a5b1da4c402a42108ffe01569557912fcc",
+          "runtime_footprint": {
+            "guest_us": 70000000,
+            "instructions": 0,
+            "compiled_functions": 41791,
+            "aot_translation_us": 9551481,
+            "aot_emission_us": 428585,
+            "aot_installation_us": 857018,
+            "aot_eager_functions": 34245,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 890907672,
+            "free_bytes": 112386024
+          },
+          "command": {
+            "args": [
+              "python3",
+              "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+              "/home/claude/.scratch/eka-sky-performance/assets",
+              "/home/claude/.scratch/eka-fusion-after-20261010/broad/fused-build",
+              "/home/claude/.scratch/eka-fusion-after-20261010/broad/screen-sky-force-2-B",
+              "--hardware-counters",
+              "--start-us",
+              "58000000",
+              "--end-us",
+              "70000000",
+              "--capture-mode",
+              "1",
+              "--worker-cpu",
+              "7",
+              "--support-cpus",
+              "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "--reference-mhz",
+              "2304",
+              "--harness",
+              "/home/claude/.scratch/eka-fusion-after-20261010/broad/harness"
+            ],
+            "env": {
+              "EKA2L1_CHROME_TRACE": "off",
+              "EKA2L1_SHARED_AUDIO": "1",
+              "EKA2L1_WATCHDOG_US": "2000",
+              "EKA2L1_PROFILE_INPUT": "/home/claude/.scratch/eka-fusion-after-20261010/broad/sky-force.input",
+              "EKA2L1_APP_UID": "0xa020d913",
+              "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json"
+            },
+            "quiet": {
+              "waited_seconds": 1.0407966920174658,
+              "observed_builds": {},
+              "required_quiet_seconds": 1,
+              "quiet_seconds": 1.020506922970526
+            }
+          },
+          "profile_report_sha256": "d0c895d580ab2625063b48a8cb6381ca46ce5ebea7386bc5a5e5761cdf009d98",
+          "scheduler_sha256": "84350b38c294e4f3739c6537328077b0e097e4ade05b2bd44dc6262b9409aa66"
+        },
+        {
+          "game": "sky-force",
+          "index": 3,
+          "variant": "A",
+          "cross_region_fusion": false,
+          "timer_fix": true,
+          "path": "/home/claude/.scratch/eka-fusion-after-20261010/broad/screen-sky-force-3-A",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 58000000,
+            "last_virtual_us": 70000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 3.71893,
+            "presentations": 381
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 2394.3445460060498,
+            "interval_min_mhz": 2394.1731265274643,
+            "interval_max_mhz": 2394.530039835049,
+            "worker_cpu_seconds": 2.084926423,
+            "instructions": 13956683751,
+            "cycles": 4953725575,
+            "worker": "735484:735529",
+            "sibling_busy_fraction": {
+              "15": 0.0
+            }
+          },
+          "renderer_cpu_seconds": 3.829999999999998,
+          "browser": "Chrome/153.0.8010.52",
+          "wasm_sha256": "678f6c4f667cdfd03117f50ad198768bcc04d5d3aaddc3b8dad6a9aa250d4983",
+          "input_sha256": "10dc1630bc1a6763cf88bc5e976b05a5b1da4c402a42108ffe01569557912fcc",
+          "runtime_footprint": {
+            "guest_us": 70000000,
+            "instructions": 0,
+            "compiled_functions": 68928,
+            "aot_translation_us": 8688122,
+            "aot_emission_us": 357158,
+            "aot_installation_us": 1119017,
+            "aot_eager_functions": 60692,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 893248512,
+            "free_bytes": 20916224
+          },
+          "command": {
+            "args": [
+              "python3",
+              "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+              "/home/claude/.scratch/eka-sky-performance/assets",
+              "/home/claude/.scratch/eka-fusion-after-20261010/broad/unfused-build",
+              "/home/claude/.scratch/eka-fusion-after-20261010/broad/screen-sky-force-3-A",
+              "--hardware-counters",
+              "--start-us",
+              "58000000",
+              "--end-us",
+              "70000000",
+              "--capture-mode",
+              "1",
+              "--worker-cpu",
+              "7",
+              "--support-cpus",
+              "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "--reference-mhz",
+              "2304",
+              "--harness",
+              "/home/claude/.scratch/eka-fusion-after-20261010/broad/harness"
+            ],
+            "env": {
+              "EKA2L1_CHROME_TRACE": "off",
+              "EKA2L1_SHARED_AUDIO": "1",
+              "EKA2L1_WATCHDOG_US": "2000",
+              "EKA2L1_PROFILE_INPUT": "/home/claude/.scratch/eka-fusion-after-20261010/broad/sky-force.input",
+              "EKA2L1_APP_UID": "0xa020d913",
+              "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json"
+            },
+            "quiet": {
+              "waited_seconds": 1.0385941059794277,
+              "observed_builds": {},
+              "required_quiet_seconds": 1,
+              "quiet_seconds": 1.0198736829916015
+            }
+          },
+          "profile_report_sha256": "094f644958392b56bc903408e1ca46bc025e0f5419d5b22d350c6689efbda86e",
+          "scheduler_sha256": "f2fda56f1e309cd345b546f316ee76d17a08b8cc59e45d05c809814166f95878"
+        },
+        {
+          "game": "snakes",
+          "index": 0,
+          "variant": "A",
+          "cross_region_fusion": false,
+          "timer_fix": true,
+          "path": "/home/claude/.scratch/eka-fusion-after-20261010/broad/screen-snakes-0-A",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 74000000,
+            "last_virtual_us": 86000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 3.11589,
+            "presentations": 90
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 2394.3750013590084,
+            "interval_min_mhz": 2394.222327457931,
+            "interval_max_mhz": 2394.4889353571402,
+            "worker_cpu_seconds": 2.699566576,
+            "instructions": 13911647259,
+            "cycles": 6441780811,
+            "worker": "737252:737298",
+            "sibling_busy_fraction": {
+              "15": 0.0
+            }
+          },
+          "renderer_cpu_seconds": 3.3500000000000014,
+          "browser": "Chrome/153.0.8010.52",
+          "wasm_sha256": "678f6c4f667cdfd03117f50ad198768bcc04d5d3aaddc3b8dad6a9aa250d4983",
+          "input_sha256": "26124da784af2508ad056cdff1dd23d13ae48a239a6be34ebff60774649e5dfd",
+          "runtime_footprint": {
+            "guest_us": 86000000,
+            "instructions": 0,
+            "compiled_functions": 74334,
+            "aot_translation_us": 9165709,
+            "aot_emission_us": 376568,
+            "aot_installation_us": 1207413,
+            "aot_eager_functions": 64527,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 893885352,
+            "free_bytes": 20279384
+          },
+          "command": {
+            "args": [
+              "python3",
+              "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+              "/home/claude/.scratch/eka-benchmark/assets",
+              "/home/claude/.scratch/eka-fusion-after-20261010/broad/unfused-build",
+              "/home/claude/.scratch/eka-fusion-after-20261010/broad/screen-snakes-0-A",
+              "--hardware-counters",
+              "--start-us",
+              "74000000",
+              "--end-us",
+              "86000000",
+              "--capture-mode",
+              "1",
+              "--worker-cpu",
+              "7",
+              "--support-cpus",
+              "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "--reference-mhz",
+              "2304",
+              "--harness",
+              "/home/claude/.scratch/eka-fusion-after-20261010/broad/harness"
+            ],
+            "env": {
+              "EKA2L1_CHROME_TRACE": "off",
+              "EKA2L1_SHARED_AUDIO": "1",
+              "EKA2L1_WATCHDOG_US": "2000",
+              "EKA2L1_PROFILE_INPUT": "/home/claude/.scratch/eka-fusion-after-20261010/broad/snakes.input"
+            },
+            "quiet": {
+              "waited_seconds": 1.0385093690128997,
+              "observed_builds": {},
+              "required_quiet_seconds": 1,
+              "quiet_seconds": 1.019901045016013
+            }
+          },
+          "profile_report_sha256": "adf8f98080701d6f8cccaa05b14b860a13ec596f1ef79a10ed3981ec3f11dd78",
+          "scheduler_sha256": "661bd797dae3b8ab031ccd3e442f9fc182bbb1d0101153b25208457adcf3d455"
+        },
+        {
+          "game": "snakes",
+          "index": 1,
+          "variant": "B",
+          "cross_region_fusion": true,
+          "timer_fix": true,
+          "path": "/home/claude/.scratch/eka-fusion-after-20261010/broad/screen-snakes-1-B",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 74000000,
+            "last_virtual_us": 86000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 3.49226,
+            "presentations": 154
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 2394.3770564204533,
+            "interval_min_mhz": 2394.2659861822203,
+            "interval_max_mhz": 2394.492308264663,
+            "worker_cpu_seconds": 2.747740111,
+            "instructions": 15304546897,
+            "cycles": 6544385297,
+            "worker": "739280:739359",
+            "sibling_busy_fraction": {
+              "15": 0.0
+            }
+          },
+          "renderer_cpu_seconds": 3.4499999999999957,
+          "browser": "Chrome/153.0.8010.52",
+          "wasm_sha256": "83d6da16a57678aa143d42154d440710b172e076fca065afd12e7c461104497f",
+          "input_sha256": "26124da784af2508ad056cdff1dd23d13ae48a239a6be34ebff60774649e5dfd",
+          "runtime_footprint": {
+            "guest_us": 86000000,
+            "instructions": 0,
+            "compiled_functions": 44458,
+            "aot_translation_us": 10718122,
+            "aot_emission_us": 463128,
+            "aot_installation_us": 921551,
+            "aot_eager_functions": 35507,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 891538272,
+            "free_bytes": 116342944
+          },
+          "command": {
+            "args": [
+              "python3",
+              "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+              "/home/claude/.scratch/eka-benchmark/assets",
+              "/home/claude/.scratch/eka-fusion-after-20261010/broad/fused-build",
+              "/home/claude/.scratch/eka-fusion-after-20261010/broad/screen-snakes-1-B",
+              "--hardware-counters",
+              "--start-us",
+              "74000000",
+              "--end-us",
+              "86000000",
+              "--capture-mode",
+              "1",
+              "--worker-cpu",
+              "7",
+              "--support-cpus",
+              "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "--reference-mhz",
+              "2304",
+              "--harness",
+              "/home/claude/.scratch/eka-fusion-after-20261010/broad/harness"
+            ],
+            "env": {
+              "EKA2L1_CHROME_TRACE": "off",
+              "EKA2L1_SHARED_AUDIO": "1",
+              "EKA2L1_WATCHDOG_US": "2000",
+              "EKA2L1_PROFILE_INPUT": "/home/claude/.scratch/eka-fusion-after-20261010/broad/snakes.input"
+            },
+            "quiet": {
+              "waited_seconds": 1.0389780170517042,
+              "observed_builds": {},
+              "required_quiet_seconds": 1,
+              "quiet_seconds": 1.0196435609832406
+            }
+          },
+          "profile_report_sha256": "75ed9e6892f4cc15e19b45e151c9f52471fbbac22987fe84011310c688e04e61",
+          "scheduler_sha256": "f858eddadc588b811e383577023c5621596c456dc4396e6f683f0ad9c738eb26"
+        },
+        {
+          "game": "snakes",
+          "index": 2,
+          "variant": "B",
+          "cross_region_fusion": true,
+          "timer_fix": true,
+          "path": "/home/claude/.scratch/eka-fusion-after-20261010/broad/screen-snakes-2-B",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 74000000,
+            "last_virtual_us": 86000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 3.46269,
+            "presentations": 153
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 2394.3781756198287,
+            "interval_min_mhz": 2394.2386224652114,
+            "interval_max_mhz": 2394.477337371243,
+            "worker_cpu_seconds": 2.746630013,
+            "instructions": 15234493050,
+            "cycles": 6550703728,
+            "worker": "741636:741681",
+            "sibling_busy_fraction": {
+              "15": 0.0
+            }
+          },
+          "renderer_cpu_seconds": 3.530000000000001,
+          "browser": "Chrome/153.0.8010.52",
+          "wasm_sha256": "83d6da16a57678aa143d42154d440710b172e076fca065afd12e7c461104497f",
+          "input_sha256": "26124da784af2508ad056cdff1dd23d13ae48a239a6be34ebff60774649e5dfd",
+          "runtime_footprint": {
+            "guest_us": 86000000,
+            "instructions": 0,
+            "compiled_functions": 44427,
+            "aot_translation_us": 10707471,
+            "aot_emission_us": 463593,
+            "aot_installation_us": 940010,
+            "aot_eager_functions": 35517,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 891677552,
+            "free_bytes": 114237584
+          },
+          "command": {
+            "args": [
+              "python3",
+              "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+              "/home/claude/.scratch/eka-benchmark/assets",
+              "/home/claude/.scratch/eka-fusion-after-20261010/broad/fused-build",
+              "/home/claude/.scratch/eka-fusion-after-20261010/broad/screen-snakes-2-B",
+              "--hardware-counters",
+              "--start-us",
+              "74000000",
+              "--end-us",
+              "86000000",
+              "--capture-mode",
+              "1",
+              "--worker-cpu",
+              "7",
+              "--support-cpus",
+              "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "--reference-mhz",
+              "2304",
+              "--harness",
+              "/home/claude/.scratch/eka-fusion-after-20261010/broad/harness"
+            ],
+            "env": {
+              "EKA2L1_CHROME_TRACE": "off",
+              "EKA2L1_SHARED_AUDIO": "1",
+              "EKA2L1_WATCHDOG_US": "2000",
+              "EKA2L1_PROFILE_INPUT": "/home/claude/.scratch/eka-fusion-after-20261010/broad/snakes.input"
+            },
+            "quiet": {
+              "waited_seconds": 1.0382078080438077,
+              "observed_builds": {},
+              "required_quiet_seconds": 1,
+              "quiet_seconds": 1.019404000020586
+            }
+          },
+          "profile_report_sha256": "97d790104dc5562a3e2b67b5053bdc8bc6a5147d0b6d7b0f061dd12e5b475429",
+          "scheduler_sha256": "cb9d16ec895b3cdadf562e50b6845d450339cbdc035b16a84b009e9f88f494f8"
+        },
+        {
+          "game": "snakes",
+          "index": 3,
+          "variant": "A",
+          "cross_region_fusion": false,
+          "timer_fix": true,
+          "path": "/home/claude/.scratch/eka-fusion-after-20261010/broad/screen-snakes-3-A",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 74000000,
+            "last_virtual_us": 86000000,
+            "first_instructions": 0,
+            "last_instructions": 0,
+            "wall_seconds": 3.08042,
+            "presentations": 89
+          },
+          "validity": {
+            "valid": true,
+            "errors": [],
+            "mhz": 2394.382182306395,
+            "interval_min_mhz": 2394.2163976947604,
+            "interval_max_mhz": 2394.4965455527804,
+            "worker_cpu_seconds": 2.662263348,
+            "instructions": 13748086734,
+            "cycles": 6352805534,
+            "worker": "743767:743812",
+            "sibling_busy_fraction": {
+              "15": 0.0033003300330033004
+            }
+          },
+          "renderer_cpu_seconds": 3.299999999999997,
+          "browser": "Chrome/153.0.8010.52",
+          "wasm_sha256": "678f6c4f667cdfd03117f50ad198768bcc04d5d3aaddc3b8dad6a9aa250d4983",
+          "input_sha256": "26124da784af2508ad056cdff1dd23d13ae48a239a6be34ebff60774649e5dfd",
+          "runtime_footprint": {
+            "guest_us": 86000000,
+            "instructions": 0,
+            "compiled_functions": 74516,
+            "aot_translation_us": 9140411,
+            "aot_emission_us": 376940,
+            "aot_installation_us": 1192481,
+            "aot_eager_functions": 64711,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 893940072,
+            "free_bytes": 20224664
+          },
+          "command": {
+            "args": [
+              "python3",
+              "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+              "/home/claude/.scratch/eka-benchmark/assets",
+              "/home/claude/.scratch/eka-fusion-after-20261010/broad/unfused-build",
+              "/home/claude/.scratch/eka-fusion-after-20261010/broad/screen-snakes-3-A",
+              "--hardware-counters",
+              "--start-us",
+              "74000000",
+              "--end-us",
+              "86000000",
+              "--capture-mode",
+              "1",
+              "--worker-cpu",
+              "7",
+              "--support-cpus",
+              "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "--reference-mhz",
+              "2304",
+              "--harness",
+              "/home/claude/.scratch/eka-fusion-after-20261010/broad/harness"
+            ],
+            "env": {
+              "EKA2L1_CHROME_TRACE": "off",
+              "EKA2L1_SHARED_AUDIO": "1",
+              "EKA2L1_WATCHDOG_US": "2000",
+              "EKA2L1_PROFILE_INPUT": "/home/claude/.scratch/eka-fusion-after-20261010/broad/snakes.input"
+            },
+            "quiet": {
+              "waited_seconds": 1.0386745870346203,
+              "observed_builds": {},
+              "required_quiet_seconds": 1,
+              "quiet_seconds": 1.019470141036436
+            }
+          },
+          "profile_report_sha256": "f60f4a8423285c7f63b5bf8ef68041f2a19780abaaef909f3e62ffddba08654b",
+          "scheduler_sha256": "33a69128af16c032a5212a9c5b08b75f74e01de7f733828a83eb2be5d7fe589b"
+        }
+      ],
+      "scene_reviews": [
+        {
+          "game": "sky-force",
+          "index": 0,
+          "variant": "A",
+          "reviewed": true,
+          "scene": "Active combat: tutorial overlay at start, score 675/stage 3% at end, three lives",
+          "screenshots": {
+            "browser-start.png": "ac7b6df1d68ee5a0ea181ce1abe2ba76c831d14eeaed8b40e0f4d83e6ab3cd37",
+            "browser.png": "76fab0053600f3e54b8a330b2e54d33854a240daf2f75aa011c91e943ecb253a"
+          }
+        },
+        {
+          "game": "sky-force",
+          "index": 1,
+          "variant": "B",
+          "reviewed": true,
+          "scene": "Active combat: score 0/stage 0% to score 775/stage 4%, three lives",
+          "screenshots": {
+            "browser-start.png": "10bd957f33812ba86287fa0837b9ed37572e1ab4bf5b99ffc3a89f110cfc8882",
+            "browser.png": "29eb9aebce714c2c22e22b96e424d62538d78650c3b014012df01af0c4d2b724"
+          }
+        },
+        {
+          "game": "sky-force",
+          "index": 2,
+          "variant": "B",
+          "reviewed": true,
+          "scene": "Active combat: score 0/stage 0% to score 775/stage 4%, three lives",
+          "screenshots": {
+            "browser-start.png": "3ed31994270699d693d57080c867167461cdfbc2de78d32938585046c55627cb",
+            "browser.png": "4d2b59b2eb585e9716af17137466b20c385cbff54141f36c0bfb8acd96bad67f"
+          }
+        },
+        {
+          "game": "sky-force",
+          "index": 3,
+          "variant": "A",
+          "reviewed": true,
+          "scene": "Active combat: tutorial overlay at start, score 675/stage 3% at end, three lives",
+          "screenshots": {
+            "browser-start.png": "53602c51ca068cfc4e07af26800abb017ffa136e5b538064392e5ca00fcbb804",
+            "browser.png": "33923294e56677023139fb223885b57f581e0eb03e753aa2b19d84c22bafcdb7"
+          }
+        },
+        {
+          "game": "snakes",
+          "index": 0,
+          "variant": "A",
+          "reviewed": true,
+          "scene": "Active red-snake arena, score 200, differing positions",
+          "screenshots": {
+            "browser-start.png": "cd7b181fa246fd38d93ae526de7420fb9a647ab5ac11cd818416fe967749f381",
+            "browser.png": "602526129427140b0375a3b15765d7ba21bc2f95f25b35bb46704aad8611f86e"
+          }
+        },
+        {
+          "game": "snakes",
+          "index": 1,
+          "variant": "B",
+          "reviewed": true,
+          "scene": "Active red-snake arena, score 200, differing positions",
+          "screenshots": {
+            "browser-start.png": "dcd595e56567bcbf204ac9cf2914c21443916130163cd37f4e8a6bdf8cdb3595",
+            "browser.png": "715494d4cf24582c70d5ec0d679993bc23d6d061940f91c83fb43235cfde89d1"
+          }
+        },
+        {
+          "game": "snakes",
+          "index": 2,
+          "variant": "B",
+          "reviewed": true,
+          "scene": "Active red-snake arena, score 200, differing positions",
+          "screenshots": {
+            "browser-start.png": "afb4143ecad1bfa786c38cce7c326dfe883c26e25bac3836a9dc62bcea5fad30",
+            "browser.png": "9065d445826051b1c531e139615cb5bda0cd610ba05614937af0e0141d987796"
+          }
+        },
+        {
+          "game": "snakes",
+          "index": 3,
+          "variant": "A",
+          "reviewed": true,
+          "scene": "Active red-snake arena, score 200, differing positions",
+          "screenshots": {
+            "browser-start.png": "f8ca8a3d0c6f2758dfc933e7cd9df2e821f2d7091be3333477150d25cf6f68af",
+            "browser.png": "46348b9a37ac34c5c65ef56ca6ab363b04622c22f189827b20f79ab8a2707655"
+          }
+        }
+      ],
+      "host_restoration": {
+        "restored": true,
+        "restoration_errors": [],
+        "record": "/home/claude/.scratch/eka-fusion-after-20261010/broad/host-screen.json",
+        "record_sha256": "d44889ba022af6485e33c347a75ce7320b6655f9a0cec2a75a12499449d98309"
+      }
+    }
+  },
+  "limits": [
+    "Two runs per variant per game in each ABBA panel; not confidence intervals or an all-level campaign.",
+    "A presentation is a display submission, not an independently measured game update or unique frame.",
+    "The guest-time windows can perform unequal work, even when scenes and presentation counts are close.",
+    "Hardware/CPU counters have harness boundary overhead; both variants use the same 10 ms completion polling.",
+    "The narrow control disables only complete Thumb helper returns; the broad control also removes ARM/Thumb leaves, prefixes, external-branch fusion and folded cross-mode import/syscall veneers."
+  ],
+  "restoration": {
+    "source_matches_starting_commit": true,
+    "production_build_sha256": "83d6da16a57678aa143d42154d440710b172e076fca065afd12e7c461104497f",
+    "lan_url": "https://claude-laptop.lan:8188/",
+    "lan_http_status": 200,
+    "lan_wasm_sha256": "83d6da16a57678aa143d42154d440710b172e076fca065afd12e7c461104497f",
+    "local_ca_verified": true
+  }
+}

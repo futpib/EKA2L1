@@ -1,5 +1,9 @@
 # Completing short Thumb calls inside their caller
 
+Follow-up: the [whole-game comparison after correcting User::After timing](FUSION_AFTER_TIMER_RESULTS.md)
+still finds no clear Sky Force gain from this extension alone. It also measures
+the broader retained fusion bundle separately, with a large Snakes benefit.
+
 **Retained and enabled by default.** Short, read-only Thumb helpers whose paths
 all return through unchanged LR now continue inside their caller's WASM
 function. Guest registers and flags stay in shared locals across that return.
