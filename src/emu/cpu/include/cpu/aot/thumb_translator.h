@@ -23,11 +23,16 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <functional>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 namespace eka2l1::arm::aot {
+    // Resolve a same-address-space code snapshot; callers register emitted bytes
+    // as dependencies before publishing the compiled function.
+    using leaf_resolver = std::function<std::vector<std::uint8_t>(std::uint32_t)>;
+
     // Pre-initialization experiment, shared by eager ROM and hot translations.
     inline bool thumb_region_fusion = true;
     inline bool thumb_complete_calls = true;
@@ -142,8 +147,8 @@ namespace eka2l1::arm::aot {
     };
 
     // Translate a block of Thumb code into a WASM function body.
-    // The function takes state_ptr (i32) and returns the instruction count,
-    // or zero with a pending SVC and its logical count stored in CPU state.
+    // The function takes state_ptr (i32) and returns progress status. Zero
+    // requests interpreter handling or reports a pending SVC in CPU state.
     //
     // start_address: the ARM address of the first instruction (used for branch target resolution)
     // code: pointer to Thumb bytecode
@@ -151,6 +156,7 @@ namespace eka2l1::arm::aot {
     // siblings: optional map of address → WASM func index for BL target inlining
     // dll_code: optional full-DLL code window for resolving BLX imm veneers
     // immutable_code: optional ROM window for precisely folding bounded BLX veneers and SVC stubs
+    // leaves: optional same-address-space RAM resolver for bounded calls and branches
     //
     // Returns a wasm_func_def ready to be included in a WASM module.
     // Returns empty body on failure.
@@ -161,5 +167,5 @@ namespace eka2l1::arm::aot {
         std::uint32_t start_address,
         const sibling_map *siblings = nullptr,
         const code_window *dll_code = nullptr, bool bounded = false, bool stop_after_store = false, bool cache_registers = false,
-        const code_window *immutable_code = nullptr);
+        const code_window *immutable_code = nullptr, const leaf_resolver *leaves = nullptr);
 }

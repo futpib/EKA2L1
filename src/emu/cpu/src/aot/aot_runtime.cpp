@@ -283,7 +283,7 @@ static void compile_at(core &cpu, std::uint32_t key, std::vector<std::uint32_t> 
             return std::vector<std::uint8_t>(leaf.bytes, leaf.bytes + bytes);
         };
         const code_window immutable_code{hot_rom, hot_rom_base, hot_rom_size};
-        auto translate = [&] {return thumb ? translate_thumb_block(view.bytes, size, pc, nullptr, nullptr, true, true, true, &immutable_code)
+        auto translate = [&] {return thumb ? translate_thumb_block(view.bytes, size, pc, nullptr, nullptr, true, true, true, &immutable_code, &leaves)
                             : translate_arm_block(view.bytes, size, pc, nullptr, nullptr, true, true, true, true, &leaves, true, arm_ir_policy::write_spans);};
         auto tr = [&] { compilation_timer timer{compilation.translation_us}; return translate(); }();
         if (tr.func.body.empty() || !tr.entry_supported) {

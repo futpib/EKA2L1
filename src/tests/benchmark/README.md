@@ -34,6 +34,11 @@ store continuation and the shared missed-refresh policy. A matched paced
 three-build comparison improves 10.46 to 13.58 FPS; clock, scene and profiling
 limits are recorded alongside the compiler and browser checks.
 
+The [RAM Thumb fusion follow-up](ASPHALT_RAM_FUSION_RESULTS.md) extends bounded
+helper inlining and branch fusion to trusted RAM code. Its adjacent paced
+comparison improves Asphalt from 13.79 to 16.03 FPS, with 32.0% less CPU-worker
+time per frame; a fresh native Qt control averages 17.62 FPS.
+
 - The native benchmark clock advances from executed instructions (one synthetic cycle per instruction, 484 MHz at the default clock), with at most 4,840 instructions per dispatch. This is a reproducible clock model, not a hardware cycle-accuracy claim.
 - When no guest thread is runnable, execution jumps to the next scheduled event. There is no real-time timer thread or host vsync pacing.
 - Guest UTC starts at 2024-01-01 00:00:00, timezone UTC. Guest `Math::Random` and host-generated kernel object names have fixed seeds.

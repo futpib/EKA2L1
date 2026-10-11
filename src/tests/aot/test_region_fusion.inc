@@ -46,7 +46,7 @@ static bool count_fusion_operations(wasm_func_def &function) {
 }
 
 // Compare whole compiled chains, including observable callback boundaries.
-static bool test_region_fusion(bool instrument = false) {
+static bool test_region_fusion(bool instrument = false, bool ram = false) {
 #ifdef __EMSCRIPTEN__
     using S = state_offsets;
     struct restore {
@@ -72,13 +72,24 @@ static bool test_region_fusion(bool instrument = false) {
     unsigned checks=0,independent=0,selected=0,less=0,equal=0,more=0;std::uint64_t calls[2]{};
     double operations[2][12]{};
     for(unsigned policy:{0u,2u})for(unsigned program=0;program<programs.size();++program) {
+        if(ram && policy!=2)continue;
         memory_experiment::mode=policy;
         const auto &words=programs[program];
         const code_window rom{reinterpret_cast<const std::uint8_t*>(words.data()),0x1000,static_cast<unsigned>(words.size()*2)};
+        const code_window empty{};
+        leaf_resolver resolve=[&](unsigned pc) {
+            return pc>=rom.base && pc-rom.base<rom.size
+                ? std::vector<std::uint8_t>(rom.host+pc-rom.base,rom.host+rom.size)
+                : std::vector<std::uint8_t>{};
+        };
         std::map<unsigned,std::vector<std::uint8_t>> modules[2];
         for(unsigned variant=0;variant<2;++variant)for(unsigned off=0;off<rom.size;off+=2) {
             thumb_region_fusion=variant;
-            auto tr=translate_thumb_block(rom.host+off,rom.size-off,rom.base+off,nullptr,nullptr,true,false,true,&rom);
+            auto tr=translate_thumb_block(rom.host+off,rom.size-off,rom.base+off,nullptr,nullptr,true,ram,true,ram?&empty:&rom,ram?&resolve:nullptr);
+            for(const auto &dep:tr.dependencies) {
+                if(dep.address<rom.base || dep.bytes.empty() || dep.address-rom.base+dep.bytes.size()>rom.size
+                        || std::memcmp(dep.bytes.data(),rom.host+dep.address-rom.base,dep.bytes.size()))return false;
+            }
             selected+=tr.fused_edges;
             if(instrument && !count_fusion_operations(tr.func))return false;
             modules[variant][rom.base+off]=build_wasm_module({tr.func},imports);

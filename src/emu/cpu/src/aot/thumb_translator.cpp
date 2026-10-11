@@ -105,6 +105,7 @@ namespace eka2l1::arm::aot {
         bool finite_loop = false;
         bool continue_stores = false;
         bool defer_scalar_memory = false;
+        const leaf_resolver *leaves = nullptr;
         unsigned helper_calls = 0;
         // Number of early-exit bails emitted into the function body.
         // Incremented every time the decoder gives up mid-function and
@@ -530,19 +531,31 @@ namespace eka2l1::arm::aot {
         }
     }
 
-    // Enumerate short, acyclic ROM leaves before changing the caller. Count
+    static unsigned leaf_write_size(std::uint16_t insn) {
+        switch (insn & 0xf800) {
+        case 0x6000: case 0x9000: return 4;
+        case 0x7000: return 1;
+        case 0x8000: return 2;
+        default: return 0;
+        }
+    }
+
+    // Enumerate short, acyclic leaves before changing the caller. Count
     // duplicated paths against the existing leaf bound; there is no runtime
     // instruction accumulator or recursive guest call on the selected path.
     struct thumb_leaf {
         const code_window *rom;
         std::uint32_t entry;
         unsigned expanded = 0;
+        bool stores = false;
+        std::uint64_t end = 0;
 
         bool analyze(std::uint32_t pc) {
             std::uint16_t insn;
             if (!rom || ++expanded > leaf_instruction_limit || pc < entry
                     || std::uint64_t(pc) >= std::uint64_t(entry) + leaf_instruction_limit * 2
                     || !rom->read(pc, &insn, 2)) return false;
+            end = std::max(end, std::uint64_t(pc) + 2);
             if (insn == 0x4770) return true;
             if ((insn & 0xf000) == 0xd000 && ((insn >> 8) & 15) < 14) {
                 const auto target = pc + 4 + static_cast<std::int8_t>(insn & 255) * 2;
@@ -552,7 +565,7 @@ namespace eka2l1::arm::aot {
                 const auto target = pc + 4 + (static_cast<std::int16_t>((insn & 2047) << 5) >> 5) * 2;
                 return target > pc && analyze(target);
             }
-            if (!leaf_read_size(insn)) {
+            if (!leaf_read_size(insn) && !(stores && leaf_write_size(insn))) {
                 std::vector<std::uint8_t> bytes;
                 emit probe{bytes};
                 if (!emit_leaf_alu(probe, insn)) return false;
@@ -585,20 +598,22 @@ namespace eka2l1::arm::aot {
             const auto target = pc + 4 + (static_cast<std::int16_t>((insn & 2047) << 5) >> 5) * 2;
             emit_thumb_leaf(w, leaf, target, count + 1, return_pc, depth); return;
         }
-        if (const auto size = leaf_read_size(insn)) {
+        const bool write = leaf_write_size(insn) != 0;
+        if (const auto size = write ? leaf_write_size(insn) : leaf_read_size(insn)) {
             unsigned rd = insn & 7;
             if ((insn & 0xf800) == 0x4800) {
                 rd = (insn >> 8) & 7; w.i32_const(((pc + 4) & ~3u) + (insn & 255) * 4);
-            } else if ((insn & 0xf800) == 0x9800) {
+            } else if ((insn & 0xf000) == 0x9000) {
                 rd = (insn >> 8) & 7; w.load_reg(13); w.i32_const((insn & 255) * 4); w.op(op_i32_add);
             } else {
                 w.load_reg((insn >> 3) & 7); w.i32_const(((insn >> 6) & 31) * size); w.op(op_i32_add);
             }
             w.set_local(emit::ADDRESS);
+            if (write) { w.load_reg(rd); w.set_local(emit::VALUE); }
             // A miss resumes the original instruction. No helper can change
             // flags, mappings or interrupt state inside this inlined leaf.
-            direct_access(w, size, false, [&] { w.bail(pc, count, exit_census::guard); });
-            w.set_local(1); w.store_reg(rd, 1);
+            direct_access(w, size, write, [&] { w.bail(pc, count, exit_census::guard); });
+            if (!write) { w.set_local(1); w.store_reg(rd, 1); }
         } else emit_leaf_alu(w, insn);
         emit_thumb_leaf(w, leaf, pc + 2, count + 1, return_pc, depth);
     }
@@ -836,6 +851,7 @@ namespace eka2l1::arm::aot {
     struct thumb_fusion_context {
         static constexpr unsigned instruction_limit = 512;
         const code_window *code = nullptr;
+        const leaf_resolver *leaves = nullptr;
         std::set<std::uint32_t> path;
         unsigned emitted = 0;
     };
@@ -875,7 +891,7 @@ namespace eka2l1::arm::aot {
         return 0;
     }
 
-    static void emit_thumb_block(translate_result &tr, emit &w,
+    static std::uint32_t emit_thumb_block(translate_result &tr, emit &w,
         const std::uint8_t *code, std::size_t code_size, std::uint32_t start_address,
         const sibling_map *siblings, const code_window *dll_code, bool bounded,
         bool stop_after_store, const code_window *immutable_code,
@@ -888,10 +904,19 @@ namespace eka2l1::arm::aot {
         const std::uint32_t FTMP1 = 7, FTMP2 = 8, DTMP1 = 9;
         const auto branch = [&](std::uint32_t target, unsigned count, bool checked = false) {
             std::uint16_t first = 0;
-            const bool candidate = fusion && count < 128 && fusion->emitted < thumb_fusion_context::instruction_limit
-                && tr.fused_edges < 8 && !fusion->path.count(target) && !(target & 1)
-                && fusion->code->read(target, &first, sizeof(first))
-                && first < 0xe800 && (first & 0xff00) != 0xdf00;
+            const bool room = fusion && count < 128 && fusion->emitted < thumb_fusion_context::instruction_limit
+                && tr.fused_edges < 8 && !fusion->path.count(target) && !(target & 1);
+            std::vector<std::uint8_t> resolved;
+            code_window ram_code{};
+            const auto *source = fusion ? fusion->code : nullptr;
+            bool available = room && source && source->read(target, &first, sizeof(first));
+            if (room && !available && fusion->leaves) {
+                resolved = (*fusion->leaves)(target);
+                ram_code = {resolved.data(), target, static_cast<std::uint32_t>(resolved.size())};
+                source = &ram_code;
+                available = source->read(target, &first, sizeof(first));
+            }
+            const bool candidate = available && first < 0xe800 && (first & 0xff00) != 0xdf00;
             if (!candidate) { w.bail(target, count); return; }
             // A memory callback can request a stop or interrupt. Pure prefixes
             // reuse the runner's entry checks; callbacks retain its edge check.
@@ -907,19 +932,23 @@ namespace eka2l1::arm::aot {
             }
             const auto path = fusion->path;
             const auto helpers = w.helper_calls;
-            const auto source = w.source;
+            const auto source_state = w.source;
             const auto scope = w.cache.active_scope;
             w.cache.active_scope = std::make_shared<state_local_cache::entry_fields>();
             w.cache.active_scope->parent = scope;
             w.cache.barriers.push_back({w.b.size(), true, w.cache.active_scope});
-            const auto offset = target - fusion->code->base;
-            const auto size = std::min<std::size_t>(256, fusion->code->size - offset);
+            const auto offset = target - source->base;
+            const auto size = std::min<std::size_t>(256, source->size - offset);
             ++tr.fused_edges;
-            emit_thumb_block(tr, w, fusion->code->host + offset, size, target,
-                nullptr, nullptr, true, false, immutable_code, count, fusion);
+            const auto consumed = emit_thumb_block(tr, w, source->host + offset, size, target,
+                nullptr, nullptr, true, stop_after_store, immutable_code, count, fusion);
+            if (source == &ram_code) {
+                resolved.resize(std::clamp<std::size_t>(consumed, 2, size));
+                tr.dependencies.push_back({target, std::move(resolved)});
+            }
             fusion->path = path;
             w.helper_calls = helpers;
-            w.source = source;
+            w.source = source_state;
             w.cache.active_scope = scope;
         };
 
@@ -1179,12 +1208,31 @@ namespace eka2l1::arm::aot {
                                 w.set_local(TMP2); w.store_i32(S::TFLAG, TMP2);
                                 w.bail_preserve_pc();
                             } else if (kind == 0xF800) {
+                                std::vector<std::uint8_t> leaf_bytes;
+                                code_window leaf_code{};
                                 thumb_leaf leaf{immutable_code, target};
-                                if (thumb_complete_calls && memory_experiment::enabled() && fusion
-                                        && fusion->emitted + leaf_instruction_limit <= thumb_fusion_context::instruction_limit
-                                        && tr.inlined_thumb_helpers < inline_site_limit && leaf.analyze(target)) {
+                                const bool ram_leaf = w.continue_stores && w.leaves;
+                                const bool room = fusion ? fusion->emitted + leaf_instruction_limit
+                                    <= thumb_fusion_context::instruction_limit : ram_leaf;
+                                bool inline_leaf = false;
+                                if (thumb_complete_calls && memory_experiment::enabled() && room
+                                        && tr.inlined_thumb_helpers < inline_site_limit) {
+                                    leaf.stores = ram_leaf;
+                                    inline_leaf = leaf.analyze(target);
+                                    if (!inline_leaf && ram_leaf) {
+                                        leaf_bytes = (*w.leaves)(target);
+                                        leaf_code = {leaf_bytes.data(), target, static_cast<std::uint32_t>(leaf_bytes.size())};
+                                        leaf = {&leaf_code, target, 0, true};
+                                        inline_leaf = leaf.analyze(target);
+                                    }
+                                }
+                                if (inline_leaf) {
+                                    if (leaf.rom == &leaf_code) {
+                                        leaf_bytes.resize(leaf.end - target);
+                                        tr.dependencies.push_back({target, leaf_bytes});
+                                    }
                                     ++tr.inlined_thumb_helpers;
-                                    fusion->emitted += leaf.expanded;
+                                    if (fusion) fusion->emitted += leaf.expanded;
                                     w.op(op_block); w.op(type_void);
                                     emit_thumb_leaf(w, leaf, target, insn_idx + 2, insn_addr + 4);
                                     w.op(op_end);
@@ -4651,6 +4699,7 @@ namespace eka2l1::arm::aot {
         else { w.i32_const(1); w.ret(); }
 
         if (!count_base) tr.end_address = start_address + decoded_end_offset;
+        return decoded_end_offset;
     }
 
     static translate_result translate_thumb_block_impl(
@@ -4659,7 +4708,7 @@ namespace eka2l1::arm::aot {
         std::uint32_t start_address,
         const sibling_map *siblings,
         const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers,
-        const code_window *immutable_code)
+        const code_window *immutable_code, const leaf_resolver *leaves)
     {
         // Bounded blocks exit on branches instead of recursively calling siblings.
         // Keep guest-visible instructions (including veneers) in the execution stream.
@@ -4694,6 +4743,7 @@ namespace eka2l1::arm::aot {
         w.finite_loop = loop_size != 0;
         w.continue_stores = direct_memory && stop_after_store && memory_experiment::enabled()
             && common::code_tracking::skip_code_write_guards();
+        w.leaves = leaves;
         w.cache.enabled = bounded && cache_registers;
         // Keep repeated PC, endian and TLB accesses in locals. Slow
         // callbacks still publish/reload the complete cached state.
@@ -4701,9 +4751,9 @@ namespace eka2l1::arm::aot {
         w.cache.program_counter = direct_memory;
         w.cache.first_local = result.num_locals + 1;
 
-        thumb_fusion_context fusion{immutable_code};
+        thumb_fusion_context fusion{immutable_code, w.continue_stores ? leaves : nullptr};
         const bool fuse = thumb_region_fusion && bounded && direct_memory
-            && immutable_code && !stop_after_store && !exit_census::enabled;
+            && immutable_code && (!stop_after_store || fusion.leaves) && !exit_census::enabled;
         if (fuse) w.cache.entry_scope = w.cache.active_scope = std::make_shared<state_local_cache::entry_fields>();
         emit_thumb_block(tr, w, code, code_size, start_address, siblings, dll_code,
             bounded, stop_after_store, immutable_code, 0, fuse ? &fusion : nullptr);
@@ -4718,10 +4768,10 @@ namespace eka2l1::arm::aot {
     translate_result translate_thumb_block(
         const std::uint8_t *code, std::size_t code_size, std::uint32_t start_address,
         const sibling_map *siblings, const code_window *dll_code, bool bounded,
-        bool stop_after_store, bool cache_registers, const code_window *immutable_code)
+        bool stop_after_store, bool cache_registers, const code_window *immutable_code, const leaf_resolver *leaves)
     {
         // Finite bodies complete; the outer successor dispatch polls for yields.
         return translate_thumb_block_impl(code, code_size, start_address,
-            siblings, dll_code, bounded, stop_after_store, cache_registers, immutable_code);
+            siblings, dll_code, bounded, stop_after_store, cache_registers, immutable_code, leaves);
     }
 }
