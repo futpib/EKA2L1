@@ -2623,9 +2623,7 @@ AOT_RESUME:
             eka2l1::arm::aot::observe_hot_pc(cpu);
         if (aot_func) {
             link = nullptr;
-            const auto progress = eka2l1::arm::aot::chaining_enabled
-                ? eka2l1::arm::aot::execute_chain(cpu, aot_func).progress
-                : eka2l1::arm::aot::execute_single(cpu, aot_func);
+            const auto progress = eka2l1::arm::aot::execute_chain(cpu, aot_func).progress;
             if (cpu->aot_exit & eka2l1::arm::aot::svc_pending) {
                 const auto request = cpu->aot_exit;
                 cpu->aot_exit = 0;
@@ -2658,8 +2656,7 @@ AOT_RESUME:
                 // Keep instrumented dispatch visibility unchanged.
                 // Normal play can complete the proved ROM return without
                 // looking up and calling two tiny generated regions.
-                if constexpr (!Instrumented) if (eka2l1::arm::aot::chaining_enabled
-                        && (request & eka2l1::arm::aot::svc_return)) {
+                if constexpr (!Instrumented) if (request & eka2l1::arm::aot::svc_return) {
                     const auto *memory = reinterpret_cast<const eka2l1::arm::aot::memory_experiment::direct_view *>(
                         cpu->parent()->experimental_pointer);
                     const auto count = eka2l1::arm::aot::complete_svc_return(cpu, memory,

@@ -13,10 +13,9 @@ const hash = (file: string) => crypto.createHash('sha256').update(fs.readFileSyn
 const manifest = JSON.parse(fs.readFileSync(path.join(directory, 'manifest.json'), 'utf8'));
 for (const c of manifest.cases)
     if (hash(path.join(directory, `${c.size}.wasm`)) !== c.wasm_sha256) throw Error('Module hash mismatch');
-const compareMode = Number(process.env.EKA_SNAPSHOT_COMPARE || '2');
-if (![0,2].includes(compareMode)) throw Error('Invalid comparison mode');
+if (process.env.EKA_SNAPSHOT_COMPARE !== undefined) throw Error('Comparison variants were retired');
 const checkOnly = process.env.EKA_SNAPSHOT_CHECK_ONLY === '1';
-const provenance = { manifest, compareMode, checkOnly, helperWasm: hash(path.join(build, 'eka_matched_kernel.wasm')),
+const provenance = { manifest, checkOnly, helperWasm: hash(path.join(build, 'eka_matched_kernel.wasm')),
     helperJs: hash(path.join(build, 'eka_matched_kernel.js')), cpu: os.cpus()[0].model,
     reverse: process.env.EKA_SNAPSHOT_REVERSE === '1', crossControl: process.env.EKA_SNAPSHOT_CROSS === '1', source: hash(import.meta.filename) };
 const server = http.createServer((req, res) => {
@@ -41,10 +40,10 @@ async function run(spec: any) {
         const errors: string[] = [];
         page.on('pageerror', e => errors.push(String(e)));
         await page.goto(`http://127.0.0.1:${(server.address() as any).port}/`);
-        const result = await page.evaluate(async ({ spec, cases, compareMode }) => {
+        const result = await page.evaluate(async ({ spec, cases }) => {
             const setupStart = performance.now();
             const m = await (window as any).createMatchedKernel();
-            m._layout_expose(); m._layout_compare_mode(compareMode);
+            m._layout_expose();
             const setupMs = performance.now() - setupStart;
             const base = m._data_pointer(), heap = m.HEAPU8;
             const a = base + 64, b = base + 8192, noise = base + 0x18000;
@@ -125,7 +124,7 @@ async function run(spec: any) {
             if (!data.every((v, i) => heap[a+i] === v && heap[b+i] === v)) throw Error('Input changed');
             return { ...spec, setupMs, compileMs: loaded.compileMs, instantiateMs: loaded.instantiateMs,
                 crossInstantiateMs, firstMs, warmMs, timings, calls: 5000000, bytes: c.bytes, userAgent: navigator.userAgent };
-        }, { spec, cases: manifest.cases, compareMode });
+        }, { spec, cases: manifest.cases });
         if (errors.length) throw Error(errors.join('\n'));
         return result;
     } finally { await browser.close(); }

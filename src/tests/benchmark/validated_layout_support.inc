@@ -47,10 +47,6 @@ API unsigned layout_compare(std::uintptr_t a, std::uintptr_t b, unsigned size) {
  return compare(reinterpret_cast<const unsigned char *>(a),
      reinterpret_cast<const unsigned char *>(b), size);
 }
-API void layout_compare_mode(unsigned mode) {
- if(mode!=0 && mode!=2)throw std::runtime_error("unknown exact comparison mode");
- aot::code_compare_mode=mode;
-}
 }
 #ifdef __EMSCRIPTEN__
 EM_JS(void, layout_expose_js, (std::uintptr_t validator, std::uintptr_t compare), {

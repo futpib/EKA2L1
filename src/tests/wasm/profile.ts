@@ -5,7 +5,7 @@ import {fileURLToPath} from 'node:url';
 import crypto from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import puppeteer from 'puppeteer';
-import {startServer, buildDir, compilerDefaults, rejectRetiredCompilerOptions} from './server.ts';
+import {startServer, buildDir, rejectRetiredCompilerOptions} from './server.ts';
 import {ChromeTrace, summarizeProfile, labelGuestProfile} from './chrome-profiler.ts';
 import {sampleCpuTime, cpuTimeDelta} from './cpu-time.ts';
 import {startNativeProfile, snapshotNativeMetadata, supportedV8} from './native-profile.mjs';
@@ -21,20 +21,7 @@ if (!Number.isSafeInteger(sampleInterval) || sampleInterval < 100 || sampleInter
   throw new Error('Profile sample interval must be between 100 and 1000000 microseconds');
 if (![0,1,2].includes(captureMode) || !Number.isInteger(endUs) || endUs <= Number(startArg) || endUs > 1800000000) throw new Error('Invalid profile settings');
 if (!assetArg || !outputArg) throw new Error('Usage: node profile.ts ASSETS NEW_OUTPUT [CAPTURE_MODE:0/1/2] [SAMPLING:0/1] [END_US]');
-const guestProfile = Number(process.env.EKA2L1_GUEST_PROFILE || "0");
-if (!Number.isSafeInteger(guestProfile) || guestProfile < 0 || guestProfile > 2147483647)
-  throw new Error('EKA2L1_GUEST_PROFILE must be a nonnegative sample stride');
-const exitCensus = process.env.EKA2L1_EXIT_CENSUS === "1";
-if(exitCensus && !guestProfile) throw new Error("Exit census requires guest profiling");
-const sparseRom = Number(process.env.EKA2L1_SPARSE_ROM_LOOKUP ?? compilerDefaults.sparseRom);
-if (![0,1].includes(sparseRom)) throw Error('sparseRom must be 0 or 1');
-const compiledSvc = Number(process.env.EKA2L1_COMPILED_SVC ?? compilerDefaults.compiledSvc);
-if (![0,1].includes(compiledSvc)) throw Error('Compiled syscall policy must be 0 or 1');
-const thumbMemory = Number(process.env.EKA2L1_THUMB_MEMORY ?? compilerDefaults.thumbMemory);
-if (![-1,0,1].includes(thumbMemory)) throw Error('Invalid Thumb memory policy');
 rejectRetiredCompilerOptions();
-const armExclusive = process.env.EKA2L1_ARM_EXCLUSIVE === undefined ? -1 : Number(process.env.EKA2L1_ARM_EXCLUSIVE);
-if (![-1,0,1].includes(armExclusive)) throw Error('ARM exclusive must be 0 or 1');
 const appUid = process.env.EKA2L1_APP_UID || '0x2000730f';
 if (!/^0x[0-9a-fA-F]{1,8}$/.test(appUid) || Number(appUid) === 0) throw Error('Invalid application UID');
 const sharedAudio = process.env.EKA2L1_SHARED_AUDIO === "1";
@@ -43,38 +30,18 @@ const monitorCpuStart = Number(process.env.EKA2L1_MONITOR_CPU_START_US || '0');
 if (!Number.isSafeInteger(monitorCpuStart) || monitorCpuStart < 0 || monitorCpuStart >= endUs || (monitorCpuStart && (!monitor || sampling)))
   throw new Error('Monitor CPU start requires monitoring, no whole-window sampling, and a time before the endpoint');
 if (endUs > 120000000 && !monitor) throw new Error("Runs beyond 120 guest seconds require EKA2L1_LONG_MONITOR=1 to discard audio artifacts");
-const detailedProfile = process.env.EKA2L1_PROFILE_DETAIL === '1';
-if (!detailedProfile && guestProfile) throw new Error('Guest profiling requires detailed counters');
 const hardwareGpu = process.env.EKA2L1_GPU === 'hardware';
 const glDiagnostics = process.env.EKA2L1_GL_DIAGNOSTICS === "1";
-const aotDiagnostics = process.env.EKA2L1_AOT_DIAGNOSTICS === "1";
-if (watchdogInterval() && (Number(process.env.EKA2L1_AOT_VERIFY || '0') > 0
-    || aotDiagnostics || detailedProfile || guestProfile || exitCensus))
-  throw Error('Watchdog requires verification and instruction diagnostics off');
-const codeCompare = process.env.EKA2L1_CODE_COMPARE === undefined ? -1 : Number(process.env.EKA2L1_CODE_COMPARE);
-if (![-1,0,2].includes(codeCompare)) throw new Error('Invalid exact comparison policy');
 const unsafeText=process.env.EKA2L1_UNSAFE_CODE ?? '3';
 if(!/^[03]$/.test(unsafeText))throw Error('Invalid unsafe code mode');
 if (process.env.EKA2L1_DIRECT_POLICY !== undefined || process.env.EKA2L1_MEMORY_ACTIVATE_US !== undefined)
   throw Error('Direct policy and delayed activation were removed; select EKA2L1_MEMORY_IMPL=0 (TLB) or 2 (direct)');
 const unsafeCode=Number(unsafeText);
 if(![0,3].includes(unsafeCode))throw Error('Invalid unsafe code mode');
-const leafFeatures=Number(process.env.EKA2L1_LEAF_FEATURES ?? compilerDefaults.leafFeatures);
-if(![0,32,64,96,128,160,192,224].includes(leafFeatures))throw Error('Invalid leaf feature mask');
-const predicatedLeaves = Number(process.env.EKA2L1_PREDICATED_LEAVES ?? compilerDefaults.predicatedLeaves);
-if(![0,1].includes(predicatedLeaves))throw Error('Invalid leaf predication setting');
-const executionLimits = compilerDefaults.executionLimits.split(',').map(Number);
-const irMode = Number(process.env.EKA2L1_AOT_IR_MODE ?? compilerDefaults.irMode);
-if (![-1,0,4,5,6,7].includes(irMode)) throw Error('Invalid compiler policy');
-const hotpathPolicy = Number(process.env.EKA2L1_HOTPATH ?? compilerDefaults.hotpath);
-if (![-1,0,2].includes(hotpathPolicy)) throw Error('Hotpath policy must be 0 or 2');
-const verifyAot = Number(process.env.EKA2L1_AOT_VERIFY || "0");
-if (!Number.isSafeInteger(verifyAot) || verifyAot < 0 || verifyAot > 2147483647)
-  throw new Error('EKA2L1_AOT_VERIFY must be a nonnegative integer stride');
 const aot = Number(process.env.EKA2L1_BENCHMARK_AOT || "0");
 if (![0,5].includes(aot)) throw new Error("AOT mode must be 0 (interpreter) or 5 (compiler)");
-// Direct memory is the compiled-play default; interpreter/verifier runs need TLB.
-const memoryText = process.env.EKA2L1_MEMORY_IMPL ?? (aot === 5 && !verifyAot && unsafeCode === 3 ? '2' : '0');
+// Direct memory is the compiled-play default; interpreter and mutation-compatible runs need TLB.
+const memoryText = process.env.EKA2L1_MEMORY_IMPL ?? (aot === 5 && unsafeCode === 3 ? '2' : '0');
 if (!/^[02]$/.test(memoryText)) throw Error('Memory implementation must be 0 (TLB) or 2 (direct)');
 const memoryImpl = Number(memoryText);
 const assets = path.resolve(assetArg), output = path.resolve(outputArg), frames = Number(frameArg);
@@ -165,41 +132,18 @@ try {
     const m = (window as any).Module;
     return typeof m._eka2l1_diagnostics_available === 'function' ? !!m._eka2l1_diagnostics_available() : null;
   });
-  if (diagnosticsAvailable === false && (detailedProfile || guestProfile || exitCensus || aotDiagnostics))
-    throw new Error('Custom diagnostics require a build with -DEKA2L1_WASM_DIAGNOSTICS=ON');
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
-  await page.evaluate(async ({ sparseRom, compiledSvc, hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
+  await page.evaluate(async ({ appUid, unsafeCode, memoryImpl, count, startUs, captureMode, endUs, aot, glDiagnostics, monitor, sharedAudio}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
       if (code !== 0) throw new Error(`${name} returned ${code}`);
     };
     if (monitor) call('eka2l1_monitor_configure', [], []);
-    call('eka2l1_profile_detail_configure', ['number'], [detailedProfile ? 1 : 0]);
     call('eka2l1_profile_configure', ['number', 'number', 'number'], [startUs, endUs, captureMode]);
     call('eka2l1_benchmark_configure', ['number', 'number', 'number'], [count, startUs, 1]);
     if (sharedAudio) call('eka2l1_audio_configure', [], []);
-    call('eka2l1_aot_configure', ['number', 'number', 'number'], [aot, verifyAot, aotDiagnostics ? 1 : 0]);
-    if (hotpathPolicy !== -1) {
-      call('eka2l1_hotpath_configure', ['number'], [hotpathPolicy]);
-      if (g.Module._eka2l1_hotpath_configure(-1) !== -1 || g.Module._eka2l1_hotpath_configure(8) !== -1)
-        throw Error('Invalid hotpath policy accepted');
-    }
-    g.hotpathActual = typeof g.Module._eka2l1_hotpath_report === 'function' ? g.Module._eka2l1_hotpath_report() : null;
-    if (hotpathPolicy !== -1 && g.hotpathActual !== hotpathPolicy) throw Error('Hotpath readback mismatch');
-
-    if (codeCompare !== -1) {
-      if (typeof g.Module._eka2l1_code_compare_configure !== 'function') throw new Error('Build lacks exact comparison selection');
-      call('eka2l1_code_compare_configure', ['number'], [codeCompare]);
-    }
-    if (irMode !== -1) {
-      if (typeof g.Module._eka2l1_ir_configure !== 'function') throw new Error('Build lacks IR mode selection');
-      call('eka2l1_ir_configure', ['number'], [irMode]);
-    }
-    if(typeof g.Module._eka2l1_leaf_predication_configure==='function') {
-      call('eka2l1_leaf_predication_configure',['number'],[predicatedLeaves]);
-      if(g.Module.ccall('eka2l1_leaf_predication_report','number',[],[])!==predicatedLeaves)throw Error('Leaf predication was not applied');
-    } else if(predicatedLeaves)throw Error('Leaf predication API unavailable');
+    call('eka2l1_aot_configure', ['number'], [aot]);
     if(typeof g.Module._eka2l1_unsafe_code_configure==='function') {
       g.unsafeCodeInitial=g.Module.ccall('eka2l1_unsafe_code_report','number',[],[]);
       call('eka2l1_unsafe_code_configure',['number'],[unsafeCode]);
@@ -208,32 +152,9 @@ try {
       g.unsafeCodeActual=actual;
     } else if(unsafeCode)throw Error('Unsafe code API unavailable');
     else g.unsafeCodeActual=0;
-    if(typeof g.Module._eka2l1_leaf_features_configure==='function') {
-      call('eka2l1_leaf_features_configure',['number'],[leafFeatures]);
-      if(g.Module.ccall('eka2l1_leaf_features_report','number',[],[])!==leafFeatures)throw Error('Leaf features were not applied');
-    } else if(leafFeatures)throw Error('Leaf features API unavailable');
-    if (typeof g.Module._eka2l1_execution_limits_report !== 'function'
-        || g.Module.ccall('eka2l1_execution_limits_report','string',[],[]) !== executionLimits.join(','))
-      throw Error('Fixed execution limits readback mismatch');
-    call('eka2l1_guest_profile_configure', ['number'], [guestProfile]);
-    if(exitCensus) call('eka2l1_exit_census_configure', ['number'], [1]);
     if (typeof g.Module._eka2l1_graphics_diagnostics_configure === 'function')
       call('eka2l1_graphics_diagnostics_configure', ['number'], [glDiagnostics ? 1 : 0]);
     else if (glDiagnostics) throw new Error('Build does not support graphics diagnostic configuration');
-    if (thumbMemory !== -1) {
-      call('eka2l1_thumb_memory_configure', ['number'], [thumbMemory]);
-      if (g.Module.ccall('eka2l1_thumb_memory_report', 'number', [], []) !== thumbMemory)
-        throw Error('Thumb memory policy readback mismatch');
-    }
-    call('eka2l1_sparse_rom_lookup_configure', ['number'], [sparseRom]);
-    g.sparseRomActual = g.Module._eka2l1_sparse_rom_lookup_report();
-    if (g.sparseRomActual !== sparseRom) throw Error('sparseRom readback mismatch');
-    call('eka2l1_compiled_svc_configure', ['number'], [compiledSvc]);
-    g.compiledSvcActual = g.Module._eka2l1_compiled_svc_report();
-    if (g.compiledSvcActual !== compiledSvc) throw Error('Compiled syscall readback mismatch');
-    if (armExclusive !== -1) call('eka2l1_arm_exclusive_configure', ['number'], [armExclusive]);
-    g.armExclusiveActual = typeof g.Module._eka2l1_arm_exclusive_report === 'function' ? g.Module._eka2l1_arm_exclusive_report() : null;
-    if (armExclusive !== -1 && g.armExclusiveActual !== armExclusive) throw Error('ARM exclusive readback mismatch');
     if (g.Module._eka2l1_arm_memory_configure || g.Module._eka2l1_arm_memory_report)
       throw Error('Retired ARM memory configuration API is still exported');
     if(typeof g.Module._eka2l1_memory_impl_configure==='function') {
@@ -248,13 +169,6 @@ try {
     call('eka2l1_init', ['string'], ['/data']);
     if(typeof g.Module._eka2l1_memory_impl_configure==='function' && g.Module._eka2l1_memory_impl_configure(memoryImpl)!==-1)
       throw Error('Memory implementation was not frozen');
-    if (hotpathPolicy !== -1 && (g.Module._eka2l1_hotpath_configure(hotpathPolicy ^ 2) !== -1
-        || g.Module._eka2l1_hotpath_report() !== hotpathPolicy)) throw Error('Hotpath policy changed after initialization');
-    if (thumbMemory !== -1 && g.Module._eka2l1_thumb_memory_configure(1 - thumbMemory) !== -1)
-      throw Error('Thumb memory policy changed after initialization');
-    if (g.Module._eka2l1_sparse_rom_lookup_configure(1-sparseRom) !== -1) throw Error('sparseRom changed after initialization');
-    if (g.Module._eka2l1_compiled_svc_configure(1-compiledSvc) !== -1) throw Error('Compiled syscall policy changed after initialization');
-    if (armExclusive !== -1 && g.Module._eka2l1_arm_exclusive_configure(1-armExclusive) !== -1) throw Error('ARM exclusive changed after initialization');
     if(typeof g.Module._eka2l1_unsafe_code_report==='function') {
       if(g.Module._eka2l1_unsafe_code_report()!==unsafeCode || g.Module._eka2l1_unsafe_code_configure(unsafeCode===3?0:3)!==-1)
         throw Error('Unsafe mode changed or remained configurable after CPU initialization');
@@ -279,7 +193,7 @@ try {
       }
     }
     call('eka2l1_run', ['string'], [appUid]);
-  }, { sparseRom, compiledSvc, hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio});
+  }, { appUid, unsafeCode, memoryImpl, count: frames, startUs, captureMode, endUs, aot, glDiagnostics, monitor, sharedAudio});
   async function waitPhase(phase: number) {
     const deadline = performance.now() + 1800000;
     while (await page.evaluate(() => (window as any).Module._eka2l1_profile_phase()) !== phase) {
@@ -379,10 +293,7 @@ try {
   await page.evaluate(() => performance.mark('eka2l1:measurement-end'));
   const measured = await page.evaluate(() => JSON.parse((window as any).Module.ccall('eka2l1_profile_report', 'string', [], [])));
   console.log(JSON.stringify(measured));
-  if (guestProfile) {
-    const guest = await page.evaluate(() => JSON.parse((window as any).Module.ccall('eka2l1_guest_profile_report', 'string', [], [])));
-    fs.writeFileSync(path.join(output, 'guest-profile.json'), JSON.stringify(guest));
-  }
+
   const profiles = sampling || monitorCpuStarted ? await Promise.all(clients.map(async ({name, client}) => {
     const {profile} = await client.send('Profiler.stop');
     fs.writeFileSync(path.join(output, `${name}.cpuprofile`), JSON.stringify(profile));
@@ -464,13 +375,13 @@ try {
   await page.screenshot({path: path.join(output, 'browser.png')});
   if (failures.length) throw new Error(failures.join('\n'));
 
-  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({watchdog_us: watchdogInterval(), watchdog_requests: await page.evaluate(() => (globalThis as any).ekaWatchdog ? Atomics.load((globalThis as any).ekaWatchdog.control, 1) : 0), sparse_rom_lookup: await page.evaluate(() => (globalThis as any).sparseRomActual), compiled_svc: await page.evaluate(() => (globalThis as any).compiledSvcActual), hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, app_uid: appUid, measurement: measured, warmup_seconds: warmupSeconds,
-    purpose: nativeSampling || sampling || monitorCpuStart || traceScope !== 'off' || detailedProfile || guestProfile || aotDiagnostics || monitor || glDiagnostics || !glDiagnosticsSupported || verifyAot || process.env.EKA2L1_COMPILE_CENSUS === '1' ? 'diagnostic' : 'throughput',
+  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({watchdog_us: watchdogInterval(), watchdog_requests: await page.evaluate(() => (globalThis as any).ekaWatchdog ? Atomics.load((globalThis as any).ekaWatchdog.control, 1) : 0), app_uid: appUid, measurement: measured, warmup_seconds: warmupSeconds,
+    purpose: nativeSampling || sampling || monitorCpuStart || traceScope !== 'off' || monitor || glDiagnostics || !glDiagnosticsSupported || process.env.EKA2L1_COMPILE_CENSUS === '1' ? 'diagnostic' : 'throughput',
     cpu_time: cpuTime,
     chrome_trace: {scope: traceScope, ...traceReport}, diagnostics_available: diagnosticsAvailable,
-    shared_audio: sharedAudio, guest_profile_stride: guestProfile, exit_census:exitCensus, monitor, monitor_cpu_start_us: monitorCpuStart, sampling, sample_interval_us: sampleInterval, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash,
+    shared_audio: sharedAudio, monitor, monitor_cpu_start_us: monitorCpuStart, sampling, sample_interval_us: sampleInterval, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash,
     gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
-    aot, aot_diagnostics: aotDiagnostics, memory_impl:memoryImpl, memory_impl_work:memoryWork, memory_impl_stats:await page.evaluate(() => {const m=(globalThis as any).Module;return m._eka2l1_memory_impl_stats?JSON.parse(m.ccall('eka2l1_memory_impl_stats','string',[],[])):null;}), ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), code_compare: codeCompare, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree, browser: await browser.version(),
+    aot, memory_impl:memoryImpl, memory_impl_work:memoryWork, memory_impl_stats:await page.evaluate(() => {const m=(globalThis as any).Module;return m._eka2l1_memory_impl_stats?JSON.parse(m.ccall('eka2l1_memory_impl_stats','string',[],[])):null;}), unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), git_head: gitHead, dirty_worktree: dirtyWorktree, browser: await browser.version(),
     runtime_footprint: await page.evaluate(() => {
       const m=(window as any).Module;
       return typeof m._eka2l1_monitor_report==='function' ? JSON.parse(m.ccall('eka2l1_monitor_report','string',[],[])) : null;

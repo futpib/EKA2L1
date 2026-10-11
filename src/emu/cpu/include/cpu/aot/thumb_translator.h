@@ -29,7 +29,6 @@
 
 namespace eka2l1::arm::aot {
     // Pre-initialization experiment, shared by eager ROM and hot translations.
-    inline bool thumb_direct_memory = false;
     inline bool thumb_region_fusion = true;
     inline bool thumb_complete_calls = true;
     // ARMul_State field offsets (must match the actual struct layout)

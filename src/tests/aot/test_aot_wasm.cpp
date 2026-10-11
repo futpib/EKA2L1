@@ -2122,8 +2122,8 @@ static bool test_arm_rsb() {
     return true;
 }
 
-static bool test_compiled_svc_boundary(arm_ir_policy policy = arm_ir_policy::configured) {
-    const auto saved=compiled_svc_enabled;compiled_svc_enabled=true;unsigned checks=0;
+static bool test_compiled_svc_boundary(arm_ir_policy policy = arm_ir_policy::write_spans) {
+    unsigned checks=0;
 #ifdef __EMSCRIPTEN__
     for(unsigned thumb:{0u,1u})for(unsigned page:{0u,1u})for(unsigned region:{0u,1u})
     for(unsigned cond=0;cond<15;++cond)for(unsigned nzcv=0;nzcv<16;++nzcv)for (unsigned budget : {std::max({0u,1u,2u})})for(unsigned quantum:{0u,1u,8u}) {
@@ -2142,16 +2142,16 @@ static bool test_compiled_svc_boundary(arm_ir_policy policy = arm_ir_policy::con
         const bool predicates[]={z,!z,c,!c,n,!n,v,!v,c&&!z,!c||z,n==v,n!=v,!z&&(n==v),z||(n!=v),true};
         const bool executes=true;
         const unsigned expected=executes?(svc_pending|(page?svc_page_end:0)|(predicates[cond]?svc_taken:0)|(thumb?0x56:0x123456)):0;
-        if(tr.end_address!=pc+width){printf(" FAIL SVC source extent\n");compiled_svc_enabled=saved;return false;}
+        if(tr.end_address!=pc+width){printf(" FAIL SVC source extent\n");return false;}
         const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
         if(count!=0
             ||state[15]!=pc+(executes?width:0)||state[state_offsets::AOT_EXIT/4]!=expected) {
-            printf(" FAIL svc boundary thumb=%u cond=%u flags=%u budget=%u count=%d exit=%x\n",thumb,cond,nzcv,budget,count,state[state_offsets::AOT_EXIT/4]);compiled_svc_enabled=saved;return false;
+            printf(" FAIL svc boundary thumb=%u cond=%u flags=%u budget=%u count=%d exit=%x\n",thumb,cond,nzcv,budget,count,state[state_offsets::AOT_EXIT/4]);return false;
         }
         ++checks;
     }
 #endif
-    compiled_svc_enabled=saved;printf(" PASS compiled_svc_boundary (%u predicate/budget/page checks)\n",checks);return true;
+    printf(" PASS compiled_svc_boundary (%u predicate/budget/page checks)\n",checks);return true;
 }
 
 
@@ -2175,7 +2175,6 @@ static bool test_arm_clz() {
 // exactly the same number of DynCom instructions, including partial budgets.
 static bool test_bounded_execution(bool thumb_only = false) {
 #ifdef __EMSCRIPTEN__
-    struct restore_thumb { bool saved=thumb_direct_memory; ~restore_thumb(){thumb_direct_memory=saved;} } restore;
     struct program { bool thumb; std::vector<std::uint8_t> bytes; };
     auto arm = [](std::initializer_list<std::uint32_t> words) {
         std::vector<std::uint8_t> bytes(words.size() * 4);
@@ -2347,10 +2346,9 @@ static bool test_bounded_execution(bool thumb_only = false) {
         }
     std::rotate(programs.begin(), programs.begin() + existing_programs, programs.end());
     int index = 0;
-    for (unsigned variant = 0; variant < 9; ++variant) for (const auto &p : programs) {
+    for (unsigned variant = 0; variant < 7; ++variant) for (const auto &p : programs) {
         if (thumb_only && !p.thumb) continue;
-        if (variant >= 7 && !p.thumb) continue;
-        thumb_direct_memory = variant >= 7;
+
         const bool region = variant >= 4, cache_registers = region || (variant & 2), stop_after_store = variant & 1;
         auto tr = p.thumb ? translate_thumb_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true, stop_after_store, cache_registers)
                           : translate_arm_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true, stop_after_store, cache_registers, region);
@@ -2419,7 +2417,7 @@ static bool test_bounded_execution(bool thumb_only = false) {
 }
 
 // Pending interrupts must exit at a taken loop backedge with precise state.
-static bool test_region_loop_interrupts(arm_ir_policy policy = arm_ir_policy::configured) {
+static bool test_region_loop_interrupts(arm_ir_policy policy = arm_ir_policy::write_spans) {
     const std::uint32_t words[] = {0xe2800001,0xeafffffd};
     auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(words),sizeof(words),
         0x1000,nullptr,nullptr,true,true,true,true,nullptr,false,policy);
@@ -2437,7 +2435,7 @@ static bool test_region_loop_interrupts(arm_ir_policy policy = arm_ir_policy::co
 }
 
 // A guest alias must not let a region execute code overwritten by an inline store.
-static bool test_region_code_alias(arm_ir_policy policy = arm_ir_policy::configured) {
+static bool test_region_code_alias(arm_ir_policy policy = arm_ir_policy::write_spans) {
 #ifdef __EMSCRIPTEN__
     for (bool block_store : {false, true}) {
     const std::uint32_t words[] = {block_store ? 0xe8a10009u : 0xe5810004u,0xe2822001,0xeafffffc};
@@ -2497,7 +2495,7 @@ static bool test_region_code_alias(arm_ir_policy policy = arm_ir_policy::configu
     return true;
 }
 
-static bool test_inlined_leaves(arm_ir_policy policy = arm_ir_policy::configured) {
+static bool test_inlined_leaves(arm_ir_policy policy = arm_ir_policy::write_spans) {
 #ifdef __EMSCRIPTEN__
     // Repeated far calls in a loop, including real workload memory leaves.
     const std::vector<std::uint32_t> caller{0xeb0003fe,0xeb0003fd,0xe2566001,0x1afffffb};
@@ -2561,7 +2559,7 @@ static bool test_inlined_leaves(arm_ir_policy policy = arm_ir_policy::configured
     return true;
 }
 
-static bool test_region_cpsr_callback(arm_ir_policy policy = arm_ir_policy::configured) {
+static bool test_region_cpsr_callback(arm_ir_policy policy = arm_ir_policy::write_spans) {
 #ifdef __EMSCRIPTEN__
     const std::uint32_t code[] = {0xE128F000u, 0xE5912000u, 0xE2833001u};
     auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(code), sizeof(code),
@@ -2828,7 +2826,7 @@ static bool test_proved_read_spans() {
     return true;
 }
 
-static bool test_invariant_reads(arm_ir_policy policy = arm_ir_policy::invariant_reads) {
+static bool test_invariant_reads(arm_ir_policy policy = arm_ir_policy::write_spans) {
 #if defined(__EMSCRIPTEN__)
     std::vector<std::vector<std::uint32_t>> programs = {
         {0xe5910000,0xe5912004,0xe5913008,0xe591400c,0xe2566001,0x1afffff9},
@@ -3022,7 +3020,7 @@ static bool test_division_sequences() {
 // Loop proofs must keep exact short-budget prefixes, including conditional
 // external exits, memory faults, interrupt backedges and entry in the middle
 // of a larger region. These fixtures use no ROM/game-specific addresses.
-static bool test_invariant_writes(arm_ir_policy policy = arm_ir_policy::invariant_writes) {
+static bool test_invariant_writes(arm_ir_policy policy = arm_ir_policy::write_spans) {
 #if defined(__EMSCRIPTEN__)
     const std::vector<std::vector<std::uint32_t>> programs = {
         {0xe5810000,0xe5812004,0xe5813008,0xe581400c,0xe2566001,0x1afffff9},
@@ -3243,14 +3241,8 @@ static bool test_block_transfer_callback_pc() {
 }
 
 static bool test_code_cache_lifecycle() {
-    struct restore_mode {
-        unsigned old_compare = code_compare_mode;
-        ~restore_mode() { code_compare_mode = old_compare; }
-    } restore;
-    for (const unsigned compare : {0u, 2u})
     for (const unsigned snapshot_size : {28u, 128u})
     {
-        code_compare_mode = compare;
         test_mem memory;
         r12l1::exclusive_monitor monitor(1);
         auto cpu = make_cpu(memory, monitor);
@@ -3333,13 +3325,11 @@ static bool test_code_cache_lifecycle() {
         if (!cache.find(0x1000, *cpu) || !cache.find(0x1000, *cpu)
             || resolutions != before_zero + 4) return false;
     }
-    printf("  PASS code_cache_lifecycle (original/grouped comparators, short/long snapshots, dependencies, mappings, rejection)\n");
+    printf("  PASS code_cache_lifecycle (short/long snapshots, dependencies, mappings, rejection)\n");
     return true;
 }
 
 static bool test_exact_code_compare() {
-    for (unsigned mode : {0u, 2u}) {
-    code_compare_mode = mode;
     const auto compare = [](const std::uint8_t *x, const std::uint8_t *y, std::size_t size) {
         return equal_code_bytes(x, y, size);
     };
@@ -3378,9 +3368,7 @@ static bool test_exact_code_compare() {
             if(compare(a.data()+left,b.data()+right,size)) return false;
             b[right]^=1; b[right+16]^=1;
         }
-    }
-    code_compare_mode = 0;
-    printf("  PASS exact_code_compare (original/grouped modes, unaligned/tails/mutations)\n"); return true;
+    printf("  PASS exact_code_compare (unaligned/tails/mutations)\n"); return true;
 }
 
 // Check every condition/flag combination against DynCom, including false moves,
@@ -3855,10 +3843,9 @@ static bool test_sparse_rom_registry() {
 
 static bool test_thumb_call_boundaries() {
 #ifdef __EMSCRIPTEN__
-    struct restore { bool old=thumb_direct_memory; ~restore(){thumb_direct_memory=old;} } saved;
     unsigned checks=0;
-    for(bool enabled:{false,true})for(unsigned suffix:{0xf801u,0xe802u})for(unsigned base:{0x1000u,0x1002u}) {
-        thumb_direct_memory=enabled;
+    for(unsigned suffix:{0xf801u,0xe802u})for(unsigned base:{0x1000u,0x1002u}) {
+
         const std::uint16_t code[]={0xf001,static_cast<std::uint16_t>(suffix)};
         auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),base,nullptr,nullptr,true,false,true);
         auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
@@ -3873,7 +3860,7 @@ static bool test_thumb_call_boundaries() {
             state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=static_cast<unsigned>(remaining);
             state[state_offsets::NUM_INSTRS_TO_EXECUTE/4+1]=static_cast<unsigned>(remaining>>32);
             std::uint32_t expected[256];std::memcpy(expected,state,sizeof(state));
-            const unsigned wanted=!budget?0:enabled&&budget>=2&&remaining&&(irq||mask)?2:1;
+            const unsigned wanted=!budget?0:budget>=2&&remaining&&(irq||mask)?2:1;
             if(wanted==1){expected[14]=base+4+0x1000;expected[15]=base+2;}
             if(wanted==2){
                 expected[14]=(base+4)|1;expected[15]=base+4+0x1000+((suffix&0x7ff)<<1);
@@ -3883,8 +3870,8 @@ static bool test_thumb_call_boundaries() {
             const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
             g_count_memory_helpers=false;
             if(count!=1||g_memory_helper_calls||std::memcmp(state,expected,sizeof(state))) {
-                printf("  FAIL thumb_call_boundaries enabled=%u suffix=%x base=%x budget=%u irq=%u mask=%u remaining=%llu count=%d expected=%u\n",
-                    enabled,suffix,base,budget,irq,mask,static_cast<unsigned long long>(remaining),count,wanted);return false;
+                printf("  FAIL thumb_call_boundaries suffix=%x base=%x budget=%u irq=%u mask=%u remaining=%llu count=%d expected=%u\n",
+                    suffix,base,budget,irq,mask,static_cast<unsigned long long>(remaining),count,wanted);return false;
             }
             ++checks;
         }
@@ -3898,10 +3885,10 @@ static bool test_thumb_rom_veneers() {
 #ifdef __EMSCRIPTEN__
     struct restore {
         unsigned mode=memory_experiment::mode;
-        bool direct=thumb_direct_memory;
-        ~restore(){memory_experiment::mode=mode;thumb_direct_memory=direct;g_test_mem=nullptr;}
+
+        ~restore(){memory_experiment::mode=mode;g_test_mem=nullptr;}
     } saved;
-    thumb_direct_memory=true;
+
     unsigned checks=0;
     test_mem memory;
     const std::vector<wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
@@ -3993,16 +3980,15 @@ static bool test_thumb_rom_syscalls() {
 #ifdef __EMSCRIPTEN__
     struct restore {
         unsigned mode=memory_experiment::mode;
-        bool direct=thumb_direct_memory, svc=compiled_svc_enabled;
-        ~restore(){memory_experiment::mode=mode;
-            thumb_direct_memory=direct;compiled_svc_enabled=svc;}
+
+        ~restore(){memory_experiment::mode=mode;}
     } saved;
-    thumb_direct_memory=true;
+
     unsigned checks=0;
-    for(unsigned mode:{0u,2u})for(unsigned layout:{0u,2u})for(bool enabled:{false,true})
+    for(unsigned mode:{0u,2u})for(unsigned layout:{0u,2u})
     for(unsigned base:{0x1000u,0x1002u})for(unsigned target:{0x2000u,0x2ffcu})
     for(unsigned prefix:{0u,1u,3u})for(unsigned opcode:{0xef000005u,0xef800000u,0xef800005u,0xef0000ffu,0x1f000005u}) {
-        memory_experiment::mode=mode;compiled_svc_enabled=enabled;
+        memory_experiment::mode=mode;
         std::vector<std::uint16_t> code(prefix,0x3001); // ADDS R0, #1
         const unsigned call=base+prefix*2,delta=target-((call+4)&~3u);
         code.push_back(static_cast<std::uint16_t>(0xf000u|((delta>>12)&0x7ff)));
@@ -4017,7 +4003,7 @@ static bool test_thumb_rom_syscalls() {
         }
         auto stub=translate_arm_block(reinterpret_cast<const std::uint8_t*>(&opcode),4,target,nullptr,nullptr,true,false,true);
         auto arm_module=build_wasm_module({stub.func},{});
-        const bool selected=enabled && (opcode>>24)==0xef;
+        const bool selected=(opcode>>24)==0xef;
         for (unsigned budget : {unsigned(prefix+4)})for(unsigned flags:{0u,5u,10u,15u})
         for(unsigned irq:{0u,1u})for(unsigned mask:{0u,0x80u})
         for(std::uint64_t remaining:{std::uint64_t(0),std::uint64_t(1),std::uint64_t(8),std::uint64_t(1)<<32}) {
@@ -4049,8 +4035,8 @@ static bool test_thumb_rom_syscalls() {
                 }
             }
             if(logical[0]!=logical[1] || std::memcmp(states[0],states[1],sizeof(states[0]))) {
-                printf(" FAIL Thumb ROM syscall mode=%u layout=%u enabled=%u base=%x target=%x prefix=%u op=%x budget=%u flags=%u irq=%u mask=%u remaining=%llu counts=%u/%u\n",
-                    mode,layout,enabled,base,target,prefix,opcode,budget,flags,irq,mask,
+                printf(" FAIL Thumb ROM syscall mode=%u layout=%u base=%x target=%x prefix=%u op=%x budget=%u flags=%u irq=%u mask=%u remaining=%llu counts=%u/%u\n",
+                    mode,layout,base,target,prefix,opcode,budget,flags,irq,mask,
                     static_cast<unsigned long long>(remaining),logical[0],logical[1]);
                 for(unsigned i=0;i<256;++i)if(states[0][i]!=states[1][i])printf(" state[%u]=%x/%x\n",i,states[0][i],states[1][i]);
                 return false;
@@ -4067,9 +4053,8 @@ static bool test_thumb_transfer_spans() {
 #ifdef __EMSCRIPTEN__
     namespace tracking = eka2l1::common::code_tracking;
     struct restore {
-        bool direct=thumb_direct_memory;
         unsigned mode=tracking::unsafe_code_mode;
-        ~restore(){thumb_direct_memory=direct;
+        ~restore(){
             tracking::unsafe_code_mode=mode;g_test_mem=nullptr;}
     } saved;
     unsigned checks=0;
@@ -4080,8 +4065,8 @@ static bool test_thumb_transfer_spans() {
         const std::uint16_t code=opcode;
         std::vector<std::uint8_t> modules[2];
         for(unsigned enabled=0;enabled<2;++enabled) {
-            thumb_direct_memory=enabled;
-            auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(&code),sizeof(code),0x1000,nullptr,nullptr,true,false,true);
+
+            auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(&code),sizeof(code),0x1000,nullptr,nullptr,true,false,enabled!=0);
             modules[enabled]=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
                 {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
         }
@@ -4126,9 +4111,8 @@ static bool test_thumb_direct_memory() {
 #ifdef __EMSCRIPTEN__
     namespace tracking = eka2l1::common::code_tracking;
     struct restore {
-        bool direct=thumb_direct_memory;
         unsigned mode=tracking::unsafe_code_mode;
-        ~restore(){thumb_direct_memory=direct;
+        ~restore(){
             tracking::unsafe_code_mode=mode;g_test_mem=nullptr;g_read32_observer={};}
     } saved;
     unsigned checks=0;
@@ -4138,8 +4122,8 @@ static bool test_thumb_direct_memory() {
         const std::uint16_t code[]={0x2207,static_cast<std::uint16_t>(ops[index]),0x3301};
         std::vector<std::uint8_t> modules[2];
         for(unsigned enabled=0;enabled<2;++enabled) {
-            thumb_direct_memory=enabled;
-            auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true);
+
+            auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,enabled!=0);
             modules[enabled]=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
                 {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
         }
@@ -4174,8 +4158,8 @@ static bool test_thumb_direct_memory() {
     }
     // A helper may change registers, flags and mappings. The next access must
     // use the updated state and TLB; callback barriers remain on the slow arm.
-    for(bool enabled:{false,true}) {
-        thumb_direct_memory=enabled;tracking::unsafe_code_mode=3;
+    {
+        tracking::unsafe_code_mode=3;
         const std::uint16_t code[]={0x2207,0x6808,0x681a,0x4150};
         auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true);
         auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
@@ -4195,16 +4179,16 @@ static bool test_thumb_direct_memory() {
         g_test_mem=&memory;g_all_memory_helper_calls=0;
         const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
         g_read32_observer={};
-        if(count!=1||!observed||state[0]!=51||state[2]!=30||state[3]!=0x9000||g_all_memory_helper_calls!=(enabled?1u:2u)) {
-            printf(" FAIL Thumb callback state/mapping enabled=%d count=%d r0=%u observed=%d helpers=%u\n",enabled,count,state[0],observed,g_all_memory_helper_calls);return false;
+        if(count!=1||!observed||state[0]!=51||state[2]!=30||state[3]!=0x9000||g_all_memory_helper_calls!=1u) {
+            printf(" FAIL Thumb callback state/mapping count=%d r0=%u observed=%d helpers=%u\n",count,state[0],observed,g_all_memory_helper_calls);return false;
         }
         ++checks;
     }
     // Runtime fields and the PC can change in a callback. A second transfer
     // in the same instruction sees the callback PC, and the next instruction
     // sees a replaced TLB and endian state.
-    for(bool enabled:{false,true})for(unsigned endian:{0u,0x200u}) {
-        thumb_direct_memory=enabled;tracking::unsafe_code_mode=3;
+    for(unsigned endian:{0u,0x200u}) {
+        tracking::unsafe_code_mode=3;
         const std::uint16_t code[]={0x2207,0xc905,0x6818,0x3401};
         auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true);
         auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
@@ -4231,8 +4215,8 @@ static bool test_thumb_direct_memory() {
         if(count!=1||observed!=2||state[0]!=40||state[1]!=0x8008||state[2]!=30||state[4]!=100||state[15]!=0x1008
             ||state[state_offsets::CPSR/4]!=(0x30|endian)
             ||state[state_offsets::AOT_TLB/4]!=reinterpret_cast<std::uintptr_t>(new_tlb.entries)
-            ||g_all_memory_helper_calls!=(enabled&&!endian?2u:3u)) {
-            printf(" FAIL Thumb runtime callback enabled=%d endian=%x count=%d pc=%x observed=%u helpers=%u\n",enabled,endian,count,state[15],observed,g_all_memory_helper_calls);return false;
+            ||g_all_memory_helper_calls!=(!endian?2u:3u)) {
+            printf(" FAIL Thumb runtime callback endian=%x count=%d pc=%x observed=%u helpers=%u\n",endian,count,state[15],observed,g_all_memory_helper_calls);return false;
         }
         ++checks;
     }
@@ -4297,7 +4281,7 @@ static void emit_memory_layout() {
 }
 static void emit_memory_probes() {
     emit_memory_layout();
-    eka2l1::common::code_tracking::unsafe_code_mode=3;thumb_direct_memory=true;
+    eka2l1::common::code_tracking::unsafe_code_mode=3;
     const std::vector<wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
         {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
     for(unsigned mode:{0u,2u}) {
@@ -4690,13 +4674,13 @@ static bool test_boundary_details() {
 #ifdef __EMSCRIPTEN__
     using namespace exit_census;
     struct restore {
-        bool census=enabled,predicates=predicated_leaves,perf=eka2l1::common::performance::enabled,detail=eka2l1::common::performance::detailed;
+        bool census=enabled,perf=eka2l1::common::performance::enabled,detail=eka2l1::common::performance::detailed;
         int phase=eka2l1::common::performance::phase.load();
-        ~restore(){enabled=census;predicated_leaves=predicates;eka2l1::common::performance::enabled=perf;eka2l1::common::performance::detailed=detail;eka2l1::common::performance::phase=phase;}
+        ~restore(){enabled=census;eka2l1::common::performance::enabled=perf;eka2l1::common::performance::detailed=detail;eka2l1::common::performance::phase=phase;}
     } saved;
     enabled=true;eka2l1::common::performance::enabled=true;eka2l1::common::performance::detailed=true;eka2l1::common::performance::phase=2;
-    struct fixture {unsigned opcode,expected;bool predicates=true;};
-    const fixture cases[]={{0x03a00001,predicates_disabled,false},{0xf3a00001,reserved_predicate},
+    struct fixture {unsigned opcode,expected;};
+    const fixture cases[]={{0xf3a00001,reserved_predicate},
         {0x15910000,conditional_memory},{0x1afffffe,conditional_transfer},{0xeafffffe,internal_branch},
         {0xeb000000,nested_call},{0xe8bd8010,block_transfer},{0xef000000,coprocessor_or_supervisor},
         {0xe59d0000,sp_operand},{0xe1a0e000,lr_operand},{0xe51ff004,pc_operand},
@@ -4707,7 +4691,7 @@ static bool test_boundary_details() {
     const unsigned caller[]={0xeb0003feu,0xe2844001u};
     unsigned checks=0;
     for(auto f:cases) {
-        predicated_leaves=f.predicates;
+
         const unsigned leaf[]={0xe1a00000u,f.opcode,0xe12fff1eu};
         leaf_resolver resolver=[&](unsigned){const auto *p=reinterpret_cast<const std::uint8_t*>(leaf);return std::vector<std::uint8_t>(p,p+sizeof(leaf));};
         auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_spans);
@@ -4791,13 +4775,11 @@ static bool test_boundary_details() {
 
 static bool test_branch_veneers() {
 #ifdef __EMSCRIPTEN__
-    struct restore {bool flag=predicated_leaves;unsigned features=leaf_features;
-        ~restore(){predicated_leaves=flag;leaf_features=features;}} saved;
-    predicated_leaves=true;
+
     unsigned checks=0;
     for(unsigned entry_mode:{0u,2u})for(unsigned target:{0x3000u,0x1800u,0x2000u,0x1000u,0x1008u})
-    for(unsigned layout=0;layout<3;++layout)for(unsigned features:{0u,32u}) {
-        leaf_features=features;
+    for(unsigned layout=0;layout<3;++layout){
+
         const std::vector<unsigned> caller=layout==1?std::vector<unsigned>{0x1a000002u,0xeb0003fdu,0xe28bb001u,0xe3a0c002u,0xe2888001u}:
             std::vector<unsigned>{layout==2?0xe5802000u:0xe2844001u,0xeb0003fdu,0xe28bb001u};
         const unsigned branch=0xea000000u|(((target-0x2008u)>>2)&0xffffffu);
@@ -4806,13 +4788,13 @@ static bool test_branch_veneers() {
             return pc==0x2000?std::vector<std::uint8_t>(b,b+sizeof(leaf)):std::vector<std::uint8_t>{};};
         auto translate=[&](arm_ir_policy policy=arm_ir_policy::write_spans){return translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller.data()),caller.size()*4,0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,policy);};
         auto tr=translate();
-        if(tr.dependencies.size()!=unsigned(features==32) || (features &&
+        if(tr.dependencies.size()!=1 ||
             (tr.dependencies[0].bytes.size()!=4 || tr.dependencies[0].address!=0x2000 ||
-             std::find(tr.resume_points.begin(),tr.resume_points.end(),0x1008u)==tr.resume_points.end()))) {
+             std::find(tr.resume_points.begin(),tr.resume_points.end(),0x1008u)==tr.resume_points.end())) {
             printf(" FAIL branch veneer selection\n");return false;
         }
-        if(features) {
-            predicated_leaves=false;if(!translate().dependencies.empty())return false;predicated_leaves=true;
+        {
+
             if(!translate(arm_ir_policy::disabled).dependencies.empty())return false;
         }
         auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
@@ -4838,17 +4820,17 @@ static bool test_branch_veneers() {
             if(count<0 || (!count && budget)){printf(" FAIL branch veneer count\n");return false;}
             /* Reference state was advanced to the compiled exit above. */
             for(unsigned reg=0;reg<16;++reg)if(state[reg]!=reference->get_reg(reg)) {
-                printf(" FAIL branch veneer target=%x layout=%u features=%u entry=%u alias=%u flags=%u budget=%u count=%d R%u=%x expected=%x\n",target,layout,features,entry_mode,alias,flags,budget,count,reg,state[reg],reference->get_reg(reg));return false;
+                printf(" FAIL branch veneer target=%x layout=%u entry=%u alias=%u flags=%u budget=%u count=%d R%u=%x expected=%x\n",target,layout,entry_mode,alias,flags,budget,count,reg,state[reg],reference->get_reg(reg));return false;
             }
             for(unsigned f=0;f<4;++f)if(state[test_flag_offsets[f]/4]!=((reference->get_cpsr()>>(31-f))&1))return false;
             if(actual.data!=expected.data)return false;
-            if(features && !layout && budget>=3 && (state[15]!=target || state[14]!=0x1008 || state[11]!=11))return false;
+            if(!layout && budget>=3 && (state[15]!=target || state[14]!=0x1008 || state[11]!=11))return false;
             ++checks;
         }
     }
-    // Conditional branches, BL/BLX and register/load veneers keep their path.
-    leaf_features=32;
-    for(unsigned op:{0x1a000000u,0xeb000000u,0xfa000000u,0xe12fff10u,0xe51ff004u}) {
+    // Conditional branches, BL/BLX and register veneers keep their path.
+
+    for(unsigned op:{0x1a000000u,0xeb000000u,0xfa000000u,0xe12fff10u}) {
         const unsigned caller[]={0xeb0003feu};
         leaf_resolver resolver=[&](unsigned){const auto *b=reinterpret_cast<const std::uint8_t*>(&op);return std::vector<std::uint8_t>(b,b+4);};
         auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),4,0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_spans);
@@ -4861,13 +4843,11 @@ static bool test_branch_veneers() {
 
 static bool test_tail_prefixes() {
 #ifdef __EMSCRIPTEN__
-    struct restore {bool flag=predicated_leaves;unsigned features=leaf_features;
-        ~restore(){predicated_leaves=flag;leaf_features=features;}} saved;
-    predicated_leaves=true;
+
     unsigned checks=0;
     for(unsigned entry_mode:{0u,2u})for(unsigned target:{0x3000u,0x1800u,0x2000u,0x1000u,0x1008u})
-    for(unsigned layout=0;layout<3;++layout)for(unsigned pattern=0;pattern<3;++pattern)for(unsigned features:{0u,32u,64u,224u}) {
-        leaf_features=features;
+    for(unsigned layout=0;layout<3;++layout)for(unsigned pattern=0;pattern<3;++pattern){
+
         const std::vector<unsigned> caller=layout==1?std::vector<unsigned>{0x1a000002u,0xeb0003fdu,0xe28bb001u,0xe3a0c002u,0xe2888001u}:
             std::vector<unsigned>{layout==2?0xe5802000u:0xe2844001u,0xeb0003fdu,0xe28bb001u};
         std::vector<unsigned> leaf = pattern==0 ? std::vector<unsigned>{0xe1a03000u,0xe1a00001u,0xe1a01003u} :
@@ -4880,13 +4860,13 @@ static bool test_tail_prefixes() {
             return pc==0x2000?std::vector<std::uint8_t>(b,b+leaf.size()*4):std::vector<std::uint8_t>{};};
         auto translate=[&](arm_ir_policy policy=arm_ir_policy::write_spans){return translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller.data()),caller.size()*4,0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,policy);};
         auto tr=translate();
-        if(tr.dependencies.size()!=unsigned((features&64)!=0) || ((features&64)!=0 &&
+        if(tr.dependencies.size()!=1 ||
             (tr.dependencies[0].bytes.size()!=dependency_bytes || tr.dependencies[0].address!=0x2000 ||
-             std::find(tr.resume_points.begin(),tr.resume_points.end(),0x1008u)==tr.resume_points.end()))) {
+             std::find(tr.resume_points.begin(),tr.resume_points.end(),0x1008u)==tr.resume_points.end())) {
             printf(" FAIL tail prefix selection\n");return false;
         }
-        if((features&64)!=0) {
-            predicated_leaves=false;if(!translate().dependencies.empty())return false;predicated_leaves=true;
+        {
+
             if(!translate(arm_ir_policy::disabled).dependencies.empty())return false;
         }
         auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
@@ -4912,17 +4892,17 @@ static bool test_tail_prefixes() {
             if(count<0 || (!count && budget)){printf(" FAIL tail prefix count\n");return false;}
             /* Reference state was advanced to the compiled exit above. */
             for(unsigned reg=0;reg<16;++reg)if(state[reg]!=reference->get_reg(reg)) {
-                printf(" FAIL tail prefix target=%x layout=%u features=%u entry=%u alias=%u flags=%u budget=%u count=%d R%u=%x expected=%x\n",target,layout,features,entry_mode,alias,flags,budget,count,reg,state[reg],reference->get_reg(reg));return false;
+                printf(" FAIL tail prefix target=%x layout=%u entry=%u alias=%u flags=%u budget=%u count=%d R%u=%x expected=%x\n",target,layout,entry_mode,alias,flags,budget,count,reg,state[reg],reference->get_reg(reg));return false;
             }
             for(unsigned f=0;f<4;++f)if(state[test_flag_offsets[f]/4]!=((reference->get_cpsr()>>(31-f))&1))return false;
             if(actual.data!=expected.data)return false;
-            if((features&64)!=0 && !layout && budget>=2+dependency_bytes/4 && (count!=int(2+dependency_bytes/4) || state[15]!=target || state[14]!=0x1008 || state[11]!=11))return false;
+            if(!layout && budget>=2+dependency_bytes/4 && (count!=int(2+dependency_bytes/4) || state[15]!=target || state[14]!=0x1008 || state[11]!=11))return false;
             ++checks;
         }
     }
-    // Conditional branches, BL/BLX and register/load veneers keep their path.
-    leaf_features=64;
-    for(unsigned op:{0xea000000u,0x1a000000u,0xeb000000u,0xfa000000u,0xe12fff10u,0xe51ff004u}) {
+    // Conditional branches, BL/BLX and register veneers keep their path.
+
+    for(unsigned op:{0x1a000000u,0xeb000000u,0xfa000000u,0xe12fff10u}) {
         const unsigned caller[]={0xeb0003feu};
         leaf_resolver resolver=[&](unsigned){const auto *b=reinterpret_cast<const std::uint8_t*>(&op);return std::vector<std::uint8_t>(b,b+4);};
         auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),4,0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_spans);
@@ -4951,8 +4931,8 @@ static bool test_tail_prefixes() {
         const unsigned caller[]={0xeb0003feu,0xe2888001u};
         const unsigned leaf[]={0xe1a03000u,0xea000000u,0xe3a0c077u,0xe12fff1eu};
         leaf_resolver resolver=[&](unsigned){const auto *b=reinterpret_cast<const std::uint8_t*>(leaf);return std::vector<std::uint8_t>(b,b+sizeof(leaf));};
-        for(unsigned features:{160u,224u}) {
-            leaf_features=features;
+        {
+
             auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_spans);
             if(tr.dependencies.size()!=1 || tr.dependencies[0].bytes.size()!=sizeof(leaf)) {
                 printf(" FAIL complete returning leaf shortened by tail prefix\n");return false;
@@ -4967,17 +4947,15 @@ static bool test_tail_prefixes() {
 static bool test_literal_pc_veneers() {
 #ifdef __EMSCRIPTEN__
     struct restore {
-        bool flag=predicated_leaves;
-        unsigned features=leaf_features;
-        ~restore(){predicated_leaves=flag;leaf_features=features;
+        ~restore(){
             g_test_mem=nullptr;
             g_read32_observer={};}
     } saved;
-    predicated_leaves=true;
+
     unsigned checks=0;
     for(unsigned literal:{0x1ffcu,0x2004u,0x2010u,0x3000u})
-    for(unsigned features:{0u,128u}) {
-        leaf_features=features;
+    {
+
         const unsigned caller[]={0xe2844001u,0xeb0003fdu,0xe28bb001u};
         const unsigned op=(literal>=0x2008u?0xe59ff000u:0xe51ff000u) |
             (literal>=0x2008u?literal-0x2008u:0x2008u-literal);
@@ -4987,13 +4965,13 @@ static bool test_literal_pc_veneers() {
         auto translate=[&](arm_ir_policy policy=arm_ir_policy::write_spans){return translate_arm_block(
             reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,policy);};
         auto tr=translate();
-        if(tr.dependencies.size()!=unsigned(features==128) || (features &&
+        if(tr.dependencies.size()!=1 ||
             (tr.dependencies[0].bytes.size()!=4 || tr.dependencies[0].address!=0x2000 ||
-             std::find(tr.resume_points.begin(),tr.resume_points.end(),0x1008u)==tr.resume_points.end()))) {
+             std::find(tr.resume_points.begin(),tr.resume_points.end(),0x1008u)==tr.resume_points.end())) {
             printf(" FAIL literal PC veneer selection\n");return false;
         }
-        if(features) {
-            predicated_leaves=false;if(!translate().dependencies.empty())return false;predicated_leaves=true;
+        {
+
             if(!translate(arm_ir_policy::disabled).dependencies.empty())return false;
         }
         auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
@@ -5037,19 +5015,19 @@ static bool test_literal_pc_veneers() {
                 // The dispatcher aligns the raw loaded PC on the next entry.
                 if(reg==15)value &= state[state_offsets::TFLAG/4]?~1u:~3u;
                 if(value!=reference->get_reg(reg)) {
-                    printf(" FAIL literal veneer literal=%x target=%x features=%u mapping=%u flags=%u budget=%u count=%d R%u=%x expected=%x\n",
-                        literal,target,features,mapping,flags,budget,count,reg,value,reference->get_reg(reg));return false;
+                    printf(" FAIL literal veneer literal=%x target=%x mapping=%u flags=%u budget=%u count=%d R%u=%x expected=%x\n",
+                        literal,target,mapping,flags,budget,count,reg,value,reference->get_reg(reg));return false;
                 }
             }
             for(auto f:{std::pair<unsigned,unsigned>{state_offsets::NFLAG,31},{state_offsets::ZFLAG,30},
                 {state_offsets::CFLAG,29},{state_offsets::VFLAG,28},{state_offsets::TFLAG,5}})
                 if(state[f.first/4]!=((reference->get_cpsr()>>f.second)&1))return false;
             if(actual.data!=expected.data)return false;
-            if(features && budget>=3 && (count!=3 || state[15]!=target || state[14]!=0x1008 || state[11]!=11 || callbacks!=unsigned(mapping==0)))return false;
+            if(budget>=3 && (count!=3 || state[15]!=target || state[14]!=0x1008 || state[11]!=11 || callbacks!=unsigned(mapping==0)))return false;
             ++checks;
         }
     }
-    leaf_features=128;
+
     for(unsigned op:{0x159ff000u,0xe5dff000u,0xe49ff000u,0xe5bff000u,0xe79ff000u,0xe591f000u,0xe12fff10u}) {
         const unsigned caller[]={0xeb0003feu};
         leaf_resolver resolver=[&](unsigned){auto *b=reinterpret_cast<const std::uint8_t*>(&op);return std::vector<std::uint8_t>(b,b+4);};
@@ -5063,9 +5041,7 @@ static bool test_literal_pc_veneers() {
 
 static bool test_expanded_leaves(bool always=false, arm_ir_policy policy=arm_ir_policy::write_spans, unsigned entry_mode=0) {
 #ifdef __EMSCRIPTEN__
-    struct restore {bool flag=predicated_leaves;unsigned features=leaf_features;
-        ~restore(){predicated_leaves=flag;leaf_features=features;}} saved;
-    leaf_features=0;
+
     const unsigned caller[]={0xeb0003feu,0xe2844001u,0xe5967000u,0xe2888001u};
     unsigned checks=0;
     for(unsigned cond=always?14:0;cond<(always?15u:14u);++cond)for(unsigned variant=0;variant<6;++variant) {
@@ -5076,9 +5052,9 @@ static bool test_expanded_leaves(bool always=false, arm_ir_policy policy=arm_ir_
             return pc==0x2000?std::vector<std::uint8_t>(b,b+sizeof(leaf)):std::vector<std::uint8_t>{};};
         auto translate=[&](arm_ir_policy policy) {return translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,
             nullptr,nullptr,true,false,true,true,&resolver,true,policy);};
-        predicated_leaves=false;if(!translate(policy).dependencies.empty())return false;
-        predicated_leaves=true;auto tr=translate(policy);
-        if(tr.dependencies.size()!=1 || !translate(arm_ir_policy::disabled).dependencies.empty())return false;
+        if(!translate(arm_ir_policy::disabled).dependencies.empty())return false;
+        auto tr=translate(policy);
+        if(tr.dependencies.size()!=1)return false;
         auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
         for(unsigned flags=0;flags<16;++flags)for(unsigned mapping=0;mapping<5;++mapping)for (unsigned budget : {unsigned(12)}) {
@@ -5118,7 +5094,7 @@ static bool test_expanded_leaves(bool always=false, arm_ir_policy policy=arm_ir_
             ++checks;
         }
     }
-    for(unsigned op:{0xeafffffeu,0xea000004u,0x128ee001u,0x112fff1eu,0xeb000000u,0xe10f4000u,0xf3a00001u}) {
+    for(unsigned op:{0x128ee001u,0x112fff1eu,0xeb000000u,0xe10f4000u,0xf3a00001u}) {
         unsigned leaf[]={op,0xe12fff1e};leaf_resolver resolver=[&](unsigned){const auto *b=reinterpret_cast<const std::uint8_t*>(leaf);return std::vector<std::uint8_t>(b,b+sizeof(leaf));};
         auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,policy);
         if(!tr.dependencies.empty()){printf(" FAIL unsafe expanded leaf accepted %x\n",op);return false;}
@@ -5132,7 +5108,7 @@ static bool test_expanded_leaves(bool always=false, arm_ir_policy policy=arm_ir_
     leaf_resolver lookup_resolver=[&](unsigned pc){const auto *p=reinterpret_cast<const std::uint8_t*>(lookup);
         return pc==0x2000?std::vector<std::uint8_t>(p,p+sizeof(lookup)):std::vector<std::uint8_t>{};};
     auto lookup_translate=[&](){return translate_arm_block(reinterpret_cast<const std::uint8_t*>(twice),sizeof(twice),0x1000,nullptr,nullptr,true,false,true,true,&lookup_resolver,true,policy);};
-    predicated_leaves=true;
+
     if(lookup_translate().dependencies.size()!=1) {
         printf(" FAIL captured leaf selection\n");return false;
     }
@@ -5171,8 +5147,6 @@ static bool test_expanded_leaves(bool always=false, arm_ir_policy policy=arm_ir_
 
 static bool test_predicated_leaves(arm_ir_policy policy = arm_ir_policy::write_spans) {
 #ifdef __EMSCRIPTEN__
-    struct restore {bool flag=predicated_leaves;
-        ~restore(){predicated_leaves=flag;}} saved;
 
     const unsigned caller[]={0xeb0003feu,0xe2844001u,0xe5967000u,0xe2888001u};
     unsigned checks=0;
@@ -5183,9 +5157,9 @@ static bool test_predicated_leaves(arm_ir_policy policy = arm_ir_policy::write_s
             return pc==0x2000?std::vector<std::uint8_t>(b,b+sizeof(leaf)):std::vector<std::uint8_t>{};};
         auto translate=[&](arm_ir_policy policy) {return translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,
             nullptr,nullptr,true,false,true,true,&resolver,true,policy);};
-        predicated_leaves=false;if(!translate(policy).dependencies.empty())return false;
-        predicated_leaves=true;auto tr=translate(policy);
-        if(tr.dependencies.size()!=1 || !translate(arm_ir_policy::disabled).dependencies.empty())return false;
+        if(!translate(arm_ir_policy::disabled).dependencies.empty())return false;
+        auto tr=translate(policy);
+        if(tr.dependencies.size()!=1)return false;
         auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
         for(unsigned flags=0;flags<16;++flags)for(unsigned mapping=0;mapping<5;++mapping)for (unsigned budget : {unsigned(12)}) {
@@ -5247,18 +5221,18 @@ static std::uint32_t runner_test_function(ARMul_State *cpu) {
     return 1;
 }
 static bool test_execution_limits() {
-    struct restore {bool ram=ram_compilation_enabled;unsigned path=hotpath_policy, memory=memory_experiment::mode, unsafe=eka2l1::common::code_tracking::unsafe_code_mode;
-        ~restore(){hotpath_policy=path;memory_experiment::mode=memory;eka2l1::common::code_tracking::unsafe_code_mode=unsafe;ram_compilation_enabled=ram;global_registry().unregister_function(0x54300);}} saved;
+    struct restore {bool ram=hot_compilation_enabled;unsigned memory=memory_experiment::mode, unsafe=eka2l1::common::code_tracking::unsafe_code_mode;
+        ~restore(){memory_experiment::mode=memory;eka2l1::common::code_tracking::unsafe_code_mode=unsafe;hot_compilation_enabled=ram;global_registry().unregister_function(0x54300);}} saved;
     if(execution_limits_text()!="512,32,8,0")return false;
     test_mem memory;r12l1::exclusive_monitor monitor(1);auto core=make_cpu(memory,monitor);
-    ram_compilation_enabled=false;global_registry().register_function(0x54300,runner_test_function);
+    hot_compilation_enabled=false;global_registry().register_function(0x54300,runner_test_function);
     auto state=std::make_unique<ARMul_State>(core.get(),USER32MODE);
     unsigned checks=0;
     constexpr unsigned cap=600;
-    for(unsigned path:{0u,2u})for(unsigned memory:{0u,2u})for(unsigned unsafe:{0u,3u})
+    for(unsigned memory:{0u,2u})for(unsigned unsafe:{0u,3u})
     for (unsigned budget : {std::max({0u,1u,63u,64u,65u,511u,512u,513u,4840u})})
     for(unsigned action=0;action<7;++action) {
-        hotpath_policy=path;memory_experiment::mode=memory;eka2l1::common::code_tracking::unsafe_code_mode=unsafe;
+        memory_experiment::mode=memory;eka2l1::common::code_tracking::unsafe_code_mode=unsafe;
         global_registry().register_function(0x54300,runner_test_function);
         runner_test_action=action;runner_test_calls=0;watchdog::request=0;
         auto &cpu=*state;cpu.Reset();cpu.mem_cache_=core->mem_cache();cpu.Reg[0]=0;cpu.Reg[15]=0x54300;cpu.TFlag=0;
@@ -5272,7 +5246,7 @@ static bool test_execution_limits() {
         ++checks;
     }
     watchdog::request=0;
-    printf(" PASS execution limits validation and %u real runner budget/zero/stop/IRQ/masked-IRQ/missing-successor/registry-mutation checks across eight policy combinations\n",checks);
+    printf(" PASS execution limits validation and %u real runner budget/zero/stop/IRQ/masked-IRQ/missing-successor/registry-mutation checks across both memory and executable-byte modes\n",checks);
     return true;
 }
 
@@ -5408,28 +5382,28 @@ static bool test_guard_publication() {
     namespace perf=eka2l1::common::performance;
     namespace gp=eka2l1::common::guest_profile;
     struct restore {
-        bool ram=ram_compilation_enabled;
+        bool ram=hot_compilation_enabled;
         bool initial=publication_skip_initial,next=publication_skip_next;
         bool enabled=perf::enabled,detailed=perf::detailed,guest=gp::enabled;
-        unsigned mode=tracking::unsafe_code_mode, policy=hotpath_policy;
-        ~restore(){ram_compilation_enabled=ram;
+        unsigned mode=tracking::unsafe_code_mode;
+        ~restore(){hot_compilation_enabled=ram;
             publication_skip_initial=initial;publication_skip_next=next;
             perf::enabled=enabled;perf::detailed=detailed;gp::enabled=guest;
-            tracking::unsafe_code_mode=mode;hotpath_policy=policy;global_registry().unregister_function(0x54340);}
+            tracking::unsafe_code_mode=mode;global_registry().unregister_function(0x54340);}
     } saved;
     test_mem memory;r12l1::exclusive_monitor monitor(1);auto core=make_cpu(memory,monitor);
-    ram_compilation_enabled=false;gp::enabled=false;
+    hot_compilation_enabled=false;gp::enabled=false;
     global_registry().register_function(0x54340,publication_test_function);
     auto state=std::make_unique<ARMul_State>(core.get(),USER32MODE);
     unsigned checks=0;
-    for(unsigned policy:{0u,2u})for(unsigned mode:{0u,3u})for(bool detailed:{false,true})for(bool guest:{false,true})
+    for(unsigned mode:{0u,3u})for(bool detailed:{false,true})for(bool guest:{false,true})
     for(unsigned budget:{3u}) {
-        tracking::unsafe_code_mode=mode;hotpath_policy=policy;
+        tracking::unsafe_code_mode=mode;
         perf::enabled=detailed;perf::detailed=detailed;gp::enabled=guest;
         publication_test_ok=true;publication_test_calls=0;watchdog::request=0;
-        publication_skip_initial=policy==2 && mode==3
+        publication_skip_initial=mode==3
             && !(gp::enabled && perf::enabled && perf::detailed);
-        publication_skip_next=policy==2 && mode==3 && !(perf::enabled && perf::detailed);
+        publication_skip_next=mode==3 && !(perf::enabled && perf::detailed);
         auto &cpu=*state;cpu.Reset();cpu.mem_cache_=core->mem_cache();cpu.Reg[0]=0;cpu.Reg[15]=0x54340;cpu.TFlag=0;
         cpu.NumInstrsToExecute=budget;cpu.NirqSig=1;cpu.Cpsr=16;
         cpu.aot_code_begin=0x12345678;cpu.aot_code_end=0x23456789;
@@ -5556,19 +5530,16 @@ static bool test_unsafe_code_diagnostic() {
 }
 
 static bool test_arm_exclusive_decode() {
-    const auto saved=arm_exclusive_memory;unsigned checked=0;bool ok=true;
-    for(unsigned enabled:{0u,1u})for(unsigned cond=0;cond<16;++cond)
+    unsigned checked=0;bool ok=true;
+    for(unsigned cond=0;cond<16;++cond)
     for(unsigned rn:{0u,1u,13u,14u,15u})for(unsigned rd:{0u,1u,13u,14u,15u})
     for(unsigned rm:{0u,1u,13u,14u,15u})for(unsigned kind=0;kind<3;++kind) {
         const std::uint32_t op=(cond<<28)|(kind==0?0x01900f9f:kind==1?0x01800f90:0x01d00f9f)
             |(rn<<16)|(rd<<12)|(kind==1?rm:0);
-        const bool expected=enabled&&cond<15&&rn<15&&rd<15&&(kind==0||(kind==1&&rm<15));
-        arm_exclusive_memory=enabled;
         auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(&op),4,0x1000,nullptr,nullptr,true,false,true);
-        if(tr.entry_supported!=expected){printf(" FAIL exclusive decode %08x enabled=%u\n",op,enabled);ok=false;break;}
+        if(tr.entry_supported){printf(" FAIL exclusive decode %08x\n",op);ok=false;break;}
         ++checked;
     }
-    arm_exclusive_memory=saved;
     printf("  exclusive decode checks: %u\n",checked);return ok;
 }
 
@@ -5579,11 +5550,10 @@ struct matched_kernel_access {
 }
 static bool test_thumb_register_exchange() {
 #ifdef __EMSCRIPTEN__
-    struct restore { bool old=thumb_direct_memory; ~restore(){thumb_direct_memory=old;} } saved;
     unsigned checks=0;
-    for(bool direct:{false,true})for(unsigned rm=0;rm<16;++rm)
+    for(unsigned rm=0;rm<16;++rm)
     for(bool link:{false,true})for(unsigned base:{0x1000u,0x1002u})for(unsigned prefix:{0u,1u,4u}) {
-        thumb_direct_memory=direct;
+
         std::vector<std::uint16_t> code(prefix,0x463f);
         code.push_back(static_cast<std::uint16_t>(0x4700|(rm<<3)|(link?0x80:0)));
         auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t*>(code.data()),code.size()*2,base,nullptr,nullptr,true,false,true);
@@ -5609,7 +5579,7 @@ static bool test_thumb_register_exchange() {
             }
             const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
             if(count!=1||std::memcmp(state,expected,sizeof(state))) {
-                printf(" FAIL Thumb exchange direct=%u rm=%u link=%u base=%x prefix=%u low=%u budget=%u pc=%x expected=%x\n",direct,rm,link,base,prefix,low,budget,state[15],expected[15]);return false;
+                printf(" FAIL Thumb exchange rm=%u link=%u base=%x prefix=%u low=%u budget=%u pc=%x expected=%x\n",rm,link,base,prefix,low,budget,state[15],expected[15]);return false;
             }
             ++checks;
         }
@@ -5625,7 +5595,7 @@ static bool test_direct_memory_translation() {
     using namespace memory_experiment;
     const auto old_unsafe=eka2l1::common::code_tracking::unsafe_code_mode;
     eka2l1::common::code_tracking::unsafe_code_mode=3;
-    thumb_direct_memory=true;
+
     const std::vector<std::vector<std::uint32_t>> programs={
         {0xe5910000,0xe5912004,0xe5913008,0xe5840000,0xe5945000},
         {0xe891000d,0xe884000d,0xe89400e0},
@@ -5685,8 +5655,11 @@ static bool test_direct_memory_translation() {
             bool equal=actual.data==expected.data;
             for(unsigned reg=0;reg<16;++reg)equal &= states[0][reg]==states[1][reg];
             for(unsigned f:{state_offsets::NFLAG,state_offsets::ZFLAG,state_offsets::CFLAG,state_offsets::VFLAG,state_offsets::TFLAG})equal &= states[0][f/4]==states[1][f/4];
-            if(counts[0]==counts[1] && !equal){printf("FAIL memory implementation mode=%u program=%u address=%x budget=%u counts=%d/%d\n",2u,program,address,budget,counts[0],counts[1]);return memory_failure(__LINE__);}
-            // A helper can end a TLB region before direct finishes its budget.
+            const bool same_exit=states[0][15]==states[1][15]
+                && states[0][state_offsets::TFLAG/4]==states[1][state_offsets::TFLAG/4];
+            if(same_exit && !equal){printf("FAIL memory implementation mode=%u program=%u address=%x budget=%u counts=%d/%d\n",2u,program,address,budget,counts[0],counts[1]);return memory_failure(__LINE__);}
+            // A helper can end a TLB region before direct finishes the region.
+            // Return values report progress, not equal instruction counts.
             // Compare each backend with the interpreter at its own exit point.
             for(unsigned variant=0;variant<2;++variant) {
                 const unsigned policy=variant?2:0;
@@ -5968,8 +5941,6 @@ static bool test_memory_implementations() {
 // ARM/Thumb tags, defer another process's RAM and reject changed mappings.
 static bool test_precompile() {
     test_mem mem; r12l1::exclusive_monitor mon(1); auto cpu=make_cpu(mem,mon);
-    setenv("EKA2L1_AOT_RAM","1",1); setenv("EKA2L1_AOT_CHAIN","1",1);
-    setenv("EKA2L1_AOT_REGION","1",1);
     const unsigned rom=0x80000, ram=0x1000;
     mem.write32(rom,0xea0000fe); // B rom+0x400, beyond the source window
     mem.write32(rom+0x400,0xe3a0002a); mem.write32(rom+0x404,0xe12fff1e);
@@ -6010,7 +5981,6 @@ static bool test_precompile() {
     fn=lookup_compiled(&state);if(!fn)return false;
     if(fn(&state)!=1 || state.Reg[0]!=9)return false;
     global_registry().clear();configure_hot_rom(nullptr,0,0,false);
-    unsetenv("EKA2L1_AOT_RAM");unsetenv("EKA2L1_AOT_CHAIN");unsetenv("EKA2L1_AOT_REGION");
     printf("PASS eager preparation: exits, literal veneers/callbacks, Thumb, process isolation, late loads, no guest execution\n");
     return true;
 }
@@ -6019,12 +5989,9 @@ static bool test_precompile() {
 // before starting the game. Later images and hot discoveries must still compile.
 static bool test_precompile_capacity() {
     test_mem mem; r12l1::exclusive_monitor mon(1); auto cpu = make_cpu(mem, mon);
-    setenv("EKA2L1_AOT_RAM", "1", 1); setenv("EKA2L1_AOT_CHAIN", "1", 1);
-    setenv("EKA2L1_AOT_REGION", "1", 1);
     struct cleanup {
         ~cleanup() {
             global_registry().clear(); configure_hot_rom(nullptr, 0, 0, false);
-            unsetenv("EKA2L1_AOT_RAM"); unsetenv("EKA2L1_AOT_CHAIN"); unsetenv("EKA2L1_AOT_REGION");
         }
     } reset;
     constexpr unsigned ram = 0x1000, entries = 16385, hot = 0x20000;
@@ -6137,7 +6104,6 @@ int main(int argc, char **argv) {
         && test_expanded_leaves(false,arm_ir_policy::write_spans,2)?0:1;
     if(argc==2 && std::string(argv[1])=="--predicated-leaves-only")return test_predicated_leaves()?0:1;
     if(argc==2 && std::string(argv[1])=="--frozen-cache-only")return test_frozen_code_cache()?0:1;
-    if(argc==2 && std::string(argv[1])=="--hotpaths") {hotpath_policy=2;argc=1;}
     if(argc==2 && std::string(argv[1])=="--compiled-svc-only")return test_compiled_svc_boundary()?0:1;
     if(argc==2 && std::string(argv[1])=="--division-sequences-only")return test_division_sequences()?0:1;
     if(argc==2 && std::string(argv[1])=="--thumb-complete-only")return test_thumb_complete_calls()?0:1;
@@ -6145,7 +6111,7 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--region-fusion-counts")return test_region_fusion(true)?0:1;
     if(argc==2 && std::string(argv[1])=="--region-fusion-only")return test_region_fusion()?0:1;
     if(argc==2 && std::string(argv[1])=="--bounded-thumb-only") {
-        hotpath_policy=2;
+
         return test_bounded_execution(true) && test_thumb_register_exchange()
             && test_thumb_direct_memory() && test_thumb_transfer_spans()
             && test_thumb_rom_veneers() && test_thumb_rom_syscalls()

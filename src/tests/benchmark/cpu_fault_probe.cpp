@@ -80,9 +80,8 @@ static void stage_boundary_probe(const std::vector<aot::wasm_func_def> &function
 // Thumb memory operations through production callbacks and the real runner.
 // The memory instruction is last, so stop/fault cases compare its exact
 // architectural effects without assuming later instructions execute.
-static int thumb_memory_fault_probe(bool direct) {
-    aot::thumb_direct_memory=direct;
-    std::cout<<"PROBE_THUMB_MEMORY "<<direct<<"\n";
+static int thumb_memory_fault_probe() {
+    std::cout<<"PROBE_THUMB_MEMORY 1\n";
     unsigned cases=0;
     for(unsigned op:{0x6808u,0x6008u,0x7808u,0x7008u,0x8808u,0x8008u,0xc905u,0xc105u,0xb405u,0xbc05u})
     for(unsigned policy=0;policy<4;++policy)for(unsigned address:{0x8000u,0x8ffdu,0x8ffcu})
@@ -109,7 +108,7 @@ static int thumb_memory_fault_probe(bool direct) {
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
 {
             auto bytes=aot::build_wasm_module({translated.func},imports);
-            aot::stage_aot_module(std::move(bytes),"thumb-memory-fault");aot::instantiate_staged_modules();aot::chaining_enabled=true;
+            aot::stage_aot_module(std::move(bytes),"thumb-memory-fault");aot::instantiate_staged_modules();
         }
 #endif
         const auto before=f.memory;
@@ -145,7 +144,7 @@ static int thumb_memory_fault_probe(bool direct) {
 // Thumb ROM callee. The last instruction can fault through real callbacks.
 
 static int thumb_call_probe() {
-    aot::thumb_direct_memory=true;
+
     std::cout<<"PROBE_THUMB_CALLS 1\n";
     unsigned cases=0;
     for(std::uint16_t prefix:{0xf000,0xf001,0xf7ff})
@@ -164,7 +163,7 @@ static int thumb_call_probe() {
         tr.func.export_name="f_"+std::to_string(start|1);
         auto bytes=aot::build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
-        aot::stage_aot_module(std::move(bytes),"thumb-long-call");aot::instantiate_staged_modules();aot::chaining_enabled=true;
+        aot::stage_aot_module(std::move(bytes),"thumb-long-call");aot::instantiate_staged_modules();
         const auto compiled_before=eka2l1::common::performance::aot_instructions;
 #endif
         const auto before=f.memory;
@@ -189,91 +188,21 @@ static int thumb_call_probe() {
 static void stage_boundary_probe(const std::vector<aot::wasm_func_def> &functions,
     const std::vector<aot::wasm_import_func> &imports, const char *name) {
     aot::stage_aot_module(aot::build_wasm_module(functions, imports), name);
-    aot::instantiate_staged_modules();aot::chaining_enabled=true;
+    aot::instantiate_staged_modules();
 }
 #endif
 
-static int arm_exclusive_probe() {
-    aot::arm_exclusive_memory = true;
-    unsigned cases = 0;
-    for (unsigned region : {0u,1u}) for (unsigned shape=0; shape<6; ++shape)
-    for (unsigned cond : {0u,1u,14u}) for (unsigned flags : {0u,0x40000000u})
-    for (unsigned reservation=0; reservation<4; ++reservation)
-    for (unsigned budget : {1u,2u,3u}) for (unsigned policy=0; policy<5; ++policy) {
-        r12l1::exclusive_monitor monitor(2); dyncom_core cpu(&monitor,12);
-        std::vector<unsigned char> memory(65536,0);
-        std::uint32_t initial=0x12345678;std::memcpy(memory.data()+0x8000,&initial,4);
-        const auto ld=(cond<<28)|0x01912f9f, st=(cond<<28)|0x01813f90;
-        std::vector<std::uint32_t> words = shape==0 ? std::vector<std::uint32_t>{ld,st,0xe2844001}
-            : shape==1 ? std::vector<std::uint32_t>{st,ld,st}
-            : shape==2 ? std::vector<std::uint32_t>{(cond<<28)|0x01911f9f,0xe2844001,0xe2855001}
-            : shape==3 ? std::vector<std::uint32_t>{(cond<<28)|0x01811f90,0xe2844001,0xe2855001}
-            : shape==4 ? std::vector<std::uint32_t>{0xe2944001,ld,st}
-            : std::vector<std::uint32_t>{ld,0xe2944001,st};
-        std::memcpy(memory.data()+0x1000,words.data(),12);
-        cpu.read_code=[&](unsigned a,unsigned *v){if(a>memory.size()-4)return false;std::memcpy(v,memory.data()+a,4);return true;};
-        cpu.system_call_handler=[](unsigned){};
-        std::vector<std::string> events; bool record=false;
-        auto observe=[&](unsigned a,bool write) {
-            if (!record) return;
-            events.push_back(std::string("{\"write\":")+(write?"true":"false")+",\"address\":"+std::to_string(a)+",\"regs\":"+regs(cpu)+",\"cpsr\":"+std::to_string(cpu.get_cpsr())+"}");
-            if ((policy==1&&!write)||(policy==2&&write)) cpu.stop();
-            if (policy==3) cpu.set_reg(4,0xdecafbad);
-        };
-        monitor.read_32bit=[&](core *,unsigned a,unsigned *v) {
-            observe(a,false); if(policy==4&&record)return false;
-            if(a>memory.size()-4)return false;std::memcpy(v,memory.data()+a,4);return true;
-        };
-        monitor.write_32bit=[&](core *,unsigned a,unsigned v,unsigned expected)->std::int32_t {
-            observe(a,true);if((policy==4&&record)||a>memory.size()-4)return 0;
-            unsigned current;std::memcpy(&current,memory.data()+a,4);
-            if(current!=expected)return 0;std::memcpy(memory.data()+a,&v,4);return 1;
-        };
-        if(reservation) monitor.exclusive_read32(&cpu,reservation==2?0x8004:0x8000);
-        if(reservation==3) memory[0x8000]^=0x55;
-        monitor.restore(1,monitor.snapshot(0));
-        for(unsigned i=0;i<16;++i)cpu.set_reg(i,0x98760000+i);
-        cpu.set_reg(0,0xaabbccdd);cpu.set_reg(1,0x8000);cpu.set_pc(0x1000);cpu.set_cpsr(flags|0xd0);
-        record=true;
-#ifdef __EMSCRIPTEN__
-        aot::global_registry().clear();std::vector<aot::wasm_func_def> functions;
-        for(unsigned i=0;i<3;++i) {
-            auto tr=aot::translate_arm_block(reinterpret_cast<const unsigned char *>(words.data()+i),(3-i)*4,0x1000+i*4,nullptr,nullptr,true,false,true,region);
-            if(!tr.entry_supported||!tr.complete){std::cerr<<"Exclusive instruction rejected\n";return 2;}
-            tr.func.export_name="f_"+std::to_string(0x1000+i*4);functions.push_back(std::move(tr.func));
-        }
-        stage_boundary_probe(functions,{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
-            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false},
-            {"env","arm_exclusive",2,false}},"exclusive-probe");
-        const auto compiled_before=eka2l1::common::performance::aot_instructions;
-#endif
-        const auto before=memory;cpu.run(budget);const auto count=cpu.get_num_instruction_executed();
-#ifdef __EMSCRIPTEN__
-        if (eka2l1::common::performance::aot_instructions-compiled_before!=count){std::cerr<<"Exclusive probe used interpreter\n";return 3;}
-#endif
-        unsigned hash=2166136261u;for(auto b:memory){hash^=b;hash*=16777619u;}
-        auto r0=monitor.snapshot(0),r1=monitor.snapshot(1);
-        std::cout<<"FAULT {\"id\":"<<cases++<<",\"region\":"<<region<<",\"shape\":"<<shape<<",\"condition\":"<<cond<<",\"flags\":"<<flags
-            <<",\"reservation\":"<<reservation<<",\"budget\":"<<budget<<",\"policy\":"<<policy
-            <<",\"regs\":"<<regs(cpu)<<",\"cpsr\":"<<cpu.get_cpsr()<<",\"count\":"<<count
-            <<",\"memory_hash\":"<<hash<<",\"monitor\":["<<r0.address<<','<<r0.value[0]<<','<<r0.value[1]<<','<<r1.address<<','<<r1.value[0]<<','<<r1.value[1]<<"],\"events\":[";
-        for(unsigned i=0;i<events.size();++i){if(i)std::cout<<',';std::cout<<events[i];}
-        std::cout<<"],\"memory_changes\":[";bool first=true;
-        for(unsigned i=0;i<memory.size();++i)if(memory[i]!=before[i]){if(!first)std::cout<<',';first=false;std::cout<<'['<<i<<','<<unsigned(memory[i])<<']';}
-        std::cout<<"]}\n";
-    }
-    return 0;
-}
 
 // Native DynCom oracle for register exchange, including the architectural
 // Thumb PC read bias and capture-before-LR-write for register calls.
 static int thumb_exchange_probe() {
     unsigned cases=0;
-    for(bool direct:{false,true})for(unsigned rm=0;rm<16;++rm)
+    const bool direct=true; // Retain the historical oracle output schema.
+    for(unsigned rm=0;rm<16;++rm)
     for(bool link:{false,true})for(unsigned base:{0x1000u,0x1002u})
     for(unsigned prefix:{0u,1u,4u})for(unsigned low=0;low<4;++low)
     for(unsigned budget=0;budget<=prefix+1;++budget) {
-        aot::thumb_direct_memory=direct;
+
         r12l1::exclusive_monitor monitor(1);dyncom_core cpu(&monitor,12);
         std::vector<unsigned char> memory(65536);
         std::vector<std::uint16_t> code(prefix,0x463f); // MOV r7,r7, no flag change
@@ -289,7 +218,7 @@ static int thumb_exchange_probe() {
         if(!tr.entry_supported||!tr.complete){std::cerr<<"Exchange fixture rejected\n";return 2;}
         tr.func.export_name="f_"+std::to_string(base|1);
         auto bytes=aot::build_wasm_module({tr.func},{});
-        aot::stage_aot_module(std::move(bytes),"thumb-exchange-probe");aot::instantiate_staged_modules();aot::chaining_enabled=true;
+        aot::stage_aot_module(std::move(bytes),"thumb-exchange-probe");aot::instantiate_staged_modules();
         const auto before=eka2l1::common::performance::aot_instructions;
 #endif
         cpu.run(budget);
@@ -316,9 +245,10 @@ static std::uint32_t svc_probe_run(ARMul_State *cpu) {
 // state and changes to budgets, flags, PC, IRQ and exclusive reservations.
 
 static int compiled_svc_probe(aot::arm_ir_policy compiler_policy) {
-    aot::compiled_svc_enabled = true;
+
     unsigned cases=0;
-    for(unsigned chain:{0u,1u}) for(unsigned thumb:{0u,1u}) for(unsigned region:{0u,1u})
+    const unsigned chain=1; // Retain the historical oracle output schema.
+    for(unsigned thumb:{0u,1u}) for(unsigned region:{0u,1u})
     for(unsigned shape:{0u,1u,2u}) for(unsigned page:{0u,1u})
     for(unsigned cond:{0u,1u,14u}) for(unsigned z:{0u,1u}) {
         if(thumb && cond!=14)continue;
@@ -377,7 +307,7 @@ static int compiled_svc_probe(aot::arm_ir_policy compiler_policy) {
                 tr.func.export_name="f_"+std::to_string(a|thumb);functions.push_back(std::move(tr.func));
             }
             stage_boundary_probe(functions,{},"svc-probe");
-            aot::chaining_enabled = chain != 0;
+
             svc_probe_functions.clear();svc_probe_instructions=0;
             for (auto address : addresses) {
                 const auto key=address|thumb;
@@ -417,54 +347,18 @@ int main(int argc, char **argv){
         eka2l1::common::code_tracking::unsafe_code_mode=std::stoi(value);--argc;
     }
     std::cout<<"PROBE_UNSAFE_CODE "<<eka2l1::common::code_tracking::unsafe_code_mode<<"\n";
-    if(argc>1 && std::strncmp(argv[argc-1],"--leaf-features=",16)==0) {
-        const std::string value(argv[argc-1]+16);
-        if(value!="0" && value!="128"){std::cerr<<"Invalid leaf feature policy\n";return 1;}
-        aot::leaf_features=static_cast<unsigned>(std::stoi(value));--argc;
-    }
-    std::cout<<"PROBE_LEAF_FEATURES "<<aot::leaf_features<<"\n";
-
     if(argc>1 && std::strncmp(argv[argc-1],"--exit-census=",14)==0) {
         const std::string value(argv[argc-1]+14);
         if(value!="0" && value!="1"){std::cerr<<"Invalid exit census policy\n";return 1;}
         aot::exit_census::enabled=value=="1";--argc;
     }
     std::cout<<"PROBE_EXIT_CENSUS "<<aot::exit_census::enabled<<"\n";
-    if(argc>1 && std::strncmp(argv[argc-1],"--predicated-leaves=",20)==0) {
-        const std::string value(argv[argc-1]+20);
-        if(value!="0" && value!="1"){std::cerr<<"Invalid leaf predication policy\n";return 1;}
-        aot::predicated_leaves=value=="1";--argc;
-    }
-    std::cout<<"PROBE_PREDICATED_LEAVES "<<aot::predicated_leaves<<"\n";
     if(argc>1 && std::strncmp(argv[argc-1],"--execution-limits=",19)==0) {
         std::cerr<<"Execution-limit experiments were retired; fixed limits are "<<aot::execution_limits_text()<<"\n";return 1;
     }
     std::cout<<"PROBE_LIMITS "<<aot::execution_limits_text()<<"\n";
-    if (argc > 1 && std::strncmp(argv[argc-1],"--code-compare=",15) == 0) {
-        const std::string value(argv[argc-1]+15);
-        if(value!="0" && value!="2") {std::cerr<<"Invalid comparison policy\n";return 1;}
-        aot::code_compare_mode=static_cast<unsigned>(value[0]-'0');
-        --argc;
-    }
-    std::cout << "PROBE_COMPARE " << aot::code_compare_mode << "\n";
-
-    auto ir_policy=aot::arm_ir_policy::configured;
-    if(const char *mode=std::getenv("EKA2L1_AOT_IR_MODE")) {
-        if(!aot::parse_arm_ir_policy(mode,ir_policy)) {std::cerr<<"Invalid IR mode\n";return 1;}
-    }
-    // Emscripten does not automatically import the Node process environment.
-    // An explicit argument sets both the probe and production-runner policy.
-    if (argc == 3) {
-        const std::string argument(argv[2]), prefix("--ir-policy=");
-        if (argument.compare(0,prefix.size(),prefix) != 0
-            || !aot::parse_arm_ir_policy(argument.c_str()+prefix.size(),ir_policy)) {
-            std::cerr << "Invalid explicit IR policy\n"; return 1;
-        }
-        setenv("EKA2L1_AOT_IR_MODE",argument.c_str()+prefix.size(),1);
-        --argc;
-    }
-    std::cout << "PROBE_POLICY " << static_cast<int>(ir_policy) << "\n";
-    if (argc > 2 || (argc == 2 && std::string(argv[1]) != "--compiled-svc" && std::string(argv[1]) != "--arm-exclusive"
+    const auto ir_policy=aot::arm_ir_policy::write_spans;
+    if (argc > 2 || (argc == 2 && std::string(argv[1]) != "--compiled-svc"
         && std::string(argv[1]) != "--arm-leaf-memory"
         && std::string(argv[1]) != "--deferred"
         && std::string(argv[1]) != "--entry-budget"
@@ -495,7 +389,6 @@ int main(int argc, char **argv){
         && std::string(argv[1]) != "--thumb-calls"
         && std::string(argv[1]) != "--thumb-exchange"
         && std::string(argv[1]) != "--thumb-memory"
-        && std::string(argv[1]) != "--thumb-memory-control"
         && std::string(argv[1]) != "--wide-snapshots")) {
         std::cerr << "Unknown fault fixture or option\n"; return 1;
     }
@@ -506,10 +399,8 @@ int main(int argc, char **argv){
     eka2l1::log::filterings->reset_all(spdlog::level::off);
     if(argc==2 && std::string(argv[1])=="--thumb-exchange") return thumb_exchange_probe();
     if(argc==2 && std::string(argv[1])=="--compiled-svc") return compiled_svc_probe(ir_policy);
-    if(argc==2 && std::string(argv[1])=="--arm-exclusive") return arm_exclusive_probe();
     if(argc==2 && std::string(argv[1])=="--thumb-calls")return thumb_call_probe();
-    if(argc==2 && std::string(argv[1])=="--thumb-memory")return thumb_memory_fault_probe(true);
-    if(argc==2 && std::string(argv[1])=="--thumb-memory-control")return thumb_memory_fault_probe(false);
+    if(argc==2 && std::string(argv[1])=="--thumb-memory")return thumb_memory_fault_probe();
     const bool arm_leaf_memory=argc==2 && std::string(argv[1])=="--arm-leaf-memory";
     std::cout<<"PROBE_ARM_LEAF_MEMORY "<<arm_leaf_memory<<"\n";
     const bool invariant_write_remap=argc==2 && std::string(argv[1])=="--invariant-write-remap";
@@ -654,19 +545,17 @@ int main(int argc, char **argv){
         for(unsigned n=0;n<instruction_count;++n) {
             auto translated=aot::translate_arm_block(reinterpret_cast<unsigned char*>(program+n),
                 (instruction_count-n)*4,0x1000+n*4,nullptr,nullptr,true,false,true,!arm_leaf_memory,ir_calls?&call_resolver:nullptr,deferred,ir_policy);
-            if(literal_pc_veneers && n==0 && (translated.dependencies.size()!=unsigned(aot::predicated_leaves && (aot::leaf_features&128)) ||
+            if(literal_pc_veneers && n==0 && (translated.dependencies.size()!=1u ||
                 (!translated.dependencies.empty() && (translated.dependencies[0].bytes.size()!=4 || translated.dependencies[0].address!=callee_address)))) {
                 std::cerr<<"Literal PC veneer fusion selection mismatch\n";return 4;
             }
-            if(predicated_calls && n==0 && translated.dependencies.size()!=unsigned(aot::predicated_leaves)) {
+            if(predicated_calls && n==0 && translated.dependencies.size()!=1u) {
                 std::cerr<<"Predicated call fusion selection mismatch\n";return 4;
             }
 
             const auto checked_policy = ir_policy;
-            const bool writes = checked_policy == aot::arm_ir_policy::invariant_writes
-                || checked_policy == aot::arm_ir_policy::write_spans;
-            const bool reads = writes || checked_policy == aot::arm_ir_policy::invariant_reads
-                || checked_policy == aot::arm_ir_policy::read_spans;
+            const bool writes = checked_policy == aot::arm_ir_policy::write_spans;
+            const bool reads = writes;
             if (writes && invariant_write_remap && n == 0 && translated.proved_writes != 3) {
                 std::cerr << "Write remap proof was not selected\n"; return 4;
             }
@@ -690,7 +579,7 @@ int main(int argc, char **argv){
         }
 
         auto bytes=aot::build_wasm_module(functions,{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
-        aot::stage_aot_module(std::move(bytes),"hot-rom");aot::instantiate_staged_modules();aot::chaining_enabled=true;
+        aot::stage_aot_module(std::move(bytes),"hot-rom");aot::instantiate_staged_modules();
         }
 #endif
         const auto initial_memory=f.memory;

@@ -62,18 +62,9 @@ std::uint64_t compiled_function_count() { return completed_function_count.load(s
 static std::uint32_t hot_rom_base = 0, hot_rom_size = 0;
 common::diagnostics::flag diagnostics_enabled = false;
 
-// Extend export-based compilation using deterministic dispatch samples. Only
-// immutable ROM addresses are eligible; RAM code needs explicit invalidation.
+// Extend eager compilation using deterministic dispatch samples. ROM bytes
+// are immutable; RAM translations follow the selected code-cache policy.
 bool hot_compilation_enabled = false;
-bool ram_compilation_enabled = false;
-bool chaining_enabled = false;
-static bool region_enabled = false;
-static arm_ir_policy ir_policy = arm_ir_policy::configured;
-#ifdef EKA2L1_WASM_DEFER_MEMORY
-static constexpr bool defer_memory_enabled = true;
-#else
-static constexpr bool defer_memory_enabled = false;
-#endif
 static validated_code_cache ram_cache;
 static std::uint32_t ram_hot_versions = 0;
 static std::unordered_map<std::uint64_t, unsigned> ram_counts;
@@ -115,7 +106,6 @@ static void flush_hot_blocks() {
     std::vector<wasm_import_func> imports{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
         {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
         {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
-    if (arm_exclusive_memory) imports.push_back({"env","arm_exclusive",2,false});
     auto bytes = [&] {
         compilation_timer timer{compilation.emission_us};
         return build_wasm_module(hot_pending, imports);
@@ -127,7 +117,7 @@ static void flush_hot_blocks() {
 
 void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32_t size, bool enabled) {
     hot_rom = host; hot_rom_base = base; hot_rom_size = size;
-    global_registry().configure_rom_index(base, size, sparse_rom_lookup_enabled);
+    global_registry().configure_rom_index(base, size, true);
     hot_compilation_enabled = enabled;
     completed_function_count = 0;
     compilation.translation_us = 0; compilation.emission_us = 0; compilation.installation_us = 0;
@@ -136,16 +126,6 @@ void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32
       precompile_images.clear(); precompile_pending = false; }
     hot_dispatches = 0; hot_compiled = 0; hot_counts.clear(); hot_pending.clear();
     ram_cache = {}; ram_hot_versions = 0; ram_counts.clear();
-    const char *ram = std::getenv("EKA2L1_AOT_RAM");
-    ram_compilation_enabled = enabled && ram && ram[0] == '1';
-    const char *chain = std::getenv("EKA2L1_AOT_CHAIN");
-    chaining_enabled = enabled && chain && chain[0] == '1';
-    const char *region = std::getenv("EKA2L1_AOT_REGION");
-    region_enabled = chaining_enabled && region && region[0] == '1';
-    ir_policy = arm_ir_policy::configured;
-    const char *ir = std::getenv("EKA2L1_AOT_IR_MODE");
-    parse_arm_ir_policy(ir, ir_policy);
-    if (enabled) fprintf(stderr, "AOT: ir_policy=%d\n", static_cast<int>(ir_policy));
 }
 
 void invalidate_ram_code(std::uint32_t address, std::size_t size) {
@@ -162,7 +142,7 @@ static aot_func lookup_compiled_impl(ARMul_State *cpu, const registry &functions
     // TrustBytes follows the frozen code-cache policy.
     const auto pc = cpu->Reg[15], pc_mode = pc | cpu->TFlag;
     // Existing ROM functions use immutable bytes and need no mapping lookup.
-    if (!ram_compilation_enabled || (pc >= hot_rom_base && pc - hot_rom_base < hot_rom_size)) {
+    if (!hot_compilation_enabled || (pc >= hot_rom_base && pc - hot_rom_base < hot_rom_size)) {
         // Trusted-byte chains emit no interval readers. Keep publication for
         // mutation-compatible execution and diagnostic/reference paths.
         if constexpr(!TrustBytes) cpu->aot_code_begin = cpu->aot_code_end = 0;
@@ -205,7 +185,7 @@ static aot_func lookup_compiled_impl(ARMul_State *cpu, const registry &functions
 aot_func lookup_compiled(ARMul_State *cpu) {
     if (common::guest_profile::enabled && common::performance::enabled && common::performance::detailed)
         return lookup_compiled_impl<true>(cpu, global_registry());
-    if (hotpath_policy == 2 && common::code_tracking::skip_code_scans())
+    if (common::code_tracking::skip_code_scans())
         return lookup_compiled_impl<false, true>(cpu, global_registry());
     return lookup_compiled_impl<false>(cpu, global_registry());
 }
@@ -234,7 +214,7 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
 }
 
 template<bool Direct> static compiled_run execute_chain_selected(ARMul_State *cpu, aot_func function) {
-    if (hotpath_policy == 2 && common::code_tracking::skip_code_scans())
+    if (common::code_tracking::skip_code_scans())
         return execute_chain_impl<true, Direct>(cpu, function);
     return execute_chain_impl<false, Direct>(cpu, function);
 }
@@ -274,7 +254,7 @@ static void compile_at(core &cpu, std::uint32_t key, std::vector<std::uint32_t> 
     const auto pc = key & ~1u;
     const bool thumb = key & 1;
     if (pc < hot_rom_base || pc - hot_rom_base >= hot_rom_size) {
-        if (!ram_compilation_enabled || !cpu.resolve_code) return;
+        if (!hot_compilation_enabled || !cpu.resolve_code) return;
         // As for ROM, preparation of known loaded images does not consume the
         // hot-discovery quota. A launcher must not exhaust it before the game
         // loads and leave every later RAM image permanently interpreted.
@@ -294,7 +274,7 @@ static void compile_at(core &cpu, std::uint32_t key, std::vector<std::uint32_t> 
                 return;
             }
         }
-        const auto size = std::min(std::size_t(chaining_enabled ? primary_window_bytes : 256), view.size);
+        const auto size = std::min(std::size_t(primary_window_bytes), view.size);
         leaf_resolver leaves = [&](std::uint32_t target) {
             core::code_mapping leaf;
             if (!cpu.resolve_code(target, leaf) || leaf.address_space != view.address_space)
@@ -303,8 +283,8 @@ static void compile_at(core &cpu, std::uint32_t key, std::vector<std::uint32_t> 
             return std::vector<std::uint8_t>(leaf.bytes, leaf.bytes + bytes);
         };
         const code_window immutable_code{hot_rom, hot_rom_base, hot_rom_size};
-        auto translate = [&] {return thumb ? translate_thumb_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled, &immutable_code)
-                            : translate_arm_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled, region_enabled, &leaves, defer_memory_enabled, ir_policy);};
+        auto translate = [&] {return thumb ? translate_thumb_block(view.bytes, size, pc, nullptr, nullptr, true, true, true, &immutable_code)
+                            : translate_arm_block(view.bytes, size, pc, nullptr, nullptr, true, true, true, true, &leaves, true, arm_ir_policy::write_spans);};
         auto tr = [&] { compilation_timer timer{compilation.translation_us}; return translate(); }();
         if (tr.func.body.empty() || !tr.entry_supported) {
             // Cache rejection against these exact bytes; retry only after mutation.
@@ -354,10 +334,10 @@ static void compile_at(core &cpu, std::uint32_t key, std::vector<std::uint32_t> 
     if (successors) count = 8;
     else if (++count != 8) return;
     const auto offset = pc - hot_rom_base;
-    const auto size = std::min(chaining_enabled ? primary_window_bytes : 128u, hot_rom_size - offset);
+    const auto size = std::min(primary_window_bytes, hot_rom_size - offset);
     const code_window immutable_code{hot_rom, hot_rom_base, hot_rom_size};
-    auto translate = [&] {return thumb ? translate_thumb_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled, &immutable_code)
-                        : translate_arm_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled, region_enabled, nullptr, defer_memory_enabled, ir_policy);};
+    auto translate = [&] {return thumb ? translate_thumb_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, true, &immutable_code)
+                        : translate_arm_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, true, true, nullptr, true, arm_ir_policy::write_spans);};
     auto tr = [&] { compilation_timer timer{compilation.translation_us}; return translate(); }();
     if (tr.func.body.empty() || !tr.entry_supported) return;
     tr.func.export_name = "f_" + std::to_string(key);
@@ -496,23 +476,6 @@ template<bool Experimental> static void prof_write8(ARMul_State *s, std::uint32_
 template<bool Experimental> static std::uint32_t prof_read16(ARMul_State *s, std::uint32_t a) { count_memory<4>(); return raw_read16<Experimental>(s,a); }
 template<bool Experimental> static void prof_write16(ARMul_State *s, std::uint32_t a, std::uint32_t v) { count_memory<5>(); raw_write16<Experimental>(s,a,v); }
 
-template<bool Experimental=false> static void raw_arm_exclusive(ARMul_State *s, std::uint32_t instruction) {
-    memory_callback_scope<Experimental> memory(s);
-    // DynCom's exclusive path calls the monitor directly: it does not repack
-    // CPSR before the callback. The generated barrier publishes registers and
-    // split flags, but must retain that existing packed-CPSR visibility.
-    const auto address = s->Reg[(instruction >> 16) & 15];
-    const auto destination = (instruction >> 12) & 15;
-    if (instruction & (1u << 20))
-        s->Reg[destination] = s->exmonitor()->exclusive_read32(s->parent(), address);
-    else {
-        const auto value = s->Reg[instruction & 15];
-        s->Reg[destination] = s->exmonitor()->exclusive_write32(s->parent(), address, value) ? 0 : 1;
-    }
-    // DynCom advances the callback-visible PC after completing the operation.
-    s->Reg[15] += 4;
-}
-
 // JS function that instantiates a WASM module and returns exported function
 // addresses as a comma-separated string of "name:table_idx" pairs.
 // Returns empty string on failure.
@@ -531,7 +494,7 @@ EM_JS(char*, js_instantiate_aot_module, (const uint8_t* bytes, int len, const st
             memory: wasmMemory,
             tlb_read32: raw(0), tlb_write32: raw(1),
             tlb_read8: raw(2), tlb_write8: raw(3),
-            tlb_read16: raw(4), tlb_write16: raw(5), arm_exclusive: raw(6)
+            tlb_read16: raw(4), tlb_write16: raw(5)
         }};
 
         var instance = new WebAssembly.Instance(wasmModule, importObj);
@@ -589,8 +552,7 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
         reinterpret_cast<std::uintptr_t>(common::guest_profile::enabled ? (experimental ? prof_read8<true> : prof_read8<false>) : experimental ? raw_read8<true> : raw_read8<false>),
         reinterpret_cast<std::uintptr_t>(common::guest_profile::enabled ? (experimental ? prof_write8<true> : prof_write8<false>) : experimental ? raw_write8<true> : raw_write8<false>),
         reinterpret_cast<std::uintptr_t>(common::guest_profile::enabled ? (experimental ? prof_read16<true> : prof_read16<false>) : experimental ? raw_read16<true> : raw_read16<false>),
-        reinterpret_cast<std::uintptr_t>(common::guest_profile::enabled ? (experimental ? prof_write16<true> : prof_write16<false>) : experimental ? raw_write16<true> : raw_write16<false>),
-        reinterpret_cast<std::uintptr_t>(experimental ? raw_arm_exclusive<true> : raw_arm_exclusive<false>)
+        reinterpret_cast<std::uintptr_t>(common::guest_profile::enabled ? (experimental ? prof_write16<true> : prof_write16<false>) : experimental ? raw_write16<true> : raw_write16<false>)
     };
     char *result_str = js_instantiate_aot_module(wasm_bytes.data(),
         static_cast<int>(wasm_bytes.size()), helpers);

@@ -86,8 +86,11 @@ namespace eka2l1::arm::aot {
     static constexpr std::uint32_t DLL_UID1 = 0x10000079;
 
     void initialize(eka2l1::system *sys, const std::string &config_override) {
-        // Establish the shared interpreter baseline before comparing AOT.
+        // Native reference captures retain their interpreter baseline.
+#ifndef __EMSCRIPTEN__
         if (common::benchmark::enabled() && !std::getenv("EKA2L1_BENCHMARK_AOT")) return;
+#endif
+        if (!compiler_enabled) return;
         if (config_override == "none") {
             LOG_INFO(KERNEL, "AOT: disabled by config");
             return;
@@ -131,8 +134,7 @@ namespace eka2l1::arm::aot {
             return;
         }
 
-        const char *hot_env = std::getenv("EKA2L1_AOT_HOT");
-        configure_hot_rom(rom_host, rom_base, rom_size, hot_env && hot_env[0] == '1');
+        configure_hot_rom(rom_host, rom_base, rom_size, true);
 #ifdef __EMSCRIPTEN__
         if (hot_compilation_enabled) {
             sys->get_kernel_system()->register_codeseg_loaded_callback(
@@ -276,10 +278,10 @@ namespace eka2l1::arm::aot {
                 const auto c = pending[i];
                 const auto key = c.func_addr | (c.is_arm ? 0u : 1u);
                 if (!visited.insert(key).second) continue;
-                const auto size = std::min(c.func_size, chaining_enabled ? 512u : 128u);
+                const auto size = std::min(c.func_size, 512u);
                 auto translate=[&]{return c.is_arm
-                    ? translate_arm_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, chaining_enabled)
-                    : translate_thumb_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, chaining_enabled, &immutable_code);};
+                    ? translate_arm_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, true)
+                    : translate_thumb_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, true, &immutable_code);};
                 auto tr=translate();
                 if (tr.func.body.empty() || !tr.entry_supported) continue;
                 tr.func.export_name = "f_" + std::to_string(key);
@@ -320,8 +322,6 @@ namespace eka2l1::arm::aot {
             {"env", "tlb_read16", 2, true},
             {"env", "tlb_write16", 3, false},
         };
-
-        if (arm_exclusive_memory) imports.push_back({"env", "arm_exclusive", 2, false});
 
         const auto emission_start = std::chrono::steady_clock::now();
         auto wasm_bytes = build_wasm_module(all_funcs, imports);

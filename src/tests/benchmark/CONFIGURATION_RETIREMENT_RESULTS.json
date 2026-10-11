@@ -1,0 +1,154 @@
+{
+  "baseline": "d53162c23",
+  "branch": "wasm-port",
+  "scope": "Nine configuration and implementation retirements; no speedup claim",
+  "artifacts": {
+    "eka2l1.js": "72d19b965e8a1339bbf79708a12a2a6aa5cd90023cd36786756e2790d1b86410",
+    "touch-controls.js": "2b14535a22696f1675119ee5fb4908b9f7e80165df1022f09d23b4690e0c7d41",
+    "touch-controls.css": "b27bf7a794232427da4c47351f4f77d4765a95e2c767141dff027e269166bb98",
+    "eka2l1.html": "f57359f13a3deb9d5e366b4472032a4ceb5e5c868481700277882ab5775a7363",
+    "eka2l1.data": "8b7dd0983892bd09e5a12b06788a7a4073a8431d87890ffd2c8519dc1bbaadba",
+    "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+    "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+    "eka2l1.wasm.map": "8000da766f4fbff44315d6d733f47ef78c939f384769d770997e18fb90936d0d",
+    "eka2l1.wasm": "7e8d4ef829fc1d3f84d266941f105e8dcf64be68b6f504298b1dc27c7da1fd26"
+  },
+  "tests": {
+    "compiler": {
+      "passed": 183,
+      "failed": 0,
+      "known_xfail": "crash-repro 0x8046506E",
+      "production_diagnostics_skipped": true
+    },
+    "memory_implementations": {
+      "comparisons": 46,
+      "passed": true
+    },
+    "exclusive_monitor": {
+      "checks": 254407,
+      "passed": true
+    },
+    "eager_precompilation": true,
+    "native_probe_builds": true,
+    "native_exchange_cases": 2816,
+    "browser_api": true,
+    "launcher_policy": true,
+    "chrome_sampling": {
+      "passed": true,
+      "artifact_sha256": "b838f3a2e6f8e329829bc9d3cc42de52a877987ab8b1ecd5b85ff24f07461bda",
+      "directory": "/home/claude/.scratch/eka-policy-cleanup-20261011/profile-smoke",
+      "note": "Captured before final source formatting cleanup; final artifact has separate LAN and browser API checks."
+    },
+    "frame_capture": true,
+    "interpreter_tlb_mutation_compatible_capture": true
+  },
+  "launcher_checks": {
+    "snakes": {
+      "passed": true,
+      "browser": "Chrome/153.0.8010.52",
+      "url": "https://claude-laptop.lan:8188/?game=snakes",
+      "errors": [],
+      "measurement": {
+        "hostSeconds": 10.066842989500001,
+        "guestSeconds": 10.065996,
+        "guestSpeed": 0.9999158634438935,
+        "presentations": 162,
+        "presentationsPerSecond": 16.092433364558335,
+        "instructions": 0,
+        "installedCompiledFunctions": 38,
+        "maxQueryMs": 5.825830000001588,
+        "maxObservedFrameGapMs": 100.37999999523163,
+        "compilationUs": {
+          "aot_translation_us": 8570,
+          "aot_emission_us": 365,
+          "aot_installation_us": 914
+        }
+      },
+      "scenes_reviewed": [
+        "gameplay-end.png"
+      ],
+      "directory": "/home/claude/.scratch/eka-policy-cleanup-20261011/paced-snakes"
+    },
+    "sky-force": {
+      "passed": true,
+      "browser": "Chrome/153.0.8010.52",
+      "url": "https://claude-laptop.lan:8188/?game=sky-force",
+      "errors": [],
+      "measurement": {
+        "hostSeconds": 10.101629180500007,
+        "guestSeconds": 10.099924,
+        "guestSpeed": 0.9998311974762152,
+        "presentations": 324,
+        "presentationsPerSecond": 32.07403421870241,
+        "instructions": 0,
+        "installedCompiledFunctions": 20,
+        "maxQueryMs": 6.073432000004686,
+        "maxObservedFrameGapMs": 50.61500000953674,
+        "compilationUs": {
+          "aot_translation_us": 10069,
+          "aot_emission_us": 250,
+          "aot_installation_us": 645
+        }
+      },
+      "scenes_reviewed": [
+        "gameplay-end.png"
+      ],
+      "directory": "/home/claude/.scratch/eka-policy-cleanup-20261011/paced-sky-force"
+    },
+    "asphalt-2": {
+      "passed": true,
+      "errors": [],
+      "presentations": 48,
+      "input_events": 4,
+      "instruction_total": 0,
+      "directory": "/home/claude/.scratch/eka-policy-cleanup-20261011/launcher-asphalt-2"
+    },
+    "k-rally": {
+      "passed": true,
+      "errors": [],
+      "presentations": 141,
+      "input_events": 6,
+      "instruction_total": 0,
+      "directory": "/home/claude/.scratch/eka-policy-cleanup-20261011/launcher-k-rally"
+    },
+    "hooked-on": {
+      "passed": true,
+      "errors": [],
+      "presentations": 96,
+      "input_events": 2,
+      "instruction_total": 0,
+      "directory": "/home/claude/.scratch/eka-policy-cleanup-20261011/launcher-hooked-on"
+    }
+  },
+  "evidence_root": "/home/claude/.scratch/eka-policy-cleanup-20261011",
+  "sound": "Paced launcher checks muted; no new audible-output claim",
+  "performance": "No controlled performance comparison performed",
+  "retained_modes": {
+    "compiler": [
+      0,
+      5
+    ],
+    "unsafe_code": [
+      0,
+      3
+    ],
+    "memory": [
+      0,
+      2
+    ],
+    "default": {
+      "compiler": 5,
+      "unsafe_code": 3,
+      "memory": 2,
+      "watchdog_us": 2000
+    }
+  },
+  "retained_failures": [
+    "compiler-tests-1.log: fixtures for removed variants, subsequently migrated and passing",
+    "memory-compat.log: legacy progress/count shortcut, corrected and passing",
+    "interpreter-smoke.log: boot-only capture has no gameplay PCM; later interpreter-capture passes",
+    "browser-api.log: default Puppeteer Chrome download absent; final check uses installed Chromium"
+  ],
+  "served_wasm_sha256": "7e8d4ef829fc1d3f84d266941f105e8dcf64be68b6f504298b1dc27c7da1fd26",
+  "served_url": "https://claude-laptop.lan:8188/"
+}

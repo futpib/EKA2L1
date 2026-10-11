@@ -3,13 +3,13 @@ static bool test_thumb_complete_calls(bool instrument = false) {
 #ifdef __EMSCRIPTEN__
     using S = state_offsets;
     struct restore {
-        bool direct=thumb_direct_memory, fusion=thumb_region_fusion, complete=thumb_complete_calls;
+        bool fusion=thumb_region_fusion, complete=thumb_complete_calls;
         unsigned mode=memory_experiment::mode, unsafe=eka2l1::common::code_tracking::unsafe_code_mode;
-        ~restore(){thumb_direct_memory=direct;thumb_region_fusion=fusion;thumb_complete_calls=complete;
-            memory_experiment::mode=mode;eka2l1::common::code_tracking::unsafe_code_mode=unsafe;
+        ~restore(){thumb_region_fusion=fusion;thumb_complete_calls=complete;
+           memory_experiment::mode=mode;eka2l1::common::code_tracking::unsafe_code_mode=unsafe;
             g_test_mem=nullptr;g_memory_boundary={};}
     } saved;
-    thumb_direct_memory=true;thumb_region_fusion=true;eka2l1::common::code_tracking::unsafe_code_mode=3;
+    thumb_region_fusion=true;eka2l1::common::code_tracking::unsafe_code_mode=3;
     std::vector<wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
         {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
     if(instrument)imports.push_back({"env","eka_test_count",1,false});
@@ -142,8 +142,8 @@ extern "C" EMSCRIPTEN_KEEPALIVE int thumb_complete_benchmark(unsigned variant, u
     static std::uintptr_t pointer = 0;
     static bool ready = false;
     if (!ready) {
-        hotpath_policy = 2; memory_experiment::mode = 2;
-        thumb_direct_memory = true; thumb_region_fusion = true;
+        memory_experiment::mode = 2;
+        thumb_region_fusion = true;
         eka2l1::common::code_tracking::unsafe_code_mode = 3;
         global_registry().configure_rom_index(0x1000, 0x1000, true);
         std::vector<std::uint16_t> words = {

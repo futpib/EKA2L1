@@ -4,10 +4,9 @@ static bool test_svc_return_hint() {
 #ifdef __EMSCRIPTEN__
     struct restore {
         unsigned memory=memory_experiment::mode;
-        bool thumb=thumb_direct_memory,svc=compiled_svc_enabled;
-        ~restore(){memory_experiment::mode=memory;thumb_direct_memory=thumb;compiled_svc_enabled=svc;}
+        ~restore(){memory_experiment::mode=memory;}
     } saved;
-    thumb_direct_memory=true;compiled_svc_enabled=true;
+
     unsigned checks=0;
     for(unsigned mode:{0u,2u})for(unsigned reg=0;reg<10;++reg)for(unsigned shape=0;shape<6;++shape) {
         memory_experiment::mode=mode;
@@ -43,10 +42,10 @@ static bool test_svc_return_state() {
     namespace memory=memory_experiment;
     struct restore {
         unsigned mode=memory::mode;
-        bool thumb=thumb_direct_memory;
-        ~restore(){memory::mode=mode;thumb_direct_memory=thumb;}
+
+        ~restore(){memory::mode=mode;}
     } saved;
-    memory::mode=2;thumb_direct_memory=true;
+    memory::mode=2;
     test_mem backing;r12l1::exclusive_monitor monitor(1);auto core=make_cpu(backing,monitor);
     auto cpu=std::make_unique<ARMul_State>(core.get(),USER32MODE);
     std::vector<memory::page> pages(1<<20);
@@ -128,13 +127,13 @@ static bool test_svc_return_runtime() {
 #ifdef __EMSCRIPTEN__
     struct restore {
         unsigned memory=memory_experiment::mode;
-        bool thumb=thumb_direct_memory,svc=compiled_svc_enabled,ram=ram_compilation_enabled,hot=hot_compilation_enabled,chain=chaining_enabled;
-        ~restore(){memory_experiment::mode=memory;thumb_direct_memory=thumb;compiled_svc_enabled=svc;
-            ram_compilation_enabled=ram;hot_compilation_enabled=hot;chaining_enabled=chain;
+        bool hot=hot_compilation_enabled;
+        ~restore(){memory_experiment::mode=memory;
+            hot_compilation_enabled=hot;
             for(unsigned pc:{0x51001u,0x51005u,0x51009u,0x52004u,0x52008u})global_registry().unregister_function(pc);}
     } saved;
-    memory_experiment::mode=2;thumb_direct_memory=true;compiled_svc_enabled=true;
-    ram_compilation_enabled=false;hot_compilation_enabled=false;
+    memory_experiment::mode=2;
+    hot_compilation_enabled=false;
     test_mem rom;
     const unsigned base=0x51000,target=0x52000,delta=target-base-4;
     rom.write16(base,0xf000|((delta>>12)&0x7ff));rom.write16(base+2,0xe800|((delta>>1)&0x7ff));
@@ -162,9 +161,9 @@ static bool test_svc_return_runtime() {
     }
     std::vector<memory_experiment::page> pages(1<<20);
     unsigned checks=0;
-    for(bool chain:{false,true})for(unsigned action=0;action<12;++action)
+    for(unsigned action=0;action<12;++action)
     for(bool thumb_pc:{false,true}) {
-        chaining_enabled=chain;
+
         std::vector<std::uint32_t> outcomes[2],events[2];
         for(unsigned variant=0;variant<2;++variant) {
             test_mem memory;memory.data=rom.data;r12l1::exclusive_monitor monitor(1);auto core=make_cpu(memory,monitor);
@@ -225,7 +224,7 @@ static bool test_svc_return_runtime() {
             result.push_back(cpu->NirqSig);result.push_back(cpu->NumInstrsToExecute);
         }
         if(outcomes[0]!=outcomes[1] || events[0]!=events[1]) {
-            printf(" FAIL real SVC return chain=%u action=%u thumb=%u events=%zu/%zu\n",chain,action,thumb_pc,events[0].size(),events[1].size());
+            printf(" FAIL real SVC return action=%u thumb=%u events=%zu/%zu\n",action,thumb_pc,events[0].size(),events[1].size());
             for(unsigned n=0;n<outcomes[0].size();++n)if(outcomes[0][n]!=outcomes[1][n])printf(" result[%u]=%x/%x\n",n,outcomes[0][n],outcomes[1][n]);
             for(unsigned n=0;n<std::min(events[0].size(),events[1].size());++n)if(events[0][n]!=events[1][n])printf(" event[%u]=%x/%x\n",n,events[0][n],events[1][n]);
             return false;

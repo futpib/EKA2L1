@@ -33,8 +33,6 @@ namespace eka2l1::arm { class core; }
 namespace eka2l1::arm::aot {
     // Generated SVC returns a pending trap to the outer loop for the kernel
     // callback. A trap returns zero to stop the compiled chain.
-    inline bool compiled_svc_enabled = true;
-    inline bool sparse_rom_lookup_enabled = true;
     inline constexpr std::uint32_t svc_pending = 0x80000000u;
     inline constexpr std::uint32_t svc_taken = 0x40000000u;
     inline constexpr std::uint32_t svc_page_end = 0x20000000u;
@@ -42,12 +40,10 @@ namespace eka2l1::arm::aot {
     // register. Bits 24..27 encode that register (8 means only PC).
     inline constexpr std::uint32_t svc_return = 0x10000000u;
     inline constexpr unsigned svc_return_register_shift = 24;
-    // Frozen before execution: 0 general lookup, 2 trusted cache specialization.
-    inline unsigned hotpath_policy = 0;
     extern common::diagnostics::flag diagnostics_enabled;
+    // Selected before system initialization; false selects the interpreter.
+    inline bool compiler_enabled = true;
     extern bool hot_compilation_enabled;
-    extern bool ram_compilation_enabled;
-    extern bool chaining_enabled;
     struct compiled_run { std::uint32_t progress = 0; };
     std::uint32_t execute_single(ARMul_State *cpu, aot_func function);
     compiled_run execute_chain(ARMul_State *cpu, aot_func function);

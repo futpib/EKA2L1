@@ -1120,7 +1120,7 @@ namespace eka2l1::arm::aot {
                             if (kind == 0xE800) { target &= ~3u; w.store_i32_const(S::TFLAG, 0); }
                             w.store_i32_const(S::LR, (insn_addr + 4) | 1);
                             std::uint32_t veneer = 0;
-                            if (kind == 0xE800 && compiled_svc_enabled && immutable_code
+                            if (kind == 0xE800 && immutable_code
                                     && immutable_code->read(target, &veneer, sizeof(veneer))
                                     && (veneer & 0xff000000u) == 0xef000000u) {
                                 // The immutable ARM veneer can publish the same pending trap
@@ -3833,7 +3833,7 @@ namespace eka2l1::arm::aot {
                 // Conditional branch: B<cond> offset
                 std::uint8_t cond = (insn >> 8) & 0xF;
 
-                if (bounded && compiled_svc_enabled && cond == 15) {
+                if (bounded && cond == 15) {
                     w.store_i32_const(S::AOT_EXIT, svc_pending | svc_taken
                         | (((insn_addr + 2) & 4095) ? 0 : svc_page_end) | (insn & 255));
 
@@ -4660,7 +4660,7 @@ namespace eka2l1::arm::aot {
 
         // Locals: 0=state_ptr(param), 1=tmp1, 2=tmp2, 3=tmp3, 4=tmp4, 5=pc_idx, 6=addr_tmp
         //         7=ftmp1(f32), 8=ftmp2(f32), 9=dtmp1(f64)
-        const bool direct_memory = bounded && cache_registers && thumb_direct_memory;
+        const bool direct_memory = bounded && cache_registers;
         const auto loop_size = direct_memory && stop_after_store
             && common::code_tracking::skip_code_write_guards()
             ? finite_thumb_loop_size(code, code_size) : 0;

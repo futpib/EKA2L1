@@ -5,12 +5,11 @@ static bool test_thumb_finite_loops() {
     using S = state_offsets;
     namespace tracking = eka2l1::common::code_tracking;
     struct restore {
-        bool direct = thumb_direct_memory;
         unsigned memory = memory_experiment::mode, unsafe = tracking::unsafe_code_mode;
-        ~restore() { thumb_direct_memory = direct; memory_experiment::mode = memory;
+        ~restore() { memory_experiment::mode = memory;
             tracking::unsafe_code_mode = unsafe; watchdog::request = 0; g_test_mem = nullptr; }
     } saved;
-    thumb_direct_memory = true;
+
     tracking::unsafe_code_mode = 3;
     const std::vector<std::uint16_t> pixel = {
         0x8811,0x1c92,0x00ce,0x7006,0x08ce,0x403e,0x1c40,0x0ac9,0x7006,

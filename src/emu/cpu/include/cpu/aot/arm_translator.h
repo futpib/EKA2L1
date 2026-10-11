@@ -23,26 +23,9 @@
 #include <functional>
 
 namespace eka2l1::arm::aot {
-    // Shared instruction support, fixed before any module is translated.
-    inline bool arm_exclusive_memory = false;
+    // The precise form is retained for compiler fault/reference fixtures.
+    enum class arm_ir_policy { disabled, write_spans };
     inline bool arm_indirect_calls = true;
-    inline bool supported_exclusive_word(std::uint32_t op) {
-        const bool load = (op & 0x0ff00fff) == 0x01900f9f;
-        const bool store = (op & 0x0ff00ff0) == 0x01800f90;
-        return (op >> 28) < 15 && (load || store)
-            && ((op >> 16) & 15) != 15 && ((op >> 12) & 15) != 15
-            && (!store || (op & 15) != 15);
-    }
-    // Selected before translation. Numeric IDs remain stable for saved runs.
-    enum class arm_ir_policy { configured = -1, disabled = 0, invariant_reads = 4, invariant_writes = 5, read_spans = 6, write_spans = 7 };
-
-    inline bool parse_arm_ir_policy(const char *text, arm_ir_policy &out) {
-        if (!text) return false;
-        if ((text[0] == '0' || (text[0] >= '4' && text[0] <= '7')) && !text[1]) {
-            out = static_cast<arm_ir_policy>(text[0] - '0'); return true;
-        }
-        return false;
-    }
 
     using leaf_resolver = std::function<std::vector<std::uint8_t>(std::uint32_t)>;
 
@@ -61,5 +44,5 @@ namespace eka2l1::arm::aot {
         std::size_t code_size,
         std::uint32_t start_address,
         const sibling_map *siblings = nullptr,
-        const code_window *dll_code = nullptr, bool bounded = false, bool stop_after_store = false, bool cache_registers = false, bool region = false, const leaf_resolver *leaves = nullptr, bool defer_memory = false, arm_ir_policy ir_policy = arm_ir_policy::configured);
+        const code_window *dll_code = nullptr, bool bounded = false, bool stop_after_store = false, bool cache_registers = false, bool region = false, const leaf_resolver *leaves = nullptr, bool defer_memory = false, arm_ir_policy ir_policy = arm_ir_policy::write_spans);
 }

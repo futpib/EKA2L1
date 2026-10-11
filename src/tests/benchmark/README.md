@@ -187,18 +187,19 @@ there is no direct-policy or activation API. Direct mode always uses the best
 retained implementation from boot. Historical benchmark reports retain their
 original results and reproduction commands for the source revisions they name.
 
-Run correctness comparisons before collecting CPU timings. Use a frozen browser
-build and fresh output directories:
+For current memory correctness checks:
 
 ```sh
 node build-wasm/src/tests/aot/test_aot_wasm.js --memory-implementations-only
-python3 src/tests/benchmark/memory_implementations.py "$OUT/replays" replays \
-  --build "$BUILD" --snakes-assets "$SNAKES_ASSETS" --sky-assets "$SKY_ASSETS" \
-  --reference-root "$REFERENCES" --modes 0 2 --frames 60
-python3 src/tests/benchmark/memory_implementations.py "$OUT/timings" timings \
-  --build "$BUILD" --snakes-assets "$SNAKES_ASSETS" --sky-assets "$SKY_ASSETS" \
-  --reference-root "$REFERENCES" --modes 0 2 --rounds 2
 ```
+
+`memory_implementations.py`, `compare_memory_builds.py`, `serial_variants.py`
+and the service-overlap capture drivers are historical campaign tools. Use their
+matching source revision, harness and archived builds to reproduce old results.
+They request retired compiler controls and some assume an instruction clock;
+they are not current-browser benchmark entry points. Current captures use
+`src/tests/wasm/profile.ts` with `EKA2L1_MEMORY_IMPL=0` or `2`; compare reviewed
+equivalent gameplay, rather than zeroed instruction totals.
 
 ## Gameplay and clock validation
 

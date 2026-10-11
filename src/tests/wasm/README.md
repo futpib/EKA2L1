@@ -123,11 +123,19 @@ page. TLB retains its alignment checks. See the
 Compiled syscalls, sparse ROM lookup, Thumb inline memory and trusted lookup
 are fixed normal-launch defaults. Remove `EKA2L1_COMPILED_SVC`,
 `EKA2L1_SPARSE_ROM_LOOKUP`, `EKA2L1_THUMB_MEMORY` and `EKA2L1_HOTPATH` from
-launcher environments. Their pre-init APIs and the dedicated `benchmark.ts` /
-`profile.ts` controls remain for targeted comparisons and fallback tests.
-Trusted lookup still respects mapping lifetime and the executable-byte policy.
-Full state pruning and IR mode 7 are the defaults. Former mode 17 performed the
-same lowering after instruction accounting was removed and is now rejected.
+launcher and harness environments. Their pre-init APIs and capture/profile
+switches are removed. Trusted lookup still respects mapping lifetime and the
+executable-byte policy; required fallback implementations and focused correctness
+tests remain. Full state pruning, predicated leaves, branch/tail/literal veneers
+and the former policy-7 lowering are fixed. There is no numeric IR selector.
+
+The browser also retires verifier/census/detailed-guest-profile controls,
+comparator variant 2, compiled exclusive accesses, the optional deferred-memory
+build, and the internal ROM/region/chain/RAM stage environment ladder. Exclusive
+accesses retain interpreter handling; eligible compiled memory misses always use
+deferred recovery. Chrome sampling, native attribution, coarse progress reports,
+and native correctness diagnostics remain. See the [nine-group retirement and
+verification](CONFIGURATION_CLEANUP.md#current-retirement-2026-10-11).
 
 The count-based exit classifier/recorder has been removed; compilation-site,
 memory/fault metadata and invalidation diagnostics remain. Old count-returning

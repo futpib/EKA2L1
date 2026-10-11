@@ -12,7 +12,6 @@
 #include <unordered_map>
 
 namespace eka2l1::arm::aot {
-    extern unsigned code_compare_mode; // 0: original, 2: four-vector loop
     bool equal_code_bytes(const std::uint8_t *a, const std::uint8_t *b, std::size_t size);
 
     // Mapping/lifetime checks apply in every mode. Instruction-byte validation

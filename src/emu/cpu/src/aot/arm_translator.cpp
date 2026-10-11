@@ -727,20 +727,19 @@ namespace eka2l1::arm::aot {
         auto bytes = resolve(address);
         exit_census::probe(address,bytes.data(),bytes.size());
         if(bytes.empty()) {failure="callee_unmapped_or_other_space";return {};}
-        const unsigned features = allow_predicates ? leaf_features : 0;
         // The direct target retains the normal precise dispatcher exit. Only
         // the veneer itself is a dependency; no target bytes are assumed.
-        if ((features & 32) && bytes.size() >= 4) {
+        if (allow_predicates && bytes.size() >= 4) {
             std::vector<std::uint8_t> first(bytes.begin(), bytes.begin() + 4);
             if (is_branch_veneer(first)) return first;
         }
-        if ((features & 128) && bytes.size() >= 4) {
+        if (allow_predicates && bytes.size() >= 4) {
             std::vector<std::uint8_t> first(bytes.begin(), bytes.begin() + 4);
             if (is_literal_pc_veneer(first)) return first;
         }
         // Preserve a complete returning leaf when the current compiler can
         // already inline it; use a terminal prefix only as the fallback.
-        auto prefix = (features & 64) ? resolve_tail_prefix(bytes) : std::vector<std::uint8_t>{};
+        auto prefix = allow_predicates ? resolve_tail_prefix(bytes) : std::vector<std::uint8_t>{};
         auto returning = resolve_returning_leaf(std::move(bytes), address, failure, allow_predicates, refusal);
         return returning.empty() ? prefix : returning;
     }
@@ -969,7 +968,7 @@ namespace eka2l1::arm::aot {
         std::size_t code_size,
         std::uint32_t start_address,
         const sibling_map *siblings,
-        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region, const leaf_resolver *leaves, bool defer_memory, bool allow_memory_proof, arm_ir_policy ir_policy = arm_ir_policy::configured,
+        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region, const leaf_resolver *leaves, bool defer_memory, bool allow_memory_proof, arm_ir_policy ir_policy = arm_ir_policy::write_spans,
         stack_return_context *stack_return = nullptr)
     {
         region = region && bounded;
@@ -1017,7 +1016,7 @@ namespace eka2l1::arm::aot {
         std::map<std::size_t, std::vector<stack_callee>> stack_calls;
         std::map<std::size_t,exit_census::leaf_refusal> refusals;
         auto reachable = find_reachable_offsets_arm(code, code_size, bounded,
-            start_address, region ? leaves : nullptr, inlined, refusals, predicated_leaves && ir_policy == arm_ir_policy::write_spans, stack_calls);
+            start_address, region ? leaves : nullptr, inlined, refusals, ir_policy == arm_ir_policy::write_spans, stack_calls);
         // All fused bodies use one field-to-local mapping. Reserve its bank
         // before allocating proof temporaries; unused entry loads are pruned.
         unsigned fusion_next_local = 0;
@@ -1075,14 +1074,12 @@ namespace eka2l1::arm::aot {
             return true;
         };
 
-        // Separate research policies prove reads, or reads and writes, through
-        // unchanged entry registers. They admit loops and conditional accesses.
+        // Prove read and write spans through unchanged entry registers,
+        // including loops and conditional accesses.
         // Write proofs also exclude physical code aliases. All helper paths end
         // this region before a later instruction can use a pointer invalidated by a callback.
-        const bool include_writes = ir_policy == arm_ir_policy::invariant_writes
-            || ir_policy == arm_ir_policy::write_spans;
-        const bool invariant_reads = allow_memory_proof && stack_calls.empty() && (ir_policy == arm_ir_policy::invariant_reads
-            || include_writes || ir_policy == arm_ir_policy::read_spans)
+        const bool include_writes = ir_policy == arm_ir_policy::write_spans;
+        const bool invariant_reads = allow_memory_proof && stack_calls.empty() && include_writes
             && w.region && w.defer_memory && cache_registers && !instructions.empty();
         if (invariant_reads) {
             unsigned written = 0;
@@ -1154,7 +1151,7 @@ namespace eka2l1::arm::aot {
                 const unsigned rn = (op >> 16) & 15, rd = (op >> 12) & 15;
                 // Immediate pre-indexed word accesses, no writeback or PC operand.
                 const bool load = op & (1u << 20);
-                if ((op & 0x0f600000u) != 0x05000000u || (!load && !include_writes) || rn == 15 || rd == 15
+                if ((op & 0x0f600000u) != 0x05000000u || rn == 15 || rd == 15
                     || ((written & (1u << rn)) && !(linear && load && (op>>28)==14
                         && lifetime_uses[rn]>=4 && !(written_before[index]&(1u<<rn))))) continue;
                 known = add_access(ins.address, {int(rn), (op & (1u << 23) ? 1 : -1) * std::int64_t(op & 4095)}, 4, !load);
@@ -1489,8 +1486,7 @@ namespace eka2l1::arm::aot {
                 }
                 // Exclusive/swap encodings overlap broad data-processing masks.
                 // Let DynCom preserve the exclusive monitor and instruction semantics.
-                if (((inst & 0x0F0000F0) == 0x01000090 || (inst >> 28) == 15)
-                    && !(arm_exclusive_memory && supported_exclusive_word(inst))) {
+                if ((inst & 0x0F0000F0) == 0x01000090 || (inst >> 28) == 15) {
                     w.bail_unsupported(insn_addr, insn_idx);
                     decoded_end_offset = static_cast<std::uint32_t>(i);
                     break;
@@ -1573,7 +1569,7 @@ namespace eka2l1::arm::aot {
             // The generated instruction performs predicate/PC semantics; the
             // outer loop services the trap after the region returns. Even
             // a false predicate returns this boundary without invoking kernel.
-            if (bounded && compiled_svc_enabled && cond < 15 && (inst & 0x0f000000u) == 0x0f000000u) {
+            if (bounded && cond < 15 && (inst & 0x0f000000u) == 0x0f000000u) {
                 const auto descriptor = svc_pending | (((insn_addr + 4) & 4095) ? 0 : svc_page_end) | (inst & 0x00ffffffu);
                 w.store_i32_const(S::AOT_EXIT, descriptor);
                 const bool predicate = emit_cond_check(w, cond, TMP1, TMP2);
@@ -1588,19 +1584,6 @@ namespace eka2l1::arm::aot {
 
             // Emit condition check
             bool cond_opened = emit_cond_check(w, cond, TMP1, TMP2);
-
-            // Keep the existing monitor, including failed reservations and
-            // callback effects. Return after this instruction so the runner
-            // rechecks stops, IRQs, mappings and yield requests.
-            if (bounded && arm_exclusive_memory && supported_exclusive_word(inst)) {
-                w.store_i32_const(S::PC, insn_addr);
-                w.state_ptr(); w.i32_const(inst); w.slow_call(6);
-                w.bail_preserve_pc();
-                if (cond_opened) w.op(op_end);
-                ++insn_idx;
-                decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
-                break;
-            }
 
             // === B/BL: bits [27:25] = 101 ===
             if (((inst >> 25) & 7) == 5) {
@@ -2682,7 +2665,7 @@ namespace eka2l1::arm::aot {
             auto fallback = translate_arm_block_impl(code, code_size, start_address,
                 siblings, dll_code, bounded, stop_after_store, cache_registers,
                 region, leaves, defer_memory, false,
-                arm_ir_policy::configured);
+                arm_ir_policy::write_spans);
             fallback.func.export_name += "_memory_fallback";
             result.outlined_callee = std::make_shared<wasm_func_def>(std::move(fallback.func));
         }

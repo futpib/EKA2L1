@@ -184,36 +184,11 @@ int eka2l1_graphics_diagnostics_configure(int enabled) {
 }
 
 EMSCRIPTEN_KEEPALIVE
-int eka2l1_aot_configure(int enabled, int verify, int diagnostics) {
-    if (g_state || (enabled != 0 && enabled != 5) || verify < 0) return -1;
-    if (verify || diagnostics) return -2;
-    for (const auto *name : {"EKA2L1_AOT_HOT", "EKA2L1_AOT_REGION",
-            "EKA2L1_AOT_CHAIN", "EKA2L1_AOT_RAM", "EKA2L1_BENCHMARK_AOT"}) {
-        if (enabled) setenv(name, "1", 1);
-        else unsetenv(name);
-    }
+int eka2l1_aot_configure(int mode) {
+    if (g_state || (mode != 0 && mode != 5)) return -1;
+    eka2l1::arm::aot::compiler_enabled = mode == 5;
     return 0;
 }
-
-// Compiler research control: select before initialization, never on a running
-// CPU. Selection is frozen before guest translation starts.
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_ir_configure(int mode) {
-    eka2l1::arm::aot::arm_ir_policy policy;
-    if (g_state || (mode != -1 && !eka2l1::arm::aot::parse_arm_ir_policy(std::to_string(mode).c_str(), policy))) return -1;
-    if (mode < 0) unsetenv("EKA2L1_AOT_IR_MODE");
-    else setenv("EKA2L1_AOT_IR_MODE", std::to_string(mode).c_str(), 1);
-    return 0;
-}
-
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_sparse_rom_lookup_configure(int mode) {
-    if (g_state || mode < 0 || mode > 1) return -1;
-    eka2l1::arm::aot::sparse_rom_lookup_enabled = mode != 0;
-    return 0;
-}
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_sparse_rom_lookup_report() { return eka2l1::arm::aot::sparse_rom_lookup_enabled; }
 
 // Also start the watchdog for clients that use the raw frontend API. Launchers
 // may already have started one with a custom interval before initialization.
@@ -243,34 +218,6 @@ std::uint32_t *eka2l1_watchdog_address() {
     return reinterpret_cast<std::uint32_t *>(&eka2l1::arm::aot::watchdog::request);
 }
 
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_compiled_svc_configure(int mode) {
-    if (g_state || mode < 0 || mode > 1) return -1;
-    eka2l1::arm::aot::compiled_svc_enabled = mode != 0;
-    return 0;
-}
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_compiled_svc_report() { return eka2l1::arm::aot::compiled_svc_enabled; }
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_arm_exclusive_configure(int mode) {
-    if (g_state || mode < 0 || mode > 1) return -1;
-    eka2l1::arm::aot::arm_exclusive_memory = mode != 0;
-    return 0;
-}
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_arm_exclusive_report() { return eka2l1::arm::aot::arm_exclusive_memory; }
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_thumb_memory_configure(int mode) {
-    if (g_state || mode < 0 || mode > 1) return -1;
-    eka2l1::arm::aot::thumb_direct_memory = mode != 0;
-    return 0;
-}
-
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_thumb_memory_report() {
-    return eka2l1::arm::aot::thumb_direct_memory;
-}
-
 // WASM defaults to mode 3 (immutable executable bytes); explicit mode 0
 // restores mutation compatibility. The selection is frozen at CPU initialization.
 EMSCRIPTEN_KEEPALIVE
@@ -281,14 +228,6 @@ int eka2l1_unsafe_code_configure(int mode) {
 }
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_unsafe_code_report() { return common::code_tracking::unsafe_code_mode; }
-
-// Exact byte-scanner research control, frozen before guest execution.
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_code_compare_configure(int mode) {
-    if (g_state || (mode != 0 && mode != 2)) return -1;
-    eka2l1::arm::aot::code_compare_mode = static_cast<unsigned>(mode);
-    return 0;
-}
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_memory_impl_configure(int mode) {
@@ -305,15 +244,6 @@ const char *eka2l1_memory_impl_stats(){
         eka2l1::arm::aot::memory_experiment::mode,s.rebuilds,s.mapped_pages,s.arena_bytes,s.direct_pages,s.direct_rebuilds);
     return text.c_str();
 }
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_hotpath_configure(int policy) {
-    if (g_state || (policy != 0 && policy != 2)) return -1;
-    eka2l1::arm::aot::hotpath_policy = static_cast<unsigned>(policy);
-    return 0;
-}
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_hotpath_report() { return eka2l1::arm::aot::hotpath_policy; }
-
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_audio_configure() {
     if (g_state) return -1;
@@ -337,7 +267,7 @@ int eka2l1_live_configure() {
     common::benchmark::interactive = true;
     common::benchmark::paced = !g_route.enabled;
     setenv("EKA2L1_BENCHMARK", "1", 1);
-    return eka2l1_aot_configure(5, 0, 0);
+    return eka2l1_aot_configure(5);
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -389,60 +319,14 @@ int eka2l1_route_step_to(int stop_us) {
 }
 
 EMSCRIPTEN_KEEPALIVE
-int eka2l1_leaf_predication_configure(int enabled) {
-    if(g_state || (enabled!=0 && enabled!=1))return -1;
-    arm::aot::predicated_leaves=enabled;return 0;
-}
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_leaf_features_configure(int features) {
-    if(g_state || (features < 0 || (features & ~224)))return -1;
-    arm::aot::leaf_features=static_cast<unsigned>(features);return 0;
-}
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_leaf_features_report() {return arm::aot::leaf_features;}
-
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_leaf_predication_report() {return arm::aot::predicated_leaves;}
-
-EMSCRIPTEN_KEEPALIVE
 const char *eka2l1_execution_limits_report() {
     static std::string value;value=arm::aot::execution_limits_text();return value.c_str();
 }
 
 EMSCRIPTEN_KEEPALIVE
-int eka2l1_exit_census_configure(int enabled) {
-    if(g_state || (enabled!=0 && enabled!=1))return -1;
-    if (enabled && !common::diagnostics::available) return -2;
-    arm::aot::exit_census::enabled=enabled;
-    return 0;
-}
-
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_exit_census_report() { return arm::aot::exit_census::enabled ? 1 : 0; }
-
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_guest_profile_configure(int stride) {
-    if (g_state || stride < 0) return -1;
-    if (stride && !common::diagnostics::available) return -2;
-    common::guest_profile::enabled = stride != 0;
-    common::guest_profile::state = {};
-    if (stride) common::guest_profile::state.stride = stride;
-    return 0;
-}
-
-EMSCRIPTEN_KEEPALIVE
-const char *eka2l1_guest_profile_report() {
-    if constexpr (!common::diagnostics::available) return "{\"available\":false}";
-    static std::string result;
-    if (common::performance::phase.load() != 3) return "{}";
-    result = common::guest_profile::state.report(dyncom_instruction_name);
-    if(arm::aot::exit_census::enabled){result.pop_back();result+=",\"boundaries\":"+arm::aot::exit_census::report()+"}";}
-    return result.c_str();
-}
-
-EMSCRIPTEN_KEEPALIVE
 int eka2l1_profile_configure(int start_us, int end_us, int mode) {
     if (g_state || start_us < 0 || end_us <= start_us || end_us > 1800000000 || mode < 0 || mode > 2) return -1;
+    common::performance::detailed = false;
     common::performance::enabled = true;
     common::performance::start_us = start_us;
     common::performance::end_us = end_us;
@@ -475,14 +359,6 @@ const char *eka2l1_monitor_report() {
         << ",\"free_bytes\":" << heap.fordblks << "}";
     result = out.str();
     return result.c_str();
-}
-
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_profile_detail_configure(int enabled) {
-    if (g_state || (enabled != 0 && enabled != 1)) return -1;
-    if (enabled && !common::diagnostics::available) return -2;
-    common::performance::detailed = enabled != 0;
-    return 0;
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -531,7 +407,7 @@ int eka2l1_init(const char *data_path) {
         common::benchmark::paced = true;
     }
     if(eka2l1::arm::aot::memory_experiment::mode) {
-        if(std::getenv("EKA2L1_AOT_VERIFY") || !std::getenv("EKA2L1_AOT_REGION")) return -3;
+        if (!eka2l1::arm::aot::compiler_enabled) return -3;
         if(!common::code_tracking::skip_code_write_guards()) return -3;
     }
     log::setup_log(nullptr);

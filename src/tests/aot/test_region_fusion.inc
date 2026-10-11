@@ -50,13 +50,13 @@ static bool test_region_fusion(bool instrument = false) {
 #ifdef __EMSCRIPTEN__
     using S = state_offsets;
     struct restore {
-        bool direct=thumb_direct_memory, fusion=thumb_region_fusion;
+        bool fusion=thumb_region_fusion;
         unsigned mode=memory_experiment::mode, unsafe=eka2l1::common::code_tracking::unsafe_code_mode;
-        ~restore(){thumb_direct_memory=direct;thumb_region_fusion=fusion;
+        ~restore(){thumb_region_fusion=fusion;
             memory_experiment::mode=mode;eka2l1::common::code_tracking::unsafe_code_mode=unsafe;
             g_test_mem=nullptr;g_memory_boundary={};}
     } saved;
-    thumb_direct_memory=true;eka2l1::common::code_tracking::unsafe_code_mode=3;
+    eka2l1::common::code_tracking::unsafe_code_mode=3;
     std::vector<wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
         {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
     if(instrument)imports.push_back({"env","eka_test_count",1,false});

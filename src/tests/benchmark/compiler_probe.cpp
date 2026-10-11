@@ -26,18 +26,13 @@ struct Source : Dynarmic::A32::TranslateCallbacks {
 };
 int main(int argc,char**argv) {
  bool defer_memory=false, inline_leaves=false;
- auto ir_policy=eka2l1::arm::aot::arm_ir_policy::configured;
+ auto ir_policy=eka2l1::arm::aot::arm_ir_policy::write_spans;
  std::vector<std::pair<unsigned,unsigned>> regions;
  try {
   for(int i=3;i<argc;++i) {
    const std::string arg=argv[i];
    if(arg=="--defer-memory") defer_memory=true;
    else if(arg=="--inline-leaves") inline_leaves=true;
-   else if(arg=="--ir-mode" && i+1<argc) {
-    const std::string mode=argv[++i];
-    if(!eka2l1::arm::aot::parse_arm_ir_policy(mode.c_str(),ir_policy))
-        throw std::invalid_argument("IR mode must be 0, 4, 5, 6, 7 or 17");
-   }
    else if(arg=="--region" && i+2<argc) {
     const auto pc=std::stoul(argv[++i],nullptr,0), size=std::stoul(argv[++i],nullptr,0);
     if(pc>0xffffffffu || size>0xffffffffu) throw std::invalid_argument("region overflow");

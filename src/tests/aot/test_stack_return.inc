@@ -126,7 +126,7 @@ extern "C" EMSCRIPTEN_KEEPALIVE int tile_call_benchmark(unsigned variant, unsign
     static bool ready=false;
     const unsigned pcs[]={0x1000,0x1004,0x1014,0x2000};
     if(!ready) {
-        hotpath_policy=2;memory_experiment::mode=2;
+        memory_experiment::mode=2;
         eka2l1::common::code_tracking::unsafe_code_mode=3;
         global_registry().configure_rom_index(0x1000,0x2000,true);
         const unsigned caller[]={0xe1a0800eu,0xe1a00004u,0xe1a01005u,0xe1a02006u,
@@ -186,7 +186,7 @@ static int tile_rows(unsigned variant, unsigned iterations, unsigned blend) {
     const unsigned callee_sizes[]={61*4,60*4,54*4};
     auto word=[&](unsigned address)->unsigned&{return arena[(address-0x400000)/4];};
     if(!ready) {
-        hotpath_policy=2;memory_experiment::mode=2;
+        memory_experiment::mode=2;
         eka2l1::common::code_tracking::unsafe_code_mode=3;
         global_registry().configure_rom_index(0x70000000,0x30000,true);
         const auto cb=reinterpret_cast<const std::uint8_t*>(tile_caller);

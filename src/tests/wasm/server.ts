@@ -62,9 +62,7 @@ autoStart();
 </script>`;
 }
 
-export const compilerDefaults = {sparseRom: 1, compiledSvc: 1, thumbMemory: 1, irMode: 7, hotpath: 2, predicatedLeaves: 1, leafFeatures: 224, executionLimits: '512,32,8,0'} as const;
-
-export type CompilerPolicy = { watchdogUs?: number; sparseRom?: number; compiledSvc?: number; hotpath?: number; thumbMemory?: number; irMode?: number; codeCompare?: number; predicatedLeaves?: number; leafFeatures?: number; unsafeCode?: number; memoryImpl?: number; executionLimits?: [number,number,number,number] };
+export type CompilerPolicy = { watchdogUs?: number; unsafeCode?: number; memoryImpl?: number };
 
 export type LauncherGame = { id: string; title: string; uid: string; sis: string; ngage?: string };
 
@@ -73,86 +71,30 @@ function makeGameLauncherScript(games: LauncherGame[], defaultGame?: string): st
   return `<script>configureGameLauncher(${encode(games)}, ${encode(defaultGame ?? null)});</script>`;
 }
 
-function validExecutionLimits(limits: unknown): limits is [number,number,number,number] {
-  return Array.isArray(limits) && limits.length === 4
-    && limits.every((value, index) => value === [512,32,8,0][index]);
-}
-
 export function rejectRetiredCompilerOptions(): void {
-  for (const name of ['EKA2L1_ENTRY_BUDGET', 'EKA2L1_DIVISION_DIGITS', 'EKA2L1_ENTRY_ONLY_PRUNING', 'EKA2L1_EXECUTION_LIMITS', 'EKA2L1_TLB_HASH', 'EKA2L1_MEMORY_CACHE', 'EKA2L1_SYNCHRONOUS_COMPILATION', 'EKA2L1_ROM_DISPATCH', 'EKA2L1_CODE_WRITE_PROTECT', 'EKA2L1_CODE_LOOKUP', 'EKA2L1_OMIT_GUARD_PUBLICATION', 'EKA2L1_COMPILED_MEMORY_MISSES', 'EKA2L1_ROM_CALLS', 'EKA2L1_ROM_LEAVES', 'EKA2L1_AOT_EAGER_REGIONS', 'EKA2L1_SNAKES_N80_NATIVE_RESOLUTION', 'EKA2L1_ARM_MEMORY']) {
+  for (const name of ['EKA2L1_AOT_VERIFY', 'EKA2L1_AOT_DIAGNOSTICS', 'EKA2L1_PROFILE_DETAIL', 'EKA2L1_GUEST_PROFILE', 'EKA2L1_EXIT_CENSUS', 'EKA2L1_AOT_IR_MODE', 'EKA2L1_PREDICATED_LEAVES', 'EKA2L1_LEAF_FEATURES', 'EKA2L1_CODE_COMPARE', 'EKA2L1_ARM_EXCLUSIVE', 'EKA2L1_SPARSE_ROM_LOOKUP', 'EKA2L1_COMPILED_SVC', 'EKA2L1_HOTPATH', 'EKA2L1_THUMB_MEMORY', 'EKA2L1_AOT_HOT', 'EKA2L1_AOT_REGION', 'EKA2L1_AOT_CHAIN', 'EKA2L1_AOT_RAM', 'EKA2L1_ENTRY_BUDGET', 'EKA2L1_DIVISION_DIGITS', 'EKA2L1_ENTRY_ONLY_PRUNING', 'EKA2L1_EXECUTION_LIMITS', 'EKA2L1_TLB_HASH', 'EKA2L1_MEMORY_CACHE', 'EKA2L1_SYNCHRONOUS_COMPILATION', 'EKA2L1_ROM_DISPATCH', 'EKA2L1_CODE_WRITE_PROTECT', 'EKA2L1_CODE_LOOKUP', 'EKA2L1_OMIT_GUARD_PUBLICATION', 'EKA2L1_COMPILED_MEMORY_MISSES', 'EKA2L1_ROM_CALLS', 'EKA2L1_ROM_LEAVES', 'EKA2L1_AOT_EAGER_REGIONS', 'EKA2L1_SNAKES_N80_NATIVE_RESOLUTION', 'EKA2L1_ARM_MEMORY']) {
     if (process.env[name] !== undefined) throw Error('Retired compiler option: ' + name);
   }
 }
 
-// The four graduated optimizations have fixed normal-launch defaults. Explicit
-// compilerPolicy overrides and the raw configure APIs remain available to tests.
+// Runtime compatibility choices are frozen before initialization.
 export function compilerPolicyFromEnv(): CompilerPolicy {
   rejectRetiredCompilerOptions();
-  for (const name of ['EKA2L1_SPARSE_ROM_LOOKUP', 'EKA2L1_COMPILED_SVC', 'EKA2L1_HOTPATH', 'EKA2L1_THUMB_MEMORY']) {
-    if (process.env[name] !== undefined)
-      throw Error('Retired normal-launch option: ' + name + '; use benchmark.ts or profile.ts for targeted controls');
-  }
-  const ir = process.env.EKA2L1_AOT_IR_MODE ?? String(compilerDefaults.irMode);
-  const compare = process.env.EKA2L1_CODE_COMPARE;
-  const predicates = process.env.EKA2L1_PREDICATED_LEAVES ?? String(compilerDefaults.predicatedLeaves);
-  const features = process.env.EKA2L1_LEAF_FEATURES ?? String(compilerDefaults.leafFeatures);
-  const limits = compilerDefaults.executionLimits;
   const unsafe = process.env.EKA2L1_UNSAFE_CODE ?? '3';
-  const memory = process.env.EKA2L1_MEMORY_IMPL ?? (unsafe === '0' ? '0' : undefined);
-  if (!/^[03]$/.test(unsafe)) throw new Error("Invalid executable-byte policy");
-  const policy: CompilerPolicy = {
-    compiledSvc: compilerDefaults.compiledSvc, sparseRom: compilerDefaults.sparseRom,
-    hotpath: compilerDefaults.hotpath, thumbMemory: compilerDefaults.thumbMemory,
-    watchdogUs: watchdogInterval(),
-  };
-  if (ir !== undefined) {
-    if (!/^(?:-1|0|[4-7])$/.test(ir)) throw new Error("Invalid compiler policy");
-    policy.irMode = Number(ir);
-  }
-
-  if (compare !== undefined) {
-    if (!/^[02]$/.test(compare)) throw new Error("Invalid exact comparison policy");
-    policy.codeCompare = Number(compare);
-  }
-
-  if (predicates !== undefined) {
-    if (!/^[01]$/.test(predicates)) throw new Error("Invalid leaf predication policy");
-    policy.predicatedLeaves = Number(predicates);
-  }
-  if (features !== undefined) {
-    if (!/^(?:0|32|64|96|128|160|192|224)$/.test(features)) throw new Error("Invalid leaf features policy");
-    policy.leafFeatures = Number(features);
-  }
-  if (limits !== undefined) {
-    const parsed = limits.split(',').map(Number);
-    if (!validExecutionLimits(parsed) || parsed.join(',') !== limits) throw new Error("Invalid execution limits policy");
-    policy.executionLimits = parsed;
-  }
-  if (memory !== undefined) {
-    if (!/^[02]$/.test(memory)) throw Error('Invalid memory implementation policy');
-    policy.memoryImpl = Number(memory);
-  }
-  policy.unsafeCode = Number(unsafe);
-  return policy;
+  const memory = process.env.EKA2L1_MEMORY_IMPL ?? (unsafe === '0' ? '0' : '2');
+  if (!/^[03]$/.test(unsafe)) throw Error('Invalid executable-byte policy');
+  if (!/^[02]$/.test(memory)) throw Error('Invalid memory implementation policy');
+  return {watchdogUs: watchdogInterval(), unsafeCode: Number(unsafe), memoryImpl: Number(memory)};
 }
 
 function makeCompilerPolicyScript(policy?: CompilerPolicy): string {
   policy ??= {};
-  const allowed = ['watchdogUs','sparseRom','compiledSvc','hotpath','thumbMemory','irMode','codeCompare','predicatedLeaves','leafFeatures','unsafeCode','memoryImpl','executionLimits'];
+  const allowed = ['watchdogUs', 'unsafeCode', 'memoryImpl'];
   if (Object.keys(policy).some(key => !allowed.includes(key))) throw Error('Invalid compiler policy');
   if ((policy.watchdogUs !== undefined && (!Number.isSafeInteger(policy.watchdogUs) || policy.watchdogUs < 1 || policy.watchdogUs > 1000000))
-      || (policy.sparseRom !== undefined && ![0,1].includes(policy.sparseRom))
-      || (policy.compiledSvc !== undefined && ![0,1].includes(policy.compiledSvc))
-      || (policy.hotpath !== undefined && ![0,2].includes(policy.hotpath))
-      || (policy.thumbMemory !== undefined && ![0,1].includes(policy.thumbMemory))
-      || (policy.irMode !== undefined && ![-1,0,4,5,6,7].includes(policy.irMode))
-      || (policy.codeCompare !== undefined && ![0,2].includes(policy.codeCompare))
       || (policy.memoryImpl !== undefined && ![0,2].includes(policy.memoryImpl))
-      || (policy.unsafeCode !== undefined && ![0,3].includes(policy.unsafeCode))
-      || (policy.predicatedLeaves !== undefined && ![0,1].includes(policy.predicatedLeaves))
-      || (policy.leafFeatures !== undefined && ![0,32,64,96,128,160,192,224].includes(policy.leafFeatures))
-      || (policy.executionLimits !== undefined && !validExecutionLimits(policy.executionLimits)))
-    throw new Error("Invalid compiler policy");
+      || (policy.unsafeCode !== undefined && ![0,3].includes(policy.unsafeCode)))
+    throw Error('Invalid compiler policy');
   return `<script>
 window.ekaCompilerPolicy = {requested:${JSON.stringify(policy)}, applied:false};
 {
@@ -161,25 +103,18 @@ window.ekaCompilerPolicy = {requested:${JSON.stringify(policy)}, applied:false};
     const state = window.ekaCompilerPolicy;
     if (!state.applied) {
       await (${configureWatchdog.toString()})(state.requested.watchdogUs ?? 2000);
-      for (const [key, entry] of [['sparseRom','eka2l1_sparse_rom_lookup_configure'], ['compiledSvc','eka2l1_compiled_svc_configure'], ['hotpath','eka2l1_hotpath_configure'], ['thumbMemory','eka2l1_thumb_memory_configure'], ['irMode','eka2l1_ir_configure'], ['codeCompare','eka2l1_code_compare_configure'], ['predicatedLeaves','eka2l1_leaf_predication_configure'], ['leafFeatures','eka2l1_leaf_features_configure'], ['unsafeCode','eka2l1_unsafe_code_configure'], ['memoryImpl','eka2l1_memory_impl_configure']]) {
+      for (const [key, entry] of [['unsafeCode','eka2l1_unsafe_code_configure'], ['memoryImpl','eka2l1_memory_impl_configure']]) {
         if (state.requested[key] === undefined) continue;
         if (typeof Module['_' + entry] !== 'function'
             || Module.ccall(entry, 'number', ['number'], [state.requested[key]]) !== 0)
           throw new Error('Emulator compiler configuration failed: ' + key);
       }
       state.observed = {};
-      for (const [key, entry] of [['sparseRom','eka2l1_sparse_rom_lookup_report'], ['compiledSvc','eka2l1_compiled_svc_report'], ['hotpath','eka2l1_hotpath_report'], ['thumbMemory','eka2l1_thumb_memory_report'], ['predicatedLeaves','eka2l1_leaf_predication_report'], ['leafFeatures','eka2l1_leaf_features_report'], ['unsafeCode','eka2l1_unsafe_code_report'], ['memoryImpl','eka2l1_memory_impl_report']]) {
+      for (const [key, entry] of [['unsafeCode','eka2l1_unsafe_code_report'], ['memoryImpl','eka2l1_memory_impl_report']]) {
         if (state.requested[key] === undefined) continue;
         if (typeof Module['_' + entry] !== 'function') throw new Error('Emulator compiler readback unavailable: ' + key);
         state.observed[key] = Module.ccall(entry, 'number', [], []);
         if (state.observed[key] !== state.requested[key]) throw new Error('Emulator compiler readback mismatch: ' + key);
-      }
-      if (state.requested.executionLimits !== undefined) {
-        const limits = state.requested.executionLimits;
-        if (typeof Module._eka2l1_execution_limits_report !== 'function') throw new Error('Emulator compiler readback unavailable: executionLimits');
-        const observed = Module.ccall('eka2l1_execution_limits_report', 'string', [], []);
-        if (observed !== limits.join(',')) throw new Error('Emulator compiler readback mismatch: executionLimits');
-        state.observed.executionLimits = observed.split(',').map(Number);
       }
       state.applied = true;
     }
