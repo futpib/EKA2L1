@@ -75,6 +75,7 @@ static constexpr bool defer_memory_enabled = true;
 static constexpr bool defer_memory_enabled = false;
 #endif
 static validated_code_cache ram_cache;
+static std::uint32_t ram_hot_versions = 0;
 static std::unordered_map<std::uint64_t, unsigned> ram_counts;
 static const std::uint8_t *hot_rom = nullptr;
 static std::uint64_t hot_dispatches = 0;
@@ -134,7 +135,7 @@ void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32
     { const std::lock_guard<std::mutex> lock(precompile_mutex);
       precompile_images.clear(); precompile_pending = false; }
     hot_dispatches = 0; hot_compiled = 0; hot_counts.clear(); hot_pending.clear();
-    ram_cache = {}; ram_counts.clear();
+    ram_cache = {}; ram_hot_versions = 0; ram_counts.clear();
     const char *ram = std::getenv("EKA2L1_AOT_RAM");
     ram_compilation_enabled = enabled && ram && ram[0] == '1';
     const char *chain = std::getenv("EKA2L1_AOT_CHAIN");
@@ -274,19 +275,24 @@ static void compile_at(core &cpu, std::uint32_t key, std::vector<std::uint32_t> 
     const bool thumb = key & 1;
     if (pc < hot_rom_base || pc - hot_rom_base >= hot_rom_size) {
         if (!ram_compilation_enabled || !cpu.resolve_code) return;
-        if (ram_cache.versions() >= 16384) {
+        // As for ROM, preparation of known loaded images does not consume the
+        // hot-discovery quota. A launcher must not exhaust it before the game
+        // loads and leave every later RAM image permanently interpreted.
+        if (!successors && ram_hot_versions >= 16384) {
             if ((common::guest_profile::enabled && common::performance::counting())) common::guest_profile::state.event("ram_capacity",key);
             return;
         }
         core::code_mapping view;
         if (!cpu.resolve_code(pc, view)) return;
         if (ram_cache.find(key, cpu)) return; // compiled or awaiting instantiation
-        const auto identity = validated_code_cache::key(view.address_space, key);
-        if (!successors && ram_counts.size() >= 131072 && !ram_counts.count(identity)) return;
-        auto &count = ram_counts[identity];
-        if (!successors && ++count % 8) {
-            if ((common::guest_profile::enabled && common::performance::counting())) common::guest_profile::state.event("candidate_threshold",key,view.address_space);
-            return;
+        if (!successors) {
+            const auto identity = validated_code_cache::key(view.address_space, key);
+            if (ram_counts.size() >= 131072 && !ram_counts.count(identity)) return;
+            auto &count = ram_counts[identity];
+            if (++count % 8) {
+                if ((common::guest_profile::enabled && common::performance::counting())) common::guest_profile::state.event("candidate_threshold",key,view.address_space);
+                return;
+            }
         }
         const auto size = std::min(std::size_t(chaining_enabled ? primary_window_bytes : 256), view.size);
         leaf_resolver leaves = [&](std::uint32_t target) {
@@ -303,6 +309,7 @@ static void compile_at(core &cpu, std::uint32_t key, std::vector<std::uint32_t> 
         if (tr.func.body.empty() || !tr.entry_supported) {
             // Cache rejection against these exact bytes; retry only after mutation.
             ram_cache.insert(key, view, std::min(size, std::size_t(thumb ? 2 : 4))).rejected = true;
+            if (!successors) ++ram_hot_versions;
             if ((common::guest_profile::enabled && common::performance::counting())) common::guest_profile::state.event("compile_rejected",key,view.address_space);
             return;
         }
@@ -317,6 +324,7 @@ static void compile_at(core &cpu, std::uint32_t key, std::vector<std::uint32_t> 
         const auto consumed = std::clamp(std::size_t(tr.end_address - pc),
             std::size_t(thumb ? 2 : 4), size);
         auto &entry = ram_cache.insert(key, view, consumed);
+        if (!successors) ++ram_hot_versions;
         for (const auto &dependency : tr.dependencies) {
             core::code_mapping leaf;
             if (!cpu.resolve_code(dependency.address, leaf)

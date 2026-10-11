@@ -1,0 +1,598 @@
+{
+  "date": "2026-10-11",
+  "source_baseline": "42453a1a9",
+  "baseline_wasm_sha256": "0897120710c85c17e04762902fa34d471d98cf5160b79ad4bdeff27497bf0010",
+  "candidate_wasm_sha256": "b902463bc642ba5e31fbd585ff961e0f97d967eb9f95e2cc97ded3bb0c993284",
+  "scene": "Costa Rica fishing after casting; animated water, sky and rod; camera and animation phase are not an exact replay",
+  "game": "Hooked On 0.74 full BiNPDA preservation container",
+  "container_sha256": "a52da7a5d3d9f7ebd3eb81e49e3294d8998060f7cc2539fe955b8bfe14e1745c",
+  "limitations": [
+    "One fresh browser per build, two adjacent windows each; not independent repeated launches or ABBA",
+    "Shared host, varying VM/build load; no precise general speedup factor",
+    "Initial boat profile is diagnostic only and is not compared with fishing FPS",
+    "Counter measures presentations, not display refresh or deduplicated images",
+    "No mobile-memory or audio-output validation"
+  ],
+  "timings": [
+    {
+      "game": "hooked-on",
+      "label": "cast-gameplay-1",
+      "edition": "0.74 BiNPDA full",
+      "url": "http://127.0.0.1:8190/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        11.78,
+        7.14,
+        5.47
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 8.117490000009537,
+      "frames": 736,
+      "fps": 90.66842090339937,
+      "guestSeconds": 34.64,
+      "guestSpeed": 4.2673289403447745,
+      "compiledFunctions": 2,
+      "compilationUs": {
+        "aot_translation_us": 489,
+        "aot_emission_us": 124,
+        "aot_installation_us": 1009
+      },
+      "errors": [],
+      "build": "candidate",
+      "raw": "/home/claude/.scratch/eka-hooked-perf-20261011/candidate-final/cast-gameplay-1.json",
+      "start": {
+        "ms": 620497.4749999046,
+        "guest": 1382620000,
+        "frames": 16427,
+        "phase": 0,
+        "inputs": 40,
+        "monitor": {
+          "guest_us": 1382630000,
+          "instructions": 0,
+          "compiled_functions": 149008,
+          "aot_translation_us": 32554541,
+          "aot_emission_us": 1002869,
+          "aot_installation_us": 2362170,
+          "aot_eager_functions": 136882,
+          "aot_eager_passes": 128,
+          "allocated_bytes": 1583200736,
+          "free_bytes": 64819872
+        }
+      },
+      "end": {
+        "ms": 628614.9649999142,
+        "guest": 1417260000,
+        "frames": 17163,
+        "phase": 0,
+        "inputs": 40,
+        "monitor": {
+          "guest_us": 1417270000,
+          "instructions": 0,
+          "compiled_functions": 149010,
+          "aot_translation_us": 32555030,
+          "aot_emission_us": 1002993,
+          "aot_installation_us": 2363179,
+          "aot_eager_functions": 136882,
+          "aot_eager_passes": 128,
+          "allocated_bytes": 1583193648,
+          "free_bytes": 64826960
+        }
+      },
+      "largest_renderer_rss_kib": 3396780
+    },
+    {
+      "game": "hooked-on",
+      "label": "cast-gameplay-2",
+      "edition": "0.74 BiNPDA full",
+      "url": "http://127.0.0.1:8190/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        15.67,
+        8.15,
+        5.82
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 8.2660949999094,
+      "frames": 367,
+      "fps": 44.39823157174246,
+      "guestSeconds": 32.433,
+      "guestSpeed": 3.923618105085349,
+      "compiledFunctions": 0,
+      "compilationUs": {
+        "aot_translation_us": 0,
+        "aot_emission_us": 0,
+        "aot_installation_us": 0
+      },
+      "errors": [],
+      "build": "candidate",
+      "raw": "/home/claude/.scratch/eka-hooked-perf-20261011/candidate-final/cast-gameplay-2.json",
+      "start": {
+        "ms": 631286.4800000191,
+        "guest": 1428307000,
+        "frames": 17322,
+        "phase": 0,
+        "inputs": 40,
+        "monitor": {
+          "guest_us": 1428310000,
+          "instructions": 0,
+          "compiled_functions": 149010,
+          "aot_translation_us": 32555030,
+          "aot_emission_us": 1002993,
+          "aot_installation_us": 2363179,
+          "aot_eager_functions": 136882,
+          "aot_eager_passes": 128,
+          "allocated_bytes": 1583197792,
+          "free_bytes": 64822816
+        }
+      },
+      "end": {
+        "ms": 639552.5749999285,
+        "guest": 1460740000,
+        "frames": 17689,
+        "phase": 0,
+        "inputs": 40,
+        "monitor": {
+          "guest_us": 1460750000,
+          "instructions": 0,
+          "compiled_functions": 149010,
+          "aot_translation_us": 32555030,
+          "aot_emission_us": 1002993,
+          "aot_installation_us": 2363179,
+          "aot_eager_functions": 136882,
+          "aot_eager_passes": 128,
+          "allocated_bytes": 1583194008,
+          "free_bytes": 64826600
+        }
+      },
+      "largest_renderer_rss_kib": 3397612
+    },
+    {
+      "game": "hooked-on",
+      "label": "cast-gameplay-1",
+      "edition": "0.74 BiNPDA full",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        2.41,
+        4.22,
+        5.12
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 8.051300000071526,
+      "frames": 172,
+      "fps": 21.36300970010706,
+      "guestSeconds": 37.4,
+      "guestSpeed": 4.645212574325605,
+      "compiledFunctions": 0,
+      "compilationUs": {
+        "aot_translation_us": 0,
+        "aot_emission_us": 0,
+        "aot_installation_us": 0
+      },
+      "errors": [],
+      "build": "baseline",
+      "raw": "/home/claude/.scratch/eka-hooked-perf-20261011/baseline-final/cast-gameplay-1.json",
+      "start": {
+        "ms": 781161.4199999571,
+        "guest": 1240210000,
+        "frames": 3356,
+        "phase": 0,
+        "inputs": 20,
+        "monitor": {
+          "guest_us": 1240220000,
+          "instructions": 0,
+          "compiled_functions": 87825,
+          "aot_translation_us": 24297787,
+          "aot_emission_us": 702665,
+          "aot_installation_us": 1810383,
+          "aot_eager_functions": 78003,
+          "aot_eager_passes": 127,
+          "allocated_bytes": 1570883856,
+          "free_bytes": 77136752
+        }
+      },
+      "end": {
+        "ms": 789212.7200000286,
+        "guest": 1277610000,
+        "frames": 3528,
+        "phase": 0,
+        "inputs": 20,
+        "monitor": {
+          "guest_us": 1277610000,
+          "instructions": 0,
+          "compiled_functions": 87825,
+          "aot_translation_us": 24297787,
+          "aot_emission_us": 702665,
+          "aot_installation_us": 1810383,
+          "aot_eager_functions": 78003,
+          "aot_eager_passes": 127,
+          "allocated_bytes": 1570880944,
+          "free_bytes": 77139664
+        }
+      },
+      "largest_renderer_rss_kib": 2905908
+    },
+    {
+      "game": "hooked-on",
+      "label": "cast-gameplay-2",
+      "edition": "0.74 BiNPDA full",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        2.3,
+        4.17,
+        5.1
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 8.050225000023842,
+      "frames": 174,
+      "fps": 21.61430270576098,
+      "guestSeconds": 37.06,
+      "guestSpeed": 4.603598036066103,
+      "compiledFunctions": 0,
+      "compilationUs": {
+        "aot_translation_us": 0,
+        "aot_emission_us": 0,
+        "aot_installation_us": 0
+      },
+      "errors": [],
+      "build": "baseline",
+      "raw": "/home/claude/.scratch/eka-hooked-perf-20261011/baseline-final/cast-gameplay-2.json",
+      "start": {
+        "ms": 789306.9850000143,
+        "guest": 1278040000,
+        "frames": 3531,
+        "phase": 0,
+        "inputs": 20,
+        "monitor": {
+          "guest_us": 1278050000,
+          "instructions": 0,
+          "compiled_functions": 87825,
+          "aot_translation_us": 24297787,
+          "aot_emission_us": 702665,
+          "aot_installation_us": 1810383,
+          "aot_eager_functions": 78003,
+          "aot_eager_passes": 127,
+          "allocated_bytes": 1570880944,
+          "free_bytes": 77139664
+        }
+      },
+      "end": {
+        "ms": 797357.2100000381,
+        "guest": 1315100000,
+        "frames": 3705,
+        "phase": 0,
+        "inputs": 20,
+        "monitor": {
+          "guest_us": 1315100000,
+          "instructions": 0,
+          "compiled_functions": 87825,
+          "aot_translation_us": 24297787,
+          "aot_emission_us": 702665,
+          "aot_installation_us": 1810383,
+          "aot_eager_functions": 78003,
+          "aot_eager_passes": 127,
+          "allocated_bytes": 1570885080,
+          "free_bytes": 77135528
+        }
+      },
+      "largest_renderer_rss_kib": 2905488
+    }
+  ],
+  "profiles": {
+    "candidate": {
+      "raw": "/home/claude/.scratch/eka-hooked-perf-20261011/candidate-final",
+      "sampled_us": 7964666,
+      "generated_percent": 57.72311105073333,
+      "interpreter_percent": 1.0816900545484267,
+      "top": [
+        {
+          "name": "eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))",
+          "us": 2456518,
+          "percent": 30.842699492985645
+        },
+        {
+          "name": "r_53252_pc_1961550500",
+          "us": 919835,
+          "percent": 11.548946308608548
+        },
+        {
+          "name": "r_51872_pc_1961554980",
+          "us": 863244,
+          "percent": 10.838420594159253
+        },
+        {
+          "name": "r_53258_pc_1961555492",
+          "us": 368941,
+          "percent": 4.63222186592633
+        },
+        {
+          "name": "r_51870_pc_1961554708",
+          "us": 315955,
+          "percent": 3.9669585642386007
+        },
+        {
+          "name": "resampler_basic_interpolate_single",
+          "us": 271015,
+          "percent": 3.4027164478711347
+        },
+        {
+          "name": "r_63771_pc_1961784384",
+          "us": 195934,
+          "percent": 2.4600403833632196
+        },
+        {
+          "name": "r_48606_pc_1960865792",
+          "us": 175620,
+          "percent": 2.2049888846563057
+        },
+        {
+          "name": "f_2149189520",
+          "us": 124517,
+          "percent": 1.5633675034207335
+        },
+        {
+          "name": "eka2l1::arm::aot::validated_code_cache::lookup_trusted_uncached(unsigned int, eka2l1::arm::core&)",
+          "us": 121034,
+          "percent": 1.5196368560841096
+        },
+        {
+          "name": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+          "us": 86153,
+          "percent": 1.0816900545484267
+        },
+        {
+          "name": "r_54617_pc_1960854760",
+          "us": 83159,
+          "percent": 1.0440990243658679
+        }
+      ],
+      "measurement": {
+        "game": "hooked-on",
+        "label": "profile-gameplay",
+        "edition": "0.74 BiNPDA full",
+        "url": "http://127.0.0.1:8190/?game=custom",
+        "browser": "Chrome/153.0.8010.52",
+        "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+        "load": [
+          14.72,
+          8.19,
+          5.86
+        ],
+        "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+        "sound": "browser muted; guest audio remains enabled",
+        "seconds": 6.11730999994278,
+        "frames": 441,
+        "fps": 72.09051037206305,
+        "guestSeconds": 26.5,
+        "guestSpeed": 4.331969444126238,
+        "compiledFunctions": 1,
+        "compilationUs": {
+          "aot_translation_us": 189,
+          "aot_emission_us": 34,
+          "aot_installation_us": 450
+        },
+        "errors": []
+      },
+      "busiest_renderer_thread": {
+        "pid": 35444,
+        "tid": 35500,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 6.237124838,
+        "status": "matched"
+      }
+    },
+    "baseline": {
+      "raw": "/home/claude/.scratch/eka-hooked-perf-20261011/baseline-final",
+      "sampled_us": 6350201,
+      "generated_percent": 0.7482912745596557,
+      "interpreter_percent": 77.41153390262765,
+      "top": [
+        {
+          "name": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+          "us": 4915788,
+          "percent": 77.41153390262765
+        },
+        {
+          "name": "eka2l1::arm::aot::validated_code_cache::lookup_trusted_uncached(unsigned int, eka2l1::arm::core&)",
+          "us": 905779,
+          "percent": 14.263784721145047
+        },
+        {
+          "name": "eka2l1::arm::aot::lookup_compiled(ARMul_State*)",
+          "us": 272170,
+          "percent": 4.286006065004871
+        },
+        {
+          "name": "resampler_basic_interpolate_single",
+          "us": 90667,
+          "percent": 1.4277815773075528
+        },
+        {
+          "name": "eka2l1::drivers::graphics_command_builder::update_bitmap(unsigned long long, char const*, unsigned long, eka2l1::vec2 const&, eka2l1::vec2 const&, unsigned long, bool)",
+          "us": 16920,
+          "percent": 0.2664482588818842
+        },
+        {
+          "name": "DataProcessingOperandsArithmeticShiftRightByRegister(ARMul_State*, unsigned int)",
+          "us": 16888,
+          "percent": 0.2659443378248972
+        },
+        {
+          "name": "f_2149189520",
+          "us": 14791,
+          "percent": 0.23292176105921686
+        },
+        {
+          "name": "eka2l1::drivers::pump_benchmark_audio(unsigned long long)",
+          "us": 13714,
+          "percent": 0.21596166798499764
+        },
+        {
+          "name": "eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))",
+          "us": 13714,
+          "percent": 0.21596166798499764
+        },
+        {
+          "name": "std::__2::__function::__func<eka2l1::mem::mmu_base::mmu_base(eka2l1::mem::control_base*, eka2l1::arm::core*, eka2l1::config::state*)::$_0, std::__2::allocator<eka2l1::mem::mmu_base::mmu_base(eka2l1::mem::control_base*, eka2l1::arm::core*, eka2l1::config::state*)::$_0>, unsigned long (bool)>::operator()(bool&&)",
+          "us": 10570,
+          "percent": 0.1664514241360234
+        },
+        {
+          "name": "eka2l1::arm::aot::compile_at(eka2l1::arm::core&, unsigned int, std::__2::vector<unsigned int, std::__2::allocator<unsigned int>>*)",
+          "us": 8408,
+          "percent": 0.1324052577233382
+        },
+        {
+          "name": "std::__2::__function::__func<eka2l1_run::$_0, std::__2::allocator<eka2l1_run::$_0>, void (void*, eka2l1::epoc::screen*, bool)>::operator()(void*&&, eka2l1::epoc::screen*&&, bool&&)",
+          "us": 7396,
+          "percent": 0.11646875429612386
+        }
+      ],
+      "measurement": {
+        "game": "hooked-on",
+        "label": "profile-gameplay",
+        "edition": "0.74 BiNPDA full",
+        "url": "https://claude-laptop.lan:8188/?game=custom",
+        "browser": "Chrome/153.0.8010.52",
+        "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+        "load": [
+          2.1,
+          4.06,
+          5.06
+        ],
+        "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+        "sound": "browser muted; guest audio remains enabled",
+        "seconds": 6.035985000014305,
+        "frames": 126,
+        "fps": 20.874803366758098,
+        "guestSeconds": 28.16,
+        "guestSpeed": 4.665352879427842,
+        "compiledFunctions": 0,
+        "compilationUs": {
+          "aot_translation_us": 0,
+          "aot_emission_us": 0,
+          "aot_installation_us": 0
+        },
+        "errors": []
+      },
+      "busiest_renderer_thread": {
+        "pid": 89437,
+        "tid": 89587,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 6.106603357,
+        "status": "matched"
+      }
+    },
+    "diagnostic_boat_baseline": {
+      "raw": "/home/claude/.scratch/eka-hooked-perf-20261011/baseline-profile",
+      "sampled_us": 15432900,
+      "generated_percent": 0.9709127902079324,
+      "interpreter_percent": 76.27881344400599,
+      "top": [
+        {
+          "name": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+          "us": 11772033,
+          "percent": 76.27881344400599
+        },
+        {
+          "name": "eka2l1::arm::aot::validated_code_cache::lookup_trusted_uncached(unsigned int, eka2l1::arm::core&)",
+          "us": 2233868,
+          "percent": 14.474713112895179
+        },
+        {
+          "name": "eka2l1::arm::aot::lookup_compiled(ARMul_State*)",
+          "us": 753881,
+          "percent": 4.884895256238296
+        },
+        {
+          "name": "resampler_basic_interpolate_single",
+          "us": 211978,
+          "percent": 1.3735461254851649
+        },
+        {
+          "name": "eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))",
+          "us": 47490,
+          "percent": 0.30771922321793055
+        },
+        {
+          "name": "f_2149189520",
+          "us": 37998,
+          "percent": 0.24621425655579962
+        },
+        {
+          "name": "eka2l1::drivers::pump_benchmark_audio(unsigned long long)",
+          "us": 29465,
+          "percent": 0.19092328726292532
+        },
+        {
+          "name": "eka2l1::arm::aot::compile_at(eka2l1::arm::core&, unsigned int, std::__2::vector<unsigned int, std::__2::allocator<unsigned int>>*)",
+          "us": 25297,
+          "percent": 0.16391604947871108
+        },
+        {
+          "name": "emscripten_futex_wait",
+          "us": 24521,
+          "percent": 0.15888783054383818
+        },
+        {
+          "name": "std::__2::__function::__func<eka2l1_run::$_0, std::__2::allocator<eka2l1_run::$_0>, void (void*, eka2l1::epoc::screen*, bool)>::operator()(void*&&, eka2l1::epoc::screen*&&, bool&&)",
+          "us": 24284,
+          "percent": 0.15735215027635766
+        },
+        {
+          "name": "std::__2::__function::__func<eka2l1::mem::mmu_base::mmu_base(eka2l1::mem::control_base*, eka2l1::arm::core*, eka2l1::config::state*)::$_0, std::__2::allocator<eka2l1::mem::mmu_base::mmu_base(eka2l1::mem::control_base*, eka2l1::arm::core*, eka2l1::config::state*)::$_0>, unsigned long (bool)>::operator()(bool&&)",
+          "us": 23224,
+          "percent": 0.15048370688593848
+        },
+        {
+          "name": "eka2l1::drivers::graphics_command_builder::update_bitmap(unsigned long long, char const*, unsigned long, eka2l1::vec2 const&, eka2l1::vec2 const&, unsigned long, bool)",
+          "us": 23170,
+          "percent": 0.15013380505284166
+        }
+      ],
+      "measurement": {
+        "game": "hooked-on",
+        "label": "profile-gameplay",
+        "edition": "0.74 BiNPDA full",
+        "url": "https://claude-laptop.lan:8188/?game=custom",
+        "browser": "Chrome/153.0.8010.52",
+        "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+        "load": [
+          2.1,
+          1.21,
+          0.79
+        ],
+        "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+        "sound": "browser muted; guest audio remains enabled",
+        "seconds": 15.083514999985695,
+        "frames": 362,
+        "fps": 23.999710942730744,
+        "guestSeconds": 65.01,
+        "guestSpeed": 4.31000333808543,
+        "compiledFunctions": 0,
+        "compilationUs": {
+          "aot_translation_us": 0,
+          "aot_emission_us": 0,
+          "aot_installation_us": 0
+        },
+        "errors": []
+      },
+      "busiest_renderer_thread": {
+        "pid": 4016515,
+        "tid": 4016618,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 15.158127917,
+        "status": "matched"
+      }
+    }
+  }
+}

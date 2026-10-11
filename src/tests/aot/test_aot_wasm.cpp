@@ -6015,6 +6015,81 @@ static bool test_precompile() {
     return true;
 }
 
+// A launcher can prepare more RAM code than the old lifetime hot-cache limit
+// before starting the game. Later images and hot discoveries must still compile.
+static bool test_precompile_capacity() {
+    test_mem mem; r12l1::exclusive_monitor mon(1); auto cpu = make_cpu(mem, mon);
+    setenv("EKA2L1_AOT_RAM", "1", 1); setenv("EKA2L1_AOT_CHAIN", "1", 1);
+    setenv("EKA2L1_AOT_REGION", "1", 1);
+    struct cleanup {
+        ~cleanup() {
+            global_registry().clear(); configure_hot_rom(nullptr, 0, 0, false);
+            unsetenv("EKA2L1_AOT_RAM"); unsetenv("EKA2L1_AOT_CHAIN"); unsetenv("EKA2L1_AOT_REGION");
+        }
+    } reset;
+    constexpr unsigned ram = 0x1000, entries = 16385, hot = 0x20000;
+    std::vector<std::uint32_t> starts;
+    for (unsigned i = 0; i < entries; ++i) {
+        mem.write16(ram + i * 4, 0x2007); // MOVS r0,#7; BX lr
+        mem.write16(ram + i * 4 + 2, 0x4770);
+        starts.push_back((ram + i * 4) | 1);
+    }
+    for (unsigned i = 0; i < entries; ++i) {
+        mem.write16(hot + i * 4, 0x2009); mem.write16(hot + i * 4 + 2, 0x4770);
+    }
+    cpu->code_address_space = 1;
+    cpu->resolve_code = [&](unsigned pc, core::code_mapping &view) {
+        if (pc < ram || pc >= hot + entries * 4) return false;
+        view = {cpu->code_address_space, mem.data.data() + pc, 4}; return true;
+    };
+    global_registry().clear(); configure_hot_rom(nullptr, 0, 0, true);
+    queue_precompile_image(1, ram, mem.data.data() + ram, entries * 4, std::move(starts));
+    core::thread_context before{}, after{}; cpu->save_context(before);
+    prepare_compiled_code(*cpu); cpu->save_context(after);
+    if (std::memcmp(&before, &after, sizeof(before)) || compiled_function_count() != entries) {
+        printf(" FAIL eager RAM preparation stopped at %llu of %u entries\n",
+            static_cast<unsigned long long>(compiled_function_count()), entries);
+        return false;
+    }
+    auto state = std::make_unique<ARMul_State>(cpu.get(), USER32MODE);
+    state->TFlag = 1; state->NumInstrsToExecute = 1; state->NirqSig = 1;
+    for (unsigned pc : {ram, ram + (entries - 1) * 4}) {
+        state->Reg[15] = pc; state->Reg[14] = 0x30001;
+        auto fn = lookup_compiled(state.get());
+        if (!fn || fn(state.get()) != 1 || state->Reg[0] != 7 || state->Reg[15] != 0x30000) return false;
+    }
+    // A new process reuses the address, but must get its own prepared function.
+    cpu->code_address_space = 2; state->Reg[15] = ram;
+    if (lookup_compiled(state.get())) return false;
+    queue_precompile_image(2, ram, mem.data.data() + ram, 4, {ram | 1});
+    prepare_compiled_code(*cpu);
+    auto fn = lookup_compiled(state.get());
+    if (!fn || fn(state.get()) != 1 || state->Reg[0] != 7) return false;
+    // Entries not discoverable from the image retain the ordinary hot path.
+    state->Reg[15] = hot;
+    for (unsigned i = 0; i < 8192; ++i) observe_hot_pc(state.get());
+    fn = lookup_compiled(state.get());
+    if (!fn || fn(state.get()) != 1 || state->Reg[0] != 9 || compiled_function_count() != entries + 2) return false;
+    // Hot discoveries still have a finite quota, independent of eager entries.
+    for (unsigned i = 1; i < entries; ++i) {
+        state->Reg[15] = hot + i * 4;
+        for (unsigned hit = 0; hit < 256; ++hit) observe_hot_pc(state.get());
+    }
+    if (lookup_compiled(state.get()) || compiled_function_count() != entries + 1 + 16384) return false;
+    state->Reg[15] -= 4;
+    if (!lookup_compiled(state.get())) return false;
+    state->Reg[15] += 4;
+    queue_precompile_image(2, state->Reg[15], mem.data.data() + state->Reg[15], 4, {state->Reg[15] | 1});
+    prepare_compiled_code(*cpu);
+    if (!lookup_compiled(state.get())) return false;
+    // A fresh emulator session restores the hot-discovery allowance.
+    configure_hot_rom(nullptr, 0, 0, true);
+    for (unsigned i = 0; i < 8192; ++i) observe_hot_pc(state.get());
+    if (!lookup_compiled(state.get()) || compiled_function_count() != 1) return false;
+    printf("PASS eager RAM capacity: >16K prepared entries, late process, bounded hot discovery, reset, unchanged CPU state\n");
+    return true;
+}
+
 int main(int argc, char **argv) {
     // Production module staging logs its result; standalone tests have no sink.
     eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
@@ -6039,7 +6114,7 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--emit-lifetime-probes") {emit_lifetime_probes();return 0;}
     if(argc==2 && std::string(argv[1])=="--emit-memory-probes") {emit_memory_probes();return 0;}
 #endif
-    if(argc==2 && std::string(argv[1])=="--precompile-only") return test_precompile()?0:1;
+    if(argc==2 && std::string(argv[1])=="--precompile-only") return test_precompile() && test_precompile_capacity()?0:1;
     if(argc==2 && std::string(argv[1])=="--watchdog-only") return test_watchdog()?0:1;
     if(argc==2 && std::string(argv[1])=="--thumb-finite-loops-only") return test_thumb_finite_loops()?0:1;
     if(argc==2 && std::string(argv[1])=="--stack-returns-only")return test_stack_returns()?0:1;

@@ -220,7 +220,8 @@ namespace eka2l1::arm::aot {
         };
         std::vector<dispatch_entry> dispatch_ = std::vector<dispatch_entry>(4096);
         // Versions remain allocated until reset so late module instantiation can
-        // never attach an old function to a replacement block. Runtime caps growth.
+        // never attach an old function to a replacement block. Hot admission is
+        // budgeted separately from preparation of loaded images.
         std::deque<block> versions_;
         std::unordered_map<std::uint64_t, std::uint32_t> current_;
     };
