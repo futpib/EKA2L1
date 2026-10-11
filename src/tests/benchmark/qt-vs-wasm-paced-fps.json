@@ -1,0 +1,409 @@
+{
+  "date": "2026-10-11",
+  "mode": "Normal paced gameplay; mean presentations per wall-clock second",
+  "cpu": "Intel Core i7-10875H",
+  "qt_source_checkout": "742f59668",
+  "wasm_source_commit": "86a64bdea",
+  "qt_binary_sha256": "12adc27057e844a6a75140f71a24ec4ebd702068275ef0e2770cfe8627d9d9cb",
+  "wasm_sha256": "dec37577f64f2b6addc7d3d1d9e877fe4bcd288bbc0b39022fd4c22236130f63",
+  "qt_backend": "Dynarmic, normal Qt frontend, Intel UHD graphics on accelerated native Xorg",
+  "wasm_backend": "Chrome 153.0.8010.52, ANGLE Vulkan NVIDIA Quadro T1000 Max-Q, normal LAN picker, count-free defaults",
+  "limitations": [
+    "Single short samples, approximate matching of scenes rather than deterministic replays.",
+    "Paced rates are influenced by guest timing and frame limits; not maximum emulator throughput.",
+    "Qt and WASM use different GPU backends; background host workloads were not controlled. See row host load and scene caveats.",
+    "Counts include repeated presentations of identical image content; not unique-image or monitor-refresh FPS.",
+    "Browser output muted; native audio uses private PipeWire null sink. Audio correctness not assessed."
+  ],
+  "rows": [
+    {
+      "number": 1,
+      "id": "snakes",
+      "title": "Snakes",
+      "version": "0.6.0.19 A3",
+      "device": "Nokia 5320 RM-409",
+      "notes": "Opening-level gameplay, no directional input.",
+      "qt": {
+        "fps": 15.962811416790172,
+        "frames": 479,
+        "seconds": 30.00724543398246,
+        "raw_json": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-snakes/opening-level.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-snakes/opening-level-start.png",
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-snakes/opening-level-end.png"
+        ],
+        "host_load_1m_mean": 0.6024658203125
+      },
+      "wasm": {
+        "fps": 16.0225685070708,
+        "frames": 323,
+        "seconds": 20.15906499993801,
+        "raw_json": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-snakes-final/opening-level.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-snakes-final/opening-level-start.png",
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-snakes-final/opening-level-end.png"
+        ],
+        "host_load_1m_mean": 2.86,
+        "guestSpeed": 0.999994543400797,
+        "compiledFunctions": 22,
+        "compilationUs": {
+          "aot_translation_us": 3995,
+          "aot_emission_us": 574,
+          "aot_installation_us": 1750
+        }
+      }
+    },
+    {
+      "number": 2,
+      "id": "sky-force",
+      "title": "Sky Force",
+      "version": "1.22, S60 3rd Edition, 240x320",
+      "device": "Nokia 5320 RM-409",
+      "notes": "Stage 1, Medium difficulty. Qt window 30 s; WASM 15 s includes opening in-game stage banner. Alive at both endpoints.",
+      "qt": {
+        "fps": 31.992278638027877,
+        "frames": 960,
+        "seconds": 30.007240523933433,
+        "raw_json": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-sky-force/stage-1.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-sky-force/stage-1-start.png",
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-sky-force/stage-1-end.png"
+        ],
+        "host_load_1m_mean": 0.7943359375
+      },
+      "wasm": {
+        "fps": 31.955589653295682,
+        "frames": 484,
+        "seconds": 15.146019999980927,
+        "raw_json": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-sky-force/stage-1-repeat.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-sky-force/stage-1-repeat-start.png",
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-sky-force/stage-1-repeat-end.png"
+        ],
+        "host_load_1m_mean": 2.9525806451612904,
+        "guestSpeed": 0.9998936354249546,
+        "compiledFunctions": 17,
+        "compilationUs": {
+          "aot_translation_us": 504,
+          "aot_emission_us": 130,
+          "aot_installation_us": 580
+        }
+      }
+    },
+    {
+      "number": 3,
+      "id": "k-rally",
+      "title": "K-Rally",
+      "version": "1.01, S60 3rd Edition, Team SyMBiAN preservation copy",
+      "device": "Nokia 5320 RM-409",
+      "notes": "Tutorial track with digit 4 throttle and right steering held; car stopped at endpoints. Not a full race or lap-throughput test.",
+      "qt": {
+        "fps": 32.025696347970516,
+        "frames": 961,
+        "seconds": 30.007153929094784,
+        "raw_json": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-k-rally/tutorial-driving.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-k-rally/tutorial-driving-start.png",
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-k-rally/tutorial-driving-end.png"
+        ],
+        "host_load_1m_mean": 0.8664225260416667
+      },
+      "wasm": {
+        "fps": 31.98101379489562,
+        "frames": 967,
+        "seconds": 30.23668999993801,
+        "raw_json": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-k-rally/tutorial-driving.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-k-rally/tutorial-driving-start.png",
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-k-rally/tutorial-driving-end.png"
+        ],
+        "host_load_1m_mean": 1.3734426229508196,
+        "guestSpeed": 0.9999651086167826,
+        "compiledFunctions": 153,
+        "compilationUs": {
+          "aot_translation_us": 37525,
+          "aot_emission_us": 2422,
+          "aot_installation_us": 8495
+        }
+      }
+    },
+    {
+      "number": 4,
+      "id": "asphalt-2",
+      "title": "Asphalt: Urban GT 2",
+      "version": "1.0.1, N95 8GB, original Gameloft-signed S60v3 release",
+      "device": "Nokia 5320 RM-409",
+      "notes": "Different randomized Instant Play scenes: Qt motorcycle in city; WASM red car on bridge/coastal route. Rough per-game observation, not a matched-scene speed ratio.",
+      "qt": {
+        "fps": 15.595487117745604,
+        "frames": 468,
+        "seconds": 30.008681131061167,
+        "raw_json": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-asphalt-2/instant-play-motorcycle.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-asphalt-2/instant-play-motorcycle-start.png",
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-asphalt-2/instant-play-motorcycle-end.png"
+        ],
+        "host_load_1m_mean": 0.47421061197916664
+      },
+      "wasm": {
+        "fps": 10.84887484265738,
+        "frames": 328,
+        "seconds": 30.233550000071524,
+        "raw_json": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-asphalt-2/instant-play-car.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-asphalt-2/instant-play-car-start.png",
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-asphalt-2/instant-play-car-end.png"
+        ],
+        "host_load_1m_mean": 1.731311475409836,
+        "guestSpeed": 0.9999947409394027,
+        "compiledFunctions": 632,
+        "compilationUs": {
+          "aot_translation_us": 119642,
+          "aot_emission_us": 4528,
+          "aot_installation_us": 22214
+        }
+      }
+    },
+    {
+      "number": 5,
+      "id": "hooked-on",
+      "title": "Hooked On: Creatures of the Deep",
+      "version": "0.74, N-Gage 2.0, full BiNPDA preservation copy",
+      "device": "Nokia 5320 RM-409",
+      "notes": "Costa Rica boat map with Up held, introductory help overlays possible; not a fishing fight.",
+      "qt": {
+        "fps": 31.65835654855403,
+        "frames": 950,
+        "seconds": 30.00787481002044,
+        "raw_json": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-hooked-on/costa-rica-boat.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-hooked-on/costa-rica-boat-start.png",
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-hooked-on/costa-rica-boat-end.png"
+        ],
+        "host_load_1m_mean": 0.8703125
+      },
+      "wasm": {
+        "fps": 26.004808404998556,
+        "frames": 785,
+        "seconds": 30.18672500002384,
+        "raw_json": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-hooked-on/costa-rica-boat.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-hooked-on/costa-rica-boat-start.png",
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-hooked-on/costa-rica-boat-end.png"
+        ],
+        "host_load_1m_mean": 12.132833333333332,
+        "guestSpeed": 0.9999146976022129,
+        "compiledFunctions": 126,
+        "compilationUs": {
+          "aot_translation_us": 37797,
+          "aot_emission_us": 3510,
+          "aot_installation_us": 31521
+        }
+      }
+    },
+    {
+      "number": 6,
+      "id": "asphalt-3",
+      "title": "Asphalt 3: Street Rules",
+      "version": "1.2.7, N-Gage 2.0, modified BodyZ preservation copy; original fails registration",
+      "device": "Nokia 5320 RM-409",
+      "notes": "Instant Play with Up held; both samples ended stationary after a collision. Not sustained driving throughput.",
+      "qt": {
+        "fps": 29.725363836395413,
+        "frames": 892,
+        "seconds": 30.008043128065765,
+        "raw_json": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-asphalt-3/instant-play-driving.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-asphalt-3/instant-play-driving-start.png",
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-asphalt-3/instant-play-driving-end.png"
+        ],
+        "host_load_1m_mean": 0.7600504557291666
+      },
+      "wasm": {
+        "fps": 31.618263052643773,
+        "frames": 956,
+        "seconds": 30.23569000005722,
+        "raw_json": "/home/claude/.scratch/eka-next-five-20261011/fps-asphalt-3/instant-play-driving.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-next-five-20261011/fps-asphalt-3/instant-play-driving-start.png",
+          "/home/claude/.scratch/eka-next-five-20261011/fps-asphalt-3/instant-play-driving-end.png"
+        ],
+        "host_load_1m_mean": 2.6359016393442625,
+        "guestSpeed": 0.9999254523360566,
+        "compiledFunctions": 125,
+        "compilationUs": {
+          "aot_translation_us": 9919,
+          "aot_emission_us": 1623,
+          "aot_installation_us": 23766
+        }
+      }
+    },
+    {
+      "number": 7,
+      "id": "tetris",
+      "title": "Tetris",
+      "version": "4.21.41, original Nokia-signed N-Gage 2.0 release",
+      "device": "Nokia 5320 RM-409",
+      "notes": "Marathon level 1 with falling blocks and increasing score.",
+      "qt": {
+        "fps": 30.260200862659644,
+        "frames": 908,
+        "seconds": 30.006410205969587,
+        "raw_json": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-tetris/marathon-gameplay.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-tetris/marathon-gameplay-start.png",
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-tetris/marathon-gameplay-end.png"
+        ],
+        "host_load_1m_mean": 0.6748046875
+      },
+      "wasm": {
+        "fps": 28.37405630340126,
+        "frames": 862,
+        "seconds": 30.379865000009538,
+        "raw_json": "/home/claude/.scratch/eka-next-five-20261011/fps-tetris/marathon-gameplay.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-next-five-20261011/fps-tetris/marathon-gameplay-start.png",
+          "/home/claude/.scratch/eka-next-five-20261011/fps-tetris/marathon-gameplay-end.png"
+        ],
+        "host_load_1m_mean": 1.0357377049180327,
+        "guestSpeed": 1.0000034562362428,
+        "compiledFunctions": 11,
+        "compilationUs": {
+          "aot_translation_us": 1095,
+          "aot_emission_us": 210,
+          "aot_installation_us": 2550
+        }
+      }
+    },
+    {
+      "number": 8,
+      "id": "super-miners",
+      "title": "Super Miners",
+      "version": "1.07b, S60v3 240x320, modified DeFconX preservation copy",
+      "device": "Nokia 5320 RM-409",
+      "notes": "First challenge level after moving left; mostly stationary player, active timer and scene animation.",
+      "qt": {
+        "fps": 31.990505346076482,
+        "frames": 960,
+        "seconds": 30.00890387990512,
+        "raw_json": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-super-miners/challenge-level-1.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-super-miners/challenge-level-1-start.png",
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-super-miners/challenge-level-1-end.png"
+        ],
+        "host_load_1m_mean": 0.7058512369791666
+      },
+      "wasm": {
+        "fps": 31.970827778061295,
+        "frames": 966,
+        "seconds": 30.215044999957083,
+        "raw_json": "/home/claude/.scratch/eka-next-five-20261011/fps-super-miners/challenge-level-1.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-next-five-20261011/fps-super-miners/challenge-level-1-start.png",
+          "/home/claude/.scratch/eka-next-five-20261011/fps-super-miners/challenge-level-1-end.png"
+        ],
+        "host_load_1m_mean": 4.097049180327868,
+        "guestSpeed": 1.0000072811423222,
+        "compiledFunctions": 0,
+        "compilationUs": {
+          "aot_translation_us": 189,
+          "aot_emission_us": 0,
+          "aot_installation_us": 0
+        }
+      }
+    },
+    {
+      "number": 9,
+      "id": "explode-arena",
+      "title": "Explode Arena",
+      "version": "1.1, S60v1/v2, unsigned oWnPDA preservation copy",
+      "device": "Nokia N70 RM-84",
+      "notes": "Arcade first level; 15-second windows, enemies active and player alive at both endpoints.",
+      "qt": {
+        "fps": 34.525593277593075,
+        "frames": 518,
+        "seconds": 15.003362747025676,
+        "raw_json": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-explode-arena/arcade-gameplay.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-explode-arena/arcade-gameplay-start.png",
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-explode-arena/arcade-gameplay-end.png"
+        ],
+        "host_load_1m_mean": 1.374462890625
+      },
+      "wasm": {
+        "fps": 38.06739902028302,
+        "frames": 579,
+        "seconds": 15.209865000009536,
+        "raw_json": "/home/claude/.scratch/eka-next-five-20261011/fps-explode-arena-repeat/arcade-gameplay.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-next-five-20261011/fps-explode-arena-repeat/arcade-gameplay-start.png",
+          "/home/claude/.scratch/eka-next-five-20261011/fps-explode-arena-repeat/arcade-gameplay-end.png"
+        ],
+        "host_load_1m_mean": 11.298387096774194,
+        "guestSpeed": 1.000005917211656,
+        "compiledFunctions": 16,
+        "compilationUs": {
+          "aot_translation_us": 4925,
+          "aot_emission_us": 994,
+          "aot_installation_us": 5139
+        }
+      }
+    },
+    {
+      "number": 10,
+      "id": "pathway-to-glory",
+      "title": "Pathway to Glory",
+      "version": "1.03, original N-Gage retail card preservation image; no official SIS release",
+      "device": "Nokia N-Gage QD developer RH-4",
+      "notes": "Pantelleria battlefield awaiting next action after movement. Different selected soldier/camera position; no combat sequence. Qt sample had background host contention.",
+      "qt": {
+        "fps": 35.98778613641027,
+        "frames": 1080,
+        "seconds": 30.010181674035266,
+        "raw_json": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-pathway-to-glory/pantelleria-battlefield.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-pathway-to-glory/pantelleria-battlefield-start.png",
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/qt-pathway-to-glory/pantelleria-battlefield-end.png"
+        ],
+        "host_load_1m_mean": 17.288297526041667
+      },
+      "wasm": {
+        "fps": 39.98136854971088,
+        "frames": 1206,
+        "seconds": 30.164049999952315,
+        "raw_json": "/home/claude/.scratch/eka-next-five-20261011/fps-pathway-to-glory/pantelleria-battlefield.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-next-five-20261011/fps-pathway-to-glory/pantelleria-battlefield-start.png",
+          "/home/claude/.scratch/eka-next-five-20261011/fps-pathway-to-glory/pantelleria-battlefield-end.png"
+        ],
+        "host_load_1m_mean": 2.6798360655737703,
+        "guestSpeed": 0.9999938668729061,
+        "compiledFunctions": 16,
+        "compilationUs": {
+          "aot_translation_us": 2335,
+          "aot_emission_us": 319,
+          "aot_installation_us": 1150
+        }
+      }
+    }
+  ],
+  "rejected_samples": [
+    {
+      "file": "qt-pathway-to-glory-rejected-tutorial/pantelleria-battlefield.json",
+      "reason": "Tutorial pause entered during sample; end screenshot shows Game paused."
+    },
+    {
+      "file": "wasm-snakes/opening-level.json",
+      "reason": "Late window after long menu/gameplay inspection; end screenshot shows falling/death transition rather than the continuous opening-level gameplay used in Qt. Repeat immediately after entering level."
+    },
+    {
+      "file": "wasm-snakes-repeat/opening-level.json",
+      "reason": "Inputs occurred during splash; screenshots show main menu throughout, not gameplay."
+    },
+    {
+      "file": "wasm-sky-force/stage-1.json",
+      "reason": "End screenshot shows high-score screen after loss of final life. Restart and use shorter gameplay window."
+    }
+  ],
+  "artifacts": "/home/claude/.scratch/eka-qt-wasm-ten-20261011"
+}
