@@ -62,5 +62,25 @@
         "sha256": "e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4"
       }
     }
+  },
+  {
+    "file": "Tetris-4.21.41-Nokia.sis",
+    "cid": "bafybeibhcvfgrv2lzhzkp2e6bz72da6l7xsjc5jplqurhp5iuvpotrxmsu",
+    "sha256": "71a6218eb6e6ace77fb2b85e850d5ac7f18fb1f7eaaa2c89df7b54412a8ba052",
+    "id": "tetris",
+    "title": "Tetris",
+    "uid": "0x20003b78",
+    "version": "4.21.41, original Nokia-signed N-Gage 2.0 release",
+    "source": "https://archive.org/details/nokia-n-gage-the-force-unleashed-2008",
+    "ngage": {
+      "file": "Tetris-4.21.41-Nokia.n-gage",
+      "cid": "bafybeih4vzej5ifjykwf4yanpcveiflw37jj3igw46jbtjnoiydmv5ftfm",
+      "sha256": "37222257e26cfc1b1bbc1f0dbb684b04fd569e3638c2fbb58f44fe7fe7446569",
+      "runtime": {
+        "file": "N-Gage-1.40.1557-inner.sisx",
+        "cid": "bafybeigkftb66qpv2lq256qfr3jmlmwkj72v3bdsd4hpy63a6eutk27sxm",
+        "sha256": "e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4"
+      }
+    }
   }
 ]
