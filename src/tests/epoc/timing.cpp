@@ -2,6 +2,8 @@
 #include <common/deterministic.h>
 #include <kernel/timing.h>
 #include <kernel/timer_deadline.h>
+#include <services/window/screen.h>
+#include <services/window/classes/winbase.h>
 
 #include <cstdlib>
 #include <vector>
@@ -191,4 +193,30 @@ TEST_CASE("Paced idle deadlines use the same pause and stall policy as advanceme
     REQUIRE(timer.next_host_event_delay(7002000) == 30000);
     timer.advance_host_clock(7002000);
     REQUIRE(timer.next_host_event_delay(7002500) == 29500);
+}
+
+TEST_CASE("Virtual display skips missed refreshes and still paces early frames", "[timing][vsync]") {
+    benchmark_environment environment;
+    eka2l1::ntimer timer(1000000);
+    timer.reset();
+    eka2l1::epoc::config::screen config{};
+    config.modes = {{0, 1, {240, 320}, 0, "",
+        eka2l1::epoc::display_mode::color16mu, eka2l1::epoc::display_mode::color64k}};
+    eka2l1::epoc::screen screen(0, config);
+    std::uint64_t delay = 0;
+    // Repeated 80 ms frames already miss several 60 Hz refreshes.
+    for (unsigned i = 0; i < 5; ++i) {
+        timer.advance_instructions(80000);
+        screen.vsync(&timer, delay);
+        REQUIRE(delay == 0);
+    }
+    // A following early frame remains throttled. Missed refreshes do not
+    // create either an accumulated sleep debt or an unlimited fast path.
+    timer.advance_instructions(20000);
+    screen.vsync(&timer, delay);
+    REQUIRE(delay > 0);
+    REQUIRE(delay <= 1000000 / screen.refresh_rate);
+    timer.advance_instructions(delay + 80000);
+    screen.vsync(&timer, delay);
+    REQUIRE(delay == 0);
 }
