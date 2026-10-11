@@ -1,0 +1,441 @@
+{
+  "date": "2026-10-11",
+  "source_commit": "1e1922ee9",
+  "branch": "wasm-port",
+  "game": "Asphalt: Urban GT 2 1.0.1 N95 8GB, original Gameloft-signed SIS",
+  "device": "Stock Nokia 5320 RM-409",
+  "workload": "Arcade / Single Race / red Volkswagen Golf GTI Mk V / San Francisco / no steering / settled at first outside barrier",
+  "pacing": "Normal paced in both frontends; WASM count-free, 2000 us watchdog, guest time near 1x",
+  "metric": "screen presentations per host second, not unique images or unpaced throughput",
+  "builds": {
+    "qt": {
+      "path": "/home/claude/code/EKA2L1/build/bin/eka2l1_qt",
+      "sha256": "12adc27057e844a6a75140f71a24ec4ebd702068275ef0e2770cfe8627d9d9cb"
+    },
+    "wasm": {
+      "path": "/home/claude/.scratch/eka-idle-deadline-20261011/build/eka2l1.wasm",
+      "sha256": "b727df4739bd8622907eda634286d27957399f445216dc777e1b73e2c254adba"
+    },
+    "sis": {
+      "path": "/tmp/eka2l1-serve/Asphalt-Urban-GT-2-N95-8GB-1.0.1.sis",
+      "sha256": "d55bb082f53deb40b3b4d9f7440b7eb7b7087a648eabc8c8c9cdf1b8aa756b40"
+    }
+  },
+  "raw_root": "/home/claude/.scratch/eka-asphalt-paced-20261011",
+  "timings": [
+    {
+      "game": "asphalt-2",
+      "label": "barrier-a",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": {
+        "source": "Chrome SystemInfo.getProcessInfo; Linux /proc/PID/task/TID/schedstat runtime",
+        "host_interval_seconds": 30.30081684700001,
+        "renderer_cpu_seconds": 16.22,
+        "busiest_renderer_thread": {
+          "pid": 2370002,
+          "tid": 2370196,
+          "name": "DedicatedWorker",
+          "cpu_seconds": 14.329237961,
+          "status": "matched"
+        },
+        "thread_attribution": "Busiest thread is an observation, not verified guest-worker identity."
+      },
+      "mode": "normal paced LAN picker; count-free",
+      "buildDir": "/home/claude/.scratch/eka-idle-deadline-20261011/build",
+      "sound": "browser output muted",
+      "seconds": 30.234320000052453,
+      "frames": 327,
+      "fps": 10.81552355070108,
+      "guestSeconds": 30.234886,
+      "guestSpeed": 1.0000187204457565,
+      "compiledFunctions": 78,
+      "compilationUs": {
+        "aot_translation_us": 15176,
+        "aot_emission_us": 313,
+        "aot_installation_us": 1710
+      },
+      "errors": [],
+      "frontend": "WASM",
+      "raw_json": "/home/claude/.scratch/eka-asphalt-paced-20261011/wasm-paced/barrier-a.json",
+      "screenshots": [
+        "/home/claude/.scratch/eka-asphalt-paced-20261011/wasm-paced/barrier-a-start.png",
+        "/home/claude/.scratch/eka-asphalt-paced-20261011/wasm-paced/barrier-a-end.png"
+      ],
+      "mean_host_load_1m": 1.9024590163934425
+    },
+    {
+      "game": "asphalt-2",
+      "scene": "barrier-b",
+      "seconds": 30.008482620003633,
+      "frames": 513,
+      "fps": 17.095166273353474,
+      "drawable_counts": {
+        "2097188": 513
+      },
+      "start": 1040571.352222679,
+      "end": 1040601.360705299,
+      "window": "2097163",
+      "binary_sha256": "12adc27057e844a6a75140f71a24ec4ebd702068275ef0e2770cfe8627d9d9cb",
+      "mode": "normal paced native Qt Dynarmic, no benchmark environment",
+      "audio": "private PipeWire null sink",
+      "frontend": "Qt",
+      "raw_json": "/home/claude/.scratch/eka-asphalt-paced-20261011/qt-asphalt-2/barrier-b.json",
+      "screenshots": [
+        "/home/claude/.scratch/eka-asphalt-paced-20261011/qt-asphalt-2/barrier-b-start.png",
+        "/home/claude/.scratch/eka-asphalt-paced-20261011/qt-asphalt-2/barrier-b-end.png"
+      ],
+      "mean_host_load_1m": 0.9286702473958334
+    },
+    {
+      "game": "asphalt-2",
+      "scene": "barrier-c",
+      "seconds": 30.00786817399785,
+      "frames": 521,
+      "fps": 17.36211306244848,
+      "drawable_counts": {
+        "2097188": 521
+      },
+      "start": 1040602.632561208,
+      "end": 1040632.640429382,
+      "window": "2097163",
+      "binary_sha256": "12adc27057e844a6a75140f71a24ec4ebd702068275ef0e2770cfe8627d9d9cb",
+      "mode": "normal paced native Qt Dynarmic, no benchmark environment",
+      "audio": "private PipeWire null sink",
+      "frontend": "Qt",
+      "raw_json": "/home/claude/.scratch/eka-asphalt-paced-20261011/qt-asphalt-2/barrier-c.json",
+      "screenshots": [
+        "/home/claude/.scratch/eka-asphalt-paced-20261011/qt-asphalt-2/barrier-c-start.png",
+        "/home/claude/.scratch/eka-asphalt-paced-20261011/qt-asphalt-2/barrier-c-end.png"
+      ],
+      "mean_host_load_1m": 0.6994954427083333
+    },
+    {
+      "game": "asphalt-2",
+      "label": "barrier-b",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": {
+        "source": "Chrome SystemInfo.getProcessInfo; Linux /proc/PID/task/TID/schedstat runtime",
+        "host_interval_seconds": 30.365792186999986,
+        "renderer_cpu_seconds": 15.819999999999993,
+        "busiest_renderer_thread": {
+          "pid": 2370002,
+          "tid": 2370196,
+          "name": "DedicatedWorker",
+          "cpu_seconds": 14.12008888,
+          "status": "matched"
+        },
+        "thread_attribution": "Busiest thread is an observation, not verified guest-worker identity."
+      },
+      "mode": "normal paced LAN picker; count-free",
+      "buildDir": "/home/claude/.scratch/eka-idle-deadline-20261011/build",
+      "sound": "browser output muted",
+      "seconds": 30.23125,
+      "frames": 336,
+      "fps": 11.114327062228654,
+      "guestSeconds": 30.230811,
+      "guestSpeed": 0.9999854786024396,
+      "compiledFunctions": 21,
+      "compilationUs": {
+        "aot_translation_us": 3678,
+        "aot_emission_us": 225,
+        "aot_installation_us": 1244
+      },
+      "errors": [],
+      "frontend": "WASM",
+      "raw_json": "/home/claude/.scratch/eka-asphalt-paced-20261011/wasm-paced/barrier-b.json",
+      "screenshots": [
+        "/home/claude/.scratch/eka-asphalt-paced-20261011/wasm-paced/barrier-b-start.png",
+        "/home/claude/.scratch/eka-asphalt-paced-20261011/wasm-paced/barrier-b-end.png"
+      ],
+      "mean_host_load_1m": 0.7636065573770492
+    }
+  ],
+  "aggregate_fps": {
+    "Qt": 17.22863830140346,
+    "WASM": 10.964917720934821
+  },
+  "wasm_deficit_percent": 36.35644599932423,
+  "chrome_profile": {
+    "raw_summary": "/home/claude/.scratch/eka-asphalt-paced-20261011/wasm-paced/barrier-profile/summary.json",
+    "worker": "worker-13",
+    "sampled_us": 20641280,
+    "parked_percent": 68.17770990946298,
+    "active_us": 6568528,
+    "generated_percent_active": 44.00399906950233,
+    "graphics_parked_percent": 98.57653430712124,
+    "compilation_us": 21926,
+    "profiled_fps_not_benchmark": 13.840224072235316,
+    "top_active": [
+      {
+        "name": "eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))",
+        "self_us": 3054037,
+        "percent_active": 46.4949985750232
+      },
+      {
+        "name": "r_2730_pc_1879054788",
+        "self_us": 254022,
+        "percent_active": 3.8672591484728387
+      },
+      {
+        "name": "eka2l1::arm::aot::validated_code_cache::lookup_trusted_uncached(unsigned int, eka2l1::arm::core&)",
+        "self_us": 166197,
+        "percent_active": 2.5302015915894707
+      },
+      {
+        "name": "r_4235_pc_1879067758",
+        "self_us": 135033,
+        "percent_active": 2.055757393437312
+      },
+      {
+        "name": "r_3963_pc_1879260160",
+        "self_us": 105563,
+        "percent_active": 1.6071028394794085
+      },
+      {
+        "name": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+        "self_us": 93026,
+        "percent_active": 1.4162381586863906
+      },
+      {
+        "name": "r_3969_pc_1879075536",
+        "self_us": 87507,
+        "percent_active": 1.3322162895552854
+      },
+      {
+        "name": "resampler_basic_direct_single",
+        "self_us": 86053,
+        "percent_active": 1.310080432023735
+      },
+      {
+        "name": "_emscripten_get_now",
+        "self_us": 83034,
+        "percent_active": 1.2641188406291333
+      },
+      {
+        "name": "r_4109_pc_1879077202",
+        "self_us": 82347,
+        "percent_active": 1.2536598763071423
+      },
+      {
+        "name": "r_4065_pc_1879152802",
+        "self_us": 79178,
+        "percent_active": 1.2054146682483504
+      },
+      {
+        "name": "r_4402_pc_1879067796",
+        "self_us": 78118,
+        "percent_active": 1.1892771104880728
+      },
+      {
+        "name": "r_3968_pc_1879075514",
+        "self_us": 73822,
+        "percent_active": 1.1238743292256652
+      },
+      {
+        "name": "r_4030_pc_1879077170",
+        "self_us": 71911,
+        "percent_active": 1.0947810529238817
+      },
+      {
+        "name": "r_4013_pc_1879075496",
+        "self_us": 70725,
+        "percent_active": 1.0767252571656847
+      },
+      {
+        "name": "r_4526_pc_1879277220",
+        "self_us": 62164,
+        "percent_active": 0.9463916420848019
+      },
+      {
+        "name": "r_4028_pc_1879277120",
+        "self_us": 61293,
+        "percent_active": 0.9331314413214041
+      },
+      {
+        "name": "r_4543_pc_1879067812",
+        "self_us": 61220,
+        "percent_active": 0.9320200812114982
+      },
+      {
+        "name": "r_4483_pc_1879067802",
+        "self_us": 57056,
+        "percent_active": 0.868626882613578
+      },
+      {
+        "name": "r_4539_pc_1879067814",
+        "self_us": 56865,
+        "percent_active": 0.865719077394509
+      }
+    ]
+  },
+  "excluded": [
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-paced-20261011/wasm-paced/san-francisco-a.json",
+      "reason": "Warmup sample started while driving before reaching the barrier."
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-paced-20261011/qt-asphalt-2/barrier-a.json",
+      "reason": "Started while driving; settled against barrier by endpoint."
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-paced-20261011/wasm-native/rejected-instant-play",
+      "reason": "Native diagnostic menu input selected motorcycle Instant Play; excluded from matched results and native attribution conclusions."
+    }
+  ],
+  "limitations": [
+    "Shared host, short samples, no fixed CPU frequency. One emulator ran at a time.",
+    "Matched car, track and barrier state, not pixel-exact deterministic replay; car nudges along the barrier.",
+    "Qt GLX on Intel graphics versus Chromium hardware ANGLE/Vulkan on NVIDIA; frontend display sizes differ.",
+    "Both profiles are diagnostic; their FPS values are excluded from the ordinary timing comparison.",
+    "Qt audio used a private null sink; browser output muted. No audio correctness claim.",
+    "CPU-cost attribution is not full paced-latency attribution: guest deadlines, timer-service lateness and frame dependencies were not traced. Near-1x guest time does not rule out scheduling delays."
+  ],
+  "native_profile": {
+    "raw_attribution": "/home/claude/.scratch/eka-asphalt-paced-20261011/wasm-native/native-attribution.json",
+    "guest_thread": [
+      2394814,
+      2394972
+    ],
+    "totals": {
+      "samples": 12508,
+      "no_instruction_position": 7980,
+      "mapped_cpp": 1118,
+      "jit_without_snapshot": 2020,
+      "mapped_arm": 888,
+      "outside_jit": 502
+    },
+    "top_functions": [
+      [
+        "JS:eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))-789-turbofan",
+        5345
+      ],
+      [
+        "JS:r_2736_pc_1879054788-9-turbofan",
+        420
+      ],
+      [
+        "JS:eka2l1::arm::aot::validated_code_cache::lookup_trusted_uncached(unsigned int, eka2l1::arm::core&)-775-turbofan",
+        413
+      ],
+      [
+        "JS:resampler_basic_direct_single-11705-turbofan",
+        338
+      ],
+      [
+        "JS:r_3821_pc_1879067758-23-turbofan",
+        218
+      ],
+      [
+        "JS:r_3386_pc_1879075536-9-turbofan",
+        205
+      ],
+      [
+        "JS:r_3378_pc_1879260160-13-turbofan",
+        200
+      ],
+      [
+        "Builtin:WasmLiftoffFrameSetup",
+        176
+      ],
+      [
+        "JS:r_7786_pc_1879077170-12-turbofan",
+        135
+      ],
+      [
+        "JS:r_3387_pc_1879075514-10-turbofan",
+        133
+      ],
+      [
+        "JS:r_3655_pc_1879076336-36-turbofan",
+        132
+      ],
+      [
+        "JS:r_3449_pc_1879075496-15-turbofan",
+        128
+      ],
+      [
+        "JS:r_7791_pc_1879077202-10-turbofan",
+        120
+      ],
+      [
+        "JS:r_7784_pc_1879277120-10-turbofan",
+        108
+      ],
+      [
+        "JS:r_3445_pc_1879075474-11-turbofan",
+        101
+      ],
+      [
+        "JS:r_3566_pc_1879152802-7-turbofan",
+        100
+      ],
+      [
+        "JS:r_3834_pc_1879067792-13-turbofan",
+        99
+      ],
+      [
+        "JS:r_3832_pc_1879067796-11-turbofan",
+        88
+      ],
+      [
+        "JS:r_3833_pc_1879277220-12-turbofan",
+        84
+      ],
+      [
+        "JS:r_3911_pc_1879067802-13-turbofan",
+        78
+      ]
+    ],
+    "native_capture": "/home/claude/.scratch/eka-asphalt-paced-20261011/wasm-native/native-window.json",
+    "dispatch_blocks": {
+      "classification": "Manual native disassembly basic-block grouping; no interpolation of sparse source positions; sample skid means isolated instruction counts are not latency measurements",
+      "guest_thread_samples": 12508,
+      "dispatch_samples": 5345,
+      "generated_samples": 5364,
+      "assembly": "native-2394814-336467.asm",
+      "native_sha256": "620c4cc2e60d197cf787713bd2a2d2a89dfe05cda4b6d4a4a316d48a761f9b97",
+      "blocks": [
+        {
+          "name": "V8 indirect-call setup and checks",
+          "start": "0xc62",
+          "end_exclusive": "0xcc8",
+          "samples": 1996,
+          "percent_cpu_samples": 15.957787016309563,
+          "percent_dispatch_samples": 37.343311506080454
+        },
+        {
+          "name": "RAM dispatch-cache hit-path checks and key construction",
+          "start": "0xe64",
+          "end_exclusive": "0xf12",
+          "samples": 1785,
+          "percent_cpu_samples": 14.270866645346977,
+          "percent_dispatch_samples": 33.3956969130028
+        },
+        {
+          "name": "Post-region stop IRQ and watchdog checks",
+          "start": "0xcd0",
+          "end_exclusive": "0xd45",
+          "samples": 633,
+          "percent_cpu_samples": 5.060761112887752,
+          "percent_dispatch_samples": 11.842843779232929
+        },
+        {
+          "name": "Next guest PC normalization and ROM or RAM selection",
+          "start": "0xd45",
+          "end_exclusive": "0xd9f",
+          "samples": 522,
+          "percent_cpu_samples": 4.173329069395587,
+          "percent_dispatch_samples": 9.766136576239475
+        }
+      ]
+    },
+    "sample_integrity": {
+      "period_us": 1000,
+      "scope": "Renderer threads present at start; new threads are not sampled",
+      "new_tids": [],
+      "missing_tids": [],
+      "losses": [],
+      "errors": []
+    }
+  }
+}

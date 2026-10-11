@@ -19,6 +19,11 @@ All ten native Qt results and the first five browser results were measured for t
 
 ## How the numbers were measured
 
+A later [matched Asphalt 2 benchmark and profile](ASPHALT_PACED_PROFILE.md) uses
+the same Golf GTI/San Francisco barrier scene in both frontends and finds
+17.23 FPS Qt versus 10.96 FPS WASM. It supersedes the randomized Asphalt 2 row
+for diagnosing that game's performance gap.
+
 - Qt: current native build, default Dynarmic backend, no benchmark environment. An `LD_PRELOAD` wrapper timestamps completed `glXSwapBuffers` calls with `CLOCK_MONOTONIC`; each accepted window contained exactly one game drawable. Hardware-accelerated native Xorg used Intel UHD graphics. Audio ran through an isolated PipeWire null sink.
 - WASM: Chromium 153.0.8010.52, hardware ANGLE/Vulkan on NVIDIA Quadro T1000 Max-Q. Games launched through the ordinary LAN picker, using its paced count-free defaults. FPS is the change in `eka2l1_presentations` divided by browser `performance.now()` elapsed time. Route phase stayed -1, instruction counts stayed zero, and guest time advanced at approximately 1x host time. Browser audio output was muted.
 - Screenshots taken outside each timed window establish the scene at both endpoints. Native windows are 30 seconds except Explode Arena (15 seconds). Browser windows are generally 30 seconds, with the shorter accepted Snakes, Sky Force and Explode Arena windows specified in the JSON.
