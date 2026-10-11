@@ -64,7 +64,10 @@ autoStart();
 
 export type CompilerPolicy = { watchdogUs?: number; unsafeCode?: number; memoryImpl?: number };
 
-export type LauncherGame = { id: string; title: string; uid: string; sis: string; ngage?: string };
+export type LauncherGame = {
+  id: string; title: string; uid: string; sis?: string; ngage?: string; card?: string;
+  device?: { rom: string; rpkg?: string };
+};
 
 function makeGameLauncherScript(games: LauncherGame[], defaultGame?: string): string {
   const encode = (value: unknown) => JSON.stringify(value).replace(/</g, '\\u003c');

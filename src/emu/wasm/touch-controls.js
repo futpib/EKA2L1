@@ -120,12 +120,12 @@ class EkaTouchControls {
     clamp(value,min,max) { return Math.min(max,Math.max(min,value)); }
     defaults() {
         return {mode:this.profile==='snakes'?'pad':'stick', directions:this.profile==='snakes'?4:8,
-            size:132,gap:12,opacity:.55,leftHanded:false,action:this.profile==='k-rally'?52:167,latch:false,move:{x:.25,y:.75},buttons:{x:.75,y:.75}};
+            size:132,gap:12,opacity:.55,leftHanded:false,action:this.profile==='k-rally'?52:this.profile==='pathway-to-glory'?53:167,latch:false,move:{x:.25,y:.75},buttons:{x:.75,y:.75}};
     }
     configure(app) {
         this.releaseAll();
         const name=String(app).trim().toLowerCase();
-        this.profile=['0x2000730f','snakes'].includes(name)?'snakes':['0xa020d913','sky force','sky-force'].includes(name)?'sky-force':['0xa0000bf6','k-rally'].includes(name)?'k-rally':'generic';
+        this.profile=['0x2000730f','snakes'].includes(name)?'snakes':['0xa020d913','sky force','sky-force'].includes(name)?'sky-force':['0xa0000bf6','k-rally'].includes(name)?'k-rally':['0x101fd3fd','pathway to glory','pathway-to-glory'].includes(name)?'pathway-to-glory':'generic';
         this.storageKey='eka-touch-v1:'+(this.profile==='generic'?(name||'generic'):this.profile);
         this.prefs=this.defaults();
         try {
@@ -143,7 +143,7 @@ class EkaTouchControls {
                     this.prefs[key]={x:this.clamp(saved[key].x,0,1),y:this.clamp(saved[key].y,0,1)};
             }
         } catch (_) { /* Private browsing and unavailable storage retain usable defaults. */ }
-        document.getElementById('touch-profile').textContent=(this.profile==='generic'?'General-purpose layout':this.profile==='snakes'?'Snakes':this.profile==='k-rally'?'K-Rally':'Sky Force')+' · Saved on this device';
+        document.getElementById('touch-profile').textContent=(this.profile==='generic'?'General-purpose layout':this.profile==='snakes'?'Snakes':this.profile==='k-rally'?'K-Rally':this.profile==='pathway-to-glory'?'Pathway to Glory':'Sky Force')+' · Saved on this device';
         this.fillSettings(); this.layout();
     }
     save() { try { localStorage.setItem(this.storageKey,JSON.stringify(this.prefs)); } catch (_) {} }
@@ -151,7 +151,7 @@ class EkaTouchControls {
         this.configure(app); this.menu.close();
         this.menu.querySelector('[data-close]').hidden=false;
         this.menuButton.hidden=false;
-        document.getElementById('session-title').textContent=this.profile==='snakes'?'Snakes':this.profile==='sky-force'?'Sky Force':this.profile==='k-rally'?'K-Rally':'Game options';
+        document.getElementById('session-title').textContent=this.profile==='snakes'?'Snakes':this.profile==='sky-force'?'Sky Force':this.profile==='k-rally'?'K-Rally':this.profile==='pathway-to-glory'?'Pathway to Glory':'Game options';
     }
     fillSettings() {
         for (const input of this.settings.querySelectorAll('[data-pref]')) {

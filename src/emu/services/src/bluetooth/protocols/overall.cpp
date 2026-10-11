@@ -29,20 +29,21 @@
 
 namespace eka2l1::epoc::bt {
     void add_bluetooth_stack_protocols(socket_server *sock, epoc::bt::midman *mm, const bool oldarch) {
+        // Local device-name and link-manager queries are needed even when
+        // network discovery is disabled, including single-player browser games.
+        std::unique_ptr<epoc::socket::protocol> btlink_pr = std::make_unique<btlink_inet_protocol>(mm, oldarch);
+        if (!sock->add_protocol(btlink_pr)) {
+            LOG_ERROR(SERVICE_BLUETOOTH, "Failed to add BTLink protocol");
+        }
 #if EKA2L1_PLATFORM(EMSCRIPTEN)
-        LOG_WARN(SERVICE_BLUETOOTH, "Bluetooth stack protocols not available on Emscripten");
+        LOG_WARN(SERVICE_BLUETOOTH, "Bluetooth network protocols not available on Emscripten");
 #else
         internet::inet_bridged_protocol *protocol = reinterpret_cast<internet::inet_bridged_protocol*>(sock->find_protocol(internet::INET6_ADDRESS_FAMILY, internet::INET_TCP_PROTOCOL_ID));
         protocol->initialize_looper();  // NOTE: Real non-internet bluetooth stack will not need this.
 
-        std::unique_ptr<epoc::socket::protocol> btlink_pr = std::make_unique<btlink_inet_protocol>(mm, oldarch);
         std::unique_ptr<epoc::socket::protocol> l2cap_pr = std::make_unique<l2cap_inet_protocol>(mm, protocol, oldarch);
         std::unique_ptr<epoc::socket::protocol> rfcomm_pr = std::make_unique<rfcomm_inet_protocol>(mm, protocol, oldarch);
         std::unique_ptr<epoc::socket::protocol> sdp_pr = std::make_unique<sdp_inet_protocol>(mm, protocol, oldarch);
-
-        if (!sock->add_protocol(btlink_pr)) {
-            LOG_ERROR(SERVICE_BLUETOOTH, "Failed to add BTLink protocol");
-        }
 
         if (!sock->add_protocol(l2cap_pr)) {
             LOG_ERROR(SERVICE_BLUETOOTH, "Failed to add L2CAP protocol");

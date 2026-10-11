@@ -64,6 +64,28 @@
     }
   },
   {
+    "id": "asphalt-3",
+    "title": "Asphalt 3: Street Rules",
+    "uid": "0x20003b78",
+    "file": "Asphalt-3-1.2.7-BodyZ.sis",
+    "cid": "bafybeib45s4lbys2i6hga45rha3abxvczf2lz6yyankcrbh3li4yswmydy",
+    "sha256": "53e38bf8770d9b98e49b263ee4d376cb6c49aea8ef646da8ae8e00a41cde9b6e",
+    "version": "1.2.7, N-Gage 2.0, modified BodyZ preservation copy; original fails registration",
+    "source": "https://archive.org/details/Dance.Fabulous.nGage",
+    "ngage": {
+      "file": "Asphalt-3-1.2.7-BodyZ.n-gage",
+      "cid": "bafybeicfxrdq5idibeefvrc6iwlpvnvbqrjmooulsr6oml7iasqrmer4tm",
+      "sha256": "afe7964b0968acc8c45908ac6abd48b25e1b171dd1abea1d07a098209c250093",
+      "runtime": {
+        "file": "N-Gage-1.40.1557-inner.sisx",
+        "cid": "bafybeigkftb66qpv2lq256qfr3jmlmwkj72v3bdsd4hpy63a6eutk27sxm",
+        "sha256": "e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4"
+      }
+    },
+    "download": "https://ia800801.us.archive.org/7/items/Dance.Fabulous.nGage/N-Gage%202.0/Games/Fixes%20and%20cracks/Asphalt3_fixed.zip",
+    "archive_member": "Asphalt3_fixed_by_BodyZ.n-gage"
+  },
+  {
     "file": "Tetris-4.21.41-Nokia.sis",
     "cid": "bafybeibhcvfgrv2lzhzkp2e6bz72da6l7xsjc5jplqurhp5iuvpotrxmsu",
     "sha256": "71a6218eb6e6ace77fb2b85e850d5ac7f18fb1f7eaaa2c89df7b54412a8ba052",
@@ -81,6 +103,60 @@
         "cid": "bafybeigkftb66qpv2lq256qfr3jmlmwkj72v3bdsd4hpy63a6eutk27sxm",
         "sha256": "e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4"
       }
-    }
+    },
+    "download": "https://archive.org/download/nokia-n-gage-the-force-unleashed-2008/N-gage/Nokia%20N-gage%20-%20The%20Force%20Unleashed%20%5B2008%5D.iso/N95%2FTetris_4.21.41_Signed%2FTetris.n-gage"
+  },
+  {
+    "id": "super-miners",
+    "title": "Super Miners",
+    "uid": "0xa0000bf4",
+    "file": "Super-Miners-1.07b-DeFconX.sisx",
+    "cid": "bafybeie7outn56mpn44uby5uuhwua7zrpg43xmhbv6mo26676tkjibgnjq",
+    "sha256": "3c48a19cbc061e40778a05b03002768d9014481c7ac290a69b12cf004bdc8e7c",
+    "version": "1.07b, S60v3 240x320, modified DeFconX preservation copy",
+    "source": "https://archive.org/details/dertz-part-5-s-z",
+    "download": "https://ia800403.us.archive.org/view_archive.php?archive=/15/items/dertz-part-5-s-z/dertz%20%28part%203%2C%20F-L%29.rar&file=Infinite%20Dreams%20Superminers%20OS9.1-3.sisx"
+  },
+  {
+    "id": "explode-arena",
+    "title": "Explode Arena",
+    "uid": "0x10015b92",
+    "file": "Explode-Arena-1.1-oWnPDA.sis",
+    "cid": "bafybeicdfujcina333t36b3ot4q4m7pvem4yjdffcboytucmmctlk6ikle",
+    "sha256": "2d47263342b3adc72fa9d8c1206bcb00c487adde40e282e6b29c6c813ffa8587",
+    "version": "1.1, S60v1/v2, unsigned oWnPDA preservation copy",
+    "source": "https://archive.org/details/limowski",
+    "device": {
+      "rom": {
+        "file": "N70.ROM",
+        "cid": "bafybeie4bkv2vyvt3nldv25b6poku4q6jnaguvwt4prumy44nmihylvi3i",
+        "sha256": "cb062dc84820b728a60b525115049b250e3f4912638a777d49edef79972c4e0e"
+      },
+      "rpkg": {
+        "file": "N70.RPKG",
+        "cid": "bafybeidlab4gggap6x6mej75uzqe5tf2yt23n6puv5tbs66ypmepml4r6y",
+        "sha256": "c40beb14d3ca4a530b7d59133b52ed28b650d1a12dd07a982df14a22d6ee1aa4"
+      }
+    },
+    "download": "https://ia800707.us.archive.org/view_archive.php?archive=/3/items/limowski/limowski.rar&file=limowski%2FInfiniteDreams.Explode.Arena.v1.1.S60.SymbianOS.Retail-oWnPDA.sis"
+  },
+  {
+    "id": "pathway-to-glory",
+    "title": "Pathway to Glory",
+    "uid": "0x101fd3fd",
+    "file": "Pathway-to-Glory-1.03-retail-card.zip",
+    "cid": "bafybeie5n2bpyk6phozd6ykteu5qx74sgkpdwtvxdpgxdygicxfx6kp4sy",
+    "sha256": "a67248caad9d78dee3dbe5f63ada1236eb068caea6b4341c3caf772c5b48947d",
+    "card": true,
+    "version": "1.03, original N-Gage retail card preservation image; no official SIS release",
+    "source": "https://archive.org/details/NokiaN-Gage201808",
+    "device": {
+      "rom": {
+        "file": "N-Gage-QD-Developer.ROM",
+        "cid": "bafybeigzfc23six3zlv7necokdtffmad6djubsh2zencyg2bbtl5m47vxy",
+        "sha256": "582a049f9e573c0245441ddb01bb5b3db76ede7677ec05cafc16f314a02ef6ef"
+      }
+    },
+    "download": "https://ia802807.us.archive.org/view_archive.php?archive=/13/items/NokiaN-Gage201808/ROMS.zip&file=Pathway%20to%20Glory%20%28USA%2C%20Europe%29%20%28En%2CFr%2CDe%2CEs%2CIt%29%20%28v1.03%29.zip"
   }
 ]

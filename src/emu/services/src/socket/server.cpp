@@ -319,6 +319,7 @@ namespace eka2l1 {
 
         const auto protocol = server<socket_server>()->find_protocol(*family, *id);
         if (!protocol || (protocol->sock_type() && protocol->sock_type() != *type)) {
+            LOG_WARN(SERVICE_ESOCK, "Can't start protocol family={}, id={}, type={}", *family, *id, *type);
             ctx->complete(epoc::error_not_supported);
             return;
         }

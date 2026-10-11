@@ -156,6 +156,9 @@ namespace eka2l1::arm::aot {
         const code_window immutable_code{rom_host, rom_base, rom_size};
         const auto eager_start = std::chrono::steady_clock::now();
         std::vector<wasm_func_def> all_funcs;
+        // Older ROMs can expose the same code through multiple image headers.
+        // All images share one WASM module, so entry names must be unique there.
+        std::set<std::uint32_t> translated_entries;
         for (std::uint32_t offset = 0; offset + sizeof(rom_image_header_raw) < rom_size; offset += 4) {
             std::uint32_t uid1;
             std::memcpy(&uid1, rom_host + offset, 4);
@@ -284,6 +287,7 @@ namespace eka2l1::arm::aot {
                     : translate_thumb_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, true, &immutable_code);};
                 auto tr=translate();
                 if (tr.func.body.empty() || !tr.entry_supported) continue;
+                if (!translated_entries.insert(key).second) continue;
                 tr.func.export_name = "f_" + std::to_string(key);
                 all_funcs.push_back(std::move(tr.func));
                 ++accepted;

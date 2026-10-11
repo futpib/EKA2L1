@@ -242,9 +242,10 @@
                 while (!Module.calledRun) await new Promise(resolve => setTimeout(resolve, 100));
                 Module.setStatus('Loading ' + selected.title + '...');
                 for (var [endpoint, selector, name] of [
-                    ['/preload/rom', 'rom-file', 'SYM.ROM'],
-                    ['/preload/rpkg', 'rpkg-file', 'SYM.RPKG'],
+                    [selected.device ? selected.device.rom : '/preload/rom', 'rom-file', 'SYM.ROM'],
+                    [selected.device ? selected.device.rpkg : '/preload/rpkg', 'rpkg-file', 'SYM.RPKG'],
                     [selected.sis, 'sis-file', selected.id + '.sis']]) {
+                    if (!endpoint) continue;
                     var response = await window.ekaDownload(endpoint);
                     if (!response.ok) throw new Error('Download failed: HTTP ' + response.status);
                     var transfer = new DataTransfer();
@@ -252,7 +253,7 @@
                     document.getElementById(selector).files = transfer.files;
                 }
                 document.getElementById('app-name').value = selected.uid;
-                await startEmulator(selected.ngage);
+                await startEmulator(selected.ngage, selected.card);
                 if (_gameRunning) setRunningStatus(selected.title);
             } catch (error) {
                 Module.setStatus('Error: ' + error.message);
@@ -267,7 +268,7 @@
                 + ' · Use Enable sound for audio');
         }
 
-        async function startEmulator(ngagePackage) {
+        async function startEmulator(ngagePackage, cardPackage) {
             var btn = document.getElementById('btn-start');
             btn.disabled = true;
             Module.setStatus('Initializing...');
@@ -340,6 +341,20 @@
                     if (!packageResponse.ok) throw new Error('N-Gage download failed: HTTP ' + packageResponse.status);
                     FS.mkdirTree('/data/drives/e/n-gage');
                     FS.writeFile('/data/drives/e/n-gage/game.n-gage', new Uint8Array(await packageResponse.arrayBuffer()));
+                }
+
+                // Card games keep their original System directory on drive E.
+                if (cardPackage) {
+                    Module.setStatus('Mounting game card...');
+                    var cardResponse = await window.ekaDownload(cardPackage);
+                    if (!cardResponse.ok) throw new Error('Game card download failed: HTTP ' + cardResponse.status);
+                    FS.writeFile('/tmp/game-card.zip', new Uint8Array(await cardResponse.arrayBuffer()));
+                    try {
+                        var cardRet = Module.ccall('eka2l1_mount_game_card', 'number', ['string'], ['/tmp/game-card.zip']);
+                        if (cardRet !== 0) throw new Error('Game card mount failed: ' + cardRet);
+                    } finally {
+                        FS.unlink('/tmp/game-card.zip');
+                    }
                 }
 
                 // Transfer/initialize WebGL without blocking the browser event loop.

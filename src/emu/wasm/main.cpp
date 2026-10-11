@@ -58,6 +58,7 @@
 #include <services/window/screen.h>
 #include <services/window/window.h>
 #include <utils/apacmd.h>
+#include <vfs/vfs.h>
 #include <system/aot_setup.h>
 #include <system/devices.h>
 #include <system/epoc.h>
@@ -466,6 +467,9 @@ int eka2l1_install_device(const char *rom_path, const char *rpkg_path) {
         params.method = device_install_method_dump_rpkg;
         params.rom_path = rom_path;
         params.rpkg_path = rpkg_path;
+    } else if (common::lowercase_string(path_extension(std::string(rom_path))) == ".rom") {
+        params.method = device_install_method_dump_rom_only;
+        params.rom_path = rom_path;
     } else {
         params.method = device_install_method_firmware;
         params.vpl_path = rom_path;
@@ -518,6 +522,13 @@ int eka2l1_install_sis(const char *sis_path) {
 
     LOG_INFO(FRONTEND_CMDLINE, "SIS installed: {}", sis_path);
     return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_mount_game_card(const char *card_path) {
+    if (!ensure_system_started() || g_state->running) return -1;
+    g_state->symsys->get_io_system()->unmount(drive_e);
+    return static_cast<int>(g_state->symsys->mount_game_zip(drive_e, drive_media::physical, card_path));
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -649,7 +660,8 @@ int eka2l1_run(const char *app_name) {
     std::string app_name_str(app_name);
 
     applist_server *svr = reinterpret_cast<applist_server *>(
-        g_state->symsys->get_kernel_system()->get_by_name<service::server>("!AppListServer"));
+        g_state->symsys->get_kernel_system()->get_by_name<service::server>(
+            get_app_list_server_name_by_epocver(g_state->symsys->get_symbian_version_use())));
 
     if (!svr) {
         LOG_ERROR(FRONTEND_CMDLINE, "Can't get app list server");
@@ -660,6 +672,11 @@ int eka2l1_run(const char *app_name) {
     if (app_name_str.length() > 2 && app_name_str.substr(0, 2) == "0x") {
         const std::uint32_t uid = common::pystr(app_name_str).as_int<std::uint32_t>();
         apa_app_registry *registry = svr->get_registration(uid);
+        apa_app_registry card_registry;
+        if (!registry && g_state->symsys->get_ngage_game_info_mounted(card_registry)
+            && card_registry.mandatory_info.uid == uid) {
+            registry = &card_registry;
+        }
         if (!registry) {
             LOG_ERROR(FRONTEND_CMDLINE, "No app found with UID: {}", app_name_str);
             return -2;

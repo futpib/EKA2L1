@@ -16,9 +16,12 @@ type GameAsset = { file: string; cid: string; sha256: string };
 const games = JSON.parse(fs.readFileSync(new URL('./games.json', import.meta.url), 'utf8')) as (GameAsset & {
   id: string; title: string; uid: string;
   ngage?: GameAsset & { runtime: GameAsset };
+  card?: boolean;
+  device?: { rom: GameAsset; rpkg?: GameAsset };
 })[];
 const gameAssets = new Map(games.flatMap(game => [game, ...(game.ngage
-  ? [game.ngage.runtime, game.ngage] : [])]).map(asset => [asset.file, asset]));
+  ? [game.ngage.runtime, game.ngage] : []), ...(game.device
+  ? [game.device.rom, ...(game.device.rpkg ? [game.device.rpkg] : [])] : [])]).map(asset => [asset.file, asset]));
 
 async function fetchCidToFile(cid: string, label: string, destPath: string, digest: string): Promise<void> {
   const valid = (data: Buffer) => crypto.createHash('sha256').update(data).digest('hex') === digest;
@@ -65,6 +68,10 @@ const preloadFiles: Record<string, string> = {
   ...Object.fromEntries(games.map(game => ['/preload/games/' + game.id, path.join(cacheDir, game.file)])),
 };
 for (const game of games) {
+  if (game.device) {
+    preloadFiles['/preload/games/' + game.id + '/rom'] = path.join(cacheDir, game.device.rom.file);
+    if (game.device.rpkg) preloadFiles['/preload/games/' + game.id + '/rpkg'] = path.join(cacheDir, game.device.rpkg.file);
+  }
   if (!game.ngage) continue;
   preloadFiles['/preload/games/' + game.id + '/ngage'] = path.join(cacheDir, game.ngage.file);
   preloadFiles['/preload/games/' + game.id + '/runtime'] = path.join(cacheDir, game.ngage.runtime.file);
@@ -81,9 +88,11 @@ const tls = certPath && keyPath
   : undefined;
 const { port: resolvedPort } = await startServer(port, preloadFiles, undefined, {
   host, tls, compilerPolicy: compilerPolicyFromEnv(), defaultGame,
-  games: games.map(({id, title, uid, ngage}) => ({id, title, uid,
-    sis: '/preload/games/' + id + (ngage ? '/runtime' : ''),
+  games: games.map(({id, title, uid, ngage, device, card}) => ({id, title, uid,
+    ...(card ? {card: '/preload/games/' + id} : {sis: '/preload/games/' + id + (ngage ? '/runtime' : '')}),
     ...(ngage ? {ngage: '/preload/games/' + id + '/ngage'} : {}),
+    ...(device ? {device: {rom: '/preload/games/' + id + '/rom',
+      ...(device.rpkg ? {rpkg: '/preload/games/' + id + '/rpkg'} : {})}} : {}),
   })),
 });
 const displayHost = process.env.EKA2L1_SERVE_NAME ?? host;
