@@ -1,0 +1,441 @@
+{
+  "date": "2026-10-11",
+  "game": "Hooked On: Creatures of the Deep, 0.74 BiNPDA container",
+  "firmware": "Stock Nokia 5320 RM-409",
+  "wasm_sha256": "dec37577f64f2b6addc7d3d1d9e877fe4bcd288bbc0b39022fd4c22236130f63",
+  "source_checkout": "5c4bb64b4; executable source 86a64bdea",
+  "browser": "Chromium 153.0.8010.52",
+  "cpu": "Intel Core i7-10875H",
+  "pacing": "Normal paced, count-free, guest clock approximately 1x wall time",
+  "raw_directory": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-hooked-profile",
+  "profiles": [
+    {
+      "label": "clear-map-profile",
+      "measurement": {
+        "game": "hooked-on",
+        "label": "clear-map-profile",
+        "browser": "Chrome/153.0.8010.52",
+        "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+        "mode": "normal paced LAN picker; count-free",
+        "sound": "browser output muted",
+        "seconds": 20.20618999993801,
+        "frames": 599,
+        "fps": 29.64438125157873,
+        "guestSeconds": 20.206431,
+        "guestSpeed": 1.0000119270412675,
+        "compiledFunctions": 0,
+        "compilationUs": {
+          "aot_translation_us": 0,
+          "aot_emission_us": 0,
+          "aot_installation_us": 0
+        },
+        "errors": []
+      },
+      "sampled_seconds": 20.667584,
+      "parked_seconds": 16.909685,
+      "parked_percent": 81.81742481365988,
+      "active_sampled_seconds": 3.757899,
+      "generated_percent_active": 69.62957226897264,
+      "host_interval_seconds": 20.346518513999996,
+      "cpu_worker_cpu_seconds": 3.933940317,
+      "graphics_worker_cpu_seconds": 0.678033749,
+      "graphics_parked_percent": 94.33477445655461,
+      "top_active_frames": [
+        {
+          "name": "r_57603_pc_1961531664",
+          "self_us": 1172122,
+          "percent_active": 31.190886184008672,
+          "percent_all_samples": 5.671306331693148
+        },
+        {
+          "name": "eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))",
+          "self_us": 296621,
+          "percent_active": 7.893266955817599,
+          "percent_all_samples": 1.4351991989000745
+        },
+        {
+          "name": "_emscripten_get_now",
+          "self_us": 210547,
+          "percent_active": 5.602784960426026,
+          "percent_all_samples": 1.0187305879584183
+        },
+        {
+          "name": "resampler_basic_interpolate_single",
+          "self_us": 152832,
+          "percent_active": 4.066953369422648,
+          "percent_all_samples": 0.7394768541886657
+        },
+        {
+          "name": "r_35757_pc_1960868168",
+          "self_us": 121899,
+          "percent_active": 3.243807244420353,
+          "percent_all_samples": 0.5898076911166782
+        },
+        {
+          "name": "r_49182_pc_1961282936",
+          "self_us": 111008,
+          "percent_active": 2.9539910465927903,
+          "percent_all_samples": 0.5371116430444893
+        },
+        {
+          "name": "r_49168_pc_1961281008",
+          "self_us": 106498,
+          "percent_active": 2.8339771771407376,
+          "percent_all_samples": 0.5152900309973338
+        },
+        {
+          "name": "r_48577_pc_1960865792",
+          "self_us": 105798,
+          "percent_active": 2.8153497472923035,
+          "percent_all_samples": 0.5119030845598596
+        },
+        {
+          "name": "r_50978_pc_1961281016",
+          "self_us": 97687,
+          "percent_active": 2.5995110565770925,
+          "percent_all_samples": 0.4726580523393542
+        },
+        {
+          "name": "r_50986_pc_1961282944",
+          "self_us": 96013,
+          "percent_active": 2.5549648886252663,
+          "percent_all_samples": 0.4645584118588801
+        },
+        {
+          "name": "f_2149189520",
+          "self_us": 95094,
+          "percent_active": 2.5305097342956797,
+          "percent_all_samples": 0.4601118350359674
+        },
+        {
+          "name": "eka2l1::arm::aot::validated_code_cache::lookup_trusted_uncached(unsigned int, eka2l1::arm::core&)",
+          "self_us": 94020,
+          "percent_active": 2.5019299347853683,
+          "percent_all_samples": 0.4549152915018998
+        }
+      ],
+      "raw_summary": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-hooked-profile/clear-map-profile/summary.json",
+      "screenshots": [
+        "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-hooked-profile/clear-map-profile-start.png",
+        "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-hooked-profile/clear-map-profile-end.png"
+      ]
+    },
+    {
+      "label": "moving-map-profile",
+      "measurement": {
+        "game": "hooked-on",
+        "label": "moving-map-profile",
+        "browser": "Chrome/153.0.8010.52",
+        "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+        "mode": "normal paced LAN picker; count-free",
+        "sound": "browser output muted",
+        "seconds": 20.209460000038145,
+        "frames": 603,
+        "fps": 29.83751173949536,
+        "guestSeconds": 20.209665,
+        "guestSpeed": 1.0000101437624684,
+        "compiledFunctions": 79,
+        "compilationUs": {
+          "aot_translation_us": 10196,
+          "aot_emission_us": 587,
+          "aot_installation_us": 7403
+        },
+        "errors": []
+      },
+      "sampled_seconds": 20.642587,
+      "parked_seconds": 16.247546,
+      "parked_percent": 78.70886531809215,
+      "active_sampled_seconds": 4.395041,
+      "generated_percent_active": 70.00810686407704,
+      "host_interval_seconds": 20.321406054000022,
+      "cpu_worker_cpu_seconds": 4.346617925,
+      "graphics_worker_cpu_seconds": 0.804510752,
+      "graphics_parked_percent": 93.0809507998854,
+      "top_active_frames": [
+        {
+          "name": "r_57603_pc_1961531664",
+          "self_us": 1521343,
+          "percent_active": 34.61498993979806,
+          "percent_all_samples": 7.369924128211256
+        },
+        {
+          "name": "eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))",
+          "self_us": 370133,
+          "percent_active": 8.42160516818842,
+          "percent_all_samples": 1.7930552987375081
+        },
+        {
+          "name": "_emscripten_get_now",
+          "self_us": 239056,
+          "percent_active": 5.439221158573948,
+          "percent_all_samples": 1.1580719025188073
+        },
+        {
+          "name": "resampler_basic_interpolate_single",
+          "self_us": 139908,
+          "percent_active": 3.1833150134435604,
+          "percent_all_samples": 0.6777638868616613
+        },
+        {
+          "name": "r_35757_pc_1960868168",
+          "self_us": 138199,
+          "percent_active": 3.144430279489998,
+          "percent_all_samples": 0.6694848857849067
+        },
+        {
+          "name": "r_49168_pc_1961281008",
+          "self_us": 129055,
+          "percent_active": 2.936377612859584,
+          "percent_all_samples": 0.6251881123233246
+        },
+        {
+          "name": "r_48577_pc_1960865792",
+          "self_us": 120280,
+          "percent_active": 2.736720772343193,
+          "percent_all_samples": 0.5826789055073378
+        },
+        {
+          "name": "eka2l1::arm::aot::validated_code_cache::lookup_trusted_uncached(unsigned int, eka2l1::arm::core&)",
+          "self_us": 102602,
+          "percent_active": 2.334494718024246,
+          "percent_all_samples": 0.49704041455656695
+        },
+        {
+          "name": "r_49182_pc_1961282936",
+          "self_us": 77622,
+          "percent_active": 1.7661268688961036,
+          "percent_all_samples": 0.3760284503100314
+        },
+        {
+          "name": "f_2149189520",
+          "self_us": 75682,
+          "percent_active": 1.721986211277665,
+          "percent_all_samples": 0.3666304034470098
+        },
+        {
+          "name": "r_50986_pc_1961282944",
+          "self_us": 68339,
+          "percent_active": 1.554911546900245,
+          "percent_all_samples": 0.3310583116350678
+        },
+        {
+          "name": "eka2l1::drivers::graphics_command_builder::update_bitmap(unsigned long long, char const*, unsigned long, eka2l1::vec2 const&, eka2l1::vec2 const&, unsigned long, bool)",
+          "self_us": 65778,
+          "percent_active": 1.4966413282606466,
+          "percent_all_samples": 0.3186519209050687
+        }
+      ],
+      "raw_summary": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-hooked-profile/moving-map-profile/summary.json",
+      "screenshots": [
+        "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-hooked-profile/moving-map-profile-start.png",
+        "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-hooked-profile/moving-map-profile-end.png"
+      ]
+    }
+  ],
+  "timings": [
+    {
+      "game": "hooked-on",
+      "label": "clear-map-default-a",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "mode": "normal paced LAN picker; count-free",
+      "sound": "browser output muted",
+      "seconds": 20.341139999985696,
+      "frames": 590,
+      "fps": 29.00525732581433,
+      "guestSeconds": 20.341815,
+      "guestSpeed": 1.0000331839815422,
+      "compiledFunctions": 1,
+      "compilationUs": {
+        "aot_translation_us": 100,
+        "aot_emission_us": 29,
+        "aot_installation_us": 404
+      },
+      "errors": [],
+      "raw_json": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-hooked-profile/clear-map-default-a.json",
+      "watchdog_us": 2000
+    },
+    {
+      "game": "hooked-on",
+      "label": "clear-map-watchdog-500",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "mode": "normal paced LAN picker; count-free",
+      "sound": "browser output muted",
+      "seconds": 20.268799999952318,
+      "frames": 594,
+      "fps": 29.306125671050943,
+      "guestSeconds": 20.269239,
+      "guestSpeed": 1.0000216589066784,
+      "compiledFunctions": 3,
+      "compilationUs": {
+        "aot_translation_us": 160,
+        "aot_emission_us": 58,
+        "aot_installation_us": 944
+      },
+      "errors": [],
+      "raw_json": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-hooked-profile/clear-map-watchdog-500.json",
+      "watchdog_us": 500
+    },
+    {
+      "game": "hooked-on",
+      "label": "clear-map-default-b",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "mode": "normal paced LAN picker; count-free",
+      "sound": "browser output muted",
+      "seconds": 20.33258999991417,
+      "frames": 580,
+      "fps": 28.525632986375488,
+      "guestSeconds": 20.332079,
+      "guestSpeed": 0.9999748679379178,
+      "compiledFunctions": 0,
+      "compilationUs": {
+        "aot_translation_us": 0,
+        "aot_emission_us": 0,
+        "aot_installation_us": 0
+      },
+      "errors": [],
+      "raw_json": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-hooked-profile/clear-map-default-b.json",
+      "watchdog_us": 2000
+    }
+  ],
+  "guest_findings": {
+    "hot_entry": "0x74ea9910",
+    "module": "COTD.exe",
+    "module_base": "0x74e00000",
+    "module_offset": "0xa9910",
+    "entry_interpretation": "Region contains run-length/skip decoding, 16-bit pixel-copy loops and color-channel accumulation/clamping. Software rendering semantics inferred from ARM disassembly. Profile attributes the whole generated region, not individual ARM instructions.",
+    "game_update_gate": "COTD.exe +0xdf0 shifts clock frequency right by 5; +0xe64 compares elapsed counter ticks against that threshold; +0xe78 resets the last-update counter. Nominal 32 Hz gate.",
+    "timer": "COTD Main requests kernel::timer::after_high_res with interval 30000 us. Guest stack contains return address 0x75f05644 in ngibackbuffer.dll, base 0x75f00000, and COTD 0x74e00f30.",
+    "timer_rounding": "high_res_timer_deadline rounds to 1 ms nanokernel ticks and adds the next tick. A 30000 us request is scheduled 30-31 ms after the current guest timestamp.",
+    "inspection_warning": "Debugger was enabled only after all accepted production timing/profile windows. Breakpoint captures identify code, process and arguments; their timing is not benchmark evidence.",
+    "raw_timer_stack": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-hooked-profile/high-res-guest-stack.json",
+    "emitted_memory_path": "The hot region includes a direct-arena bounds test and address adjustment for scalar 16-bit accesses, with page-table and helper fallbacks. Static WASM inspection does not establish how often those fallbacks execute or their CPU cost.",
+    "raw_disassembly": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-hooked-profile/guest-disassembly.json",
+    "raw_emitted_region": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-hooked-profile/hot-region.wat"
+  },
+  "excluded": [
+    {
+      "capture": "stationary-before/stationary-profile/stationary-after",
+      "reason": "Anchor tutorial reappeared; retained as diagnostic, excluded from clear gameplay rates and percentages."
+    },
+    {
+      "capture": "wasm-hooked-idle100",
+      "reason": "Restored installation failed to launch COTD with guest exit -1000008. No gameplay timing; cannot attribute failure to idle change versus restoration."
+    }
+  ],
+  "limitations": [
+    "The older Qt 31.66/WASM 26.00 comparison included tutorial/camera differences; current clear-map rates are fresh observations, not a controlled Qt speedup estimate.",
+    "Short adjacent captures on a shared host; no isolated-host confidence interval.",
+    "Profiler changes timing; use unprofiled windows for FPS.",
+    "Sleeping is expected guest behavior and is not wholly removable overhead. Low average CPU use does not exclude frame-path latency.",
+    "V8 debugger tier changes happen after accepted profiles; no timings after debugger are used as production results.",
+    "The private 0.1 ms sleep diagnostic is evidence for scheduling latency; it was not adopted, and it does not identify exact host wakeup overshoot versus time spent servicing each guest callback."
+  ],
+  "idle_sleep_diagnostic": {
+    "patch": {
+      "offset": 823971,
+      "function_index": 480,
+      "callee_index": 14089,
+      "before_ns": 1000000,
+      "after_ns": 100000,
+      "before_bytes": "42c0843d",
+      "after_bytes": "42a08d06",
+      "scope": "Private diagnostic binary only, one i64.const before sleep_for; no guest instruction or clock change",
+      "sha256": "e4bd0e9bc60141f5a057de270a7946dcfac8e830636e7759b0b7137da7382742"
+    },
+    "changed_byte_offsets": [
+      823972,
+      823973,
+      823974
+    ],
+    "validation": "Equal-length modules; exactly three bytes differ; WebAssembly.validate passes; ordinary LAN picker install and clear-map gameplay succeeded. Response interception affected the private browser only.",
+    "watchdog_us": 2000,
+    "guest_clock": "Normal paced count-free; unchanged",
+    "measurements": [
+      {
+        "measurement": {
+          "game": "hooked-on",
+          "label": "clear-map-idle100-a",
+          "browser": "Chrome/153.0.8010.52",
+          "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+          "mode": "private diagnostic: paced LAN picker; count-free; idle polling 100us",
+          "sound": "browser output muted",
+          "seconds": 20.18275,
+          "frames": 641,
+          "fps": 31.75979487433576,
+          "guestSeconds": 20.182765,
+          "guestSpeed": 1.0000007432089284,
+          "compiledFunctions": 1,
+          "compilationUs": {
+            "aot_translation_us": 135,
+            "aot_emission_us": 19,
+            "aot_installation_us": 294
+          },
+          "errors": []
+        },
+        "host_interval_seconds": 20.339123205000067,
+        "busiest_renderer_thread": {
+          "pid": 2038329,
+          "tid": 2038508,
+          "name": "DedicatedWorker",
+          "cpu_seconds": 4.984769685,
+          "status": "matched"
+        },
+        "busiest_thread_percent_one_core": 24.50828206682267,
+        "cpu_thread_errors": [],
+        "raw_cpu_json": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-hooked-idle100-fresh/clear-map-idle100-a-cpu.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-hooked-idle100-fresh/clear-map-idle100-a-start.png",
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-hooked-idle100-fresh/clear-map-idle100-a-end.png"
+        ]
+      },
+      {
+        "measurement": {
+          "game": "hooked-on",
+          "label": "clear-map-idle100-b",
+          "browser": "Chrome/153.0.8010.52",
+          "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+          "mode": "private diagnostic: paced LAN picker; count-free; idle polling 100us",
+          "sound": "browser output muted",
+          "seconds": 20.18525499999523,
+          "frames": 640,
+          "fps": 31.70631235523907,
+          "guestSeconds": 20.18526,
+          "guestSpeed": 1.0000002477058016,
+          "compiledFunctions": 1,
+          "compilationUs": {
+            "aot_translation_us": 155,
+            "aot_emission_us": 34,
+            "aot_installation_us": 305
+          },
+          "errors": []
+        },
+        "host_interval_seconds": 20.378888135000015,
+        "busiest_renderer_thread": {
+          "pid": 2038329,
+          "tid": 2038508,
+          "name": "DedicatedWorker",
+          "cpu_seconds": 4.880869662,
+          "status": "matched"
+        },
+        "busiest_thread_percent_one_core": 23.950618059565674,
+        "cpu_thread_errors": [],
+        "raw_cpu_json": "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-hooked-idle100-fresh/clear-map-idle100-b-cpu.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-hooked-idle100-fresh/clear-map-idle100-b-start.png",
+          "/home/claude/.scratch/eka-qt-wasm-ten-20261011/wasm-hooked-idle100-fresh/clear-map-idle100-b-end.png"
+        ]
+      }
+    ],
+    "limitations": "Fresh ordinary installation in a separate browser run; same scene and machine, but not randomized ABBA. CPU-only sampling did not independently map Linux thread IDs to guest workers, so the diagnostic CPU number is the busiest renderer thread. Do not treat its difference from profiled production thread time as a controlled CPU-cost estimate."
+  },
+  "conclusions": {
+    "cause_supported_by_probe": "The 1 ms WASM idle sleep contributes to the paced FPS deficit: changing only that host sleep to 0.1 ms recovered 31.71-31.76 FPS from default clear-map windows at 28.53-29.01. This implicates wakeup/dispatch latency around guest timers, not a shortage of average CPU capacity. Exact per-deadline lateness was not traced.",
+    "active_hotspot": "COTD.exe +0xa9910 software-rendering region: 31-35% of active emulation samples. A separate throughput target, not proof that every emitted memory check is costly.",
+    "not_supported": "A 500 us watchdog did not recover the gap. Emulator compilation was negligible in accepted steady-state windows.",
+    "next_target": "Make the paced idle wait aware of the next timer deadline; validate CPU cost and other games before replacing the production 1 ms wait.",
+    "production_changed": false
+  }
+}
