@@ -189,3 +189,66 @@ the existing card-mount tests pass 14 assertions across four cases. Evidence
 and logs are under the scratch directory above. Game audio output, multiplayer,
 long playthroughs and commercial activation were not established by these
 compatibility checks.
+
+## Version recheck and pinning transfer
+
+A follow-up check found no newer recovered release of the selected ports.
+This is not proof that no later publisher build ever existed. Super Miners
+1.07c is listed for Symbian 6.x/7.x/8.x by the
+[historical distributor](https://hpc.ru/soft/softlist.phtml?t=dvl&u=3505);
+the selected 1.07b is the S60v3 port. Higher version numbers on the Explode
+Arena S90/UIQ ports and Pathway's 1.2.3 preview likewise do not supersede the
+selected keypad S60 and retail card releases.
+
+The `Dance.Fabulous.nGage` archive's `Games/Full/Tetris.n-gage` was downloaded
+and inspected separately. Its game SIS still reports 4.21.41, with a
+2008-05-13 packaging date and a BiNPDA signature. Its metadata retains the
+Nokia signature. It does not establish a newer official version than the
+Nokia-signed 4.21.41 used by the launcher.
+
+At the user's request, all eleven selected game, extracted-installer,
+runtime and firmware files were put into a single transport ZIP for
+magic-wormhole. Each extracted member's SHA-256 matched the cached asset. Pin the individual members: the outer transport
+ZIP is not a launcher asset and its CID is not used. The receiver confirmed
+the completed wormhole transfer. Remote IPFS pinning has not been verified.
+
+## Paced gameplay FPS follow-up
+
+Fresh normal LAN picker sessions on the final WASM hash above reached gameplay
+for all five games again. Chromium 153 used hardware WebGL through ANGLE/Vulkan
+on the NVIDIA Quadro T1000 Max-Q, with an i7-10875H host. Runs were serial,
+with default paced count-free execution, 2 ms watchdog, direct memory 2 and
+immutable-code mode 3. Other desktop workloads remained running. Browser audio
+output was disabled. These are single scene samples, not isolated comparative
+benchmarks or maximum unpaced throughput.
+
+FPS is the guest-presentation counter delta divided by elapsed browser time.
+Loading and menus are excluded; start and end screenshots were inspected.
+Guest time advanced at approximately 1x throughout each accepted sample.
+
+| # | Game | FPS | Window | Scene and limits |
+|---|---|---:|---:|---|
+| 1 | Asphalt 3 1.2.7 | 31.6 | 30.24 s | Instant Play race; car reaches a wall and is stationary at the end. |
+| 2 | Tetris 4.21.41 | 28.4 | 30.38 s | Marathon level 1, falling blocks and score progression. |
+| 3 | Super Miners 1.07b | 32.0 | 30.22 s | Challenge level 1 after movement, timer running. |
+| 4 | Explode Arena 1.1 | 38.1 | 15.21 s | Arcade level, enemies active and player alive at both endpoints. |
+| 5 | Pathway to Glory 1.03 | 40.0 | 30.16 s | Pantelleria battlefield waiting for the next action after Brown moved, spending six action points. |
+
+The initial Explode Arena 30-second sample ended at the main menu and was
+rejected. The accepted shorter sample stayed in gameplay. Remaining compiler
+translation/emission/installation totals were 35.3 ms for Asphalt, 3.9 ms for
+Tetris, 0.2 ms for Super Miners, 11.1 ms for Explode Arena and 3.8 ms for Pathway;
+these small amounts are included in the reported windows.
+
+Asphalt's keyboard softkey did not consistently dismiss its sound prompt;
+the normal on-screen right softkey did, followed by a successful race launch.
+Its guest log also reports failed target-audio-format operations, so this is
+not an audio-correctness result. Pathway reached the mission without the
+earlier gear-menu detour on this run; that does not resolve the previously
+observed input inconsistency. Tetris and Asphalt still show TRIAL in N-Gage.
+
+Machine-readable results and raw-evidence paths are in
+[`pre-touch-6-to-10-paced-results.json`](pre-touch-6-to-10-paced-results.json).
+The scratch harness is `fps.mjs` under the recovery directory above. No
+emulator code, live configuration, or game/firmware bytes changed for these
+measurements.

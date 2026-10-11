@@ -1,0 +1,208 @@
+{
+  "date": "2026-10-11",
+  "environment": {
+    "wasm_sha256": "dec37577f64f2b6addc7d3d1d9e877fe4bcd288bbc0b39022fd4c22236130f63",
+    "source_commit": "86a64bdea",
+    "gpu_renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA-610.57.4.0)",
+    "scope": "Paced gameplay checks through normal LAN picker; one emulator at a time; other desktop workload left running"
+  },
+  "browser": "Chrome/153.0.8010.52",
+  "cpu": "Intel Core i7-10875H",
+  "pacing": "normal paced count-free LAN picker",
+  "method": "Guest presentations divided by elapsed browser performance.now time; samples every 500 ms. Fresh session per game; serial emulator runs. Loading excluded; endpoints visually checked.",
+  "limitations": [
+    "Single samples on a working desktop with other workloads, not isolated comparative benchmarks or maximum unpaced throughput.",
+    "Asphalt 3 car reaches a wall and is stationary at the end; Pathway battlefield waits for next action after soldier movement.",
+    "Tetris and Asphalt 3 client labels say TRIAL. Full activation, audio and full playthroughs not verified.",
+    "Initial Explode Arena 30-second result rejected because ending scene was main menu."
+  ],
+  "results": [
+    {
+      "game": "asphalt-3",
+      "label": "instant-play-driving",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "mode": "normal paced LAN picker; count-free",
+      "sound": "browser output muted",
+      "seconds": 30.23569000005722,
+      "frames": 956,
+      "fps": 31.618263052643773,
+      "guestSeconds": 30.233436,
+      "guestSpeed": 0.9999254523360566,
+      "compiledFunctions": 125,
+      "compilationUs": {
+        "aot_translation_us": 9919,
+        "aot_emission_us": 1623,
+        "aot_installation_us": 23766
+      },
+      "errors": [],
+      "accepted": true,
+      "sceneReviewed": "Instant Play race at both endpoints. ArrowUp held; car reached the outside wall and is stationary at the end. Scene FPS, not controlled continuous racing throughput.",
+      "inputCaveat": "Keyboard F2 did not consistently dismiss sound prompt; normal on-screen right softkey did.",
+      "audioCaveat": "Browser output disabled; guest log includes failed target audio format. Audio correctness not verified.",
+      "number": 1,
+      "version": "1.2.7, N-Gage 2.0, modified BodyZ preservation copy; original fails registration",
+      "loadStart": [
+        3.14,
+        2.47,
+        3.8
+      ],
+      "loadEnd": [
+        2.47,
+        2.36,
+        3.72
+      ],
+      "report": "/home/claude/.scratch/eka-next-five-20261011/fps-asphalt-3/instant-play-driving.json",
+      "startScreenshot": "/home/claude/.scratch/eka-next-five-20261011/fps-asphalt-3/instant-play-driving-start.png",
+      "endScreenshot": "/home/claude/.scratch/eka-next-five-20261011/fps-asphalt-3/instant-play-driving-end.png"
+    },
+    {
+      "game": "tetris",
+      "label": "marathon-gameplay",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "mode": "normal paced LAN picker; count-free",
+      "sound": "browser output muted",
+      "seconds": 30.379865000009538,
+      "frames": 862,
+      "fps": 28.37405630340126,
+      "guestSeconds": 30.37997,
+      "guestSpeed": 1.0000034562362428,
+      "compiledFunctions": 11,
+      "compilationUs": {
+        "aot_translation_us": 1095,
+        "aot_emission_us": 210,
+        "aot_installation_us": 2550
+      },
+      "errors": [],
+      "accepted": true,
+      "sceneReviewed": "Start and end screenshots show active level/board; installation, loading and menus excluded.",
+      "number": 2,
+      "version": "4.21.41, original Nokia-signed N-Gage 2.0 release",
+      "loadStart": [
+        1.18,
+        2.56,
+        4.68
+      ],
+      "loadEnd": [
+        0.91,
+        2.36,
+        4.55
+      ],
+      "report": "/home/claude/.scratch/eka-next-five-20261011/fps-tetris/marathon-gameplay.json",
+      "startScreenshot": "/home/claude/.scratch/eka-next-five-20261011/fps-tetris/marathon-gameplay-start.png",
+      "endScreenshot": "/home/claude/.scratch/eka-next-five-20261011/fps-tetris/marathon-gameplay-end.png"
+    },
+    {
+      "game": "super-miners",
+      "label": "challenge-level-1",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "mode": "normal paced LAN picker; count-free",
+      "sound": "browser output muted",
+      "seconds": 30.215044999957083,
+      "frames": 966,
+      "fps": 31.970827778061295,
+      "guestSeconds": 30.215265,
+      "guestSpeed": 1.0000072811423222,
+      "compiledFunctions": 0,
+      "compilationUs": {
+        "aot_translation_us": 189,
+        "aot_emission_us": 0,
+        "aot_installation_us": 0
+      },
+      "errors": [],
+      "accepted": true,
+      "sceneReviewed": "Start and end screenshots show active level/board; installation, loading and menus excluded.",
+      "number": 3,
+      "version": "1.07b, S60v3 240x320, modified DeFconX preservation copy",
+      "loadStart": [
+        4.84,
+        6.14,
+        6.46
+      ],
+      "loadEnd": [
+        3.76,
+        5.74,
+        6.31
+      ],
+      "report": "/home/claude/.scratch/eka-next-five-20261011/fps-super-miners/challenge-level-1.json",
+      "startScreenshot": "/home/claude/.scratch/eka-next-five-20261011/fps-super-miners/challenge-level-1-start.png",
+      "endScreenshot": "/home/claude/.scratch/eka-next-five-20261011/fps-super-miners/challenge-level-1-end.png"
+    },
+    {
+      "game": "explode-arena",
+      "label": "arcade-gameplay",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "mode": "normal paced LAN picker; count-free",
+      "sound": "browser output muted",
+      "seconds": 15.209865000009536,
+      "frames": 579,
+      "fps": 38.06739902028302,
+      "guestSeconds": 15.209955,
+      "guestSpeed": 1.000005917211656,
+      "compiledFunctions": 16,
+      "compilationUs": {
+        "aot_translation_us": 4925,
+        "aot_emission_us": 994,
+        "aot_installation_us": 5139
+      },
+      "errors": [],
+      "accepted": true,
+      "sceneReviewed": "Arcade level remains active at both endpoints, player alive; 15-second window avoids the earlier death/menu contamination.",
+      "number": 4,
+      "version": "1.1, S60v1/v2, unsigned oWnPDA preservation copy",
+      "loadStart": [
+        11.65,
+        5.65,
+        4.53
+      ],
+      "loadEnd": [
+        11.25,
+        5.85,
+        4.61
+      ],
+      "report": "/home/claude/.scratch/eka-next-five-20261011/fps-explode-arena-repeat/arcade-gameplay.json",
+      "startScreenshot": "/home/claude/.scratch/eka-next-five-20261011/fps-explode-arena-repeat/arcade-gameplay-start.png",
+      "endScreenshot": "/home/claude/.scratch/eka-next-five-20261011/fps-explode-arena-repeat/arcade-gameplay-end.png"
+    },
+    {
+      "game": "pathway-to-glory",
+      "label": "pantelleria-battlefield",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "mode": "normal paced LAN picker; count-free",
+      "sound": "browser output muted",
+      "seconds": 30.164049999952315,
+      "frames": 1206,
+      "fps": 39.98136854971088,
+      "guestSeconds": 30.163865,
+      "guestSpeed": 0.9999938668729061,
+      "compiledFunctions": 16,
+      "compilationUs": {
+        "aot_translation_us": 2335,
+        "aot_emission_us": 319,
+        "aot_installation_us": 1150
+      },
+      "errors": [],
+      "accepted": true,
+      "sceneReviewed": "Pantelleria battlefield waiting for next action after successful Brown movement (25 to 19 action points), not a combat sequence.",
+      "number": 5,
+      "version": "1.03, original N-Gage retail card preservation image; no official SIS release",
+      "loadStart": [
+        2.8,
+        2.6,
+        3.62
+      ],
+      "loadEnd": [
+        2.53,
+        2.56,
+        3.57
+      ],
+      "report": "/home/claude/.scratch/eka-next-five-20261011/fps-pathway-to-glory/pantelleria-battlefield.json",
+      "startScreenshot": "/home/claude/.scratch/eka-next-five-20261011/fps-pathway-to-glory/pantelleria-battlefield-start.png",
+      "endScreenshot": "/home/claude/.scratch/eka-next-five-20261011/fps-pathway-to-glory/pantelleria-battlefield-end.png"
+    }
+  ]
+}
