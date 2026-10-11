@@ -42,8 +42,9 @@ with substantial, varying VM/build load. These are short throughput samples,
 not isolated peak results or a narrow confidence interval.
 
 The game is the full 0.74 BiNPDA preservation container, with stock Nokia 5320
-ROM/RPKG and the N-Gage 1.40.1557 runtime. The production picker still selects
-the original signed trial. No game binaries are tracked in this change.
+ROM/RPKG and the N-Gage 1.40.1557 runtime. During this campaign the production
+picker selected the original signed trial; it subsequently switched to the
+same full package. No game binaries are tracked in this change.
 
 The comparison scene is Costa Rica fishing, after dropping anchor and using
 the cast meter. It renders animated water, sky and the fishing rod without

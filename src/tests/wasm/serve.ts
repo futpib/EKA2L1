@@ -4,7 +4,6 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { buildDir, startServer, compilerPolicyFromEnv } from "./server.ts";
 import { fetchCid } from "@futpib/fetch-cid";
-import { ngagePackage } from './ngage.ts';
 
 if (!fs.existsSync(path.join(buildDir, "eka2l1.html"))) {
   console.error("build-wasm output not found. Run the WASM build first.");
@@ -16,10 +15,10 @@ const RPKG_CID = "bafybeihjy4vjxb5cy7zxca4kedg5ncxf5xrbj5basirfefemqwru73aipu";
 type GameAsset = { file: string; cid: string; sha256: string };
 const games = JSON.parse(fs.readFileSync(new URL('./games.json', import.meta.url), 'utf8')) as (GameAsset & {
   id: string; title: string; uid: string;
-  ngage?: { runtime: GameAsset; metadata: GameAsset; sha256: string };
+  ngage?: GameAsset & { runtime: GameAsset };
 })[];
 const gameAssets = new Map(games.flatMap(game => [game, ...(game.ngage
-  ? [game.ngage.runtime, game.ngage.metadata] : [])]).map(asset => [asset.file, asset]));
+  ? [game.ngage.runtime, game.ngage] : [])]).map(asset => [asset.file, asset]));
 
 async function fetchCidToFile(cid: string, label: string, destPath: string, digest: string): Promise<void> {
   const valid = (data: Buffer) => crypto.createHash('sha256').update(data).digest('hex') === digest;
@@ -67,14 +66,7 @@ const preloadFiles: Record<string, string> = {
 };
 for (const game of games) {
   if (!game.ngage) continue;
-  const bytes = ngagePackage(fs.readFileSync(path.join(cacheDir, game.ngage.metadata.file)),
-    fs.readFileSync(path.join(cacheDir, game.file)));
-  if (crypto.createHash('sha256').update(bytes).digest('hex') !== game.ngage.sha256)
-    throw new Error(`${game.title}: reconstructed N-Gage package SHA-256 mismatch`);
-  const packagePath = path.join(cacheDir, game.id + '.n-gage');
-  fs.writeFileSync(packagePath + '.tmp', bytes);
-  fs.renameSync(packagePath + '.tmp', packagePath);
-  preloadFiles['/preload/games/' + game.id + '/ngage'] = packagePath;
+  preloadFiles['/preload/games/' + game.id + '/ngage'] = path.join(cacheDir, game.ngage.file);
   preloadFiles['/preload/games/' + game.id + '/runtime'] = path.join(cacheDir, game.ngage.runtime.file);
 }
 

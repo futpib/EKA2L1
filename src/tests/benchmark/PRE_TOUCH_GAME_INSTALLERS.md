@@ -252,8 +252,28 @@ These CIDs were calculated locally; remote pinning is not asserted. The game SIS
 still needs the N-Gage runtime and matching metadata for normal installation.
 
 The files, source metadata, logs and screenshots are retained outside Git in
-`/home/claude/.scratch/eka-hooked-full-20261010/`. The live picker continues to use
-the original trial; this search tested the full copy in a separate browser server.
+`/home/claude/.scratch/eka-hooked-full-20261010/`. At the time of this search the
+live picker still used the original trial; the full copy was tested separately.
+
+### Full package in the LAN picker (2026-10-11)
+
+The normal picker now selects the full BiNPDA 0.74 preservation copy. Its game
+SIS and complete `.n-gage` container use the CIDs and SHA-256 hashes above.
+The launcher serves the intact container, including its matching metadata,
+with the existing N-Gage runtime. The separate SIS download endpoint also
+serves the full copy. All binary assets remain outside Git.
+
+The client can still show a TRIAL badge on its tile. The game's own activation,
+save-slot and menu behavior distinguishes this full copy from the original
+limited trial; the badge is not changed by patching the client or firmware.
+
+A fresh Chromium 153 session selected the game through the real LAN picker
+with normal paced execution, no asset interception and no manual uploads.
+It installed the package, skipped activation, created a named profile, showed
+the full menu, and rendered Costa Rica with working boat movement. The served
+SIS/container hashes and the container copied into the browser's guest
+filesystem match the values above. No fatal guest or page errors were observed.
+Evidence is in `/home/claude/.scratch/eka-hooked-full-picker-20261011/`.
 
 ## Files for pinning
 
