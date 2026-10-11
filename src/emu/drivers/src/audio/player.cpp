@@ -23,6 +23,7 @@
 #endif
 #include <drivers/audio/backend/minibae/player_minibae.h>
 #include <drivers/audio/backend/tinysoundfont/player_tsf.h>
+#include <drivers/audio/backend/player_pcm_wave.h>
 #include <drivers/audio/backend/wmf/player_wmf.h>
 #include <drivers/audio/player.h>
 
@@ -63,6 +64,9 @@ namespace eka2l1::drivers {
 
         case player_type_tsf:
             return std::make_unique<player_tsf>(aud);
+
+        case player_type_pcm_wave:
+            return std::make_unique<player_pcm_wave>(aud);
 
 #if EKA2L1_HAS_FFMPEG
         case player_type_ffmpeg:

@@ -48,6 +48,10 @@ namespace eka2l1::drivers {
 
     std::vector<player_type> audio_driver::get_suitable_player_types(const std::string &url) {
         std::vector<player_type> res;
+#if !EKA2L1_HAS_FFMPEG && !EKA2L1_PLATFORM(WIN32)
+        // Browser builds still need PCM WAVE files and descriptor buffers.
+        res.push_back(player_type_pcm_wave);
+#endif
 
         if (!url.empty()) {
             FILE *target_file = common::open_c_file(url, "rb");

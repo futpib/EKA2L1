@@ -77,6 +77,8 @@ add_library(drivers
         include/drivers/audio/backend/tinysoundfont/player_tsf.h
         include/drivers/audio/backend/dsp_shared.h
         include/drivers/audio/backend/player_shared.h
+        include/drivers/audio/backend/player_pcm_wave.h
+        src/audio/backend/player_pcm_wave.cpp
         include/drivers/camera/camera_collection.h
         include/drivers/camera/camera_pixel.h
         include/drivers/hwrm/backend/vibration_null.h

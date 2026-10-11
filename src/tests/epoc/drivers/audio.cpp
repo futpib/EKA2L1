@@ -12,6 +12,89 @@
 #include <catch2/catch.hpp>
 #include <drivers/audio/backend/dsp_shared.h>
 #include <drivers/audio/stream.h>
+#include <drivers/audio/backend/player_pcm_wave.h>
+#include <common/buffer.h>
+
+namespace {
+    std::vector<std::uint8_t> pcm_wave(const std::uint16_t bits, const std::uint16_t channels,
+        const std::vector<std::uint8_t> &samples) {
+        std::vector<std::uint8_t> bytes;
+        auto text = [&](const char *s) { bytes.insert(bytes.end(), s, s + 4); };
+        auto word = [&](std::uint32_t value, unsigned size) {
+            for (unsigned i = 0; i < size; ++i) bytes.push_back(value >> (i * 8));
+        };
+        text("RIFF"); word(36 + samples.size() + (samples.size() & 1), 4); text("WAVE");
+        text("fmt "); word(16, 4); word(1, 2); word(channels, 2);
+        word(8000, 4); word(8000 * channels * bits / 8, 4);
+        word(channels * bits / 8, 2); word(bits, 2);
+        text("data"); word(samples.size(), 4);
+        bytes.insert(bytes.end(), samples.begin(), samples.end());
+        if (samples.size() & 1) bytes.push_back(0);
+        return bytes;
+    }
+
+    bool open_wave(eka2l1::drivers::player_pcm_wave &player, std::vector<std::uint8_t> bytes) {
+        eka2l1::common::ro_buf_stream stream(bytes.data(), bytes.size());
+        return player.open_wave(&stream);
+    }
+}
+
+TEST_CASE("PCM WAVE player accepts empty initialization media and decodes real samples", "[audio][wave]") {
+    eka2l1::drivers::player_pcm_wave player(nullptr);
+    REQUIRE(open_wave(player, pcm_wave(16, 1, {})));
+    REQUIRE(player.duration() == 0);
+    std::int16_t decoded[8]{};
+    REQUIRE(player.data_supply_callback(decoded, 8) == 0);
+
+    REQUIRE(open_wave(player, pcm_wave(8, 2, {0, 128, 255, 64})));
+    REQUIRE(player.duration() == 250);
+    REQUIRE(player.get_dest_channel_count() == 2);
+    REQUIRE(player.data_supply_callback(decoded, 8) == 2);
+    REQUIRE(decoded[0] == -32768);
+    REQUIRE(decoded[1] == 0);
+    REQUIRE(decoded[2] == 32512);
+    REQUIRE(decoded[3] == -16384);
+
+    REQUIRE(open_wave(player, pcm_wave(16, 1, {0, 128, 255, 127})));
+    REQUIRE(player.data_supply_callback(decoded, 1) == 1);
+    REQUIRE(decoded[0] == -32768);
+    REQUIRE(player.data_supply_callback(decoded, 8) == 1);
+    REQUIRE(decoded[0] == 32767);
+    REQUIRE(player.data_supply_callback(decoded, 8) == 0);
+    player.set_position(125);
+    REQUIRE(player.data_supply_callback(decoded, 8) == 1);
+    REQUIRE(decoded[0] == 32767);
+    player.reset_request();
+    player.set_repeat(1, 0);
+    REQUIRE(player.data_supply_callback(decoded, 8) == 4);
+    REQUIRE(decoded[2] == -32768);
+    REQUIRE(decoded[3] == 32767);
+}
+
+TEST_CASE("PCM WAVE parsing honors chunk bounds, padding and encoding", "[audio][wave]") {
+    eka2l1::drivers::player_pcm_wave player(nullptr);
+    auto valid = pcm_wave(8, 1, {128});
+    REQUIRE(open_wave(player, valid));
+    for (std::size_t length = 0; length < valid.size(); ++length) {
+        auto truncated = valid;
+        truncated.resize(length);
+        REQUIRE_FALSE(open_wave(player, truncated));
+    }
+    auto bad = valid;
+    bad[20] = 7; // Mu-law is a different codec.
+    REQUIRE_FALSE(open_wave(player, bad));
+    bad = valid; bad[40] = 0xff; // Data size exceeds its RIFF container.
+    REQUIRE_FALSE(open_wave(player, bad));
+    REQUIRE_FALSE(open_wave(player, pcm_wave(16, 2, {0, 0})));
+    REQUIRE_FALSE(open_wave(player, pcm_wave(8, 0, {})));
+
+    // Unknown odd-sized chunks are skipped with their required pad byte.
+    auto padded = pcm_wave(16, 1, {});
+    const std::vector<std::uint8_t> junk{'J','U','N','K',1,0,0,0,42,0};
+    padded.insert(padded.begin() + 12, junk.begin(), junk.end());
+    padded[4] += junk.size();
+    REQUIRE(open_wave(player, padded));
+}
 
 TEST_CASE("Audio frame positions use frames rather than channel samples", "[audio]") {
     using eka2l1::drivers::frames_to_microseconds;
