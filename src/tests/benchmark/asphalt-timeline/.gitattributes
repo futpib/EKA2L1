@@ -1,0 +1,2 @@
+# Archived patches preserve whitespace in their original source context.
+*.patch -whitespace

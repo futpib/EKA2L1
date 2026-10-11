@@ -31,6 +31,10 @@ for diagnosing that game's performance gap.
 
 ## Interpretation and scene limits
 
+The [Asphalt frame-timeline follow-up](ASPHALT_FRAME_TIMELINE.md) measures both
+extra execution time and a browser-only display wait in the fixed Golf/barrier
+scene; those diagnostic windows do not replace this comparison's FPS figures.
+
 Snakes, Sky Force, K-Rally and Super Miners are close to the same paced presentation rates in both frontends. Hooked On and Tetris were lower in the browser samples. Treat differences in the other rows cautiously: the scenes, graphics backends and host load were not identical.
 
 Asphalt 2 Instant Play randomized the vehicle and route: Qt used a motorcycle on the city course, while WASM used a red car on a bridge/coastal course. Its row is a rough per-game observation, not a matched-scene performance comparison. Asphalt 3 ended with the car stationary after a collision on both frontends; its row does not establish sustained racing performance.

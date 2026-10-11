@@ -1,0 +1,214 @@
+{
+  "source_commit": "1e1922ee9",
+  "report_base_commit": "de68d5711",
+  "branch": "wasm-port",
+  "raw_root": "/home/claude/.scratch/eka-asphalt-timeline-20261011",
+  "native_source_root": "/home/claude/.scratch/eka-asphalt-paced-20261011/wasm-native",
+  "artifacts": [
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/wasm-trace-clean/barrier-trace-quiet.trace",
+      "bytes": 10459392,
+      "sha256": "8cb1f435034ba1728958c6ebdad8abb2d7b38ce6a48a767c0a0ab259b94fb0e0"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/wasm-trace-clean/barrier-trace-quiet-trace.json",
+      "bytes": 22303,
+      "sha256": "55b4e3c6fc903fd902f07a755024c7f505562a64123be66b6dfaf06ad84dd68e"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/wasm-trace-clean/barrier-trace-quiet-switches.json",
+      "bytes": 1697108,
+      "sha256": "ebad1ed0870ab2e699b34d324c4b0f128053b35f572d76e302034e8f9533c4c3"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/wasm-trace-clean/barrier-trace-quiet.json",
+      "bytes": 17451,
+      "sha256": "f048a5b3c658032e09831cb0e42eef589236fd688053a3bc6d2f230048990685"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/wasm-trace-clean/barrier-trace-quiet-start.png",
+      "bytes": 55777,
+      "sha256": "655f04e4fd5e9999de49367f5397af6f82d427d28b6c249f569c9750504cebd3"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/wasm-trace-clean/barrier-trace-quiet-end.png",
+      "bytes": 55457,
+      "sha256": "a65df1249fdadba3dd24437beaa2cf57e6fbbe8425fcce004d5ae00a1567d6dc"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/qt-asphalt-2/barrier-trace-a.trace",
+      "bytes": 11040512,
+      "sha256": "637e2e6ba2ff2ccfdbcec84466a992904b55b3bbe84c445af1442ea315669554"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/qt-asphalt-2/barrier-trace-a-trace.json",
+      "bytes": 782,
+      "sha256": "c5556da74422d20f94cdb9c02b26583a540357952e83db7fba852d08267397af"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/qt-asphalt-2/barrier-trace-a-switches.json",
+      "bytes": 1316877,
+      "sha256": "691f3a5b4112065c56c6a86862437f843ff682d1d5bd8a5bcebb9f3871281c28"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/qt-asphalt-2/barrier-trace-a.json",
+      "bytes": 1623,
+      "sha256": "d10459c6c8ff4f39497507a04d6b6da48dd6183da2a5633053a05f9fad663b09"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/qt-asphalt-2/barrier-trace-a-start.png",
+      "bytes": 49085,
+      "sha256": "454ac82ccdade33450d5dc76c7e699c06fae85602801af387d2e5f25c4c0d7da"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/qt-asphalt-2/barrier-trace-a-end.png",
+      "bytes": 49494,
+      "sha256": "75ef4a18167df0c89ff0adc8a4c2ed8f6a8ee569a244f4642c0d34419ebaa775"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/wasm-trace-clean/quiet-trace-off.json",
+      "bytes": 17455,
+      "sha256": "09d7da68ca5b727b14e269128c8f586eede3c878696701fab7b5f0d0d2b0ac8f"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/qt-asphalt-2/trace-off-control.json",
+      "bytes": 1663,
+      "sha256": "4416d36fc2ae8b6e731e7a4307146adab3c3a4459166895fa0e23ae03552e8a3"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/instrumentation.patch",
+      "bytes": 10571,
+      "sha256": "fecae0dbdc22da4fc4c306f578b63d659a256abee4e0e6a9b016cef086c03a43"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/qt-instrumentation.patch",
+      "bytes": 10607,
+      "sha256": "87626ef6da13ee4b52194d2e6bee04e6186800a7eca9285e07041959740111ad"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/trace-wasm-original.h",
+      "bytes": 931,
+      "sha256": "b1c41a8012ee33cbf5b62462af39aa909896cfc2eb59373b28c45c2ed24d0d66"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/trace.h",
+      "bytes": 1191,
+      "sha256": "5cd2e9000f2c4e115b676b8fdc38b27a208dc043cd63a3994deed1b9cf84a691"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/build.log",
+      "bytes": 6812,
+      "sha256": "04d997a4923e8e78fa96ee28ec05fccdcd396492cb78aebaa5f22a5d844232a2"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/qt-build.log",
+      "bytes": 6047,
+      "sha256": "5eda82461841623cd8bf9ad7eac79fafb0f38fafcb0e60dc430dd57c714014ec"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/game.mjs",
+      "bytes": 4501,
+      "sha256": "db204189178797dfc37e433819e0720354ea8dddc7f41edc5e491848d2d819fd"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/qt.py",
+      "bytes": 2943,
+      "sha256": "5d0748bf357facee40bd70b11c0cfacbc1430f6938f5516c42f1ce1439246dcf"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/capture.mjs",
+      "bytes": 2847,
+      "sha256": "dc67bef9ff43597272a58b903a475c708196ff333d7453f074d11fef81ba3ea3"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/sample-switches.py",
+      "bytes": 5341,
+      "sha256": "c8c8c0ace27663d0aa97c9e39e48a132af6a979ad65b3453a1e1d85dfbd8f8ec"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/expand-native.py",
+      "bytes": 3243,
+      "sha256": "8117eb4ba81bc8185be9a59e309f41b072adac9096ea71a94cc4d9f33460df2e"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/resolve-external.py",
+      "bytes": 2952,
+      "sha256": "33e74bfa7baa60b19e71ed9d4608074b251f434dd85ef3853cdccb315121980a"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/external-native/resolved.json",
+      "bytes": 167409,
+      "sha256": "49065ea3eb1b8ce7eda99cf3dea3bb139cec064620a1273f8c790974cf913954"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/expanded-native/all-sampled-functions.json",
+      "bytes": 677857,
+      "sha256": "3ff55387b3202c0ab1b9dc93d74f46015cbc07ee4dfcc1a48fe893204a671046"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/wasm-trace-clean/steps.log",
+      "bytes": 5161,
+      "sha256": "5341e74e1583ef1e67786b20ca9b9d86dd4a1e2f67b0c3d065582b326759937d"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/qt-steps.log",
+      "bytes": 392,
+      "sha256": "69184ba8f7a7b0341664706d38ce6ff1124aa8384d0a8af2fbaefaa34df13cf1"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/wasm-trace-clean/debugger-pauses.json",
+      "bytes": 16238,
+      "sha256": "84481c3dccd9b5b7f34872915bb57f3519bd87e57c853c66c947d4a3bd76c9a7"
+    }
+  ],
+  "builds": {
+    "wasm_diagnostic": {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/build/eka2l1.wasm",
+      "sha256": "a0cd2a8830b4347a6182664ee5ad8dde32b1d85a9e1ca40ca8658ffd410fa720"
+    },
+    "qt_diagnostic": {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/qt-timeline",
+      "sha256": "7f60fab1ed7933eb67c44a27d8c7827b03a5aea26e54f6a2b93fcaf043276293"
+    },
+    "qt_original": {
+      "path": "/home/claude/code/EKA2L1/build/bin/eka2l1_qt",
+      "sha256": "12adc27057e844a6a75140f71a24ec4ebd702068275ef0e2770cfe8627d9d9cb"
+    },
+    "wasm_live": {
+      "path": "/home/claude/.scratch/eka-idle-deadline-20261011/build/eka2l1.wasm",
+      "sha256": "b727df4739bd8622907eda634286d27957399f445216dc777e1b73e2c254adba"
+    }
+  },
+  "excluded": [
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/wasm-trace-clean/barrier-trace-a.json",
+      "reason": "External build contention; 4.01 FPS, separate diagnostic only"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/wasm-trace-full/barrier-trace.trace",
+      "reason": "421288 records exceed capacity262144; exporter failed after recording. Prefix analysis is separate, not accepted full capture."
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/wasm-trace-full/steps.log",
+      "reason": "Follow-up after exporter abort: zero frames; measurement assertion failed before writing a result JSON. Start screenshot and commands retained."
+    },
+    {
+      "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/wasm-trace-full",
+      "reason": "Earlier Instant Play screenshots are navigation rejects, not accepted scene evidence"
+    }
+  ],
+  "cleanup": {
+    "original_source_restored": true,
+    "qt_binary_restored": true,
+    "active_vt": "tty1",
+    "temporary_xorg_auth_removed": true,
+    "owned_debugger_browser_qt_server_audio_closed": true,
+    "live_server_pid": 2338311,
+    "live_port": 8188
+  },
+  "chromium_debug": {
+    "build_id": "9edff2492605d22e9fdebd338b9713367b83286b",
+    "source": "https://debuginfod.archlinux.org/buildid/9edff2492605d22e9fdebd338b9713367b83286b/debuginfo",
+    "path": "/home/claude/.scratch/eka-asphalt-timeline-20261011/chromium.debug"
+  }
+}

@@ -6,6 +6,10 @@ observed **36.4% WASM deficit**. Native profiling identifies compiled-region
 handoffs as the largest emulator overhead: **42.7% of CPU-worker samples**.
 No emulator source or deployment change was made in this investigation.
 
+Follow-up: [frame/timer tracing and expanded native disassembly](ASPHALT_FRAME_TIMELINE.md)
+now distinguish the larger execution cost from an additional browser display
+wait. The scheduling uncertainty discussed below describes this original capture.
+
 ## Fixed workload and timing
 
 The [ten-game comparison](QT_VS_WASM_PACED_FPS.md) used randomized Instant Play

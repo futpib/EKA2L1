@@ -1,0 +1,252 @@
+{
+  "frontend": "WASM",
+  "events": 163428,
+  "frame_boundary": "presentation callback",
+  "frame_intervals": 86,
+  "start_host_us": 1791756435358589,
+  "end_host_us": 1791756443404250,
+  "wall_us": 8045661,
+  "wall_ms_per_frame": 93.55419767441862,
+  "exclusive_worker_phases_us": {
+    "loop return and input drain": 22254,
+    "loop setup": 94057,
+    "scheduler": 28698,
+    "idle decision and loop return": 31595,
+    "host idle sleep": 4225341,
+    "guest run and synchronous services": 3573861,
+    "clock advance and timer work": 69855
+  },
+  "exclusive_worker_phases_ms_per_frame": {
+    "loop return and input drain": 0.25876744186046513,
+    "loop setup": 1.0936860465116278,
+    "scheduler": 0.33369767441860465,
+    "idle decision and loop return": 0.3673837209302326,
+    "host idle sleep": 49.13187209302326,
+    "guest run and synchronous services": 41.55652325581396,
+    "clock advance and timer work": 0.8122674418604652
+  },
+  "cpu_tid": 2539018,
+  "cpu_tid_method": "busiest renderer counter",
+  "on_cpu_us": 3998217.5,
+  "off_cpu_us": 4047443.5,
+  "clock_offset_us": 1790713138571868.0,
+  "clock_uncertainty_halfwidth_us": 122.25,
+  "svc_us": {
+    "0x800001": 1889,
+    "0xc10000": 23141,
+    "0x800000": 42487,
+    "0x5": 485,
+    "0x4c": 30864,
+    "0x800008": 13129,
+    "0x42": 21246,
+    "0x22": 14744,
+    "0x4d": 365,
+    "0x40": 955,
+    "0xdc": 371,
+    "0x44": 680,
+    "0x36": 450,
+    "0x800005": 438
+  },
+  "svc_count": {
+    "0x800001": 502,
+    "0xc10000": 678,
+    "0x800000": 7471,
+    "0x5": 86,
+    "0x4c": 3481,
+    "0x800008": 3395,
+    "0x42": 3395,
+    "0x22": 3395,
+    "0x4d": 86,
+    "0x40": 172,
+    "0xdc": 86,
+    "0x44": 172,
+    "0x36": 86,
+    "0x800005": 172
+  },
+  "guest_thread_run_us": {
+    "881": 206494,
+    "128": 3367367
+  },
+  "request_to_delivery_us": {
+    "RTimer::After(5000)": {
+      "n": 86,
+      "mean": 12172.53488372093,
+      "median": 12089,
+      "min": 4960,
+      "max": 20475,
+      "p95": 19516
+    },
+    "User::After(0)": {
+      "n": 86,
+      "mean": 18.162790697674417,
+      "median": 16,
+      "min": 5,
+      "max": 61,
+      "p95": 25
+    },
+    "User::After(20000)": {
+      "n": 86,
+      "mean": 31229.220930232557,
+      "median": 31230,
+      "min": 30880,
+      "max": 31494,
+      "p95": 31429
+    },
+    "display pacing": {
+      "n": 85,
+      "mean": 7887.7411764705885,
+      "median": 7270,
+      "min": 206,
+      "max": 16599,
+      "p95": 15700
+    }
+  },
+  "guest_wake_to_cpu_entry_us": {
+    "n": 344,
+    "mean": 17.61918604651163,
+    "median": 10,
+    "min": 0,
+    "max": 440,
+    "p95": 30
+  },
+  "timer_lateness_us": {
+    "SchedulerWakeUpThread": {
+      "n": 258,
+      "mean": 456.7403100775194,
+      "median": 143,
+      "min": 0,
+      "max": 2096,
+      "p95": 1780
+    },
+    "BenchmarkAudio": {
+      "n": 804,
+      "mean": 511.9589552238806,
+      "median": 132,
+      "min": 2,
+      "max": 2122,
+      "p95": 1918
+    },
+    "TimerCallback": {
+      "n": 86,
+      "mean": 98.37209302325581,
+      "median": 97,
+      "min": 2,
+      "max": 278,
+      "p95": 212
+    }
+  },
+  "request_kind_lateness_us": {
+    "display pacing": {
+      "n": 86,
+      "mean": 99.27906976744185,
+      "median": 81,
+      "min": 0,
+      "max": 890,
+      "p95": 224
+    },
+    "BenchmarkAudio": {
+      "n": 804,
+      "mean": 511.9589552238806,
+      "median": 132,
+      "min": 2,
+      "max": 2122,
+      "p95": 1918
+    },
+    "TimerCallback": {
+      "n": 86,
+      "mean": 98.37209302325581,
+      "median": 97,
+      "min": 2,
+      "max": 278,
+      "p95": 212
+    },
+    "User::After(20000)": {
+      "n": 86,
+      "mean": 130.0581395348837,
+      "median": 107,
+      "min": 2,
+      "max": 303,
+      "p95": 272
+    },
+    "User::After(0)": {
+      "n": 86,
+      "mean": 1140.8837209302326,
+      "median": 1241,
+      "min": 110,
+      "max": 2096,
+      "p95": 2039
+    }
+  },
+  "scheduled_delay_us": {
+    "TimerCallback": {
+      "n": 86,
+      "mean": 12435.837209302326,
+      "median": 12373,
+      "min": 5113,
+      "max": 20467,
+      "p95": 19707
+    },
+    "BenchmarkAudio": {
+      "n": 804,
+      "mean": 9488.041044776119,
+      "median": 9868,
+      "min": 7878,
+      "max": 9998,
+      "p95": 9982
+    },
+    "User::After(20000)": {
+      "n": 86,
+      "mean": 31151.627906976744,
+      "median": 31153,
+      "min": 30972,
+      "max": 31248,
+      "p95": 31242
+    },
+    "User::After(0)": {
+      "n": 86,
+      "mean": 0.0,
+      "median": 0,
+      "min": 0,
+      "max": 0,
+      "p95": 0
+    },
+    "display pacing": {
+      "n": 86,
+      "mean": 8271.744186046511,
+      "median": 7972,
+      "min": 148,
+      "max": 16621,
+      "p95": 16150
+    }
+  },
+  "vsync_requested_us": {
+    "n": 86,
+    "mean": 8271.744186046511,
+    "median": 7972,
+    "min": 148,
+    "max": 16621,
+    "p95": 16150
+  },
+  "vsync_zero_count": 0,
+  "measurement": {
+    "game": "asphalt-2",
+    "label": "barrier-trace-quiet",
+    "browser": "Chrome/153.0.8010.52",
+    "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+    "mode": "normal paced private diagnostic; count-free",
+    "buildDir": "/home/claude/.scratch/eka-asphalt-timeline-20261011/build",
+    "sound": "browser output muted",
+    "seconds": 8.065805000066756,
+    "frames": 87,
+    "fps": 10.786276137258456,
+    "guestSeconds": 8.06668,
+    "guestSpeed": 1.0001084826540234,
+    "compiledFunctions": 0,
+    "compilationUs": {
+      "aot_translation_us": 783,
+      "aot_emission_us": 0,
+      "aot_installation_us": 0
+    },
+    "errors": []
+  }
+}

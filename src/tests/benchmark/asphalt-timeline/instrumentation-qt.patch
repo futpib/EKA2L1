@@ -1,0 +1,247 @@
+diff --git a/src/emu/dispatch/src/screen.cpp b/src/emu/dispatch/src/screen.cpp
+index 31bfafd68..4279b3009 100644
+--- a/src/emu/dispatch/src/screen.cpp
++++ b/src/emu/dispatch/src/screen.cpp
+@@ -1,3 +1,4 @@
++#include <common/asphalt_timeline_trace.h>
+ /*
+  * Copyright (c) 2020 EKA2L1 Team.
+  * 
+@@ -219,6 +220,7 @@ namespace eka2l1::dispatch {
+             if (scr->number == static_cast<int>(screen_number)) {
+                 std::uint64_t next_vsync_us = 0;
+                 scr->vsync(sys->get_ntimer(), next_vsync_us);
++                eka_trace::event(22, next_vsync_us, scr->refresh_rate, sys->get_kernel_system()->get_cpu()->get_reg(14));
+                 if (next_vsync_us) {
+                     sys->get_kernel_system()->crr_thread()->sleep(static_cast<std::uint32_t>(next_vsync_us));
+                 }
+@@ -226,6 +228,7 @@ namespace eka2l1::dispatch {
+                     scr->update_direct_framebuffer();
+                 }
+                 scr->present_framebuffer(sys->get_graphics_driver(), sys->get_kernel_system(), rect_list, num_rects);
++                eka_trace::event(23);
+                 break;
+             }
+ 
+diff --git a/src/emu/kernel/src/libmanager.cpp b/src/emu/kernel/src/libmanager.cpp
+index 758fac57e..03a51e4b2 100644
+--- a/src/emu/kernel/src/libmanager.cpp
++++ b/src/emu/kernel/src/libmanager.cpp
+@@ -1,3 +1,4 @@
++#include <common/asphalt_timeline_trace.h>
+ /*
+  * Copyright (c) 2018 EKA2L1 Team.
+  * 
+@@ -1347,6 +1348,8 @@ namespace eka2l1::hle {
+     }
+ 
+     bool lib_manager::call_svc(sid svcnum) {
++        eka_trace::event(19, svcnum, kern_->get_cpu()->get_reg(15), kern_->get_cpu()->get_reg(14), kern_->get_cpu()->get_reg(13));
++        eka_trace::event(20, kern_->get_cpu()->get_reg(0), kern_->get_cpu()->get_reg(1), kern_->get_cpu()->get_reg(2), kern_->get_cpu()->get_reg(3));
+         // Lock the kernel so SVC call can operate in safety
+         kern_->lock();
+         
+@@ -1372,6 +1375,7 @@ namespace eka2l1::hle {
+         }
+ 
+         res->invoke(kern_, kern_->crr_process(), kern_->get_cpu());
++        eka_trace::event(21, svcnum);
+ 
+         kern_->unlock();
+         return true;
+diff --git a/src/emu/kernel/src/thread.cpp b/src/emu/kernel/src/thread.cpp
+index 1eb68621a..0d1142f3f 100644
+--- a/src/emu/kernel/src/thread.cpp
++++ b/src/emu/kernel/src/thread.cpp
+@@ -1,3 +1,4 @@
++#include <common/asphalt_timeline_trace.h>
+ /*
+  * Copyright (c) 2018 EKA2L1 Team / Citra Team
+  * 
+@@ -456,6 +457,7 @@ namespace eka2l1 {
+         }
+ 
+         bool thread::sleep(uint32_t ussecs) {
++            eka_trace::event(12, unique_id(), ussecs, kern->get_cpu()->get_reg(15), kern->get_cpu()->get_reg(14));
+             if (sleep_level) {
+                 return false;
+             }
+@@ -474,6 +476,7 @@ namespace eka2l1 {
+         }
+ 
+         bool thread::sleep_nof_until(eka2l1::ptr<epoc::request_status> sts, std::uint64_t deadline) {
++            eka_trace::event(13, unique_id(), deadline, kern->get_cpu()->get_reg(15), kern->get_cpu()->get_reg(14));
+             assert(!sleep_nof_sts && "Thread supposed to sleep already");
+             sleep_nof_sts = sts;
+ 
+@@ -481,6 +484,7 @@ namespace eka2l1 {
+         }
+ 
+         void thread::notify_sleep(const int errcode) {
++            eka_trace::event(14, unique_id(), errcode);
+             kern->lock();
+ 
+             if (sleep_nof_sts) {
+@@ -637,10 +641,12 @@ namespace eka2l1 {
+         }
+ 
+         void thread::wait_for_any_request() {
++            eka_trace::event(15, unique_id(), request_count(), kern->get_cpu()->get_reg(15), kern->get_cpu()->get_reg(14));
+             request_sema->wait(0);
+         }
+ 
+         void thread::signal_request(int count) {
++            eka_trace::event(16, unique_id(), request_count(), count);
+             request_sema->signal(count);
+         }
+ 
+diff --git a/src/emu/kernel/src/timer.cpp b/src/emu/kernel/src/timer.cpp
+index af509f691..5a159136c 100644
+--- a/src/emu/kernel/src/timer.cpp
++++ b/src/emu/kernel/src/timer.cpp
+@@ -1,3 +1,4 @@
++#include <common/asphalt_timeline_trace.h>
+ /*
+  * Copyright (c) 2018 EKA2L1 Team / Citra Team
+  * 
+@@ -84,6 +85,7 @@ namespace eka2l1 {
+                 last_lock_tick_.reset();
+             }
+             outstanding = true;
++            eka_trace::event(17, requester->unique_id(), unique_id(), deadline, kern->get_cpu()->get_reg(14));
+             activate_defer_count_ = 0;
+             info.done_nof = epoc::notify_info(sts, requester);
+             info.own_timer = this;
+@@ -179,6 +181,7 @@ namespace eka2l1 {
+                 }
+             }
+ 
++            eka_trace::event(18, info.done_nof.requester ? info.done_nof.requester->unique_id() : 0, unique_id(), activate_defer_count_);
+             activate_defer_count_ = 0;
+             outstanding = false;
+             return true;
+diff --git a/src/emu/kernel/src/timing.cpp b/src/emu/kernel/src/timing.cpp
+index f25b80d38..3b50a9c56 100644
+--- a/src/emu/kernel/src/timing.cpp
++++ b/src/emu/kernel/src/timing.cpp
+@@ -1,3 +1,4 @@
++#include <common/asphalt_timeline_trace.h>
+ /*
+  * Copyright (c) 2018 EKA2L1 Team.
+  * 
+@@ -215,6 +216,7 @@ namespace eka2l1 {
+         const auto elapsed = paced_elapsed_us(host_clock_us_, host_us);
+         host_clock_us_ = host_us;
+         common::benchmark::virtual_us += elapsed;
++        eka_trace::event(8, elapsed, host_us);
+         cycle_remainder_ = 0;
+         advance();
+     }
+@@ -239,6 +241,7 @@ namespace eka2l1 {
+ 
+         while (!events_.empty() && events_.back().event_time <= global_timer) {
+             event evt = std::move(events_.back());
++            eka_trace::event_at(9, global_timer, evt.event_type, evt.event_user_data, evt.event_time, reinterpret_cast<std::uintptr_t>(event_types_[evt.event_type].name.c_str()));
+             events_.pop_back();
+ 
+             std::stable_sort(events_.begin(), events_.end(), [](const event &lhs, const event &rhs) {
+@@ -252,6 +255,7 @@ namespace eka2l1 {
+                     .callback(evt.event_user_data, static_cast<int>(global_timer - evt.event_time));
+             }
+ 
++            eka_trace::event(10, evt.event_type, evt.event_user_data, evt.event_time);
+             unq.lock();
+         }
+ 
+@@ -274,6 +278,7 @@ namespace eka2l1 {
+         evt.event_time = deadline;
+         evt.event_type = event_type;
+         evt.event_user_data = userdata;
++        eka_trace::event_at(11, microseconds(), event_type, userdata, deadline, reinterpret_cast<std::uintptr_t>(event_types_[event_type].name.c_str()));
+ 
+         bool should_nof = (events_.empty()) || (events_.back().event_time > evt.event_time);
+         events_.push_back(evt);
+diff --git a/src/emu/system/src/epoc.cpp b/src/emu/system/src/epoc.cpp
+index 28d7b0a24..5982b367c 100644
+--- a/src/emu/system/src/epoc.cpp
++++ b/src/emu/system/src/epoc.cpp
+@@ -1,3 +1,4 @@
++#include <common/asphalt_timeline_trace.h>
+ /*
+  * Copyright (c) 2018 EKA2L1 Team.
+  * 
+@@ -797,6 +798,7 @@ namespace eka2l1 {
+         bool script_hits_the_feels = false;
+ 
+         kernel::thread *to_run = kern_->crr_thread();
++        eka_trace::event(1, to_run ? to_run->unique_id() : 0, cpu->get_reg(15), cpu->get_reg(14), cpu->get_reg(13));
+ 
+ #ifdef ENABLE_SCRIPTING
+         manager::scripts *scripter = get_scripts();
+@@ -840,9 +842,11 @@ namespace eka2l1 {
+ #ifdef __EMSCRIPTEN__
+                 pending_watchdog = arm::aot::watchdog::request.exchange(0, std::memory_order_relaxed);
+ #endif
++                eka_trace::event(2, to_run->unique_id(), cpu->get_reg(15), cpu->get_reg(14), cpu->get_reg(13));
+                 cpu->run(timing_->deterministic()
+                     ? std::min<std::uint32_t>(to_run->get_remaining_screenticks(), 4840)
+                     : to_run->get_remaining_screenticks());
++                eka_trace::event(3, to_run->unique_id(), cpu->get_reg(15), cpu->get_reg(14), cpu->get_reg(13));
+             } else {
+                 cpu->step();
+ 
+@@ -893,14 +897,20 @@ namespace eka2l1 {
+ 
+         if (!kern_->should_terminate()) {
+             common::performance::scope scheduler_scope(common::performance::scheduler);
++            eka_trace::event(4);
+             kern_->reschedule();
++            eka_trace::event(5, kern_->crr_thread() ? kern_->crr_thread()->unique_id() : 0);
+ #ifdef __EMSCRIPTEN__
+             if (paced_clock && !kern_->crr_thread()) {
+                 // Keep polling external work at least every millisecond, but
+                 // do not add a full polling interval to a nearer timer deadline.
+                 const auto idle_us = std::min<std::uint64_t>(1000,
+                     timing_->next_host_event_delay().value_or(1000));
+-                if (idle_us) std::this_thread::sleep_for(std::chrono::microseconds(idle_us));
++                if (idle_us) {
++                    eka_trace::event(6, idle_us);
++                    std::this_thread::sleep_for(std::chrono::microseconds(idle_us));
++                    eka_trace::event(7);
++                }
+             }
+ #endif
+         } else {
+diff --git a/src/emu/wasm/main.cpp b/src/emu/wasm/main.cpp
+index c8fecff67..78580d18f 100644
+--- a/src/emu/wasm/main.cpp
++++ b/src/emu/wasm/main.cpp
+@@ -1,3 +1,4 @@
++#include <common/asphalt_timeline_trace.h>
+ /*
+  * Copyright (c) 2026 EKA2L1 Team.
+  *
+@@ -291,6 +292,15 @@ int eka2l1_input_consumed() { return g_state ? g_state->input_consumed.load() :
+ EMSCRIPTEN_KEEPALIVE
+ int eka2l1_presentations() { return g_state ? g_state->presentations.load() : 0; }
+ 
++EMSCRIPTEN_KEEPALIVE
++std::uintptr_t eka_trace_control(int mode) {
++    if (mode == 0) eka_trace::enabled.store(0);
++    if (mode == 1) { eka_trace::count.store(0); eka_trace::enabled.store(1); }
++    if (mode == 2) return eka_trace::count.load();
++    if (mode == 3) return reinterpret_cast<std::uintptr_t>(eka_trace::rows);
++    return eka_trace::capacity;
++}
++
+ EMSCRIPTEN_KEEPALIVE
+ int eka2l1_route_configure(int stop_us) {
+     if (g_state || stop_us < -1 || stop_us > 1800000000) return -1;
+@@ -564,6 +574,7 @@ int eka2l1_prepare_graphics() {
+         g_state->graphics_driver->set_display_hook([]() {
+             common::performance::scope display_scope(common::performance::display_hook);
+             ++g_state->presentations;
++            eka_trace::event(24, g_state->presentations.load());
+             if (common::benchmark::interactive) return;
+             if (common::performance::enabled) {
+                 if (common::performance::phase.load() == 2) ++common::performance::presentations;

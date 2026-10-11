@@ -1,0 +1,195 @@
+{
+  "frontend": "Qt",
+  "events": 172508,
+  "frame_boundary": "framebuffer submission",
+  "frame_intervals": 150,
+  "start_host_us": 1043203546260,
+  "end_host_us": 1043212775950,
+  "wall_us": 9229690,
+  "wall_ms_per_frame": 61.53126666666667,
+  "exclusive_worker_phases_us": {
+    "post-run bookkeeping": 1468,
+    "scheduler": 6604841,
+    "idle decision and loop return": 4072,
+    "loop setup": 1929,
+    "guest run and synchronous services": 2617380
+  },
+  "exclusive_worker_phases_ms_per_frame": {
+    "post-run bookkeeping": 0.009786666666666667,
+    "scheduler": 44.03227333333333,
+    "idle decision and loop return": 0.02714666666666667,
+    "loop setup": 0.01286,
+    "guest run and synchronous services": 17.4492
+  },
+  "cpu_tid": 2579101,
+  "cpu_tid_method": "dominant task-clock samples",
+  "on_cpu_us": 2654432.3677978516,
+  "off_cpu_us": 6575257.632202148,
+  "clock_offset_us": 0,
+  "clock_uncertainty_halfwidth_us": 0,
+  "svc_us": {
+    "0x4d": 360,
+    "0x40": 3103,
+    "0x800000": 6064,
+    "0xc10000": 67143,
+    "0xdc": 251,
+    "0x4c": 6795,
+    "0x800008": 1487,
+    "0x42": 3178,
+    "0x22": 1918,
+    "0x44": 666,
+    "0x36": 1020,
+    "0x800005": 137,
+    "0x800001": 516,
+    "0x5": 268
+  },
+  "svc_count": {
+    "0x4d": 137,
+    "0x40": 300,
+    "0x800000": 10125,
+    "0xc10000": 880,
+    "0xdc": 150,
+    "0x4c": 4693,
+    "0x800008": 4543,
+    "0x42": 4543,
+    "0x22": 4543,
+    "0x44": 300,
+    "0x36": 150,
+    "0x800005": 300,
+    "0x800001": 578,
+    "0x5": 150
+  },
+  "guest_thread_run_us": {
+    "128": 2556808,
+    "786": 60572
+  },
+  "request_to_delivery_us": {
+    "RTimer::After(5000)": {
+      "n": 150,
+      "mean": 12690.813333333334,
+      "median": 10812,
+      "min": 5188,
+      "max": 20769,
+      "p95": 20643
+    },
+    "User::After(0)": {
+      "n": 150,
+      "mean": 70.12666666666667,
+      "median": 87,
+      "min": 10,
+      "max": 125,
+      "p95": 106
+    },
+    "User::After(20000)": {
+      "n": 150,
+      "mean": 31155.786666666667,
+      "median": 31162,
+      "min": 30978,
+      "max": 31327,
+      "p95": 31277
+    }
+  },
+  "guest_wake_to_cpu_entry_us": {
+    "n": 450,
+    "mean": 75.53111111111112,
+    "median": 83,
+    "min": 7,
+    "max": 258,
+    "p95": 121
+  },
+  "timer_lateness_us": {
+    "TimerCallback": {
+      "n": 150,
+      "mean": 124.91333333333333,
+      "median": 129,
+      "min": 56,
+      "max": 220,
+      "p95": 194
+    },
+    "SchedulerWakeUpThread": {
+      "n": 300,
+      "mean": 99.75666666666666,
+      "median": 94,
+      "min": 10,
+      "max": 210,
+      "p95": 194
+    }
+  },
+  "request_kind_lateness_us": {
+    "TimerCallback": {
+      "n": 150,
+      "mean": 124.91333333333333,
+      "median": 129,
+      "min": 56,
+      "max": 220,
+      "p95": 194
+    },
+    "User::After(20000)": {
+      "n": 150,
+      "mean": 130.60666666666665,
+      "median": 129,
+      "min": 57,
+      "max": 210,
+      "p95": 197
+    },
+    "User::After(0)": {
+      "n": 150,
+      "mean": 68.90666666666667,
+      "median": 85,
+      "min": 10,
+      "max": 122,
+      "p95": 104
+    }
+  },
+  "scheduled_delay_us": {
+    "TimerCallback": {
+      "n": 150,
+      "mean": 12559.773333333333,
+      "median": 10655,
+      "min": 5013,
+      "max": 20611,
+      "p95": 20477
+    },
+    "User::After(20000)": {
+      "n": 150,
+      "mean": 31021.633333333335,
+      "median": 31011,
+      "min": 30869,
+      "max": 31174,
+      "p95": 31143
+    },
+    "User::After(0)": {
+      "n": 150,
+      "mean": -1.3266666666666667,
+      "median": -1,
+      "min": -5,
+      "max": 0,
+      "p95": 0
+    }
+  },
+  "vsync_requested_us": {
+    "n": 150,
+    "mean": 0.0,
+    "median": 0,
+    "min": 0,
+    "max": 0,
+    "p95": 0
+  },
+  "vsync_zero_count": 150,
+  "measurement": {
+    "game": "asphalt-2",
+    "scene": "barrier-trace-a",
+    "seconds": 8.002263149945065,
+    "frames": 124,
+    "fps": 15.495616387078103,
+    "drawable_counts": {
+      "2097188": 124
+    },
+    "start": 1043203.707891489,
+    "end": 1043211.710154639,
+    "window": "2097163",
+    "binary_sha256": "7f60fab1ed7933eb67c44a27d8c7827b03a5aea26e54f6a2b93fcaf043276293",
+    "mode": "normal paced native Qt Dynarmic, no benchmark environment",
+    "audio": "private PipeWire null sink"
+  }
+}
