@@ -103,6 +103,8 @@ namespace eka2l1::arm::aot {
         bool entry_supported = true;
         bool unsupported = false; // set by bail_unsupported()
         bool finite_loop = false;
+        bool continue_stores = false;
+        bool defer_scalar_memory = false;
         unsigned helper_calls = 0;
         // Number of early-exit bails emitted into the function body.
         // Incremented every time the decoder gives up mid-function and
@@ -179,9 +181,9 @@ namespace eka2l1::arm::aot {
 
         // Call imported function (index relative to imports)
         void slow_call(std::uint32_t func_idx) {
-            if (finite_loop) {
+            if (finite_loop || defer_scalar_memory) {
                 // A callback could change the counter or mappings and invalidate
-                // the termination proof. Exit before this scalar access instead;
+                // the loop proof or store continuation. Exit before this scalar access;
                 // the interpreter services it with the exact pre-instruction state.
                 bail(census_pc & ~1u, 0, exit_census::memory);
                 return;
@@ -1043,7 +1045,8 @@ namespace eka2l1::arm::aot {
         // loop (typically at a terminator like POP {PC}).
         std::uint32_t decoded_end_offset = 0;
         for (std::size_t i = 0; i + 1 < code_size; i += 2) {
-            if (bounded && stop_after_store && w.memory_write && !w.finite_loop) break;
+            if (bounded && stop_after_store && w.memory_write && !w.finite_loop
+                    && (!w.continue_stores || w.helper_calls)) break;
             // Skip unreachable offsets. `reachable` is the CFG closure
             // from offset 0, so anything not in it is either the middle
             // halfword of a wide insn or literal-pool data past the
@@ -1060,6 +1063,14 @@ namespace eka2l1::arm::aot {
             }
             std::uint16_t insn = code[i] | (code[i+1] << 8);
             std::uint32_t insn_addr = start_address + static_cast<std::uint32_t>(i);
+            // A scalar miss leaves before touching guest state. Successful
+            // direct accesses cannot change mappings or request an interrupt,
+            // so their stores need no intermediate return to the dispatcher.
+            // Multi-register transfers retain their original callback boundary.
+            w.defer_scalar_memory = w.continue_stores && (
+                (insn & 0xf000) == 0x5000 || (insn & 0xe000) == 0x6000
+                || (insn & 0xf000) == 0x8000 || (insn & 0xf000) == 0x9000
+                || (insn & 0xf800) == 0x4800);
             if (fusion) {
                 fusion->path.insert(insn_addr);
                 ++fusion->emitted;
@@ -4681,6 +4692,8 @@ namespace eka2l1::arm::aot {
         w.source.marks = &result.sources;
         w.direct_memory = direct_memory;
         w.finite_loop = loop_size != 0;
+        w.continue_stores = direct_memory && stop_after_store && memory_experiment::enabled()
+            && common::code_tracking::skip_code_write_guards();
         w.cache.enabled = bounded && cache_registers;
         // Keep repeated PC, endian and TLB accesses in locals. Slow
         // callbacks still publish/reload the complete cached state.

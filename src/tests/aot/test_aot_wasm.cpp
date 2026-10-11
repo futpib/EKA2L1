@@ -5933,6 +5933,7 @@ static bool test_memory_implementations() {
 #include "test_region_fusion.inc"
 #include "test_thumb_complete.inc"
 #include "test_thumb_finite_loop.inc"
+#include "test_thumb_store_continuation.inc"
 #include "test_stack_return.inc"
 
 #include "test_watchdog.inc"
@@ -6084,6 +6085,7 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--precompile-only") return test_precompile() && test_precompile_capacity()?0:1;
     if(argc==2 && std::string(argv[1])=="--watchdog-only") return test_watchdog()?0:1;
     if(argc==2 && std::string(argv[1])=="--thumb-finite-loops-only") return test_thumb_finite_loops()?0:1;
+    if(argc==2 && std::string(argv[1])=="--thumb-store-continuation-only") return test_thumb_store_continuation()?0:1;
     if(argc==2 && std::string(argv[1])=="--stack-returns-only")return test_stack_returns()?0:1;
     if(argc==2 && std::string(argv[1])=="--shared-spans-only")return test_thumb_transfer_spans()
         && test_thumb_direct_memory() && test_invariant_reads(arm_ir_policy::write_spans)
@@ -6923,6 +6925,8 @@ int main(int argc, char **argv) {
 
     printf("TEST test_thumb_finite_loops\n"); watchdog::request=0;
     if (test_thumb_finite_loops()) passed++; else failed++;
+    printf("TEST test_thumb_store_continuation\n"); watchdog::request=0;
+    if (test_thumb_store_continuation()) passed++; else failed++;
     printf("\n%d passed, %d failed\n", passed, failed);
     return failed > 0 ? 1 : 0;
 }
