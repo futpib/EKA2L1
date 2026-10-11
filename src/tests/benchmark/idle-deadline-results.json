@@ -1,0 +1,700 @@
+{
+  "baseline_build": "/home/claude/.scratch/eka-next-five-20261011/build-final",
+  "baseline_wasm_sha256": "dec37577f64f2b6addc7d3d1d9e877fe4bcd288bbc0b39022fd4c22236130f63",
+  "candidate_build": "/home/claude/.scratch/eka-idle-deadline-20261011/build",
+  "candidate_wasm_sha256": "b727df4739bd8622907eda634286d27957399f445216dc777e1b73e2c254adba",
+  "base_commit": "7453d2bc6",
+  "branch": "wasm-port",
+  "private_url": "https://claude-laptop.lan:8189/",
+  "live_url": "https://claude-laptop.lan:8188/",
+  "source_files": [
+    "src/emu/kernel/include/kernel/timing.h",
+    "src/emu/kernel/src/timing.cpp",
+    "src/emu/system/src/epoc.cpp",
+    "src/tests/epoc/timing.cpp"
+  ],
+  "tests": {
+    "timing": {
+      "cases": 13,
+      "assertions": 138,
+      "passed": true,
+      "log": "/home/claude/.scratch/eka-idle-deadline-20261011/timing-tests.log"
+    },
+    "stall_recovery": {
+      "passed": true,
+      "raw_json": "/home/claude/.scratch/eka-idle-deadline-20261011/wasm-candidate-served/stall-recovery.json",
+      "windows": [
+        {
+          "duration": 250,
+          "summary": {
+            "seconds": 10.096004999995232,
+            "ratio": 0.9999513669025291,
+            "fps": 30.903312745996793
+          },
+          "maxOneSecondRatio": 1.0016504156171622,
+          "inputReceived": true
+        },
+        {
+          "duration": 6000,
+          "summary": {
+            "seconds": 10.005615000009536,
+            "ratio": 1.0000660629047253,
+            "fps": 30.582827742193594
+          },
+          "maxOneSecondRatio": 1.0023513742278038,
+          "inputReceived": true
+        }
+      ]
+    },
+    "gameplay": [
+      {
+        "game": "snakes",
+        "label": "opening-level",
+        "browser": "Chrome/153.0.8010.52",
+        "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+        "mode": "normal paced LAN picker; count-free",
+        "buildDir": "/home/claude/.scratch/eka-idle-deadline-20261011/build",
+        "sound": "browser output muted",
+        "seconds": 15.120784999966622,
+        "frames": 242,
+        "fps": 16.004460085936955,
+        "guestSeconds": 15.122414,
+        "guestSpeed": 1.0001077325041907,
+        "compiledFunctions": 119,
+        "compilationUs": {
+          "aot_translation_us": 25606,
+          "aot_emission_us": 2868,
+          "aot_installation_us": 6315
+        },
+        "errors": [],
+        "raw_json": "/home/claude/.scratch/eka-idle-deadline-20261011/wasm-snakes/opening-level.json",
+        "url": "https://claude-laptop.lan:8189/",
+        "screenshots_checked": true
+      },
+      {
+        "game": "sky-force",
+        "label": "stage-1",
+        "browser": "Chrome/153.0.8010.52",
+        "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+        "mode": "normal paced LAN picker; count-free",
+        "buildDir": "/home/claude/.scratch/eka-idle-deadline-20261011/build",
+        "sound": "browser output muted",
+        "seconds": 15.13777999997139,
+        "frames": 484,
+        "fps": 31.972984149651715,
+        "guestSeconds": 15.137499,
+        "guestSpeed": 0.9999814371743155,
+        "compiledFunctions": 66,
+        "compilationUs": {
+          "aot_translation_us": 16817,
+          "aot_emission_us": 1464,
+          "aot_installation_us": 4198
+        },
+        "errors": [],
+        "raw_json": "/home/claude/.scratch/eka-idle-deadline-20261011/wasm-sky-force-live/stage-1.json",
+        "url": "https://claude-laptop.lan:8188/",
+        "screenshots_checked": true
+      }
+    ],
+    "audio": {
+      "status": "output unverified; host browser device error",
+      "error": "The AudioContext encountered an error from the audio device or the WebAudio renderer.",
+      "initial_attempt": "/home/claude/.scratch/eka-idle-deadline-20261011/wasm-sky-force-live/audio.json",
+      "retry": {
+        "before": {
+          "state": "suspended",
+          "received": 12757931
+        },
+        "after": {
+          "state": "suspended",
+          "received": 13238887
+        }
+      },
+      "interpretation": "AudioContext remained suspended with no worklet counters; emulator PCM reception continued. No auditory or underrun/drop validation claim."
+    },
+    "builds": {
+      "wasm": "cmake --build build-wasm --target eka2l1_wasm -j4",
+      "native_tests": "cmake --build build --target ekatests -j4",
+      "status": "passed",
+      "unit_command": "./ekatests '*timer*,Paced idle*,Rounded User After*,[timer]'"
+    }
+  },
+  "excluded": [
+    {
+      "directory": "/home/claude/.scratch/eka-idle-deadline-20261011/wasm-candidate",
+      "reason": "Partial asset interception failed during browser worker initialization. No gameplay started. Candidate rerun on a complete HTTPS server."
+    }
+  ],
+  "host_observations": {
+    "cpu_frequency_variation": "Observed approximately 1.3 GHz across cores during the initial candidate slowdown, then CPU0 at 3.6 GHz without a power-setting change. Interleaved runs subsequently record every core once per second.",
+    "uncontrolled_work": "Other host workloads, including an Android emulator/build, were left running. Only owned EKA2L1 browser renderers were suspended."
+  },
+  "date": "2026-10-11",
+  "decision": "adopt deadline-aware paced WASM idle sleep",
+  "raw_root": "/home/claude/.scratch/eka-idle-deadline-20261011",
+  "method": {
+    "scene": "Hooked On Costa Rica map, boat stationary, water/clouds animated, anchor introduction completed and returned from fishing; start and end screenshots checked",
+    "metric": "screen presentations per host second, including repeated images",
+    "clock": "host elapsed time, count-free, paced, 2000 us watchdog; no guest clock scaling",
+    "hardware": "Intel Core i7-10875H; NVIDIA Quadro T1000 Max-Q, hardware ANGLE/Vulkan",
+    "browser": "Chrome/153.0.8010.52, headless",
+    "audio_during_fps": "browser output muted",
+    "order": "baseline A, candidate A, candidate B, baseline B",
+    "isolation": "Only one emulator active at a time; other owned renderers suspended. Other host workloads and power settings left unchanged.",
+    "profiler": "No CDP CPU profiler or debugger attached during timing windows. CPU runtime measured via Chrome SystemInfo and Linux schedstat.",
+    "limits": "Short windows on a shared host with varying CPU frequency; no isolated-host confidence interval or precise CPU/power saving claim."
+  },
+  "interleaved": [
+    {
+      "game": "hooked-on",
+      "label": "interleave-a",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": {
+        "source": "Chrome SystemInfo.getProcessInfo; Linux /proc/PID/task/TID/schedstat runtime",
+        "scope": "Host samples bracket resume and observed completion, including polling margins. Renderer totals include CPU emulation, rendering, audio and compiler threads; GPU device time is excluded.",
+        "renderer_cpu_seconds": 7.279999999999982,
+        "renderer_complete": true,
+        "host_interval_seconds": 20.415801455000068,
+        "collection_ms": {
+          "before": 5.13727100007236,
+          "after": 3.89915299997665
+        },
+        "missing_processes": [],
+        "missing_threads": [],
+        "thread_errors": [],
+        "busiest_renderer_thread": {
+          "pid": 2262844,
+          "tid": 2263164,
+          "name": "DedicatedWorker",
+          "cpu_seconds": 5.29254933,
+          "status": "matched"
+        },
+        "thread_attribution": "Busiest thread is an observation, not verified guest-worker identity.",
+        "busiest_thread_percent_one_core": 25.923789186849643
+      },
+      "mode": "normal paced LAN picker; count-free",
+      "buildDir": null,
+      "sound": "browser output muted",
+      "seconds": 20.23420999991894,
+      "frames": 594,
+      "fps": 29.356223939673438,
+      "guestSeconds": 20.234706,
+      "guestSpeed": 1.0000245129452083,
+      "compiledFunctions": 1,
+      "compilationUs": {
+        "aot_translation_us": 150,
+        "aot_emission_us": 25,
+        "aot_installation_us": 300
+      },
+      "errors": [],
+      "raw_json": "/home/claude/.scratch/eka-idle-deadline-20261011/wasm-interleaved-baseline/interleave-a.json",
+      "configuration": "baseline",
+      "raw_cpu_json": "/home/claude/.scratch/eka-idle-deadline-20261011/wasm-interleaved-baseline/interleave-a-cpu.json",
+      "mean_sampled_all_core_khz": 2677299.125,
+      "host_observations_json": "/home/claude/.scratch/eka-idle-deadline-20261011/wasm-interleaved-baseline/interleave-a-host.json"
+    },
+    {
+      "game": "hooked-on",
+      "label": "interleave-a",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": {
+        "source": "Chrome SystemInfo.getProcessInfo; Linux /proc/PID/task/TID/schedstat runtime",
+        "scope": "Host samples bracket resume and observed completion, including polling margins. Renderer totals include CPU emulation, rendering, audio and compiler threads; GPU device time is excluded.",
+        "renderer_cpu_seconds": 6.519999999999982,
+        "renderer_complete": true,
+        "host_interval_seconds": 20.417217791999924,
+        "collection_ms": {
+          "before": 3.5178970000706613,
+          "after": 3.8083080002106726
+        },
+        "missing_processes": [],
+        "missing_threads": [],
+        "thread_errors": [],
+        "busiest_renderer_thread": {
+          "pid": 2199904,
+          "tid": 2200040,
+          "name": "DedicatedWorker",
+          "cpu_seconds": 4.802615923,
+          "status": "matched"
+        },
+        "thread_attribution": "Busiest thread is an observation, not verified guest-worker identity.",
+        "busiest_thread_percent_one_core": 23.522381805036183
+      },
+      "mode": "normal paced LAN picker; count-free",
+      "buildDir": "/home/claude/.scratch/eka-idle-deadline-20261011/build",
+      "sound": "browser output muted",
+      "seconds": 20.266610000014307,
+      "frames": 626,
+      "fps": 30.888244259871684,
+      "guestSeconds": 20.26686,
+      "guestSpeed": 1.0000123355601007,
+      "compiledFunctions": 1,
+      "compilationUs": {
+        "aot_translation_us": 464,
+        "aot_emission_us": 30,
+        "aot_installation_us": 375
+      },
+      "errors": [],
+      "raw_json": "/home/claude/.scratch/eka-idle-deadline-20261011/wasm-candidate-served/interleave-a.json",
+      "configuration": "candidate",
+      "raw_cpu_json": "/home/claude/.scratch/eka-idle-deadline-20261011/wasm-candidate-served/interleave-a-cpu.json",
+      "mean_sampled_all_core_khz": 3174321.659090909,
+      "host_observations_json": "/home/claude/.scratch/eka-idle-deadline-20261011/wasm-candidate-served/interleave-a-host.json"
+    },
+    {
+      "game": "hooked-on",
+      "label": "interleave-b",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": {
+        "source": "Chrome SystemInfo.getProcessInfo; Linux /proc/PID/task/TID/schedstat runtime",
+        "scope": "Host samples bracket resume and observed completion, including polling margins. Renderer totals include CPU emulation, rendering, audio and compiler threads; GPU device time is excluded.",
+        "renderer_cpu_seconds": 7.189999999999941,
+        "renderer_complete": true,
+        "host_interval_seconds": 20.423458492999895,
+        "collection_ms": {
+          "before": 3.615646000020206,
+          "after": 3.3391790001187474
+        },
+        "missing_processes": [],
+        "missing_threads": [],
+        "thread_errors": [],
+        "busiest_renderer_thread": {
+          "pid": 2199904,
+          "tid": 2200040,
+          "name": "DedicatedWorker",
+          "cpu_seconds": 5.281801484,
+          "status": "matched"
+        },
+        "thread_attribution": "Busiest thread is an observation, not verified guest-worker identity.",
+        "busiest_thread_percent_one_core": 25.86144499380616
+      },
+      "mode": "normal paced LAN picker; count-free",
+      "buildDir": "/home/claude/.scratch/eka-idle-deadline-20261011/build",
+      "sound": "browser output muted",
+      "seconds": 20.243014999985697,
+      "frames": 626,
+      "fps": 30.92424720331642,
+      "guestSeconds": 20.242525,
+      "guestSpeed": 0.9999757941203079,
+      "compiledFunctions": 0,
+      "compilationUs": {
+        "aot_translation_us": 0,
+        "aot_emission_us": 0,
+        "aot_installation_us": 0
+      },
+      "errors": [],
+      "raw_json": "/home/claude/.scratch/eka-idle-deadline-20261011/wasm-candidate-served/interleave-b.json",
+      "configuration": "candidate",
+      "raw_cpu_json": "/home/claude/.scratch/eka-idle-deadline-20261011/wasm-candidate-served/interleave-b-cpu.json",
+      "mean_sampled_all_core_khz": 2393444.5426136362,
+      "host_observations_json": "/home/claude/.scratch/eka-idle-deadline-20261011/wasm-candidate-served/interleave-b-host.json"
+    },
+    {
+      "game": "hooked-on",
+      "label": "interleave-b",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": {
+        "source": "Chrome SystemInfo.getProcessInfo; Linux /proc/PID/task/TID/schedstat runtime",
+        "scope": "Host samples bracket resume and observed completion, including polling margins. Renderer totals include CPU emulation, rendering, audio and compiler threads; GPU device time is excluded.",
+        "renderer_cpu_seconds": 9.769999999999982,
+        "renderer_complete": true,
+        "host_interval_seconds": 20.479405932000024,
+        "collection_ms": {
+          "before": 13.637097000028007,
+          "after": 3.3982149999355897
+        },
+        "missing_processes": [],
+        "missing_threads": [],
+        "thread_errors": [],
+        "busiest_renderer_thread": {
+          "pid": 2262844,
+          "tid": 2263164,
+          "name": "DedicatedWorker",
+          "cpu_seconds": 7.172746926,
+          "status": "matched"
+        },
+        "thread_attribution": "Busiest thread is an observation, not verified guest-worker identity.",
+        "busiest_thread_percent_one_core": 35.0241943043487
+      },
+      "mode": "normal paced LAN picker; count-free",
+      "buildDir": null,
+      "sound": "browser output muted",
+      "seconds": 20.29947000002861,
+      "frames": 591,
+      "fps": 29.114060613364146,
+      "guestSeconds": 20.299846,
+      "guestSpeed": 1.0000185226496745,
+      "compiledFunctions": 2,
+      "compilationUs": {
+        "aot_translation_us": 539,
+        "aot_emission_us": 53,
+        "aot_installation_us": 660
+      },
+      "errors": [],
+      "raw_json": "/home/claude/.scratch/eka-idle-deadline-20261011/wasm-interleaved-baseline/interleave-b.json",
+      "configuration": "baseline",
+      "raw_cpu_json": "/home/claude/.scratch/eka-idle-deadline-20261011/wasm-interleaved-baseline/interleave-b-cpu.json",
+      "mean_sampled_all_core_khz": 1520572.5056818181,
+      "host_observations_json": "/home/claude/.scratch/eka-idle-deadline-20261011/wasm-interleaved-baseline/interleave-b-host.json"
+    }
+  ],
+  "aggregate_fps": {
+    "baseline": 29.234947332725113,
+    "candidate": 30.906235246561774
+  },
+  "observed_gain_percent": 5.716746792171734,
+  "exploratory": [
+    {
+      "game": "hooked-on",
+      "label": "clear-map-a",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": {
+        "source": "Chrome SystemInfo.getProcessInfo; Linux /proc/PID/task/TID/schedstat runtime",
+        "scope": "Host samples bracket resume and observed completion, including polling margins. Renderer totals include CPU emulation, rendering, audio and compiler threads; GPU device time is excluded.",
+        "renderer_cpu_seconds": 4.92999999999995,
+        "renderer_complete": true,
+        "host_interval_seconds": 20.34903226899996,
+        "collection_ms": {
+          "before": 7.891791999922134,
+          "after": 3.7433420000597835
+        },
+        "missing_processes": [],
+        "missing_threads": [],
+        "thread_errors": [],
+        "busiest_renderer_thread": {
+          "pid": 2120009,
+          "tid": 2120175,
+          "name": "DedicatedWorker",
+          "cpu_seconds": 3.560620995,
+          "status": "matched"
+        },
+        "thread_attribution": "Busiest thread is an observation, not verified guest-worker identity.",
+        "busiest_thread_percent_one_core": 17.497741160027086
+      },
+      "mode": "normal paced LAN picker; count-free",
+      "sound": "browser output muted",
+      "seconds": 20.191669999957085,
+      "frames": 607,
+      "fps": 30.061901764504377,
+      "guestSeconds": 20.19328,
+      "guestSpeed": 1.000079735853593,
+      "compiledFunctions": 0,
+      "compilationUs": {
+        "aot_translation_us": 0,
+        "aot_emission_us": 0,
+        "aot_installation_us": 0
+      },
+      "errors": [],
+      "raw_json": "/home/claude/.scratch/eka-idle-deadline-20261011/wasm-baseline/clear-map-a.json",
+      "configuration": "baseline",
+      "raw_cpu_json": "/home/claude/.scratch/eka-idle-deadline-20261011/wasm-baseline/clear-map-a-cpu.json"
+    },
+    {
+      "game": "hooked-on",
+      "label": "clear-map-b",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": {
+        "source": "Chrome SystemInfo.getProcessInfo; Linux /proc/PID/task/TID/schedstat runtime",
+        "scope": "Host samples bracket resume and observed completion, including polling margins. Renderer totals include CPU emulation, rendering, audio and compiler threads; GPU device time is excluded.",
+        "renderer_cpu_seconds": 7.220000000000027,
+        "renderer_complete": true,
+        "host_interval_seconds": 20.44632178999996,
+        "collection_ms": {
+          "before": 3.3532319999067113,
+          "after": 3.3864570000441745
+        },
+        "missing_processes": [],
+        "missing_threads": [],
+        "thread_errors": [],
+        "busiest_renderer_thread": {
+          "pid": 2120009,
+          "tid": 2120175,
+          "name": "DedicatedWorker",
+          "cpu_seconds": 5.2587083,
+          "status": "matched"
+        },
+        "thread_attribution": "Busiest thread is an observation, not verified guest-worker identity.",
+        "busiest_thread_percent_one_core": 25.719581027879396
+      },
+      "mode": "normal paced LAN picker; count-free",
+      "sound": "browser output muted",
+      "seconds": 20.269400000095366,
+      "frames": 593,
+      "fps": 29.25592272081117,
+      "guestSeconds": 20.268986,
+      "guestSpeed": 0.9999795751183872,
+      "compiledFunctions": 1,
+      "compilationUs": {
+        "aot_translation_us": 139,
+        "aot_emission_us": 19,
+        "aot_installation_us": 330
+      },
+      "errors": [],
+      "raw_json": "/home/claude/.scratch/eka-idle-deadline-20261011/wasm-baseline/clear-map-b.json",
+      "configuration": "baseline",
+      "raw_cpu_json": "/home/claude/.scratch/eka-idle-deadline-20261011/wasm-baseline/clear-map-b-cpu.json"
+    },
+    {
+      "game": "hooked-on",
+      "label": "clear-map-a",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": {
+        "source": "Chrome SystemInfo.getProcessInfo; Linux /proc/PID/task/TID/schedstat runtime",
+        "scope": "Host samples bracket resume and observed completion, including polling margins. Renderer totals include CPU emulation, rendering, audio and compiler threads; GPU device time is excluded.",
+        "renderer_cpu_seconds": 9.860000000000014,
+        "renderer_complete": true,
+        "host_interval_seconds": 20.697674480000046,
+        "collection_ms": {
+          "before": 9.507436000043526,
+          "after": 4.797993000014685
+        },
+        "missing_processes": [],
+        "missing_threads": [],
+        "thread_errors": [],
+        "busiest_renderer_thread": {
+          "pid": 2199904,
+          "tid": 2200040,
+          "name": "DedicatedWorker",
+          "cpu_seconds": 7.237057333,
+          "status": "matched"
+        },
+        "thread_attribution": "Busiest thread is an observation, not verified guest-worker identity.",
+        "busiest_thread_percent_one_core": 34.9655577972931
+      },
+      "mode": "normal paced LAN picker; count-free",
+      "buildDir": "/home/claude/.scratch/eka-idle-deadline-20261011/build",
+      "sound": "browser output muted",
+      "seconds": 20.495120000004768,
+      "frames": 568,
+      "fps": 27.713914336674677,
+      "guestSeconds": 20.494925,
+      "guestSpeed": 0.9999904855397398,
+      "compiledFunctions": 5,
+      "compilationUs": {
+        "aot_translation_us": 2362,
+        "aot_emission_us": 498,
+        "aot_installation_us": 4096
+      },
+      "errors": [],
+      "raw_json": "/home/claude/.scratch/eka-idle-deadline-20261011/wasm-candidate-served/clear-map-a.json",
+      "configuration": "candidate",
+      "raw_cpu_json": "/home/claude/.scratch/eka-idle-deadline-20261011/wasm-candidate-served/clear-map-a-cpu.json"
+    },
+    {
+      "game": "hooked-on",
+      "label": "clear-map-b",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": {
+        "source": "Chrome SystemInfo.getProcessInfo; Linux /proc/PID/task/TID/schedstat runtime",
+        "scope": "Host samples bracket resume and observed completion, including polling margins. Renderer totals include CPU emulation, rendering, audio and compiler threads; GPU device time is excluded.",
+        "renderer_cpu_seconds": 11.07000000000005,
+        "renderer_complete": true,
+        "host_interval_seconds": 21.034367641999967,
+        "collection_ms": {
+          "before": 95.60283400001936,
+          "after": 13.0383870000951
+        },
+        "missing_processes": [],
+        "missing_threads": [
+          {
+            "pid": 2199904,
+            "tid": 2199947,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199948,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199949,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199950,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199951,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199952,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199953,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199954,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199955,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199956,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199957,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199958,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199959,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199961,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199963,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199964,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199965,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199971,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199974,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199976,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199985,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199986,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199987,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199988,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199989,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199990,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199991,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199992,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199993,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199994,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199995,
+            "name": "DedicatedWorker"
+          },
+          {
+            "pid": 2199904,
+            "tid": 2199996,
+            "name": "DedicatedWorker"
+          }
+        ],
+        "thread_errors": [],
+        "busiest_renderer_thread": {
+          "pid": 2199904,
+          "tid": 2200040,
+          "name": "DedicatedWorker",
+          "cpu_seconds": 7.862116112,
+          "status": "matched"
+        },
+        "thread_attribution": "Busiest thread is an observation, not verified guest-worker identity.",
+        "busiest_thread_percent_one_core": 37.37747787721211
+      },
+      "mode": "normal paced LAN picker; count-free",
+      "buildDir": "/home/claude/.scratch/eka-idle-deadline-20261011/build",
+      "sound": "browser output muted",
+      "seconds": 20.47414999997616,
+      "frames": 465,
+      "fps": 22.711565559524644,
+      "guestSeconds": 20.477211,
+      "guestSpeed": 1.0001495055972456,
+      "compiledFunctions": 2,
+      "compilationUs": {
+        "aot_translation_us": 338,
+        "aot_emission_us": 89,
+        "aot_installation_us": 5058
+      },
+      "errors": [],
+      "raw_json": "/home/claude/.scratch/eka-idle-deadline-20261011/wasm-candidate-served/clear-map-b.json",
+      "configuration": "candidate",
+      "raw_cpu_json": "/home/claude/.scratch/eka-idle-deadline-20261011/wasm-candidate-served/clear-map-b-cpu.json"
+    }
+  ],
+  "exploratory_interpretation": "Earlier noninterleaved windows had substantially lower candidate FPS. Host frequency was observed near 1.3 GHz after these windows and later near 3.6 GHz without intervention. These remain valid observations; frequency, other load and warmup were not isolated, so the exact cause is unresolved. They prompted the subsequently recorded interleaved campaign, rather than being deleted or counted as controlled comparisons. Initial candidate window B also lost 32 per-thread counter identities; process counters remained complete.",
+  "data_sha256": "8b7dd0983892bd09e5a12b06788a7a4073a8431d87890ffd2c8519dc1bbaadba",
+  "deployment": {
+    "url": "https://claude-laptop.lan:8188/",
+    "downloaded_wasm_sha256": "b727df4739bd8622907eda634286d27957399f445216dc777e1b73e2c254adba",
+    "service": "eka2l1-lan.service",
+    "drop_in": "/run/user/1000/systemd/user/eka2l1-lan.service.d/zzzzzzzz-idle-deadline.conf",
+    "assets": "eka2l1.data identical to baseline; no game packages or ROM binaries committed"
+  }
+}

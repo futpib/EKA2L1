@@ -145,3 +145,50 @@ TEST_CASE("Paced timer excludes pauses and drops long host stalls", "timing") {
     REQUIRE(timer.microseconds() == 10000);
     REQUIRE(eka2l1::common::benchmark::instructions.load() == 0);
 }
+
+TEST_CASE("Paced idle deadlines account for host time without firing callbacks", "timing") {
+    benchmark_environment environment;
+    eka2l1::ntimer timer(2000000);
+    timer.reset();
+    int fired = 0;
+    const int evt = timer.register_event("idle deadline", [&](std::uint64_t, int) { ++fired; });
+    REQUIRE_FALSE(timer.next_host_event_delay(1000000));
+    timer.advance_host_clock(1000000);
+    timer.schedule_event(30000, evt, 1);
+    REQUIRE(timer.next_host_event_delay(1029500) == 500);
+    REQUIRE(timer.next_host_event_delay(1030000) == 0);
+    REQUIRE(timer.next_host_event_delay(1030500) == 0);
+    REQUIRE(timer.microseconds() == 0);
+    REQUIRE(fired == 0);
+    timer.advance_host_clock(1029500);
+    timer.schedule_event(100, evt, 2);
+    REQUIRE(timer.next_host_event_delay(1029550) == 50);
+    REQUIRE(timer.unschedule_event(evt, 2));
+    REQUIRE(timer.next_host_event_delay(1029550) == 450);
+    timer.advance_host_clock(1030000);
+    REQUIRE(fired == 1);
+    REQUIRE_FALSE(timer.next_host_event_delay(1030000));
+    timer.schedule_event_at(29999, evt, 3);
+    REQUIRE(timer.next_host_event_delay(1030000) == 0);
+    REQUIRE(fired == 1);
+}
+
+TEST_CASE("Paced idle deadlines use the same pause and stall policy as advancement", "timing") {
+    benchmark_environment environment;
+    eka2l1::ntimer timer(2000000);
+    timer.reset();
+    const int evt = timer.register_event("idle stall", [](std::uint64_t, int) {});
+    timer.schedule_event(30000, evt, 1);
+    REQUIRE(timer.next_host_event_delay(1000000) == 30000);
+    timer.advance_host_clock(1000000);
+    REQUIRE(timer.next_host_event_delay(999999) == 30000);
+    REQUIRE(timer.next_host_event_delay(7000000) == 30000);
+    timer.advance_host_clock(7000000);
+    REQUIRE(timer.next_host_event_delay(7000500) == 29500);
+    timer.set_paused(true);
+    REQUIRE_FALSE(timer.next_host_event_delay(7001000));
+    timer.set_paused(false);
+    REQUIRE(timer.next_host_event_delay(7002000) == 30000);
+    timer.advance_host_clock(7002000);
+    REQUIRE(timer.next_host_event_delay(7002500) == 29500);
+}

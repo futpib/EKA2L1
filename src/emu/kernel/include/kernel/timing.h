@@ -154,7 +154,7 @@ namespace eka2l1 {
 
         /**
          * @brief       Advance the timer.
-         * @returns     Nanoseconds to next timer.
+         * @returns     Microseconds to next timer.
          */
         std::optional<std::uint64_t> advance();
 
@@ -165,6 +165,9 @@ namespace eka2l1 {
         void start_host_clock();
         void advance_host_clock();
         void advance_host_clock(std::uint64_t host_us);
+        // Query the next paced deadline without advancing time or firing callbacks.
+        std::optional<std::uint64_t> next_host_event_delay();
+        std::optional<std::uint64_t> next_host_event_delay(std::uint64_t host_us);
 
         int register_event(const std::string &name, timed_callback callback);
         int get_register_event(const std::string &name);

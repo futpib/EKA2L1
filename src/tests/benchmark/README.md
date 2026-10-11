@@ -25,6 +25,10 @@ immediate and `AfterHighRes` uses the separate nanokernel timer model. Unpaced
 execution still advances toward the earliest event, so other events can run
 before a rounded wakeup. See the [timing correction and whole-game results](USER_AFTER_RESULTS.md).
 
+Paced WASM idle waits are capped by the next timer deadline and 1 ms. The
+[deadline-aware idle results](IDLE_DEADLINE_RESULTS.md) record the Hooked On
+comparison, CPU-cost limits, stall recovery and live gameplay checks.
+
 - The native benchmark clock advances from executed instructions (one synthetic cycle per instruction, 484 MHz at the default clock), with at most 4,840 instructions per dispatch. This is a reproducible clock model, not a hardware cycle-accuracy claim.
 - When no guest thread is runnable, execution jumps to the next scheduled event. There is no real-time timer thread or host vsync pacing.
 - Guest UTC starts at 2024-01-01 00:00:00, timezone UTC. Guest `Math::Random` and host-generated kernel object names have fixed seeds.

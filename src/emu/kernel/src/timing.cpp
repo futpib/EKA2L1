@@ -200,19 +200,37 @@ namespace eka2l1 {
         advance_host_clock(host_microseconds());
     }
 
+    static std::uint64_t paced_elapsed_us(std::uint64_t previous, std::uint64_t now) {
+        const auto elapsed = previous && now >= previous ? now - previous : 0;
+        // Live play drops long host stalls instead of replaying a backlog of
+        // game timers. Explicit pauses reset the origin even for short gaps.
+        return elapsed <= 100000 ? elapsed : 0;
+    }
+
     void ntimer::advance_host_clock(std::uint64_t host_us) {
         if (should_paused_) {
             host_clock_us_ = 0;
             return;
         }
-        const auto elapsed = host_clock_us_ && host_us >= host_clock_us_
-            ? host_us - host_clock_us_ : 0;
+        const auto elapsed = paced_elapsed_us(host_clock_us_, host_us);
         host_clock_us_ = host_us;
-        // Live play drops long host stalls instead of replaying a backlog of
-        // game timers. Explicit pauses reset the origin even for short gaps.
-        if (elapsed <= 100000) common::benchmark::virtual_us += elapsed;
+        common::benchmark::virtual_us += elapsed;
         cycle_remainder_ = 0;
         advance();
+    }
+
+    std::optional<std::uint64_t> ntimer::next_host_event_delay() {
+        return next_host_event_delay(host_microseconds());
+    }
+
+    std::optional<std::uint64_t> ntimer::next_host_event_delay(std::uint64_t host_us) {
+        const std::lock_guard<std::mutex> guard(lock_);
+        if (should_paused_ || events_.empty()) return std::nullopt;
+        const auto now = microseconds();
+        const auto remaining = events_.back().event_time > now
+            ? events_.back().event_time - now : 0;
+        const auto elapsed = paced_elapsed_us(host_clock_us_, host_us);
+        return remaining > elapsed ? remaining - elapsed : 0;
     }
 
     std::optional<std::uint64_t> ntimer::advance() {

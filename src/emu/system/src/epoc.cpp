@@ -895,8 +895,13 @@ namespace eka2l1 {
             common::performance::scope scheduler_scope(common::performance::scheduler);
             kern_->reschedule();
 #ifdef __EMSCRIPTEN__
-            if (paced_clock && !kern_->crr_thread())
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            if (paced_clock && !kern_->crr_thread()) {
+                // Keep polling external work at least every millisecond, but
+                // do not add a full polling interval to a nearer timer deadline.
+                const auto idle_us = std::min<std::uint64_t>(1000,
+                    timing_->next_host_event_delay().value_or(1000));
+                if (idle_us) std::this_thread::sleep_for(std::chrono::microseconds(idle_us));
+            }
 #endif
         } else {
             exit = true;
