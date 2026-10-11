@@ -270,7 +270,25 @@ namespace eka2l1::drivers {
         std::vector<std::uint8_t> swapped_data;
         const void *upload_data = data;
 
-        if (data && (data_format == texture_format::bgra || data_format == texture_format::bgr)) {
+        if (data && bmp->bpp == 12 && dim.x > 0 && dim.y > 0) {
+            // Symbian color4k stores 0RGB; WebGL's packed upload expects RGBA.
+            // Desktop GL applies this rotation with a texture swizzle instead.
+            const auto stride = (((pixels_per_line ? pixels_per_line : dim.x) * 2) + 3) & ~std::size_t(3);
+            const auto source_end = (dim.y - 1) * stride + dim.x * 2;
+            if (size && source_end > size) return;
+            swapped_data.resize(stride * dim.y);
+            const auto *src = static_cast<const std::uint8_t *>(data);
+            for (int y = 0; y < dim.y; ++y) {
+                for (int x = 0; x < dim.x; ++x) {
+                    const auto offset = y * stride + x * 2;
+                    std::uint16_t pixel;
+                    std::memcpy(&pixel, src + offset, 2);
+                    pixel = (pixel << 4) | 0xF;
+                    std::memcpy(swapped_data.data() + offset, &pixel, 2);
+                }
+            }
+            upload_data = swapped_data.data();
+        } else if (data && (data_format == texture_format::bgra || data_format == texture_format::bgr)) {
             const int bpp_bytes = (data_format == texture_format::bgra) ? 4 : 3;
             const std::size_t pixel_count = dim.x * dim.y;
             swapped_data.resize(pixel_count * bpp_bytes);
