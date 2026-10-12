@@ -1,3 +1,8 @@
+// Keep assertion-based checks active in Release builds.
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+
 #include <cpu/aot/state_locals.h>
 #include <cpu/aot/wasm_emitter.h>
 #include <cassert>
