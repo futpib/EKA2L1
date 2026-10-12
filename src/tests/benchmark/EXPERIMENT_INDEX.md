@@ -6602,50 +6602,61 @@ per frame or cycle-accurate relative throughput.
 
 | # | Game | Qt FPS | WASM FPS | WASM / Qt | Window seconds, Qt / WASM |
 |---|---|---:|---:|---:|---:|
-| 1 | Snakes | 106.71 | 95.12 | 89.1% | 5.00 / 5.03 |
-| 2 | Sky Force | 291.72 | 310.75 | 106.5% | 2.00 / 2.01 |
-| 3 | K-Rally | 199.48 | 174.01 | 87.2% | 3.00 / 3.02 |
-| 4 | Asphalt: Urban GT 2 | 175.74 | 140.21 | 79.8% | 10.01 / 10.05 |
-| 5 | Hooked On: Creatures of the Deep | 342.93 | 269.10 | 78.5% | 5.00 / 5.05 |
-| 6 | Asphalt 3: Street Rules | failed | 69.05 | — | — / 5.04 |
-| 7 | Tetris | 159.26 | 168.91 | 106.1% | 5.00 / 5.04 |
-| 8 | Super Miners | 327.34 | 353.27 | 107.9% | 5.00 / 5.02 |
-| 9 | Explode Arena | 429.70 | 274.18 | 63.8% | 2.00 / 3.01 |
-| 10 | Pathway to Glory | 244.19 | 143.11 | 58.6% | 5.00 / 5.02 |
+| 1 | Snakes | 105.70 | 97.80 | 92.5% | 5.00 / 5.02 |
+| 2 | Sky Force | 287.72 | 331.79 | 115.3% | 2.00 / 2.01 |
+| 3 | K-Rally | 200.15 | 184.72 | 92.3% | 3.00 / 3.02 |
+| 4 | Asphalt: Urban GT 2 | 174.55 | 130.15 | 74.6% | 10.01 / 10.04 |
+| 5 | Hooked On: Creatures of the Deep | 361.06 | 264.49 | 73.3% | 5.00 / 5.05 |
+| 6 | Asphalt 3: Street Rules | 244.60 | 161.86 | 66.2% | 5.00 / 5.04 |
+| 7 | Tetris | 171.44 | 169.48 | 98.9% | 5.00 / 5.04 |
+| 8 | Super Miners | 328.51 | 352.10* | 107.2% | 5.00 / 5.02 |
+| 9 | Explode Arena | 426.11 | 309.77 | 72.7% | 2.00 / 3.01 |
+| 10 | Pathway to Glory | 232.39 | 140.09 | 60.3% | 5.00 / 5.03 |
+
+*Super Miners is the median of three fresh browser launches: **244.26, 359.39,
+352.10 FPS**. All three reached the same scene and passed the measurement checks;
+none was discarded. The first low result prompted the two repeats. The cause
+of the throughput variation is unresolved, so the median alone should not be treated as a
+stable advantage over Qt. Each repeat used a five-second window. Other rows
+have one accepted window per frontend.
 
 **Measurement and clocks**
 
-Native Qt was rebuilt from the current source with the small interactive
-benchmark change accompanying this report. It uses Dynarmic, native Xorg,
-NVIDIA PRIME OpenGL and disabled host vsync. An `LD_PRELOAD` wrapper records
-completed `glXSwapBuffers` timestamps using `CLOCK_MONOTONIC`; every accepted
-window contains one game drawable. The virtual clock advances from native
-instruction counts, with the existing 4,840-instruction maximum dispatch,
-and jumps to the next event when idle. Benchmark presentation synchronization
-remains enabled. This is an opt-in throughput harness, not normal desktop play.
+Native Qt uses Dynarmic, native Xorg, NVIDIA PRIME OpenGL and disabled host
+vsync. An `LD_PRELOAD` wrapper records completed `glXSwapBuffers` timestamps
+using `CLOCK_MONOTONIC`; every accepted window contains one game drawable.
+The virtual clock advances from native instruction counts, with the existing
+4,840-instruction maximum dispatch, and jumps to the next event when idle.
+Benchmark presentation synchronization remains enabled. This is an opt-in
+throughput harness, not normal desktop play. The existing interactive benchmark
+build was used without source changes or a rebuild during this campaign.
 
 **Builds, evidence and verification**
 
-- Source: `fdbd53c9f` on `wasm-port`, plus the native interactive harness changes
-  in this report's commit.
-- Final Qt binary: `build/bin/eka2l1_qt`, SHA-256
-  `e0d56a07dab199dce46630898bcdca0da027763605216c8924e66b07797a6215`.
+- Source: `370409ce3` on `wasm-port`. No emulator code changed in this campaign.
+- Qt binary: `build/bin/eka2l1_qt`, SHA-256
+  `e958639777e92d96e4d5bf0162fc9090aba065cab1be1784e3c360f867db6fe0`.
 - Served WASM: SHA-256
-  `72458db489c3d5502c8372fb341e5bf8a313ca9ccf00434fdb75c947f84c2c9b`,
-  verified again after the campaign. The LAN service was not changed.
+  `ad02135c672a175de7fb48e17b10df17cfdfc70385278002996599b31ff13284`,
+  verified against the LAN response. The LAN service was not changed.
 - [Per-game measurements and metadata](qt-vs-wasm-unpaced-fps.json) include
   versions, durations, frame counts, guest-clock progress, compilation,
-  screenshot paths and rejected attempts. Guest-clock progress is diagnostic,
-  not a second speedup metric.
+  screenshot paths, all three Super Miners browser samples and the rejected
+  native Asphalt 3 startup. Guest-clock progress is diagnostic, not a second
+  speedup metric.
 - Raw logs, screenshots and input commands:
-  `/home/claude/.scratch/eka-unpaced-ten-20261012/`. Harnesses are `qt.py`,
-  `swaps.c`, `wasm.mjs`, `qt-steps.log` and per-browser `steps.log` files.
-  The accepted Snakes browser sample is in `wasm-retry`.
-- All 17 manifest-referenced cached payload hashes were checked. Firmware and
-  game blobs were not committed. Native uses private copies of installed state;
-  startup saves therefore need not match a fresh browser install.
-- Native build and CTest passed (3/3). The actual Qt/browser gameplay paths
-  produced 19 valid windows; the missing twentieth is explicitly reported.
+  `/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/`. Harnesses are
+  `qt.py`, `swaps.c`, `wasm.mjs`, `routes.json`, `qt-steps.log` and per-browser
+  `steps.log` files. The previous report and JSON are retained there too.
+- All 17 manifest-referenced cached payload hashes were rechecked and match the
+  previous campaign. Firmware and game blobs were not committed. Native uses
+  private copies of installed state; startup saves therefore need not match a
+  fresh browser install.
+- Actual Qt/browser gameplay produced all 20 paired windows, plus two additional
+  valid browser windows for Super Miners. Screenshots were reviewed, FPS
+  arithmetic and counter invariants checked, and accepted logs contained no
+  captured access violation, kernel panic or abort. No rebuild was needed for
+  this measurement-only update.
 
 </details>
 

@@ -1,10 +1,9 @@
 # Qt versus WASM: unpaced FPS for the ten launcher games
 
-Measured on 2026-10-12 after the Thumb loop changes in `fdbd53c9f`.
-All results below are fresh measurements on the same Intel Core i7-10875H
-laptop, using the NVIDIA Quadro T1000 Max-Q for both frontends. Nine games
-have valid native/browser pairs. Asphalt 3 ran in the browser but failed to
-reach gameplay in four native unpaced attempts; its Qt FPS is unavailable.
+Measured on 2026-10-12 at `370409ce3`, after the Asphalt 3 audio fixes.
+All ten games reached gameplay on both frontends. These are fresh measurements
+on the same Intel Core i7-10875H laptop, using the NVIDIA Quadro T1000 Max-Q
+for both frontends. Asphalt 3 has guest sound explicitly enabled on both.
 
 FPS means **screen presentations per host wall-clock second**, including
 identical images. These are unpaced observations, not display refresh rates,
@@ -17,21 +16,28 @@ per frame or cycle-accurate relative throughput.
 
 | # | Game | Qt FPS | WASM FPS | WASM / Qt | Window seconds, Qt / WASM |
 |---|---|---:|---:|---:|---:|
-| 1 | Snakes | 106.71 | 95.12 | 89.1% | 5.00 / 5.03 |
-| 2 | Sky Force | 291.72 | 310.75 | 106.5% | 2.00 / 2.01 |
-| 3 | K-Rally | 199.48 | 174.01 | 87.2% | 3.00 / 3.02 |
-| 4 | Asphalt: Urban GT 2 | 175.74 | 140.21 | 79.8% | 10.01 / 10.05 |
-| 5 | Hooked On: Creatures of the Deep | 342.93 | 269.10 | 78.5% | 5.00 / 5.05 |
-| 6 | Asphalt 3: Street Rules | failed | 69.05 | — | — / 5.04 |
-| 7 | Tetris | 159.26 | 168.91 | 106.1% | 5.00 / 5.04 |
-| 8 | Super Miners | 327.34 | 353.27 | 107.9% | 5.00 / 5.02 |
-| 9 | Explode Arena | 429.70 | 274.18 | 63.8% | 2.00 / 3.01 |
-| 10 | Pathway to Glory | 244.19 | 143.11 | 58.6% | 5.00 / 5.02 |
+| 1 | Snakes | 105.70 | 97.80 | 92.5% | 5.00 / 5.02 |
+| 2 | Sky Force | 287.72 | 331.79 | 115.3% | 2.00 / 2.01 |
+| 3 | K-Rally | 200.15 | 184.72 | 92.3% | 3.00 / 3.02 |
+| 4 | Asphalt: Urban GT 2 | 174.55 | 130.15 | 74.6% | 10.01 / 10.04 |
+| 5 | Hooked On: Creatures of the Deep | 361.06 | 264.49 | 73.3% | 5.00 / 5.05 |
+| 6 | Asphalt 3: Street Rules | 244.60 | 161.86 | 66.2% | 5.00 / 5.04 |
+| 7 | Tetris | 171.44 | 169.48 | 98.9% | 5.00 / 5.04 |
+| 8 | Super Miners | 328.51 | 352.10* | 107.2% | 5.00 / 5.02 |
+| 9 | Explode Arena | 426.11 | 309.77 | 72.7% | 2.00 / 3.01 |
+| 10 | Pathway to Glory | 232.39 | 140.09 | 60.3% | 5.00 / 5.03 |
 
-The largest observed browser deficits are Pathway and Explode Arena. WASM
-has a higher observed rate for Sky Force, Tetris and Super Miners. Short samples,
-different clocks and scene variation limit those comparisons; they are leads
-for matched profiling, not explanations of the gaps. The earlier
+*Super Miners is the median of three fresh browser launches: **244.26, 359.39,
+352.10 FPS**. All three reached the same scene and passed the measurement checks;
+none was discarded. The first low result prompted the two repeats. The cause
+of the throughput variation is unresolved, so the median alone should not be treated as a
+stable advantage over Qt. Each repeat used a five-second window. Other rows
+have one accepted window per frontend.
+
+Pathway has the largest observed browser deficit, followed by Asphalt 3.
+Sky Force has a higher observed browser rate and Tetris is nearly equal.
+Short samples, different clocks and scene variation limit those comparisons;
+they are leads for matched profiling, not explanations of the gaps. The earlier
 [paced comparison](QT_VS_WASM_PACED_FPS.md) measures a different operating mode.
 
 ## Scenes and acceptance
@@ -45,40 +51,39 @@ for matched profiling, not explanations of the gaps. The earlier
   recent optimization reports; it is not an exact input replay.
 - Hooked On: Costa Rica boat map, holding Up toward the coast. Introductory
   help transitions are included; this is not a fishing battle.
-- Asphalt 3: Instant Play, red car on the coastal track, holding Up. Sound was
-  disabled at the game's prompt. Qt attempts failed with a null read at `0x8`
-  (`PC=0x74a09eac`, `KERN-EXEC 3`), a `USER 44` panic while loading `carsb.bar`,
-  or the N-Gage launcher's `-1000002` error. Fresh installed-state copies and
-  tighter input timing did not resolve this. The cause is not diagnosed, and
-  this is not evidence that ordinary paced Qt cannot run the game.
+- Asphalt 3: Instant Play, red car on the coastal track, holding Up; YES selected
+  at the sound prompt. Both windows start during the race's GO sequence and end
+  at a barrier. Qt's first launch from an older installed-state copy failed
+  with N-Gage error `-1000002` before gameplay. A fresh copy of the clean
+  installation used in the audio-fix verification reached the race and supplied
+  the accepted sample. The failed launch is retained without an FPS value;
+  its cause was not diagnosed in this campaign.
 - Tetris: Marathon level 1, initial left/rotate input, then falling pieces.
+  Piece sequence and score differ between the frontends.
 - Super Miners: challenge level 1, one short left input, then mostly stationary
   player with an active timer.
 - Explode Arena: first arcade level, short left input, enemies active. Both
-  accepted endpoints show gameplay and a living player. A longer native window
-  reached the menu and was rejected.
+  accepted endpoints show gameplay and a living player.
 - Pathway to Glory: Pantelleria battlefield after movement, awaiting the next
   action. Selected soldier and viewport differ; this is not a combat sequence.
 
 Loading and menu navigation are excluded. Screenshots outside each accepted
 window establish the scene at its endpoints. The games advance rapidly when
 unpaced, so windows are deliberately short to avoid death screens and dialogs.
-This is one accepted window per game/frontend, not a repeated benchmark with
-confidence intervals. Rejections were based on scene or harness validity,
-not choosing the highest FPS. Full-game completion and audio correctness were
-not tested. The N-Gage client still labels installed packages TRIAL; package
-identity alone does not prove activation.
+These observations do not provide confidence intervals. Full-game completion
+and audible output quality were not tested. The N-Gage client still labels
+installed packages TRIAL; package identity alone does not prove activation.
 
 ## Measurement and clocks
 
-Native Qt was rebuilt from the current source with the small interactive
-benchmark change accompanying this report. It uses Dynarmic, native Xorg,
-NVIDIA PRIME OpenGL and disabled host vsync. An `LD_PRELOAD` wrapper records
-completed `glXSwapBuffers` timestamps using `CLOCK_MONOTONIC`; every accepted
-window contains one game drawable. The virtual clock advances from native
-instruction counts, with the existing 4,840-instruction maximum dispatch,
-and jumps to the next event when idle. Benchmark presentation synchronization
-remains enabled. This is an opt-in throughput harness, not normal desktop play.
+Native Qt uses Dynarmic, native Xorg, NVIDIA PRIME OpenGL and disabled host
+vsync. An `LD_PRELOAD` wrapper records completed `glXSwapBuffers` timestamps
+using `CLOCK_MONOTONIC`; every accepted window contains one game drawable.
+The virtual clock advances from native instruction counts, with the existing
+4,840-instruction maximum dispatch, and jumps to the next event when idle.
+Benchmark presentation synchronization remains enabled. This is an opt-in
+throughput harness, not normal desktop play. The existing interactive benchmark
+build was used without source changes or a rebuild during this campaign.
 
 WASM ran in Chromium 153.0.8010.52 with hardware ANGLE/Vulkan. The custom
 launcher on `https://claude-laptop.lan:8188/` loaded the same manifest packages
@@ -90,19 +95,15 @@ total was 0. FPS uses `eka2l1_presentations` and browser `performance.now()`.
 No profiler was attached. Residual emulator translation and engine JIT work
 remain in the timed windows; the JSON records WASM compilation deltas.
 
-Only one emulator executed during each timed window. Native processes were
-suspended between navigation commands and browser route pauses held the other
-frontend. Loading preparation could overlap, but accepted timing did not.
-Background host work was not disabled; load averages are retained in the raw
-records. Both frontends ran shared guest-clock audio DSP with output discarded
-or muted, except Asphalt 3's explicitly disabled game sound.
-
-The native audio factory initially retained replay PCM despite the interactive
-flag, imposing extra retention and a 120-guest-second limit. It now honors the
-existing `retain_audio` and `interactive` settings. All native samples taken
-with that initial build were excluded and rerun with the final binary. The
-accepted Asphalt 2 run proceeds beyond that old limit. Ordinary paced desktop
-audio and deterministic replay defaults remain unchanged.
+Only one test emulator executed during each timed window. The first ten browser
+runs completed before native runs began; the two Super Miners browser repeats
+ran after native Qt closed. Native processes were suspended between navigation
+commands. Background host work was not disabled; load averages are retained in
+the raw records. Both frontends processed guest audio through their shared
+clocked DSP, with host output muted in the browser and discarded in Qt.
+Asphalt 3's guest sound was explicitly enabled; other games retained their
+normal game settings. This does not repeat the audible-output validation in
+[the audio-fix report](ASPHALT3_AUDIO.md).
 
 ## Reproduce the native mode
 
@@ -124,26 +125,30 @@ completed presentations against host time instead.
 
 ## Builds, evidence and verification
 
-- Source: `fdbd53c9f` on `wasm-port`, plus the native interactive harness changes
-  in this report's commit.
-- Final Qt binary: `build/bin/eka2l1_qt`, SHA-256
-  `e0d56a07dab199dce46630898bcdca0da027763605216c8924e66b07797a6215`.
+- Source: `370409ce3` on `wasm-port`. No emulator code changed in this campaign.
+- Qt binary: `build/bin/eka2l1_qt`, SHA-256
+  `e958639777e92d96e4d5bf0162fc9090aba065cab1be1784e3c360f867db6fe0`.
 - Served WASM: SHA-256
-  `72458db489c3d5502c8372fb341e5bf8a313ca9ccf00434fdb75c947f84c2c9b`,
-  verified again after the campaign. The LAN service was not changed.
+  `ad02135c672a175de7fb48e17b10df17cfdfc70385278002996599b31ff13284`,
+  verified against the LAN response. The LAN service was not changed.
 - [Per-game measurements and metadata](qt-vs-wasm-unpaced-fps.json) include
   versions, durations, frame counts, guest-clock progress, compilation,
-  screenshot paths and rejected attempts. Guest-clock progress is diagnostic,
-  not a second speedup metric.
+  screenshot paths, all three Super Miners browser samples and the rejected
+  native Asphalt 3 startup. Guest-clock progress is diagnostic, not a second
+  speedup metric.
 - Raw logs, screenshots and input commands:
-  `/home/claude/.scratch/eka-unpaced-ten-20261012/`. Harnesses are `qt.py`,
-  `swaps.c`, `wasm.mjs`, `qt-steps.log` and per-browser `steps.log` files.
-  The accepted Snakes browser sample is in `wasm-retry`.
-- All 17 manifest-referenced cached payload hashes were checked. Firmware and
-  game blobs were not committed. Native uses private copies of installed state;
-  startup saves therefore need not match a fresh browser install.
-- Native build and CTest passed (3/3). The actual Qt/browser gameplay paths
-  produced 19 valid windows; the missing twentieth is explicitly reported.
+  `/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/`. Harnesses are
+  `qt.py`, `swaps.c`, `wasm.mjs`, `routes.json`, `qt-steps.log` and per-browser
+  `steps.log` files. The previous report and JSON are retained there too.
+- All 17 manifest-referenced cached payload hashes were rechecked and match the
+  previous campaign. Firmware and game blobs were not committed. Native uses
+  private copies of installed state; startup saves therefore need not match a
+  fresh browser install.
+- Actual Qt/browser gameplay produced all 20 paired windows, plus two additional
+  valid browser windows for Super Miners. Screenshots were reviewed, FPS
+  arithmetic and counter invariants checked, and accepted logs contained no
+  captured access violation, kernel panic or abort. No rebuild was needed for
+  this measurement-only update.
 
 Test emulator/browser processes were closed, the original VT restored, and
 temporary Xorg credentials removed. No `/dev/uinput` permissions were changed.

@@ -45,9 +45,10 @@ from 15.43 to 16.14 FPS, with 14.2% less CPU-worker time per frame. Separate nat
 captures show dispatcher sample share falling from 25.5% to 17.5%.
 
 The [ten-game unpaced Qt/WASM comparison](QT_VS_WASM_UNPACED_FPS.md) records fresh
-presentation rates, scene and clock limits, the native Asphalt 3 launch failure,
-and the opt-in interactive Qt benchmark command. It does not replace paced FPS
-or deterministic replay checks.
+presentation rates for all ten pairs after the audio fixes, including Asphalt 3
+with guest sound enabled. It records scene and clock limits, Super Miners
+variability, the native startup retry, and the opt-in interactive Qt benchmark
+command. It does not replace paced FPS or deterministic replay checks.
 
 The [Asphalt 3 audio follow-up](ASPHALT3_AUDIO.md) verifies Qt and browser racing
 with sound enabled, adds browser MP3 decoding, and fixes stopped-stream callbacks

@@ -1,18 +1,20 @@
 {
   "date": "2026-10-12",
-  "source": "fdbd53c9f plus native interactive unpaced harness change",
-  "raw_root": "/home/claude/.scratch/eka-unpaced-ten-20261012",
+  "source": "370409ce3",
+  "raw_root": "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012",
   "metric": "screen presentations per host wall-clock second; includes duplicate images",
   "cpu": "Intel Core i7-10875H",
   "gpu_both": "NVIDIA Quadro T1000 Max-Q",
-  "wasm_sha256": "72458db489c3d5502c8372fb341e5bf8a313ca9ccf00434fdb75c947f84c2c9b",
-  "qt_sha256": "e0d56a07dab199dce46630898bcdca0da027763605216c8924e66b07797a6215",
+  "wasm_sha256": "ad02135c672a175de7fb48e17b10df17cfdfc70385278002996599b31ff13284",
+  "qt_sha256": "e958639777e92d96e4d5bf0162fc9090aba065cab1be1784e3c360f867db6fe0",
   "limitations": [
     "Native instruction-driven virtual clock versus count-free browser yield clock; no equal-work or cycle-accuracy claim.",
-    "Single short gameplay window per frontend/game; shared host; no statistical confidence estimate.",
-    "Same scene category but not exact replay; Pathway selected soldier and viewport differ.",
-    "Asphalt 3 browser sound disabled; no native comparison.",
-    "Startup/navigation excluded; residual translation and browser/native JIT work included."
+    "Single short gameplay window per frontend/game except three Super Miners browser repeats; shared host; no statistical confidence estimate.",
+    "Same scene category but not exact replay; K-Rally positions/headings and Pathway selected soldier/viewport differ.",
+    "Asphalt 3 sound enabled on both targets; first native launch failed before gameplay, accepted retry uses clean installed state.",
+    "Super Miners browser result is median of 244.26, 359.39 and 352.10 FPS; low sample retained and variability unexplained.",
+    "Startup/navigation excluded; residual translation and browser/native JIT work included.",
+    "Guest sound processed with browser host output muted and native host output discarded; audible quality not retested."
   ],
   "assets": {
     "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
@@ -35,52 +37,8 @@
   },
   "rejected": [
     {
-      "path": "qt-snakes/opening-level-a.json",
-      "reason": "Starts in level introduction and overlaps browser startup stepping; excluded"
-    },
-    {
-      "path": "wasm-snakes/opening-level.json",
-      "reason": "Instruction/menu screen instead of gameplay; excluded"
-    },
-    {
-      "path": "qt-snakes-retaining-audio",
-      "reason": "Initial native harness wrongly retained replay PCM; corrected and rerun. Asphalt hit its 120 guest second limit."
-    },
-    {
-      "path": "qt-sky-force-retaining-audio",
-      "reason": "Initial native harness wrongly retained replay PCM; corrected and rerun. Asphalt hit its 120 guest second limit."
-    },
-    {
-      "path": "qt-k-rally-retaining-audio",
-      "reason": "Initial native harness wrongly retained replay PCM; corrected and rerun. Asphalt hit its 120 guest second limit."
-    },
-    {
-      "path": "qt-asphalt-2-retaining-audio",
-      "reason": "Initial native harness wrongly retained replay PCM; corrected and rerun. Asphalt hit its 120 guest second limit."
-    },
-    {
-      "path": "qt-asphalt-3-failed-audio-on",
-      "reason": "Guest null read at 0x8, PC 0x74a09eac, KERN-EXEC 3 after enabling sound; no timing recorded."
-    },
-    {
-      "path": "qt-asphalt-3-failed-startup",
-      "reason": "N-Gage startup error -1000002; no gameplay or FPS"
-    },
-    {
-      "path": "qt-asphalt-3-failed-clean",
-      "reason": "Fresh installed-state copy; guest USER 44 panic while loading carsb.bar; no FPS"
-    },
-    {
-      "path": "qt-asphalt-3",
-      "reason": "Final fresh installed-state copy with guest-time input stepping; startup error -1000002; no FPS"
-    },
-    {
-      "path": "qt-explode-arena-rejected-menu/arcade-level-1.json",
-      "reason": "3 s sample ended at main menu; excluded and repeated with shorter gameplay window"
-    },
-    {
-      "path": "qt-pathway-to-glory-rejected-startup",
-      "reason": "Intro navigation did not reach accepted scene; no FPS"
+      "path": "qt-asphalt-3-rejected-startup",
+      "reason": "N-Gage launch error -1000002 before gameplay; no timing recorded."
     }
   ],
   "rows": [
@@ -93,37 +51,37 @@
       "qt": {
         "game": "snakes",
         "scene": "opening-level",
-        "seconds": 5.0042773289605975,
-        "frames": 534,
-        "fps": 106.70871434515666,
+        "seconds": 5.004693953087553,
+        "frames": 529,
+        "fps": 105.70076910969615,
         "drawable_counts": {
-          "2097213": 534
+          "2097213": 529
         },
-        "start": 1084021.721804152,
-        "end": 1084026.726081481,
+        "start": 1096065.351562307,
+        "end": 1096070.35625626,
         "window": "2097163",
-        "binary_sha256": "e0d56a07dab199dce46630898bcdca0da027763605216c8924e66b07797a6215",
-        "guest_seconds": 25.231695,
-        "guest_speed": 5.042025719474003,
+        "binary_sha256": "e958639777e92d96e4d5bf0162fc9090aba065cab1be1784e3c360f867db6fe0",
+        "guest_seconds": 25.005653,
+        "guest_speed": 4.996439989017355,
         "mode": "unpaced interactive benchmark, Dynarmic, instruction-driven virtual clock",
         "audio": "shared clocked DSP; output discarded",
-        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-snakes/opening-level.json",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-snakes/opening-level.json",
         "screenshots": [
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-snakes/opening-level-start.png",
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-snakes/opening-level-end.png"
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-snakes/opening-level-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-snakes/opening-level-end.png"
         ],
         "load_average": {
           "first": [
-            0.75146484375,
-            0.86083984375,
-            0.88916015625
+            0.68603515625,
+            1.34521484375,
+            1.333984375
           ],
           "last": [
-            0.771484375,
-            0.86328125,
-            0.89013671875
+            0.71142578125,
+            1.33935546875,
+            1.33203125
           ],
-          "max_one_minute": 0.771484375
+          "max_one_minute": 0.71142578125
         }
       },
       "wasm": {
@@ -134,28 +92,28 @@
         "browser": "Chrome/153.0.8010.52",
         "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
         "load": [
-          0.81,
-          1.07,
-          0.88
+          1.64,
+          0.99,
+          1.06
         ],
         "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
         "sound": "browser muted; guest audio remains enabled",
-        "seconds": 5.025039999961853,
-        "frames": 478,
-        "fps": 95.12362090722236,
-        "guestSeconds": 23.01,
-        "guestSpeed": 4.579068027353947,
-        "compiledFunctions": 89,
+        "seconds": 5.020515000104904,
+        "frames": 491,
+        "fps": 97.7987318013671,
+        "guestSeconds": 23.31,
+        "guestSpeed": 4.642949976150441,
+        "compiledFunctions": 97,
         "compilationUs": {
-          "aot_translation_us": 8485,
-          "aot_emission_us": 738,
-          "aot_installation_us": 2197
+          "aot_translation_us": 8791,
+          "aot_emission_us": 828,
+          "aot_installation_us": 1870
         },
         "errors": [],
-        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-retry/opening-level-valid.json",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-snakes/opening-level-valid.json",
         "screenshots": [
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-retry/opening-level-valid-start.png",
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-retry/opening-level-valid-end.png"
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-snakes/opening-level-valid-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-snakes/opening-level-valid-end.png"
         ],
         "sample_checks": {
           "count": 11,
@@ -167,45 +125,45 @@
           ]
         },
         "first_sample": {
-          "ms": 138255.63000011444,
-          "guest": 54240000,
-          "frames": 706,
+          "ms": 20576.17999982834,
+          "guest": 54430000,
+          "frames": 696,
           "phase": 0,
           "inputs": 6,
           "monitor": {
-            "guest_us": 54250000,
+            "guest_us": 54430000,
             "instructions": 0,
-            "compiled_functions": 44302,
-            "aot_translation_us": 6191302,
-            "aot_emission_us": 264612,
-            "aot_installation_us": 578643,
-            "aot_eager_functions": 35481,
+            "compiled_functions": 44313,
+            "aot_translation_us": 6162563,
+            "aot_emission_us": 268084,
+            "aot_installation_us": 591721,
+            "aot_eager_functions": 35479,
             "aot_eager_passes": 12,
-            "allocated_bytes": 879174008,
-            "free_bytes": 86948872
+            "allocated_bytes": 878113528,
+            "free_bytes": 88001928
           }
         },
         "last_sample": {
-          "ms": 143280.6700000763,
-          "guest": 77250000,
-          "frames": 1184,
+          "ms": 25596.694999933243,
+          "guest": 77740000,
+          "frames": 1187,
           "phase": 0,
           "inputs": 6,
           "monitor": {
-            "guest_us": 77250000,
+            "guest_us": 77740000,
             "instructions": 0,
-            "compiled_functions": 44391,
-            "aot_translation_us": 6199787,
-            "aot_emission_us": 265350,
-            "aot_installation_us": 580840,
-            "aot_eager_functions": 35481,
+            "compiled_functions": 44410,
+            "aot_translation_us": 6171354,
+            "aot_emission_us": 268912,
+            "aot_installation_us": 593591,
+            "aot_eager_functions": 35479,
             "aot_eager_passes": 12,
-            "allocated_bytes": 877899960,
-            "free_bytes": 88222920
+            "allocated_bytes": 877983776,
+            "free_bytes": 88131680
           }
         }
       },
-      "wasm_relative_to_qt": 0.8914325459825003,
+      "wasm_relative_to_qt": 0.9252414398221802,
       "qt_failure": null
     },
     {
@@ -217,37 +175,37 @@
       "qt": {
         "game": "sky-force",
         "scene": "stage-1",
-        "seconds": 2.001923237927258,
-        "frames": 584,
-        "fps": 291.71947701883875,
+        "seconds": 2.001938938861713,
+        "frames": 576,
+        "fps": 287.72106322459024,
         "drawable_counts": {
-          "2097213": 584
+          "2097213": 576
         },
-        "start": 1084083.280597931,
-        "end": 1084085.282521169,
+        "start": 1096107.5052821,
+        "end": 1096109.507221039,
         "window": "2097163",
-        "binary_sha256": "e0d56a07dab199dce46630898bcdca0da027763605216c8924e66b07797a6215",
-        "guest_seconds": 18.278063,
-        "guest_speed": 9.130251676844841,
+        "binary_sha256": "e958639777e92d96e4d5bf0162fc9090aba065cab1be1784e3c360f867db6fe0",
+        "guest_seconds": 18.003045,
+        "guest_speed": 8.992804251180806,
         "mode": "unpaced interactive benchmark, Dynarmic, instruction-driven virtual clock",
         "audio": "shared clocked DSP; output discarded",
-        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-sky-force/stage-1.json",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-sky-force/stage-1.json",
         "screenshots": [
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-sky-force/stage-1-start.png",
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-sky-force/stage-1-end.png"
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-sky-force/stage-1-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-sky-force/stage-1-end.png"
         ],
         "load_average": {
           "first": [
-            0.9755859375,
-            0.90478515625,
-            0.90625
+            0.84521484375,
+            1.30810546875,
+            1.3232421875
           ],
           "last": [
-            0.9755859375,
-            0.90478515625,
-            0.90625
+            0.84521484375,
+            1.30810546875,
+            1.3232421875
           ],
-          "max_one_minute": 0.9755859375
+          "max_one_minute": 0.84521484375
         }
       },
       "wasm": {
@@ -258,28 +216,28 @@
         "browser": "Chrome/153.0.8010.52",
         "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
         "load": [
-          0.87,
-          1.03,
-          0.89
+          2.45,
+          1.22,
+          1.14
         ],
         "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
         "sound": "browser muted; guest audio remains enabled",
-        "seconds": 2.0080650000572207,
-        "frames": 624,
-        "fps": 310.7469130641781,
-        "guestSeconds": 19.51,
-        "guestSpeed": 9.71582095173416,
-        "compiledFunctions": 33,
+        "seconds": 2.0073150000572206,
+        "frames": 666,
+        "fps": 331.7864909000406,
+        "guestSeconds": 20.796875,
+        "guestSpeed": 10.360543810715889,
+        "compiledFunctions": 23,
         "compilationUs": {
-          "aot_translation_us": 3533,
-          "aot_emission_us": 334,
-          "aot_installation_us": 909
+          "aot_translation_us": 2065,
+          "aot_emission_us": 239,
+          "aot_installation_us": 764
         },
         "errors": [],
-        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-sky-force/stage-1.json",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-sky-force/stage-1.json",
         "screenshots": [
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-sky-force/stage-1-start.png",
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-sky-force/stage-1-end.png"
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-sky-force/stage-1-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-sky-force/stage-1-end.png"
         ],
         "sample_checks": {
           "count": 5,
@@ -291,45 +249,45 @@
           ]
         },
         "first_sample": {
-          "ms": 79128.4200000763,
-          "guest": 59410000,
-          "frames": 1382,
+          "ms": 16518.789999961853,
+          "guest": 59453125,
+          "frames": 1372,
           "phase": 0,
           "inputs": 8,
           "monitor": {
-            "guest_us": 59410000,
+            "guest_us": 59460000,
             "instructions": 0,
-            "compiled_functions": 41667,
-            "aot_translation_us": 5462992,
-            "aot_emission_us": 241468,
-            "aot_installation_us": 514709,
-            "aot_eager_functions": 34207,
+            "compiled_functions": 41702,
+            "aot_translation_us": 5530545,
+            "aot_emission_us": 241508,
+            "aot_installation_us": 530151,
+            "aot_eager_functions": 34235,
             "aot_eager_passes": 12,
-            "allocated_bytes": 879954720,
-            "free_bytes": 86168160
+            "allocated_bytes": 878221072,
+            "free_bytes": 87894384
           }
         },
         "last_sample": {
-          "ms": 81136.48500013351,
-          "guest": 78920000,
-          "frames": 2006,
+          "ms": 18526.105000019073,
+          "guest": 80250000,
+          "frames": 2038,
           "phase": 0,
           "inputs": 8,
           "monitor": {
-            "guest_us": 78930000,
+            "guest_us": 80260000,
             "instructions": 0,
-            "compiled_functions": 41700,
-            "aot_translation_us": 5466525,
-            "aot_emission_us": 241802,
-            "aot_installation_us": 515618,
-            "aot_eager_functions": 34207,
+            "compiled_functions": 41725,
+            "aot_translation_us": 5532610,
+            "aot_emission_us": 241747,
+            "aot_installation_us": 530915,
+            "aot_eager_functions": 34235,
             "aot_eager_passes": 12,
-            "allocated_bytes": 878103784,
-            "free_bytes": 88019096
+            "allocated_bytes": 876997080,
+            "free_bytes": 89118376
           }
         }
       },
-      "wasm_relative_to_qt": 1.065225113659828,
+      "wasm_relative_to_qt": 1.153153290835206,
       "qt_failure": null
     },
     {
@@ -341,37 +299,37 @@
       "qt": {
         "game": "k-rally",
         "scene": "tutorial-driving",
-        "seconds": 3.0028385911136866,
-        "frames": 599,
-        "fps": 199.47792124845583,
+        "seconds": 3.002743032993749,
+        "frames": 601,
+        "fps": 200.15032701642812,
         "drawable_counts": {
-          "2097213": 599
+          "2097213": 601
         },
-        "start": 1084188.718711335,
-        "end": 1084191.721549926,
+        "start": 1096146.087250719,
+        "end": 1096149.089993752,
         "window": "2097163",
-        "binary_sha256": "e0d56a07dab199dce46630898bcdca0da027763605216c8924e66b07797a6215",
-        "guest_seconds": 18.745765,
-        "guest_speed": 6.242681526564373,
+        "binary_sha256": "e958639777e92d96e4d5bf0162fc9090aba065cab1be1784e3c360f867db6fe0",
+        "guest_seconds": 18.754725,
+        "guest_speed": 6.245864129539401,
         "mode": "unpaced interactive benchmark, Dynarmic, instruction-driven virtual clock",
         "audio": "shared clocked DSP; output discarded",
-        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-k-rally/tutorial-driving.json",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-k-rally/tutorial-driving.json",
         "screenshots": [
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-k-rally/tutorial-driving-start.png",
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-k-rally/tutorial-driving-end.png"
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-k-rally/tutorial-driving-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-k-rally/tutorial-driving-end.png"
         ],
         "load_average": {
           "first": [
-            0.55517578125,
-            0.7783203125,
-            0.861328125
+            0.97705078125,
+            1.296875,
+            1.3193359375
           ],
           "last": [
-            0.55517578125,
-            0.7783203125,
-            0.861328125
+            0.97705078125,
+            1.296875,
+            1.3193359375
           ],
-          "max_one_minute": 0.55517578125
+          "max_one_minute": 0.97705078125
         }
       },
       "wasm": {
@@ -382,28 +340,28 @@
         "browser": "Chrome/153.0.8010.52",
         "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
         "load": [
-          0.75,
-          0.94,
-          0.89
+          2.11,
+          1.27,
+          1.16
         ],
         "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
         "sound": "browser muted; guest audio remains enabled",
-        "seconds": 3.0171449999809266,
-        "frames": 525,
-        "fps": 174.00555823578875,
-        "guestSeconds": 16.68,
-        "guestSpeed": 5.528405164519917,
-        "compiledFunctions": 109,
+        "seconds": 3.015409999847412,
+        "frames": 557,
+        "fps": 184.7178327418778,
+        "guestSeconds": 17.49,
+        "guestSpeed": 5.800206274067222,
+        "compiledFunctions": 98,
         "compilationUs": {
-          "aot_translation_us": 24461,
-          "aot_emission_us": 1002,
-          "aot_installation_us": 2956
+          "aot_translation_us": 21939,
+          "aot_emission_us": 925,
+          "aot_installation_us": 4282
         },
         "errors": [],
-        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-k-rally/tutorial-driving.json",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-k-rally/tutorial-driving.json",
         "screenshots": [
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-k-rally/tutorial-driving-start.png",
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-k-rally/tutorial-driving-end.png"
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-k-rally/tutorial-driving-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-k-rally/tutorial-driving-end.png"
         ],
         "sample_checks": {
           "count": 7,
@@ -415,45 +373,45 @@
           ]
         },
         "first_sample": {
-          "ms": 156594.17500019073,
-          "guest": 166030000,
-          "frames": 4269,
+          "ms": 32345.85000014305,
+          "guest": 166160000,
+          "frames": 4279,
           "phase": 0,
           "inputs": 24,
           "monitor": {
-            "guest_us": 166040000,
+            "guest_us": 166170000,
             "instructions": 0,
-            "compiled_functions": 54050,
-            "aot_translation_us": 6621866,
-            "aot_emission_us": 336421,
-            "aot_installation_us": 712593,
-            "aot_eager_functions": 46362,
+            "compiled_functions": 54048,
+            "aot_translation_us": 6621661,
+            "aot_emission_us": 338935,
+            "aot_installation_us": 689318,
+            "aot_eager_functions": 46357,
             "aot_eager_passes": 12,
-            "allocated_bytes": 880340424,
-            "free_bytes": 85782456
+            "allocated_bytes": 880504256,
+            "free_bytes": 85611200
           }
         },
         "last_sample": {
-          "ms": 159611.32000017166,
-          "guest": 182710000,
-          "frames": 4794,
+          "ms": 35361.25999999046,
+          "guest": 183650000,
+          "frames": 4836,
           "phase": 0,
           "inputs": 24,
           "monitor": {
-            "guest_us": 182720000,
+            "guest_us": 183660000,
             "instructions": 0,
-            "compiled_functions": 54159,
-            "aot_translation_us": 6646327,
-            "aot_emission_us": 337423,
-            "aot_installation_us": 715549,
-            "aot_eager_functions": 46362,
+            "compiled_functions": 54146,
+            "aot_translation_us": 6643600,
+            "aot_emission_us": 339860,
+            "aot_installation_us": 693600,
+            "aot_eager_functions": 46357,
             "aot_eager_passes": 12,
-            "allocated_bytes": 880468736,
-            "free_bytes": 85654144
+            "allocated_bytes": 880668664,
+            "free_bytes": 85446792
           }
         }
       },
-      "wasm_relative_to_qt": 0.8723048503150358,
+      "wasm_relative_to_qt": 0.9228954830871516,
       "qt_failure": null
     },
     {
@@ -465,37 +423,37 @@
       "qt": {
         "game": "asphalt-2",
         "scene": "golf-san-francisco-barrier",
-        "seconds": 10.009205977898091,
-        "frames": 1759,
-        "fps": 175.73821578696152,
+        "seconds": 10.008672908879817,
+        "frames": 1747,
+        "fps": 174.54861557620094,
         "drawable_counts": {
-          "2097213": 1759
+          "2097213": 1747
         },
-        "start": 1083563.432808575,
-        "end": 1083573.442014553,
+        "start": 1096186.250135153,
+        "end": 1096196.258808062,
         "window": "2097163",
-        "binary_sha256": "e0d56a07dab199dce46630898bcdca0da027763605216c8924e66b07797a6215",
-        "guest_seconds": 110.000117,
-        "guest_speed": 10.989894427479827,
+        "binary_sha256": "e958639777e92d96e4d5bf0162fc9090aba065cab1be1784e3c360f867db6fe0",
+        "guest_seconds": 109.196271,
+        "guest_speed": 10.910164813470898,
         "mode": "unpaced interactive benchmark, Dynarmic, instruction-driven virtual clock",
         "audio": "shared clocked DSP; output discarded",
-        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-asphalt-2/golf-san-francisco-barrier.json",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-asphalt-2/golf-san-francisco-barrier.json",
         "screenshots": [
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-asphalt-2/golf-san-francisco-barrier-start.png",
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-asphalt-2/golf-san-francisco-barrier-end.png"
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-asphalt-2/golf-san-francisco-barrier-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-asphalt-2/golf-san-francisco-barrier-end.png"
         ],
         "load_average": {
           "first": [
-            0.5263671875,
-            0.7763671875,
-            0.84228515625
+            0.9833984375,
+            1.2587890625,
+            1.3046875
           ],
           "last": [
-            0.525390625,
-            0.767578125,
-            0.83837890625
+            0.90576171875,
+            1.2333984375,
+            1.29541015625
           ],
-          "max_one_minute": 0.5263671875
+          "max_one_minute": 0.98486328125
         }
       },
       "wasm": {
@@ -506,28 +464,28 @@
         "browser": "Chrome/153.0.8010.52",
         "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
         "load": [
-          0.59,
-          0.84,
-          0.87
+          2.28,
+          1.4,
+          1.21
         ],
         "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
         "sound": "browser muted; guest audio remains enabled",
-        "seconds": 10.049049999952317,
-        "frames": 1409,
-        "fps": 140.2122588709068,
-        "guestSeconds": 102.38,
-        "guestSpeed": 10.188027724062055,
-        "compiledFunctions": 91,
+        "seconds": 10.042460000038147,
+        "frames": 1307,
+        "fps": 130.14739416388366,
+        "guestSeconds": 97.42,
+        "guestSpeed": 9.700810359177925,
+        "compiledFunctions": 95,
         "compilationUs": {
-          "aot_translation_us": 41372,
-          "aot_emission_us": 1598,
-          "aot_installation_us": 2882
+          "aot_translation_us": 44119,
+          "aot_emission_us": 1712,
+          "aot_installation_us": 3143
         },
         "errors": [],
-        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-asphalt-2/golf-san-francisco-barrier.json",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-asphalt-2/golf-san-francisco-barrier.json",
         "screenshots": [
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-asphalt-2/golf-san-francisco-barrier-start.png",
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-asphalt-2/golf-san-francisco-barrier-end.png"
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-asphalt-2/golf-san-francisco-barrier-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-asphalt-2/golf-san-francisco-barrier-end.png"
         ],
         "sample_checks": {
           "count": 21,
@@ -539,45 +497,45 @@
           ]
         },
         "first_sample": {
-          "ms": 174469.2650001049,
-          "guest": 96820000,
-          "frames": 1020,
+          "ms": 22927.36999988556,
+          "guest": 97020000,
+          "frames": 989,
           "phase": 0,
           "inputs": 14,
           "monitor": {
-            "guest_us": 96820000,
+            "guest_us": 97020000,
             "instructions": 0,
-            "compiled_functions": 41927,
-            "aot_translation_us": 7063791,
-            "aot_emission_us": 279823,
-            "aot_installation_us": 582444,
-            "aot_eager_functions": 31057,
+            "compiled_functions": 41838,
+            "aot_translation_us": 7129357,
+            "aot_emission_us": 278237,
+            "aot_installation_us": 604998,
+            "aot_eager_functions": 31063,
             "aot_eager_passes": 12,
-            "allocated_bytes": 878546520,
-            "free_bytes": 87576360
+            "allocated_bytes": 879612568,
+            "free_bytes": 86502888
           }
         },
         "last_sample": {
-          "ms": 184518.31500005722,
-          "guest": 199200000,
-          "frames": 2429,
+          "ms": 32969.829999923706,
+          "guest": 194440000,
+          "frames": 2296,
           "phase": 0,
           "inputs": 14,
           "monitor": {
-            "guest_us": 199200000,
+            "guest_us": 194440000,
             "instructions": 0,
-            "compiled_functions": 42018,
-            "aot_translation_us": 7105163,
-            "aot_emission_us": 281421,
-            "aot_installation_us": 585326,
-            "aot_eager_functions": 31057,
+            "compiled_functions": 41933,
+            "aot_translation_us": 7173476,
+            "aot_emission_us": 279949,
+            "aot_installation_us": 608141,
+            "aot_eager_functions": 31063,
             "aot_eager_passes": 12,
-            "allocated_bytes": 878545560,
-            "free_bytes": 87577320
+            "allocated_bytes": 878678472,
+            "free_bytes": 87436984
           }
         }
       },
-      "wasm_relative_to_qt": 0.7978472880416572,
+      "wasm_relative_to_qt": 0.7456226091181257,
       "qt_failure": null
     },
     {
@@ -589,37 +547,37 @@
       "qt": {
         "game": "hooked-on",
         "scene": "costa-rica-boat",
-        "seconds": 5.003946776036173,
-        "frames": 1716,
-        "fps": 342.9293069658332,
+        "seconds": 5.004757604096085,
+        "frames": 1807,
+        "fps": 361.05644727350676,
         "drawable_counts": {
-          "2097213": 1716
+          "2097213": 1807
         },
-        "start": 1083801.075520884,
-        "end": 1083806.07946766,
+        "start": 1096356.312412554,
+        "end": 1096361.317170158,
         "window": "2097163",
-        "binary_sha256": "e0d56a07dab199dce46630898bcdca0da027763605216c8924e66b07797a6215",
-        "guest_seconds": 53.653136,
-        "guest_speed": 10.722163604326104,
+        "binary_sha256": "e958639777e92d96e4d5bf0162fc9090aba065cab1be1784e3c360f867db6fe0",
+        "guest_seconds": 56.501201,
+        "guest_speed": 11.289498007607254,
         "mode": "unpaced interactive benchmark, Dynarmic, instruction-driven virtual clock",
         "audio": "shared clocked DSP; output discarded",
-        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-hooked-on/costa-rica-boat.json",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-hooked-on/costa-rica-boat.json",
         "screenshots": [
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-hooked-on/costa-rica-boat-start.png",
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-hooked-on/costa-rica-boat-end.png"
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-hooked-on/costa-rica-boat-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-hooked-on/costa-rica-boat-end.png"
         ],
         "load_average": {
           "first": [
-            0.84326171875,
-            0.994140625,
-            0.9296875
+            0.44140625,
+            0.93603515625,
+            1.17138671875
           ],
           "last": [
-            0.85595703125,
-            0.99462890625,
-            0.93017578125
+            0.486328125,
+            0.9375,
+            1.17041015625
           ],
-          "max_one_minute": 0.85595703125
+          "max_one_minute": 0.486328125
         }
       },
       "wasm": {
@@ -630,28 +588,28 @@
         "browser": "Chrome/153.0.8010.52",
         "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
         "load": [
-          0.84,
-          0.88,
-          0.9
+          1.58,
+          1.55,
+          1.31
         ],
         "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
         "sound": "browser muted; guest audio remains enabled",
-        "seconds": 5.050205000162125,
-        "frames": 1359,
-        "fps": 269.09798710277556,
-        "guestSeconds": 43.398,
-        "guestSpeed": 8.59331452854029,
-        "compiledFunctions": 124,
+        "seconds": 5.05119000005722,
+        "frames": 1336,
+        "fps": 264.49212957439056,
+        "guestSeconds": 42.76125,
+        "guestSpeed": 8.465579398026128,
+        "compiledFunctions": 127,
         "compilationUs": {
-          "aot_translation_us": 24231,
-          "aot_emission_us": 1640,
-          "aot_installation_us": 13001
+          "aot_translation_us": 23860,
+          "aot_emission_us": 1621,
+          "aot_installation_us": 14425
         },
         "errors": [],
-        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-hooked-on/costa-rica-boat.json",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-hooked-on/costa-rica-boat.json",
         "screenshots": [
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-hooked-on/costa-rica-boat-start.png",
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-hooked-on/costa-rica-boat-end.png"
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-hooked-on/costa-rica-boat-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-hooked-on/costa-rica-boat-end.png"
         ],
         "sample_checks": {
           "count": 11,
@@ -663,45 +621,45 @@
           ]
         },
         "first_sample": {
-          "ms": 570573.7049999237,
-          "guest": 1067744000,
-          "frames": 8076,
+          "ms": 225914.01999998093,
+          "guest": 1067770000,
+          "frames": 8075,
           "phase": 0,
           "inputs": 33,
           "monitor": {
-            "guest_us": 1067744000,
+            "guest_us": 1067780000,
             "instructions": 0,
-            "compiled_functions": 194475,
-            "aot_translation_us": 29291867,
-            "aot_emission_us": 1247141,
-            "aot_installation_us": 2871708,
-            "aot_eager_functions": 182424,
-            "aot_eager_passes": 161,
-            "allocated_bytes": 1600088352,
-            "free_bytes": 52245600
+            "compiled_functions": 194555,
+            "aot_translation_us": 29265585,
+            "aot_emission_us": 1251324,
+            "aot_installation_us": 2808184,
+            "aot_eager_functions": 182517,
+            "aot_eager_passes": 159,
+            "allocated_bytes": 1597268912,
+            "free_bytes": 57285840
           }
         },
         "last_sample": {
-          "ms": 575623.9100000858,
-          "guest": 1111142000,
-          "frames": 9435,
+          "ms": 230965.21000003815,
+          "guest": 1110531250,
+          "frames": 9411,
           "phase": 0,
           "inputs": 33,
           "monitor": {
-            "guest_us": 1111142000,
+            "guest_us": 1110534000,
             "instructions": 0,
-            "compiled_functions": 194599,
-            "aot_translation_us": 29316098,
-            "aot_emission_us": 1248781,
-            "aot_installation_us": 2884709,
-            "aot_eager_functions": 182424,
-            "aot_eager_passes": 161,
-            "allocated_bytes": 1598379928,
-            "free_bytes": 53954024
+            "compiled_functions": 194682,
+            "aot_translation_us": 29289445,
+            "aot_emission_us": 1252945,
+            "aot_installation_us": 2822609,
+            "aot_eager_functions": 182517,
+            "aot_eager_passes": 159,
+            "allocated_bytes": 1597373576,
+            "free_bytes": 57181176
           }
         }
       },
-      "wasm_relative_to_qt": 0.784703965618157,
+      "wasm_relative_to_qt": 0.7325506345938008,
       "qt_failure": null
     },
     {
@@ -709,38 +667,74 @@
       "game": "asphalt-3",
       "title": "Asphalt 3: Street Rules",
       "version": "1.2.7, N-Gage 2.0, modified BodyZ preservation copy; original fails registration",
-      "scene": "Instant Play, red car, coastal track; sound OFF",
-      "qt": null,
+      "scene": "Instant Play; coastal race in red car, guest sound enabled",
+      "qt": {
+        "game": "asphalt-3",
+        "scene": "instant-play-driving-sound-on",
+        "seconds": 5.004069096175954,
+        "frames": 1224,
+        "fps": 244.6009390508547,
+        "drawable_counts": {
+          "2097213": 1224
+        },
+        "start": 1096544.709689414,
+        "end": 1096549.71375851,
+        "window": "2097163",
+        "binary_sha256": "e958639777e92d96e4d5bf0162fc9090aba065cab1be1784e3c360f867db6fe0",
+        "guest_seconds": 39.009203,
+        "guest_speed": 7.795496475020767,
+        "mode": "unpaced interactive benchmark, Dynarmic, instruction-driven virtual clock",
+        "audio": "Guest sound explicitly enabled; shared clocked DSP; output discarded",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-asphalt-3/instant-play-driving-sound-on.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-asphalt-3/instant-play-driving-sound-on-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-asphalt-3/instant-play-driving-sound-on-end.png"
+        ],
+        "load_average": {
+          "first": [
+            0.8232421875,
+            0.8916015625,
+            1.10693359375
+          ],
+          "last": [
+            0.99755859375,
+            0.9267578125,
+            1.1171875
+          ],
+          "max_one_minute": 0.99755859375
+        },
+        "installed_state_source": "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/asphalt-3-fresh-data"
+      },
       "wasm": {
         "game": "asphalt-3",
-        "label": "instant-play-driving-sound-off",
+        "label": "instant-play-driving-sound-on",
         "edition": "1.2.7, N-Gage 2.0, modified BodyZ preservation copy; original fails registration",
         "url": "https://claude-laptop.lan:8188/?game=custom",
         "browser": "Chrome/153.0.8010.52",
         "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
         "load": [
-          1,
-          0.74,
-          0.82
+          1.71,
+          1.61,
+          1.37
         ],
         "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
-        "sound": "Disabled at in-game sound prompt (raw harness default label corrected here)",
-        "seconds": 5.039579999923706,
-        "frames": 348,
-        "fps": 69.05337349645572,
-        "guestSeconds": 19.70625,
-        "guestSpeed": 3.9102960961624444,
-        "compiledFunctions": 68,
+        "sound": "Guest sound explicitly enabled at YES prompt; browser output muted",
+        "seconds": 5.041254999876022,
+        "frames": 816,
+        "fps": 161.86445637446778,
+        "guestSeconds": 30.114375,
+        "guestSpeed": 5.973586934352773,
+        "compiledFunctions": 104,
         "compilationUs": {
-          "aot_translation_us": 11475,
-          "aot_emission_us": 1171,
-          "aot_installation_us": 12703
+          "aot_translation_us": 16350,
+          "aot_emission_us": 972,
+          "aot_installation_us": 8092
         },
         "errors": [],
-        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-asphalt-3/instant-play-driving-sound-off.json",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-asphalt-3/instant-play-driving-sound-on.json",
         "screenshots": [
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-asphalt-3/instant-play-driving-sound-off-start.png",
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-asphalt-3/instant-play-driving-sound-off-end.png"
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-asphalt-3/instant-play-driving-sound-on-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-asphalt-3/instant-play-driving-sound-on-end.png"
         ],
         "sample_checks": {
           "count": 11,
@@ -752,46 +746,46 @@
           ]
         },
         "first_sample": {
-          "ms": 577583.625,
-          "guest": 842450000,
-          "frames": 2945,
+          "ms": 133655.00500011444,
+          "guest": 848620000,
+          "frames": 3686,
           "phase": 0,
           "inputs": 13,
           "monitor": {
-            "guest_us": 842450000,
+            "guest_us": 848625000,
             "instructions": 0,
-            "compiled_functions": 137157,
-            "aot_translation_us": 24790312,
-            "aot_emission_us": 905976,
-            "aot_installation_us": 2034083,
-            "aot_eager_functions": 125380,
+            "compiled_functions": 136937,
+            "aot_translation_us": 24692151,
+            "aot_emission_us": 892687,
+            "aot_installation_us": 1967760,
+            "aot_eager_functions": 125367,
             "aot_eager_passes": 123,
-            "allocated_bytes": 1579932616,
-            "free_bytes": 72401336
+            "allocated_bytes": 1580200936,
+            "free_bytes": 74353816
           }
         },
         "last_sample": {
-          "ms": 582623.2049999237,
-          "guest": 862156250,
-          "frames": 3293,
+          "ms": 138696.25999999046,
+          "guest": 878734375,
+          "frames": 4502,
           "phase": 0,
           "inputs": 13,
           "monitor": {
-            "guest_us": 862160000,
+            "guest_us": 878740000,
             "instructions": 0,
-            "compiled_functions": 137225,
-            "aot_translation_us": 24801787,
-            "aot_emission_us": 907147,
-            "aot_installation_us": 2046786,
-            "aot_eager_functions": 125380,
+            "compiled_functions": 137041,
+            "aot_translation_us": 24708501,
+            "aot_emission_us": 893659,
+            "aot_installation_us": 1975852,
+            "aot_eager_functions": 125367,
             "aot_eager_passes": 123,
-            "allocated_bytes": 1581205992,
-            "free_bytes": 71127960
+            "allocated_bytes": 1580227896,
+            "free_bytes": 74326856
           }
         }
       },
-      "wasm_relative_to_qt": null,
-      "qt_failure": "Unpaced native startup failed in four attempts: KERN-EXEC 3/null read, USER 44, or -1000002 launcher error. No gameplay FPS."
+      "wasm_relative_to_qt": 0.6617491208437868,
+      "qt_failure": null
     },
     {
       "number": 7,
@@ -802,37 +796,37 @@
       "qt": {
         "game": "tetris",
         "scene": "marathon-level-1",
-        "seconds": 5.004547894001007,
-        "frames": 797,
-        "fps": 159.25514489637925,
+        "seconds": 5.004777692025527,
+        "frames": 858,
+        "fps": 171.4361861401183,
         "drawable_counts": {
-          "2097213": 797
+          "2097213": 858
         },
-        "start": 1085034.180215166,
-        "end": 1085039.18476306,
+        "start": 1096715.410974616,
+        "end": 1096720.415752308,
         "window": "2097163",
-        "binary_sha256": "e0d56a07dab199dce46630898bcdca0da027763605216c8924e66b07797a6215",
-        "guest_seconds": 25.542097,
-        "guest_speed": 5.1037771125374825,
+        "binary_sha256": "e958639777e92d96e4d5bf0162fc9090aba065cab1be1784e3c360f867db6fe0",
+        "guest_seconds": 27.005688,
+        "guest_speed": 5.39598153241254,
         "mode": "unpaced interactive benchmark, Dynarmic, instruction-driven virtual clock",
         "audio": "shared clocked DSP; output discarded",
-        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-tetris/marathon-level-1.json",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-tetris/marathon-level-1.json",
         "screenshots": [
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-tetris/marathon-level-1-start.png",
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-tetris/marathon-level-1-end.png"
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-tetris/marathon-level-1-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-tetris/marathon-level-1-end.png"
         ],
         "load_average": {
           "first": [
-            0.79296875,
-            1.07177734375,
-            0.9677734375
+            0.4833984375,
+            0.73583984375,
+            1.0078125
           ],
           "last": [
-            0.8896484375,
-            1.08740234375,
-            0.9736328125
+            0.68505859375,
+            0.7734375,
+            1.0185546875
           ],
-          "max_one_minute": 0.8896484375
+          "max_one_minute": 0.68505859375
         }
       },
       "wasm": {
@@ -843,28 +837,28 @@
         "browser": "Chrome/153.0.8010.52",
         "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
         "load": [
-          1.39,
-          1.16,
-          0.98
+          1.47,
+          1.56,
+          1.38
         ],
         "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
         "sound": "browser muted; guest audio remains enabled",
-        "seconds": 5.038329999923706,
-        "frames": 851,
-        "fps": 168.90517294676738,
-        "guestSeconds": 26.96375,
-        "guestSpeed": 5.351723686302467,
-        "compiledFunctions": 27,
+        "seconds": 5.038849999904633,
+        "frames": 854,
+        "fps": 169.48311619043295,
+        "guestSeconds": 26.945,
+        "guestSpeed": 5.347450311184094,
+        "compiledFunctions": 23,
         "compilationUs": {
-          "aot_translation_us": 2227,
-          "aot_emission_us": 268,
-          "aot_installation_us": 2798
+          "aot_translation_us": 1520,
+          "aot_emission_us": 224,
+          "aot_installation_us": 2304
         },
         "errors": [],
-        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-tetris/marathon-level-1.json",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-tetris/marathon-level-1.json",
         "screenshots": [
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-tetris/marathon-level-1-start.png",
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-tetris/marathon-level-1-end.png"
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-tetris/marathon-level-1-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-tetris/marathon-level-1-end.png"
         ],
         "sample_checks": {
           "count": 11,
@@ -876,45 +870,45 @@
           ]
         },
         "first_sample": {
-          "ms": 204042.33000016212,
-          "guest": 746130000,
-          "frames": 1907,
+          "ms": 95836.99500012398,
+          "guest": 746125000,
+          "frames": 1942,
           "phase": 0,
           "inputs": 26,
           "monitor": {
-            "guest_us": 746140000,
+            "guest_us": 746130000,
             "instructions": 0,
-            "compiled_functions": 152961,
-            "aot_translation_us": 24988269,
-            "aot_emission_us": 889217,
-            "aot_installation_us": 2052038,
-            "aot_eager_functions": 141406,
-            "aot_eager_passes": 142,
-            "allocated_bytes": 1595873944,
-            "free_bytes": 106889960
+            "compiled_functions": 152921,
+            "aot_translation_us": 25220945,
+            "aot_emission_us": 902758,
+            "aot_installation_us": 2062240,
+            "aot_eager_functions": 141329,
+            "aot_eager_passes": 141,
+            "allocated_bytes": 1594762800,
+            "free_bytes": 109763152
           }
         },
         "last_sample": {
-          "ms": 209080.66000008583,
-          "guest": 773093750,
-          "frames": 2758,
+          "ms": 100875.84500002861,
+          "guest": 773070000,
+          "frames": 2796,
           "phase": 0,
           "inputs": 26,
           "monitor": {
-            "guest_us": 773100000,
+            "guest_us": 773077000,
             "instructions": 0,
-            "compiled_functions": 152988,
-            "aot_translation_us": 24990496,
-            "aot_emission_us": 889485,
-            "aot_installation_us": 2054836,
-            "aot_eager_functions": 141406,
-            "aot_eager_passes": 142,
-            "allocated_bytes": 1595881744,
-            "free_bytes": 106882160
+            "compiled_functions": 152944,
+            "aot_translation_us": 25222465,
+            "aot_emission_us": 902982,
+            "aot_installation_us": 2064544,
+            "aot_eager_functions": 141329,
+            "aot_eager_passes": 141,
+            "allocated_bytes": 1594751064,
+            "free_bytes": 109774888
           }
         }
       },
-      "wasm_relative_to_qt": 1.0605947648138276,
+      "wasm_relative_to_qt": 0.9886075980009899,
       "qt_failure": null
     },
     {
@@ -926,37 +920,37 @@
       "qt": {
         "game": "super-miners",
         "scene": "challenge-level-1",
-        "seconds": 5.0039428560994565,
-        "frames": 1638,
-        "fps": 327.34186762412617,
+        "seconds": 5.004428060026839,
+        "frames": 1644,
+        "fps": 328.50906842513047,
         "drawable_counts": {
-          "2097213": 1638
+          "2097213": 1644
         },
-        "start": 1085098.810261821,
-        "end": 1085103.814204677,
+        "start": 1096758.369729211,
+        "end": 1096763.374157271,
         "window": "2097163",
-        "binary_sha256": "e0d56a07dab199dce46630898bcdca0da027763605216c8924e66b07797a6215",
-        "guest_seconds": 51.186167,
-        "guest_speed": 10.229166973321375,
+        "binary_sha256": "e958639777e92d96e4d5bf0162fc9090aba065cab1be1784e3c360f867db6fe0",
+        "guest_seconds": 51.370512,
+        "guest_speed": 10.265011582507292,
         "mode": "unpaced interactive benchmark, Dynarmic, instruction-driven virtual clock",
         "audio": "shared clocked DSP; output discarded",
-        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-super-miners/challenge-level-1.json",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-super-miners/challenge-level-1.json",
         "screenshots": [
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-super-miners/challenge-level-1-start.png",
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-super-miners/challenge-level-1-end.png"
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-super-miners/challenge-level-1-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-super-miners/challenge-level-1-end.png"
         ],
         "load_average": {
           "first": [
-            0.646484375,
-            0.97900390625,
-            0.943359375
+            0.65185546875,
+            0.7548828125,
+            1.0
           ],
           "last": [
-            0.6748046875,
-            0.9794921875,
-            0.94384765625
+            0.68017578125,
+            0.75927734375,
+            1.0
           ],
-          "max_one_minute": 0.6748046875
+          "max_one_minute": 0.68017578125
         }
       },
       "wasm": {
@@ -967,28 +961,28 @@
         "browser": "Chrome/153.0.8010.52",
         "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
         "load": [
-          0.75,
-          0.98,
-          0.94
+          1.13,
+          0.88,
+          0.97
         ],
         "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
         "sound": "browser muted; guest audio remains enabled",
-        "seconds": 5.0216349999904635,
-        "frames": 1774,
-        "fps": 353.27139467591115,
-        "guestSeconds": 55.41,
-        "guestSpeed": 11.03425477958976,
-        "compiledFunctions": 12,
+        "seconds": 5.02134500002861,
+        "frames": 1768,
+        "fps": 352.0968983389762,
+        "guestSeconds": 55.27,
+        "guestSpeed": 11.007011069680551,
+        "compiledFunctions": 14,
         "compilationUs": {
-          "aot_translation_us": 467,
-          "aot_emission_us": 110,
-          "aot_installation_us": 400
+          "aot_translation_us": 1017,
+          "aot_emission_us": 155,
+          "aot_installation_us": 395
         },
         "errors": [],
-        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-super-miners/challenge-level-1.json",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-super-miners-repeat-3/challenge-level-1.json",
         "screenshots": [
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-super-miners/challenge-level-1-start.png",
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-super-miners/challenge-level-1-end.png"
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-super-miners-repeat-3/challenge-level-1-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-super-miners-repeat-3/challenge-level-1-end.png"
         ],
         "sample_checks": {
           "count": 11,
@@ -1000,45 +994,291 @@
           ]
         },
         "first_sample": {
-          "ms": 122143.50500011444,
-          "guest": 60850000,
-          "frames": 1399,
+          "ms": 17357.264999866486,
+          "guest": 60870000,
+          "frames": 1422,
           "phase": 0,
           "inputs": 10,
           "monitor": {
-            "guest_us": 60859375,
+            "guest_us": 60870000,
             "instructions": 0,
-            "compiled_functions": 46303,
-            "aot_translation_us": 5791522,
-            "aot_emission_us": 263833,
-            "aot_installation_us": 589773,
-            "aot_eager_functions": 38708,
+            "compiled_functions": 46282,
+            "aot_translation_us": 5757087,
+            "aot_emission_us": 259914,
+            "aot_installation_us": 569408,
+            "aot_eager_functions": 38710,
             "aot_eager_passes": 12,
-            "allocated_bytes": 879380520,
-            "free_bytes": 86742360
+            "allocated_bytes": 878188696,
+            "free_bytes": 87926760
           }
         },
         "last_sample": {
-          "ms": 127165.1400001049,
-          "guest": 116260000,
-          "frames": 3173,
+          "ms": 22378.609999895096,
+          "guest": 116140000,
+          "frames": 3190,
           "phase": 0,
           "inputs": 10,
           "monitor": {
-            "guest_us": 116265625,
+            "guest_us": 116140000,
             "instructions": 0,
-            "compiled_functions": 46315,
-            "aot_translation_us": 5791989,
-            "aot_emission_us": 263943,
-            "aot_installation_us": 590173,
-            "aot_eager_functions": 38708,
+            "compiled_functions": 46296,
+            "aot_translation_us": 5758104,
+            "aot_emission_us": 260069,
+            "aot_installation_us": 569803,
+            "aot_eager_functions": 38710,
             "aot_eager_passes": 12,
-            "allocated_bytes": 878202760,
-            "free_bytes": 87920120
+            "allocated_bytes": 879514384,
+            "free_bytes": 86601072
           }
+        },
+        "repetition_summary": {
+          "statistic": "median of three fresh browser launches; all three retained",
+          "fps_range": [
+            244.26217606217335,
+            359.39011258763327
+          ],
+          "samples": [
+            {
+              "game": "super-miners",
+              "label": "challenge-level-1",
+              "edition": "1.07b, S60v3 240x320, modified DeFconX preservation copy",
+              "url": "https://claude-laptop.lan:8188/?game=custom",
+              "browser": "Chrome/153.0.8010.52",
+              "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+              "load": [
+                1.65,
+                1.6,
+                1.39
+              ],
+              "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+              "sound": "browser muted; guest audio remains enabled",
+              "seconds": 5.027384999990463,
+              "frames": 1228,
+              "fps": 244.26217606217335,
+              "guestSeconds": 38.37,
+              "guestSpeed": 7.632198449108787,
+              "compiledFunctions": 14,
+              "compilationUs": {
+                "aot_translation_us": 1510,
+                "aot_emission_us": 184,
+                "aot_installation_us": 499
+              },
+              "errors": [],
+              "raw_path": "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-super-miners/challenge-level-1.json",
+              "screenshots": [
+                "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-super-miners/challenge-level-1-start.png",
+                "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-super-miners/challenge-level-1-end.png"
+              ],
+              "sample_checks": {
+                "count": 11,
+                "route_phases": [
+                  0
+                ],
+                "instruction_totals": [
+                  0
+                ]
+              },
+              "first_sample": {
+                "ms": 17853.31500005722,
+                "guest": 60650000,
+                "frames": 1410,
+                "phase": 0,
+                "inputs": 10,
+                "monitor": {
+                  "guest_us": 60660000,
+                  "instructions": 0,
+                  "compiled_functions": 46269,
+                  "aot_translation_us": 5820861,
+                  "aot_emission_us": 266208,
+                  "aot_installation_us": 583471,
+                  "aot_eager_functions": 38707,
+                  "aot_eager_passes": 12,
+                  "allocated_bytes": 878250512,
+                  "free_bytes": 87864944
+                }
+              },
+              "last_sample": {
+                "ms": 22880.700000047684,
+                "guest": 99020000,
+                "frames": 2638,
+                "phase": 0,
+                "inputs": 10,
+                "monitor": {
+                  "guest_us": 99020000,
+                  "instructions": 0,
+                  "compiled_functions": 46283,
+                  "aot_translation_us": 5822371,
+                  "aot_emission_us": 266392,
+                  "aot_installation_us": 583970,
+                  "aot_eager_functions": 38707,
+                  "aot_eager_passes": 12,
+                  "allocated_bytes": 878216472,
+                  "free_bytes": 87898984
+                }
+              }
+            },
+            {
+              "game": "super-miners",
+              "label": "challenge-level-1",
+              "edition": "1.07b, S60v3 240x320, modified DeFconX preservation copy",
+              "url": "https://claude-laptop.lan:8188/?game=custom",
+              "browser": "Chrome/153.0.8010.52",
+              "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+              "load": [
+                1.27,
+                0.88,
+                0.97
+              ],
+              "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+              "sound": "browser muted; guest audio remains enabled",
+              "seconds": 5.019615000009536,
+              "frames": 1804,
+              "fps": 359.39011258763327,
+              "guestSeconds": 56.40125,
+              "guestSpeed": 11.236170503094927,
+              "compiledFunctions": 14,
+              "compilationUs": {
+                "aot_translation_us": 707,
+                "aot_emission_us": 114,
+                "aot_installation_us": 355
+              },
+              "errors": [],
+              "raw_path": "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-super-miners-repeat-2/challenge-level-1.json",
+              "screenshots": [
+                "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-super-miners-repeat-2/challenge-level-1-start.png",
+                "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-super-miners-repeat-2/challenge-level-1-end.png"
+              ],
+              "sample_checks": {
+                "count": 11,
+                "route_phases": [
+                  0
+                ],
+                "instruction_totals": [
+                  0
+                ]
+              },
+              "first_sample": {
+                "ms": 17464.49499988556,
+                "guest": 60880000,
+                "frames": 1424,
+                "phase": 0,
+                "inputs": 10,
+                "monitor": {
+                  "guest_us": 60880000,
+                  "instructions": 0,
+                  "compiled_functions": 46252,
+                  "aot_translation_us": 5759698,
+                  "aot_emission_us": 259671,
+                  "aot_installation_us": 577106,
+                  "aot_eager_functions": 38677,
+                  "aot_eager_passes": 12,
+                  "allocated_bytes": 878095392,
+                  "free_bytes": 88020064
+                }
+              },
+              "last_sample": {
+                "ms": 22484.109999895096,
+                "guest": 117281250,
+                "frames": 3228,
+                "phase": 0,
+                "inputs": 10,
+                "monitor": {
+                  "guest_us": 117281250,
+                  "instructions": 0,
+                  "compiled_functions": 46266,
+                  "aot_translation_us": 5760405,
+                  "aot_emission_us": 259785,
+                  "aot_installation_us": 577461,
+                  "aot_eager_functions": 38677,
+                  "aot_eager_passes": 12,
+                  "allocated_bytes": 879349592,
+                  "free_bytes": 86765864
+                }
+              }
+            },
+            {
+              "game": "super-miners",
+              "label": "challenge-level-1",
+              "edition": "1.07b, S60v3 240x320, modified DeFconX preservation copy",
+              "url": "https://claude-laptop.lan:8188/?game=custom",
+              "browser": "Chrome/153.0.8010.52",
+              "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+              "load": [
+                1.13,
+                0.88,
+                0.97
+              ],
+              "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+              "sound": "browser muted; guest audio remains enabled",
+              "seconds": 5.02134500002861,
+              "frames": 1768,
+              "fps": 352.0968983389762,
+              "guestSeconds": 55.27,
+              "guestSpeed": 11.007011069680551,
+              "compiledFunctions": 14,
+              "compilationUs": {
+                "aot_translation_us": 1017,
+                "aot_emission_us": 155,
+                "aot_installation_us": 395
+              },
+              "errors": [],
+              "raw_path": "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-super-miners-repeat-3/challenge-level-1.json",
+              "screenshots": [
+                "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-super-miners-repeat-3/challenge-level-1-start.png",
+                "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-super-miners-repeat-3/challenge-level-1-end.png"
+              ],
+              "sample_checks": {
+                "count": 11,
+                "route_phases": [
+                  0
+                ],
+                "instruction_totals": [
+                  0
+                ]
+              },
+              "first_sample": {
+                "ms": 17357.264999866486,
+                "guest": 60870000,
+                "frames": 1422,
+                "phase": 0,
+                "inputs": 10,
+                "monitor": {
+                  "guest_us": 60870000,
+                  "instructions": 0,
+                  "compiled_functions": 46282,
+                  "aot_translation_us": 5757087,
+                  "aot_emission_us": 259914,
+                  "aot_installation_us": 569408,
+                  "aot_eager_functions": 38710,
+                  "aot_eager_passes": 12,
+                  "allocated_bytes": 878188696,
+                  "free_bytes": 87926760
+                }
+              },
+              "last_sample": {
+                "ms": 22378.609999895096,
+                "guest": 116140000,
+                "frames": 3190,
+                "phase": 0,
+                "inputs": 10,
+                "monitor": {
+                  "guest_us": 116140000,
+                  "instructions": 0,
+                  "compiled_functions": 46296,
+                  "aot_translation_us": 5758104,
+                  "aot_emission_us": 260069,
+                  "aot_installation_us": 569803,
+                  "aot_eager_functions": 38710,
+                  "aot_eager_passes": 12,
+                  "allocated_bytes": 879514384,
+                  "free_bytes": 86601072
+                }
+              }
+            }
+          ]
         }
       },
-      "wasm_relative_to_qt": 1.0792123758564207,
+      "wasm_relative_to_qt": 1.0718026751192153,
       "qt_failure": null
     },
     {
@@ -1050,37 +1290,37 @@
       "qt": {
         "game": "explode-arena",
         "scene": "arcade-level-1",
-        "seconds": 2.001382935093716,
-        "frames": 860,
-        "fps": 429.7028744075556,
+        "seconds": 2.001839157193899,
+        "frames": 853,
+        "fps": 426.1081600560269,
         "drawable_counts": {
-          "2097213": 860
+          "2097213": 853
         },
-        "start": 1085253.299240565,
-        "end": 1085255.3006235,
+        "start": 1096811.834930122,
+        "end": 1096813.836769279,
         "window": "2097163",
-        "binary_sha256": "e0d56a07dab199dce46630898bcdca0da027763605216c8924e66b07797a6215",
-        "guest_seconds": 24.885412,
-        "guest_speed": 12.434108217693346,
+        "binary_sha256": "e958639777e92d96e4d5bf0162fc9090aba065cab1be1784e3c360f867db6fe0",
+        "guest_seconds": 24.65983,
+        "guest_speed": 12.318587090966487,
         "mode": "unpaced interactive benchmark, Dynarmic, instruction-driven virtual clock",
         "audio": "shared clocked DSP; output discarded",
-        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-explode-arena/arcade-level-1.json",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-explode-arena/arcade-level-1.json",
         "screenshots": [
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-explode-arena/arcade-level-1-start.png",
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-explode-arena/arcade-level-1-end.png"
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-explode-arena/arcade-level-1-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-explode-arena/arcade-level-1-end.png"
         ],
         "load_average": {
           "first": [
-            0.5361328125,
-            0.83203125,
-            0.89453125
+            0.55419921875,
+            0.71728515625,
+            0.97314453125
           ],
           "last": [
-            0.5361328125,
-            0.83203125,
-            0.89453125
+            0.55419921875,
+            0.71728515625,
+            0.97314453125
           ],
-          "max_one_minute": 0.5361328125
+          "max_one_minute": 0.55419921875
         }
       },
       "wasm": {
@@ -1091,28 +1331,28 @@
         "browser": "Chrome/153.0.8010.52",
         "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
         "load": [
-          0.71,
-          0.91,
-          0.92
+          2.1,
+          1.69,
+          1.43
         ],
         "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
         "sound": "browser muted; guest audio remains enabled",
-        "seconds": 3.012625,
-        "frames": 826,
-        "fps": 274.179494626779,
-        "guestSeconds": 19.845,
-        "guestSpeed": 6.587278536160325,
-        "compiledFunctions": 40,
+        "seconds": 3.011954999923706,
+        "frames": 933,
+        "fps": 309.76558415502,
+        "guestSeconds": 18.34875,
+        "guestSpeed": 6.091973485813958,
+        "compiledFunctions": 41,
         "compilationUs": {
-          "aot_translation_us": 7480,
-          "aot_emission_us": 1043,
-          "aot_installation_us": 1803
+          "aot_translation_us": 8406,
+          "aot_emission_us": 849,
+          "aot_installation_us": 1933
         },
         "errors": [],
-        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-explode-arena/arcade-level-1.json",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-explode-arena/arcade-level-1.json",
         "screenshots": [
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-explode-arena/arcade-level-1-start.png",
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-explode-arena/arcade-level-1-end.png"
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-explode-arena/arcade-level-1-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-explode-arena/arcade-level-1-end.png"
         ],
         "sample_checks": {
           "count": 7,
@@ -1124,45 +1364,45 @@
           ]
         },
         "first_sample": {
-          "ms": 66029.17499995232,
-          "guest": 37625000,
-          "frames": 878,
+          "ms": 15568.990000009537,
+          "guest": 37620000,
+          "frames": 928,
           "phase": 0,
           "inputs": 12,
           "monitor": {
-            "guest_us": 37625000,
+            "guest_us": 37620000,
             "instructions": 0,
-            "compiled_functions": 31455,
-            "aot_translation_us": 3220588,
-            "aot_emission_us": 164764,
-            "aot_installation_us": 374307,
-            "aot_eager_functions": 22582,
+            "compiled_functions": 31475,
+            "aot_translation_us": 3855845,
+            "aot_emission_us": 199499,
+            "aot_installation_us": 425693,
+            "aot_eager_functions": 22591,
             "aot_eager_passes": 25,
-            "allocated_bytes": 941535312,
-            "free_bytes": 11496752
+            "allocated_bytes": 940276232,
+            "free_bytes": 11634296
           }
         },
         "last_sample": {
-          "ms": 69041.79999995232,
-          "guest": 57470000,
-          "frames": 1704,
+          "ms": 18580.944999933243,
+          "guest": 55968750,
+          "frames": 1861,
           "phase": 0,
           "inputs": 12,
           "monitor": {
-            "guest_us": 57470000,
+            "guest_us": 55968750,
             "instructions": 0,
-            "compiled_functions": 31495,
-            "aot_translation_us": 3228068,
-            "aot_emission_us": 165807,
-            "aot_installation_us": 376110,
-            "aot_eager_functions": 22582,
+            "compiled_functions": 31516,
+            "aot_translation_us": 3864251,
+            "aot_emission_us": 200348,
+            "aot_installation_us": 427626,
+            "aot_eager_functions": 22591,
             "aot_eager_passes": 25,
-            "allocated_bytes": 940596472,
-            "free_bytes": 12435592
+            "allocated_bytes": 940277720,
+            "free_bytes": 11632808
           }
         }
       },
-      "wasm_relative_to_qt": 0.6380676298821565,
+      "wasm_relative_to_qt": 0.7269646845399309,
       "qt_failure": null
     },
     {
@@ -1174,37 +1414,37 @@
       "qt": {
         "game": "pathway-to-glory",
         "scene": "pantelleria-battlefield",
-        "seconds": 5.004360501188785,
-        "frames": 1222,
-        "fps": 244.1870444205037,
+        "seconds": 5.004494238877669,
+        "frames": 1163,
+        "fps": 232.39111576254302,
         "drawable_counts": {
-          "2097213": 1222
+          "2097213": 1163
         },
-        "start": 1085718.95537142,
-        "end": 1085723.959731921,
+        "start": 1097021.071830519,
+        "end": 1097026.076324758,
         "window": "2097163",
-        "binary_sha256": "e0d56a07dab199dce46630898bcdca0da027763605216c8924e66b07797a6215",
-        "guest_seconds": 30.944901,
-        "guest_speed": 6.183587491878142,
+        "binary_sha256": "e958639777e92d96e4d5bf0162fc9090aba065cab1be1784e3c360f867db6fe0",
+        "guest_seconds": 31.038685,
+        "guest_speed": 6.202162200302758,
         "mode": "unpaced interactive benchmark, Dynarmic, instruction-driven virtual clock",
         "audio": "shared clocked DSP; output discarded",
-        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-pathway-to-glory/pantelleria-battlefield.json",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-pathway-to-glory/pantelleria-battlefield.json",
         "screenshots": [
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-pathway-to-glory/pantelleria-battlefield-start.png",
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-pathway-to-glory/pantelleria-battlefield-end.png"
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-pathway-to-glory/pantelleria-battlefield-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/qt-pathway-to-glory/pantelleria-battlefield-end.png"
         ],
         "load_average": {
           "first": [
-            0.255859375,
-            0.5849609375,
-            0.7705078125
+            0.62109375,
+            0.72705078125,
+            0.92919921875
           ],
           "last": [
-            0.31591796875,
-            0.59228515625,
-            0.77197265625
+            0.73193359375,
+            0.74853515625,
+            0.93505859375
           ],
-          "max_one_minute": 0.31591796875
+          "max_one_minute": 0.73193359375
         }
       },
       "wasm": {
@@ -1215,28 +1455,28 @@
         "browser": "Chrome/153.0.8010.52",
         "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
         "load": [
-          0.66,
-          0.77,
-          0.86
+          1.86,
+          1.67,
+          1.43
         ],
         "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
         "sound": "browser muted; guest audio remains enabled",
-        "seconds": 5.023954999923706,
-        "frames": 719,
-        "fps": 143.1143392030619,
-        "guestSeconds": 16.74,
-        "guestSpeed": 3.3320362145469478,
-        "compiledFunctions": 116,
+        "seconds": 5.025460000038147,
+        "frames": 704,
+        "fps": 140.08667863134045,
+        "guestSeconds": 16.40933,
+        "guestSpeed": 3.265239400945474,
+        "compiledFunctions": 167,
         "compilationUs": {
-          "aot_translation_us": 11242,
-          "aot_emission_us": 1042,
-          "aot_installation_us": 2604
+          "aot_translation_us": 13642,
+          "aot_emission_us": 1493,
+          "aot_installation_us": 3096
         },
         "errors": [],
-        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-pathway-to-glory/pantelleria-battlefield.json",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-pathway-to-glory/pantelleria-battlefield.json",
         "screenshots": [
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-pathway-to-glory/pantelleria-battlefield-start.png",
-          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-pathway-to-glory/pantelleria-battlefield-end.png"
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-pathway-to-glory/pantelleria-battlefield-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-after-audio-20261012/wasm-pathway-to-glory/pantelleria-battlefield-end.png"
         ],
         "sample_checks": {
           "count": 11,
@@ -1248,45 +1488,45 @@
           ]
         },
         "first_sample": {
-          "ms": 167270.1700000763,
-          "guest": 86090000,
-          "frames": 1913,
+          "ms": 26431.00500011444,
+          "guest": 86086570,
+          "frames": 1838,
           "phase": 0,
           "inputs": 28,
           "monitor": {
             "guest_us": 86090000,
             "instructions": 0,
-            "compiled_functions": 31997,
-            "aot_translation_us": 2206550,
-            "aot_emission_us": 172763,
-            "aot_installation_us": 357826,
+            "compiled_functions": 31937,
+            "aot_translation_us": 2261777,
+            "aot_emission_us": 192602,
+            "aot_installation_us": 367158,
             "aot_eager_functions": 22906,
             "aot_eager_passes": 8,
-            "allocated_bytes": 590587240,
-            "free_bytes": 26621976
+            "allocated_bytes": 590695720,
+            "free_bytes": 32420696
           }
         },
         "last_sample": {
-          "ms": 172294.125,
-          "guest": 102830000,
-          "frames": 2632,
+          "ms": 31456.465000152588,
+          "guest": 102495900,
+          "frames": 2542,
           "phase": 0,
           "inputs": 28,
           "monitor": {
-            "guest_us": 102830000,
+            "guest_us": 102495900,
             "instructions": 0,
-            "compiled_functions": 32113,
-            "aot_translation_us": 2217792,
-            "aot_emission_us": 173805,
-            "aot_installation_us": 360430,
+            "compiled_functions": 32104,
+            "aot_translation_us": 2275419,
+            "aot_emission_us": 194095,
+            "aot_installation_us": 370254,
             "aot_eager_functions": 22906,
             "aot_eager_passes": 8,
-            "allocated_bytes": 590384992,
-            "free_bytes": 26824224
+            "allocated_bytes": 591864328,
+            "free_bytes": 31252088
           }
         }
       },
-      "wasm_relative_to_qt": 0.5860848987410283,
+      "wasm_relative_to_qt": 0.6028056544746782,
       "qt_failure": null
     }
   ]
