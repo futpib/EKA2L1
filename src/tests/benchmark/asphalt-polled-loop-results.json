@@ -1,0 +1,505 @@
+{
+  "baseline_commit": "8d67829de",
+  "measurement": {
+    "before": {
+      "fps": 15.429428461643344,
+      "cpu_ms_per_frame": 23.631463695372755,
+      "windows": [
+        {
+          "file": "/home/claude/.scratch/eka-asphalt-native-20261012/wasm-control/a1-cpu.json",
+          "fps": 15.90998992626693,
+          "cpu_ms_per_frame": 21.868251406483793,
+          "frames": 401,
+          "seconds": 25.204290000081063,
+          "guest_ratio": 1.0000216232998007,
+          "compiled_functions": 39,
+          "compilation_us": {
+            "aot_translation_us": 38239,
+            "aot_emission_us": 1760,
+            "aot_installation_us": 3184
+          },
+          "errors": []
+        },
+        {
+          "file": "/home/claude/.scratch/eka-asphalt-native-20261012/wasm-control/a2-cpu.json",
+          "fps": 14.949144161544806,
+          "cpu_ms_per_frame": 25.5069229204244,
+          "frames": 377,
+          "seconds": 25.218834999918936,
+          "guest_ratio": 1.0000477817504683,
+          "compiled_functions": 0,
+          "compilation_us": {
+            "aot_translation_us": 5859,
+            "aot_emission_us": 0,
+            "aot_installation_us": 0
+          },
+          "errors": []
+        }
+      ]
+    },
+    "after": {
+      "fps": 16.14388285175849,
+      "cpu_ms_per_frame": 20.279566054054055,
+      "windows": [
+        {
+          "file": "/home/claude/.scratch/eka-asphalt-native-20261012/wasm-polled-d/b1-cpu.json",
+          "fps": 16.697235298751796,
+          "cpu_ms_per_frame": 18.41406190023753,
+          "frames": 421,
+          "seconds": 25.21375499999523,
+          "guest_ratio": 1.0000737692582786,
+          "compiled_functions": 31,
+          "compilation_us": {
+            "aot_translation_us": 52664,
+            "aot_emission_us": 2745,
+            "aot_installation_us": 3964
+          },
+          "errors": []
+        },
+        {
+          "file": "/home/claude/.scratch/eka-asphalt-native-20261012/wasm-polled-d/b2-cpu.json",
+          "fps": 15.590400121908232,
+          "cpu_ms_per_frame": 22.277981445292617,
+          "frames": 393,
+          "seconds": 25.207819999933243,
+          "guest_ratio": 1.0000072993248428,
+          "compiled_functions": 19,
+          "compilation_us": {
+            "aot_translation_us": 15209,
+            "aot_emission_us": 1015,
+            "aot_installation_us": 2089
+          },
+          "errors": []
+        }
+      ]
+    },
+    "gain": {
+      "fps_percent": 4.630465683749985,
+      "cpu_ms_per_frame_reduction_percent": 14.184045831977098
+    }
+  },
+  "native_before": {
+    "samples": {
+      "samples": 7016,
+      "no_instruction_position": 4715,
+      "mapped_arm": 524,
+      "outside_jit": 496,
+      "mapped_cpp": 377,
+      "jit_without_snapshot": 904
+    },
+    "functions": [
+      {
+        "name": "JS:eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))-789-turbofan",
+        "samples": 1790,
+        "native_bytes": 4288,
+        "assembly": "native-3050022-336623.asm",
+        "native_sha256": "bdaa6bfb9ddc685b49fe7e8eae160c3fca42a4d7b66fbaa9b6b9518fc93a1e83"
+      },
+      {
+        "name": "JS:r_2986_pc_1879054788-6-turbofan",
+        "samples": 516,
+        "native_bytes": 1600,
+        "assembly": "native-3050022-389160.asm",
+        "native_sha256": "9b84781aa8bfb82c8f21af7296a418af0c7336631887c8a5219c049096e885ba"
+      },
+      {
+        "name": "JS:r_4018_pc_1879067758-11-turbofan",
+        "samples": 412,
+        "native_bytes": 18048,
+        "assembly": "native-3050022-399673.asm",
+        "native_sha256": "3ed3db316e37e6c2e2e88b4865fc76de187c6692cae2c1c462cc8dcda23c4121"
+      },
+      {
+        "name": "JS:r_3810_pc_1879075514-10-turbofan",
+        "samples": 402,
+        "native_bytes": 28032,
+        "assembly": "native-3050022-399313.asm",
+        "native_sha256": "293d7bf773ac961d7b1fa970c44b7b59f37df6e23f6f4a8b6bf7d3a216b3cf4a"
+      },
+      {
+        "name": "JS:r_3852_pc_1879077170-8-turbofan",
+        "samples": 325,
+        "native_bytes": 6144,
+        "assembly": "native-3050022-399395.asm",
+        "native_sha256": "a61afc9e83bb4bff88f01e2c02c28501eba6bbe23dab44f15cf658df7d23c261"
+      },
+      {
+        "name": "JS:r_3845_pc_1879075474-12-turbofan",
+        "samples": 255,
+        "native_bytes": 28032,
+        "assembly": "native-3050022-399343.asm",
+        "native_sha256": "e4c4c1833ac2d7976d84a01b09fb4942b2a0e399884333c892ebc33b826dcd41"
+      },
+      {
+        "name": "JS:resampler_basic_direct_single-11707-turbofan",
+        "samples": 179,
+        "native_bytes": 1984,
+        "assembly": "native-3050022-399264.asm",
+        "native_sha256": "66d9bb20ea6475aae9c1127856ca4ee6a89ab209789b66288115ae7bea2257a0"
+      },
+      {
+        "name": "JS:r_3885_pc_1879152806-6-turbofan",
+        "samples": 176,
+        "native_bytes": 3840,
+        "assembly": "native-3050022-399364.asm",
+        "native_sha256": "fd9f929d74090cd155f29f404b251bab6f6a56f95dcd2f357a2dd62ad227e5a8"
+      },
+      {
+        "name": "JS:r_3860_pc_1879076336-6-turbofan",
+        "samples": 165,
+        "native_bytes": 13056,
+        "assembly": "native-3050022-399397.asm",
+        "native_sha256": "16a7d8f39f8bd69c3a5c8ad54029471515f2331bddcb2dfca53b1c8bb73bb30c"
+      },
+      {
+        "name": "JS:r_4510_pc_1879085236-10-turbofan",
+        "samples": 113,
+        "native_bytes": 11648,
+        "assembly": "native-3050022-400368.asm",
+        "native_sha256": "d6a29c25670bb69cea8b5b65bba37defc08d46ec23cb07563003011add3358d6"
+      },
+      {
+        "name": "JS:r_3824_pc_1879075380-9-turbofan",
+        "samples": 85,
+        "native_bytes": 28800,
+        "assembly": "native-3050022-399327.asm",
+        "native_sha256": "ac45762a86847b1d927f9db45e61bf43cf2ba244fa2bcbde43fc20490ea26355"
+      },
+      {
+        "name": "JS:r_3833_pc_1879075206-18-turbofan",
+        "samples": 83,
+        "native_bytes": 38272,
+        "assembly": "native-3050022-399334.asm",
+        "native_sha256": "01ca9b795fa4099dadbf2713ffe673a4abe02d036da4aca5bc0629a48a3e5106"
+      },
+      {
+        "name": "JS:eka2l1::arm::aot::validated_code_cache::lookup_trusted_uncached(unsigned int, eka2l1::arm::core&)-775-turbofan",
+        "samples": 69,
+        "native_bytes": 3264,
+        "assembly": "native-3050022-371469.asm",
+        "native_sha256": "592f8d221e0b3319298c502e256679255aca329e94e05c8fe10dcc1832f5309e"
+      },
+      {
+        "name": "JS:r_3433_pc_1879076012-15-turbofan",
+        "samples": 50,
+        "native_bytes": 19264,
+        "assembly": "native-3050022-395838.asm",
+        "native_sha256": "74335e071dd92d1203759d58582870f9c1038f3ceb72b5eeff0398367ff6245d"
+      },
+      {
+        "name": "JS:r_4511_pc_1879085222-11-turbofan",
+        "samples": 48,
+        "native_bytes": 11456,
+        "assembly": "native-3050022-400367.asm",
+        "native_sha256": "08ce47203218be1c431856c1ca4e259d17fe60d8dc0cd479aac129bb29b284c9"
+      },
+      {
+        "name": "JS:r_3843_pc_1879075850-10-turbofan",
+        "samples": 46,
+        "native_bytes": 4736,
+        "assembly": "native-3050022-399385.asm",
+        "native_sha256": "ef22a736e479f71f5d6ab0ce73ec63f40618fbd29970806b1c336788e7df9be5"
+      },
+      {
+        "name": "JS:r_3811_pc_1879075890-11-turbofan",
+        "samples": 43,
+        "native_bytes": 4736,
+        "assembly": "native-3050022-399314.asm",
+        "native_sha256": "981c26473a898f3e614af1b1a8ca4f16a380d4b1bb12b431d7b0ca7538d3495f"
+      },
+      {
+        "name": "JS:std::__2::__function::__func<eka2l1_run::$_0, std::__2::allocator<eka2l1_run::$_0>, void (void*, eka2l1::epoc::screen*, bool)>::operator()(void*&&, eka2l1::epoc::screen*&&, bool&&)-524-turbofan",
+        "samples": 41,
+        "native_bytes": 7616,
+        "assembly": "native-3050022-364404.asm",
+        "native_sha256": "7801258e89d1bdf87a8ca094fcfb9820ec86bbe38c05b33e75e568379d990709"
+      },
+      {
+        "name": "JS:void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, eka2l1_run::$_1>>(void*)-480-liftoff",
+        "samples": 36,
+        "native_bytes": 58368,
+        "assembly": "native-3050022-300473.asm",
+        "native_sha256": "0db1aafd53b40786c9786094ef617037b6b6d3f777c38fa4e75be01abe005703"
+      },
+      {
+        "name": "JS:eka2l1::drivers::graphics_command_builder::update_bitmap(unsigned long long, char const*, unsigned long, eka2l1::vec2 const&, eka2l1::vec2 const&, unsigned long, bool)-956-turbofan",
+        "samples": 35,
+        "native_bytes": 2816,
+        "assembly": "native-3050022-389620.asm",
+        "native_sha256": "9d2e2a2ce9ac837d17d5c26144d8176ab70a1f3b84603346ae6c234d808758ff"
+      }
+    ],
+    "dispatch": {
+      "scope": "Manual native ranges; sampled IPs do not measure individual instruction latency",
+      "assembly": "native-3050022-336623.asm",
+      "native_sha256": "bdaa6bfb9ddc685b49fe7e8eae160c3fca42a4d7b66fbaa9b6b9518fc93a1e83",
+      "total_worker_samples": 7016,
+      "dispatch_samples": 1790,
+      "blocks": [
+        {
+          "name": "indirect call setup/checks/call",
+          "start": "0xc62",
+          "end_exclusive": "0xcc8",
+          "samples": 702,
+          "percent_worker": 10.005701254275941
+        },
+        {
+          "name": "stop IRQ watchdog",
+          "start": "0xcd0",
+          "end_exclusive": "0xd45",
+          "samples": 199,
+          "percent_worker": 2.8363740022805017
+        },
+        {
+          "name": "PC normalization and ROM routing",
+          "start": "0xd45",
+          "end_exclusive": "0xd9f",
+          "samples": 167,
+          "percent_worker": 2.380273660205245
+        },
+        {
+          "name": "RAM dispatch lookup and next function",
+          "start": "0xe64",
+          "end_exclusive": "0xf36",
+          "samples": 624,
+          "percent_worker": 8.893956670467503
+        }
+      ]
+    }
+  },
+  "builds": {
+    "before": {
+      "buildDir": "/home/claude/.scratch/eka-asphalt-opt-20261011/ram-fusion",
+      "wasm_sha256": "c9bbc6779e43e90eb1d90b53b97b94719d2ae7378de290d7340a02b5d7708e75"
+    },
+    "after": {
+      "wasm_sha256": "72458db489c3d5502c8372fb341e5bf8a313ca9ccf00434fdb75c947f84c2c9b",
+      "path": "/home/claude/.scratch/eka-asphalt-native-20261012/polled"
+    }
+  },
+  "scope": "See ASPHALT_POLLED_LOOP_RESULTS.md for scene, pacing, ordering and limitations. Native profiles are separate from unprofiled timing windows.",
+  "native_after": {
+    "samples": {
+      "samples": 7433,
+      "outside_jit": 595,
+      "jit_without_snapshot": 1050,
+      "no_instruction_position": 4940,
+      "mapped_cpp": 295,
+      "mapped_arm": 553
+    },
+    "functions": [
+      {
+        "name": "JS:eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))-789-turbofan",
+        "samples": 1302,
+        "native_bytes": 4288,
+        "assembly": "native-3100653-336658.asm",
+        "native_sha256": "4b5f4ff387c2d25691518d649216a1974a467a02a24af308f26f23e4bf100767"
+      },
+      {
+        "name": "JS:r_2981_pc_1879054788-9-turbofan",
+        "samples": 625,
+        "native_bytes": 1600,
+        "assembly": "native-3100653-389117.asm",
+        "native_sha256": "51804dfdbc8e0deee192fc3f308d76615f99380dcffe7c9f5f2fdaf386c9a622"
+      },
+      {
+        "name": "JS:r_4837_pc_1879067730-21-turbofan",
+        "samples": 469,
+        "native_bytes": 26752,
+        "assembly": "native-3100653-400948.asm",
+        "native_sha256": "6145c3b93a243b5565e17e982e481a92b6507c2642d9bce7813f5ab4377df78b"
+      },
+      {
+        "name": "JS:r_3801_pc_1879075514-10-turbofan",
+        "samples": 446,
+        "native_bytes": 33984,
+        "assembly": "native-3100653-399344.asm",
+        "native_sha256": "c2a5c82731d0e43cfe5820631737123b1b31d6248ac8ca6f62431c27754f9bb8"
+      },
+      {
+        "name": "JS:r_3816_pc_1879075380-18-turbofan",
+        "samples": 403,
+        "native_bytes": 35520,
+        "assembly": "native-3100653-399359.asm",
+        "native_sha256": "866a5a0b401abdd8b0aa179ae0796229d89f7b59b329fcc79455f3766b88d6de"
+      },
+      {
+        "name": "JS:r_3842_pc_1879077170-17-turbofan",
+        "samples": 304,
+        "native_bytes": 7872,
+        "assembly": "native-3100653-399510.asm",
+        "native_sha256": "ab34605c088caf754b810d59e3c488e81d3908ea628b65591dcaaf7ba5932833"
+      },
+      {
+        "name": "JS:r_3874_pc_1879152806-6-turbofan",
+        "samples": 229,
+        "native_bytes": 3840,
+        "assembly": "native-3100653-399388.asm",
+        "native_sha256": "f13ba2f8f73999d2a141eb08ec0d9ce40092a0415a3a04c95513476429d2bf2f"
+      },
+      {
+        "name": "JS:resampler_basic_direct_single-11708-turbofan",
+        "samples": 214,
+        "native_bytes": 1984,
+        "assembly": "native-3100653-399284.asm",
+        "native_sha256": "187c57f1ec923ac6bc7561ee345bccdafb7a0312d95fea06e6212f38e66e72a8"
+      },
+      {
+        "name": "JS:r_3844_pc_1879076336-7-turbofan",
+        "samples": 202,
+        "native_bytes": 15744,
+        "assembly": "native-3100653-399417.asm",
+        "native_sha256": "27ee0029aa10bf38cc9b54ac12dfb4b2a6e0051e4e8d67e95d931f5122d235a2"
+      },
+      {
+        "name": "JS:r_4482_pc_1879085236-10-turbofan",
+        "samples": 155,
+        "native_bytes": 11648,
+        "assembly": "native-3100653-400376.asm",
+        "native_sha256": "ddbbb31273d038b61a159b73aa52af2dc2037745193e92b20323808279a9149e"
+      },
+      {
+        "name": "JS:r_3826_pc_1879075206-14-turbofan",
+        "samples": 146,
+        "native_bytes": 41920,
+        "assembly": "native-3100653-399374.asm",
+        "native_sha256": "e896e81f13c5aa8e3da06f7fd0ba2ac35cf9fbba878a6e3b668275d69a1020d8"
+      },
+      {
+        "name": "JS:eka2l1::arm::aot::validated_code_cache::lookup_trusted_uncached(unsigned int, eka2l1::arm::core&)-775-turbofan",
+        "samples": 84,
+        "native_bytes": 3264,
+        "assembly": "native-3100653-371613.asm",
+        "native_sha256": "bbcf1c012d7456e2fddefee2cb251e1b40fd60bb3f4ab12b27893a68c108349f"
+      },
+      {
+        "name": "JS:r_3414_pc_1879076012-6-turbofan",
+        "samples": 57,
+        "native_bytes": 21184,
+        "assembly": "native-3100653-395803.asm",
+        "native_sha256": "d7e4ab608193085cbea28579bcd158c936a4cf54831707199e096e396137256c"
+      },
+      {
+        "name": "JS:r_3847_pc_1879076328-10-turbofan",
+        "samples": 48,
+        "native_bytes": 14976,
+        "assembly": "native-3100653-399464.asm",
+        "native_sha256": "0568ccca6f6ef78a1f81dd1db18119650b52eb2a29382bb3dde18bcebe50a0cd"
+      },
+      {
+        "name": "JS:std::__2::__function::__func<eka2l1_run::$_0, std::__2::allocator<eka2l1_run::$_0>, void (void*, eka2l1::epoc::screen*, bool)>::operator()(void*&&, eka2l1::epoc::screen*&&, bool&&)-524-turbofan",
+        "samples": 48,
+        "native_bytes": 7616,
+        "assembly": "native-3100653-364275.asm",
+        "native_sha256": "3b6640d939acc721b705f70b8ee9f5e65c2ecf60bb0062e68a7d90018429f88c"
+      },
+      {
+        "name": "JS:r_4010_pc_1879077076-8-turbofan",
+        "samples": 46,
+        "native_bytes": 29952,
+        "assembly": "native-3100653-399623.asm",
+        "native_sha256": "ec6b31797082dff7e5519033266ad2aaa0da3d228681d45ba2b3892e43ad8352"
+      },
+      {
+        "name": "JS:r_3820_pc_1879268678-8-turbofan",
+        "samples": 44,
+        "native_bytes": 5760,
+        "assembly": "native-3100653-399403.asm",
+        "native_sha256": "2a484f8654b5122ab8c02d438d8b614583ab0a79be7ef8324696fb91f9ef62bc"
+      },
+      {
+        "name": "JS:eka2l1::drivers::graphics_command_builder::update_bitmap(unsigned long long, char const*, unsigned long, eka2l1::vec2 const&, eka2l1::vec2 const&, unsigned long, bool)-957-turbofan",
+        "samples": 43,
+        "native_bytes": 2816,
+        "assembly": "native-3100653-389574.asm",
+        "native_sha256": "e8a0fd89d20e2915ae54e781a492c5c21175e8aadadcc531c8678978e26c2304"
+      },
+      {
+        "name": "JS:r_4486_pc_1879085222-6-turbofan",
+        "samples": 42,
+        "native_bytes": 11456,
+        "assembly": "native-3100653-400393.asm",
+        "native_sha256": "58ec6cfa099c04227c176d7122084b00f025bc078691147d1f4f46ebdad4522e"
+      },
+      {
+        "name": "JS:eka2l1::arm::aot::state_local_cache::finish(eka2l1::arm::aot::wasm_func_def&, bool)-881-turbofan",
+        "samples": 40,
+        "native_bytes": 50944,
+        "assembly": "native-3100653-274552.asm",
+        "native_sha256": "3c44261ff6c39e3990af2686da6f74233e6cc8084f5fc9285f6ae0eed35ba045"
+      }
+    ],
+    "capture": {
+      "losses": [],
+      "errors": [],
+      "new_tids": [],
+      "missing_tids": []
+    },
+    "native_snapshots": {
+      "selected": 100,
+      "found": 100,
+      "errors": []
+    }
+  },
+  "live_e2e": {
+    "url": "https://claude-laptop.lan:8188/?game=custom",
+    "started": "2026-10-12T00:23:37.914Z",
+    "browser": "Chrome/153.0.8010.52",
+    "passed": true,
+    "errors": [],
+    "checks": [
+      {
+        "game": "sky-force",
+        "check": "simultaneous touch movement and action",
+        "passed": true
+      },
+      {
+        "game": "sky-force",
+        "check": "non-silent browser audio",
+        "passed": true
+      },
+      {
+        "game": "sky-force",
+        "check": "sound toggle returns to muted",
+        "passed": true
+      },
+      {
+        "game": "snakes",
+        "check": "simultaneous touch movement and action",
+        "passed": true
+      },
+      {
+        "game": "snakes",
+        "check": "non-silent browser audio",
+        "passed": true
+      },
+      {
+        "game": "snakes",
+        "check": "sound toggle returns to muted",
+        "passed": true
+      }
+    ],
+    "games": [
+      {
+        "id": "sky-force",
+        "fps": 31.363444516291963,
+        "guest_host_ratio": 0.9999947064092177,
+        "wasm": "/eka2l1.wasm?v=72458db489c3d5502c8372fb341e5bf8a313ca9ccf00434fdb75c947f84c2c9b"
+      },
+      {
+        "id": "snakes",
+        "fps": 16.00613505607481,
+        "guest_host_ratio": 0.9999714570067106,
+        "wasm": "/eka2l1.wasm?v=72458db489c3d5502c8372fb341e5bf8a313ca9ccf00434fdb75c947f84c2c9b"
+      }
+    ]
+  },
+  "correctness": {
+    "full_suite": {
+      "passed": 187,
+      "failed": 0
+    },
+    "final_focused_interpreter_comparisons": 696,
+    "external_watchdog": "passed"
+  }
+}

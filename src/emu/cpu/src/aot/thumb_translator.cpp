@@ -103,6 +103,7 @@ namespace eka2l1::arm::aot {
         bool entry_supported = true;
         bool unsupported = false; // set by bail_unsupported()
         bool finite_loop = false;
+        bool polled_loop = false;
         bool continue_stores = false;
         bool defer_scalar_memory = false;
         const leaf_resolver *leaves = nullptr;
@@ -902,6 +903,24 @@ namespace eka2l1::arm::aot {
         const std::uint32_t TMP1 = 1, TMP2 = 2, TMP3 = 3, TMP4 = 4;
         const std::uint32_t PC_IDX = 5, ADDR_TMP = 6;
         const std::uint32_t FTMP1 = 7, FTMP2 = 8, DTMP1 = 9;
+        const auto loop_backedge = [&](std::uint32_t target, unsigned count, unsigned depth) {
+            // A scalar-only prefix cannot change mappings or interrupt state.
+            // Keep its locals across iterations, but poll at the unproved edge.
+            // The proven finite-loop path below deliberately omits this poll.
+            ++tr.watchdog_safepoints;
+            w.polled_loop = true;
+            watchdog::emit_request(w);
+            w.load_i32(S::NUM_INSTRS_TO_EXECUTE);
+            w.load_i32(S::NUM_INSTRS_TO_EXECUTE + 4);
+            w.op(op_i32_or); w.op(op_i32_eqz); w.op(op_i32_or);
+            w.load_i32(S::NIRQ); w.op(op_i32_eqz);
+            w.load_i32(S::CPSR); w.i32_const(0x80); w.op(op_i32_and);
+            w.op(op_i32_eqz); w.op(op_i32_and); w.op(op_i32_or);
+            w.op(op_if); w.op(type_void);
+            w.bail(target, count, exit_census::guard);
+            w.op(op_end);
+            w.op(op_br); leb(w.b, depth);
+        };
         const auto branch = [&](std::uint32_t target, unsigned count, bool checked = false) {
             std::uint16_t first = 0;
             const bool room = fusion && count < 128 && fusion->emitted < thumb_fusion_context::instruction_limit
@@ -3969,6 +3988,11 @@ namespace eka2l1::arm::aot {
                 if (w.finite_loop && target == start_address) {
                     emit_cond();
                     w.op(op_br_if); leb(result.body, 0);
+                } else if (w.continue_stores && !w.helper_calls && target == start_address) {
+                    emit_cond();
+                    w.op(op_if); w.op(type_void);
+                    loop_backedge(target, insn_idx + 1, 1);
+                    w.op(op_end);
                 } else if (is_fwd) {
                     if (!emit_cond()) { w.bail_unsupported(insn_addr, insn_idx); insn_idx++; continue; }
                     std::uint32_t depth = fwd_it->second - closed_count;
@@ -4009,7 +4033,9 @@ namespace eka2l1::arm::aot {
                 // overlap: require target > insn_addr before using the
                 // forward-block path.
                 bool is_fwd = (fwd_it != fwd_idx.end()) && (target > insn_addr);
-                if (is_fwd) {
+                if (w.continue_stores && !w.helper_calls && target == start_address) {
+                    loop_backedge(target, insn_idx + 1, 0);
+                } else if (is_fwd) {
                     // Forward branch within block — skip via nested block exit.
                     std::uint32_t depth = fwd_it->second - closed_count;
                     w.op(op_br); leb(result.body, depth);
@@ -4757,6 +4783,11 @@ namespace eka2l1::arm::aot {
         if (fuse) w.cache.entry_scope = w.cache.active_scope = std::make_shared<state_local_cache::entry_fields>();
         emit_thumb_block(tr, w, code, code_size, start_address, siblings, dll_code,
             bounded, stop_after_store, immutable_code, 0, fuse ? &fusion : nullptr);
+        // Every loop-carried local must be initialized before the first iteration.
+        // A nested entry reload must not overwrite a value from an earlier lap.
+        if (w.polled_loop && w.cache.entry_scope) {
+            for (const auto &[field, slot] : w.cache.locals) w.cache.entry_scope->used.insert(field);
+        }
         finish_memory_locals(w);
         w.cache.finish(result);
         tr.entry_supported = w.entry_supported;

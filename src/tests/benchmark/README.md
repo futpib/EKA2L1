@@ -39,6 +39,11 @@ helper inlining and branch fusion to trusted RAM code. Its adjacent paced
 comparison improves Asphalt from 13.79 to 16.03 FPS, with 32.0% less CPU-worker
 time per frame; a fresh native Qt control averages 17.62 FPS.
 
+The [polled Thumb loop follow-up](ASPHALT_POLLED_LOOP_RESULTS.md) keeps eligible
+backedges inside compiled code. Its adjacent paced comparison improves Asphalt
+from 15.43 to 16.14 FPS, with 14.2% less CPU-worker time per frame. Separate native
+captures show dispatcher sample share falling from 25.5% to 17.5%.
+
 - The native benchmark clock advances from executed instructions (one synthetic cycle per instruction, 484 MHz at the default clock), with at most 4,840 instructions per dispatch. This is a reproducible clock model, not a hardware cycle-accuracy claim.
 - When no guest thread is runnable, execution jumps to the next scheduled event. There is no real-time timer thread or host vsync pacing.
 - Guest UTC starts at 2024-01-01 00:00:00, timezone UTC. Guest `Math::Random` and host-generated kernel object names have fixed seeds.
