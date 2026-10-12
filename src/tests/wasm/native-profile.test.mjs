@@ -25,3 +25,18 @@ test('retain load time, code identity, address and bytes, reject movement',()=>{
   record.writeUInt32LE(1,0);fs.writeFileSync(file,Buffer.concat([header,record]));assert.throws(()=>readJitdump(file),/movement/);
  }finally{fs.rmSync(dir,{recursive:true,force:true})}
 });
+test('read load records beyond 2 GiB without buffering the entire log',()=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'eka-jit-large-'));
+ try {
+  const header=Buffer.alloc(40);header.writeUInt32LE(0x4a695444);header.writeUInt32LE(1,4);header.writeUInt32LE(40,8);header.writeUInt32LE(62,12);
+  const padding=Buffer.alloc(16);padding.writeUInt32LE(2);padding.writeUInt32LE(0x80000000,4);
+  const name=Buffer.from('JS:large-7-turbofan\0'),code=Buffer.from([0x90,0xc3]);
+  const record=Buffer.alloc(56+name.length+code.length);record.writeUInt32LE(record.length,4);
+  record.writeBigUInt64LE(100n,8);record.writeBigUInt64LE(0x1000n,32);record.writeBigUInt64LE(BigInt(code.length),40);
+  name.copy(record,56);code.copy(record,56+name.length);
+  const file=path.join(dir,'large.dump'),fd=fs.openSync(file,'w');
+  try {fs.writeSync(fd,header,0,header.length,0);fs.writeSync(fd,padding,0,padding.length,40);fs.writeSync(fd,record,0,record.length,40+0x80000000);}finally{fs.closeSync(fd)}
+  const parsed=readJitdump(file,true);assert.equal(parsed.trailing_bytes,0);assert.equal(parsed.rows.length,1);
+  assert.equal(parsed.rows[0].address,0x1000);assert.deepEqual(parsed.rows[0].code,code);
+ }finally{fs.rmSync(dir,{recursive:true,force:true})}
+});

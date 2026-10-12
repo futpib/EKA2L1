@@ -10,27 +10,41 @@ import assert from 'node:assert/strict';
 export const supportedV8 = '15.3.76.13';
 const hash = b => crypto.createHash('sha256').update(b).digest('hex');
 export function readJitdump(file, includeCode = false) {
-  const b = fs.readFileSync(file), rows = [];
-  assert(b.length >= 40 && b.readUInt32LE(0) === 0x4a695444 && b.readUInt32LE(4) === 1);
-  assert(b.readUInt32LE(12) === 62 && b.readBigUInt64LE(32) === 0n, 'Expected x64 monotonic jitdump');
-  let pos = b.readUInt32LE(8);
-  for (; pos + 16 <= b.length;) {
-    const kind = b.readUInt32LE(pos), size = b.readUInt32LE(pos+4);
-    assert(size >= 16, 'Invalid jitdump record');
-    if (pos + size > b.length) break; // The live logger can have an unflushed tail.
-    if (kind === 0) {
-      const end = b.indexOf(0, pos+56); assert(end >= pos+56 && end < pos+size);
-      const length = Number(b.readBigUInt64LE(pos+40));
-      assert(end + 1 + length === pos+size);
-      const code = b.subarray(end+1, pos+size);
-      rows.push({pid:b.readUInt32LE(pos+16), tid:b.readUInt32LE(pos+20),
-        timestamp:Number(b.readBigUInt64LE(pos+8)), address:Number(b.readBigUInt64LE(pos+32)),
-        size:length, id:Number(b.readBigUInt64LE(pos+48)), name:b.toString('utf8',pos+56,end),
-        sha256:hash(code), ...(includeCode ? {code} : {})});
-    } else if (kind === 1) throw Error('JIT code movement requires a new lifetime adapter');
-    pos += size;
-  }
-  return {rows, trailing_bytes:b.length-pos};
+  // Startup can generate multi-gigabyte logs. Read one record at a time so a
+  // valid capture is not limited by Node's maximum single-buffer size.
+  const fd = fs.openSync(file, 'r'), rows = [];
+  try {
+    const length = fs.fstatSync(fd).size;
+    const read = (position, size) => {
+      const bytes = Buffer.allocUnsafe(size);
+      assert.equal(fs.readSync(fd, bytes, 0, size, position), size);
+      return bytes;
+    };
+    assert(length >= 40);
+    const header = read(0, 40);
+    assert(header.readUInt32LE(0) === 0x4a695444 && header.readUInt32LE(4) === 1);
+    assert(header.readUInt32LE(12) === 62 && header.readBigUInt64LE(32) === 0n, 'Expected x64 monotonic jitdump');
+    let pos = header.readUInt32LE(8);
+    assert(pos >= 40 && pos <= length);
+    for (; pos + 16 <= length;) {
+      const prefix = read(pos, 16), kind = prefix.readUInt32LE(0), size = prefix.readUInt32LE(4);
+      assert(size >= 16, 'Invalid jitdump record');
+      if (pos + size > length) break; // The live logger can have an unflushed tail.
+      if (kind === 0) {
+        const b = read(pos, size);
+        const end = b.indexOf(0, 56); assert(end >= 56 && end < size);
+        const codeLength = Number(b.readBigUInt64LE(40));
+        assert(end + 1 + codeLength === size);
+        const code = b.subarray(end + 1);
+        rows.push({pid:b.readUInt32LE(16), tid:b.readUInt32LE(20),
+          timestamp:Number(b.readBigUInt64LE(8)), address:Number(b.readBigUInt64LE(32)),
+          size:codeLength, id:Number(b.readBigUInt64LE(48)), name:b.toString('utf8',56,end),
+          sha256:hash(code), ...(includeCode ? {code} : {})});
+      } else if (kind === 1) throw Error('JIT code movement requires a new lifetime adapter');
+      pos += size;
+    }
+    return {rows, trailing_bytes:length-pos};
+  } finally { fs.closeSync(fd); }
 }
 
 export function decodePositions(bytes) {

@@ -1,7 +1,24 @@
-import json, pathlib, tempfile, unittest
-from native_attribution import export_guest_map, load_source_map, module_info, match_code, source_anchors
+import hashlib, json, pathlib, struct, tempfile, unittest
+from native_attribution import export_guest_map, load_source_map, module_info, match_code, source_anchors, jit_records
 
 class SourceMaps(unittest.TestCase):
+    def test_jit_records_beyond_two_gib_and_partial_tail(self):
+        with tempfile.TemporaryDirectory() as directory:
+            p=pathlib.Path(directory)/'large.dump'
+            code=b'\x90\xc3'; name=b'JS:large-7-turbofan\0'
+            record=struct.pack('<IIQIIQQQQ',0,56+len(name)+len(code),100,20,21,0,4096,len(code),88)+name+code
+            with p.open('wb') as stream:
+                stream.write(struct.pack('<IIIIIIQQ',0x4a695444,1,40,62,0,20,0,0))
+                stream.write(struct.pack('<IIQ',2,0x80000000,0))
+                stream.seek(40+0x80000000);stream.write(record);stream.write(record[:20])
+            rows=list(jit_records(p));self.assertEqual(len(rows),1)
+            self.assertEqual(rows[0]['address'],4096);self.assertEqual(rows[0]['id'],88)
+            self.assertEqual(rows[0]['sha256'],hashlib.sha256(code).hexdigest())
+            with p.open('wb') as stream:
+                stream.write(struct.pack('<IIIIIIQQ',0x4a695444,1,40,62,0,20,0,0))
+                stream.write(struct.pack('<IIQ',1,16,0))
+            with self.assertRaisesRegex(ValueError,'move'):list(jit_records(p))
+
     def test_address_reuse_uses_sample_time(self):
         old=dict(address=4096,size=64,timestamp=100,id=1)
         new=dict(address=4096,size=64,timestamp=200,id=2)

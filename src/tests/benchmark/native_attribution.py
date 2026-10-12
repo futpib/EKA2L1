@@ -116,20 +116,25 @@ def load_source_map(file):
 
 
 def jit_records(file):
-    b=file.read_bytes();assert len(b)>=40 and struct.unpack_from('<II',b)==(0x4a695444,1)
-    assert struct.unpack_from('<I',b,12)[0]==62 and struct.unpack_from('<Q',b,32)[0]==0, 'Expected x64 monotonic jitdump'
-    pos=struct.unpack_from('<I',b,8)[0]
-    while pos+16<=len(b):
-        kind,n,t=struct.unpack_from('<IIQ',b,pos)
-        assert n>=16
-        if pos+n>len(b): break
-        if kind==0:
-            pid,tid,vma,address,size,index=struct.unpack_from('<IIQQQQ',b,pos+16)
-            end=b.index(0,pos+56,pos+n);code=b[end+1:pos+n];assert len(code)==size
-            yield dict(pid=pid,tid=tid,timestamp=t,address=address,size=size,id=index,
-                name=b[pos+56:end].decode(),sha256=hashlib.sha256(code).hexdigest())
-        elif kind==1: raise ValueError('Code move requires lifetime adapter')
-        pos+=n
+    # Read each record independently; installation captures can exceed 2 GiB.
+    with file.open('rb') as stream:
+        stream.seek(0, 2); length=stream.tell(); stream.seek(0)
+        header=stream.read(40)
+        assert len(header)==40 and struct.unpack_from('<II',header)==(0x4a695444,1)
+        assert struct.unpack_from('<I',header,12)[0]==62 and struct.unpack_from('<Q',header,32)[0]==0, 'Expected x64 monotonic jitdump'
+        pos=struct.unpack_from('<I',header,8)[0]; assert 40<=pos<=length
+        while pos+16<=length:
+            stream.seek(pos); kind,n,t=struct.unpack('<IIQ',stream.read(16))
+            assert n>=16
+            if pos+n>length: break
+            if kind==0:
+                b=stream.read(n-16); assert len(b)==n-16
+                pid,tid,vma,address,size,index=struct.unpack_from('<IIQQQQ',b)
+                end=b.index(0,40); code=b[end+1:]; assert len(code)==size
+                yield dict(pid=pid,tid=tid,timestamp=t,address=address,size=size,id=index,
+                    name=b[40:end].decode(),sha256=hashlib.sha256(code).hexdigest())
+            elif kind==1: raise ValueError('Code move requires lifetime adapter')
+            pos+=n
 
 
 def disassemble(file):
