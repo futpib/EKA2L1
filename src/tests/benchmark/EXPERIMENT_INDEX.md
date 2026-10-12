@@ -260,7 +260,7 @@ boundary. All valid samples remain included; see the [host limitations](CONTROLL
 
 ## Complete report catalogue
 
-327 reports and supporting notes are discovered below, including
+328 reports and supporting notes are discovered below, including
 timing, adoption and design documents with nonstandard filenames. Design plans
 and profiling shares do not establish measured speed gains. Each document
 retains its exact variants, workloads, controls and
@@ -551,54 +551,55 @@ is retained separately from the later controlled comparisons.
 | 277 | Results/notes | [Sparse ROM lookup: rejected speed screen](SPARSE_ROM_LOOKUP_TIMING_RESULTS.md) | [Findings below](#report-277) |
 | 278 | Results/notes | [Caller-specific stack returns](STACK_RETURN_RESULTS.md) | [Findings below](#report-278) |
 | 279 | Results/notes | [Hooked On startup bookkeeping](STARTUP_BOOKKEEPING_RESULTS.md) | [Findings below](#report-279) |
-| 280 | Results/notes | [State transfer pruning and V8 cost validation](STATE_LIVENESS_RESULTS.md) | [Findings below](#report-280) |
-| 281 | Results/notes | [Static bindings for built-in syscalls](STATIC_SVC_BINDINGS_RESULTS.md) | [Findings below](#report-281) |
-| 282 | Results/notes | [Snakes stock-resolution survey](STOCK_RESOLUTION_RESULTS.md) | No performance excerpt; see source report |
-| 283 | Results/notes | [Selecting exact comparators at snapshot construction](STORED_COMPARATOR_RESULTS.md) | [Findings below](#report-283) |
-| 284 | Results/notes | [Complete proved syscall returns without region handoffs](SVC_RETURN_CONTINUATION_RESULTS.md) | [Findings below](#report-284) |
-| 285 | Results/notes | [Completed sweep and combined graduation measurement](SWEEP_COMBINED_RESULTS.md) | [Findings below](#report-285) |
-| 286 | Results/notes | [Tail prefixes on the graduated branch-veneer runtime](TAIL_CURRENT_RESULTS.md) | [Findings below](#report-286) |
-| 287 | Results/notes | [Register-only tail-prefix experiment](TAIL_PREFIX_RESULTS.md) | [Findings below](#report-287) |
-| 288 | Results/notes | [Thumb arithmetic budget groups](THUMB_BUDGET_GROUP_RESULTS.md) | [Findings below](#report-288) |
-| 289 | Results/notes | [Bounded Thumb long-call fusion](THUMB_CALL_RESULTS.md) | [Findings below](#report-289) |
-| 290 | Results/notes | [Completing short Thumb calls inside their caller](THUMB_COMPLETE_CALL_RESULTS.md) | [Findings below](#report-290) |
-| 291 | Results/notes | [Compact connected Thumb regions](THUMB_CONNECTED_REGION_RESULTS.md) | [Findings below](#report-291) |
-| 292 | Results/notes | [One budget proof for an inlined Thumb helper](THUMB_LEAF_BUDGET_RESULTS.md) | [Findings below](#report-292) |
-| 293 | Results/notes | [Remove unused WASM loops from bounded Thumb regions](THUMB_LINEAR_REGION_RESULTS.md) | [Findings below](#report-293) |
-| 294 | Results/notes | [Adopt guarded Thumb memory after profiling normal play](THUMB_MEMORY_DEFAULT_RESULTS.md) | [Findings below](#report-294) |
-| 295 | Design/plan | [Direct memory accesses in compiled Thumb code](THUMB_MEMORY_DESIGN.md) | [Findings below](#report-295) |
-| 296 | Results/notes | [Thumb memory timing: first verified stage](THUMB_MEMORY_TIMING.md) | [Findings below](#report-296) |
-| 297 | Results/notes | [Thumb cache writeback at earlier exits](THUMB_PREFIX_RESULTS.md) | [Findings below](#report-297) |
-| 298 | Results/notes | [One budget proof for each bounded Thumb path](THUMB_REGION_BUDGET_RESULTS.md) | [Findings below](#report-298) |
-| 299 | Results/notes | [Fuse known Thumb return continuations](THUMB_RETURN_FUSION_RESULTS.md) | [Findings below](#report-299) |
-| 300 | Results/notes | [Inline short immutable Thumb helpers](THUMB_ROM_LEAF_RESULTS.md) | [Findings below](#report-300) |
-| 301 | Results/notes | [One-page Thumb register-transfer proofs](THUMB_SPAN_RESULTS.md) | [Findings below](#report-301) |
-| 302 | Results/notes | [Thumb runtime state cache](THUMB_STATE_RESULTS.md) | [Findings below](#report-302) |
-| 303 | Results/notes | [Thumb continuations with static instruction counts](THUMB_STATIC_REGION_RESULTS.md) | [Findings below](#report-303) |
-| 304 | Results/notes | [Direct RAM Thumb store continuation](THUMB_STORE_RESULTS.md) | [Findings below](#report-304) |
-| 305 | Results/notes | [Select Thumb continuations by state transfers](THUMB_TRANSFER_GATE_RESULTS.md) | [Findings below](#report-305) |
-| 306 | Design/plan | [Fold higher virtual-page bits into the DynCom data TLB index](TLB_HASH_DESIGN.md) | No performance excerpt; see source report |
-| 307 | Results/notes | [Folded data-TLB indexing: historical results](TLB_HASH_RESULTS.md) | [Findings below](#report-307) |
-| 308 | Results/notes | [Scalar alignment guard experiment](UNALIGNED_SCALAR_RESULTS.md) | [Findings below](#report-308) |
-| 309 | Results/notes | [Ungated counters capture a slower execution rate](UNGATED_COUNTER_RESULTS.md) | [Findings below](#report-309) |
-| 310 | Profiling/analysis | [Unsafe code-mutation cost attribution](UNSAFE_CODE_ATTRIBUTION_RESULTS.md) | [Findings below](#report-310) |
-| 311 | Results/notes | [Unsafe executable-byte assumption experiment](UNSAFE_CODE_RESULTS.md) | [Findings below](#report-311) |
-| 312 | Results/notes | [WASM executable-byte default, 2026-10-01](UNSAFE_DEFAULT_RESULTS.md) | No performance excerpt; see source report |
-| 313 | Results/notes | [Upstream master integration, 2026-09-30](UPSTREAM_20260930_RESULTS.md) | [Findings below](#report-313) |
-| 314 | Results/notes | [Upstream merge and new deterministic baseline](UPSTREAM_MERGE_RESULTS.md) | [Findings below](#report-314) |
-| 315 | Results/notes | [User::After tick deadlines](USER_AFTER_RESULTS.md) | [Findings below](#report-315) |
-| 316 | Results/notes | [Direct-call switches with production code validation](VALIDATED_LAYOUT_RESULTS.md) | [Findings below](#report-316) |
-| 317 | Results/notes | [Safe validity generations and native/browser cost comparison](VALIDITY_AND_COST_RESULTS.md) | [Findings below](#report-317) |
-| 318 | Results/notes | [Shared WASM cost accounting and Snakes diagnosis](WASM_COST_ACCOUNTING_RESULTS.md) | [Findings below](#report-318) |
-| 319 | Results/notes | [Count-free watchdog execution](WATCHDOG_RESULTS.md) | [Findings below](#report-319) |
-| 320 | Results/notes | [Adjacent long multiply result reuse: rejected](WIDE_REUSE_RESULTS.md) | [Findings below](#report-320) |
-| 321 | Profiling/analysis | [CPU sampling after eliminating measured interpreter fallback](ZERO_FALLBACK_CPU_PROFILE_RESULTS.md) | No performance excerpt; see source report |
-| 322 | Results/notes | [Recurrent literal-load fallback: data-TLB collision observed](ZERO_LITERAL_RESULTS.md) | No performance excerpt; see source report |
-| 323 | Results/notes | [Historical counted fault matrices](archive/counted-kernels/README.md) | No performance excerpt; see source report |
-| 324 | Results/notes | [Asphalt frame-timeline evidence](asphalt-timeline/README.md) | [Findings below](#report-324) |
-| 325 | Results/notes | [Browser CPU comparison (in progress)](browser_cores/README.md) | No performance excerpt; see source report |
-| 326 | Results/notes | [Runtime service overlap census](service_overlap/README.md) | [Findings below](#report-326) |
-| 327 | Results/notes | [Snakes service overlap, 2026-10-01](service_overlap/RESULTS.md) | [Findings below](#report-327) |
+| 280 | Results/notes | [Startup follow-up: compiler admission and mapping work](STARTUP_FOLLOWUP_RESULTS.md) | [Findings below](#report-280) |
+| 281 | Results/notes | [State transfer pruning and V8 cost validation](STATE_LIVENESS_RESULTS.md) | [Findings below](#report-281) |
+| 282 | Results/notes | [Static bindings for built-in syscalls](STATIC_SVC_BINDINGS_RESULTS.md) | [Findings below](#report-282) |
+| 283 | Results/notes | [Snakes stock-resolution survey](STOCK_RESOLUTION_RESULTS.md) | No performance excerpt; see source report |
+| 284 | Results/notes | [Selecting exact comparators at snapshot construction](STORED_COMPARATOR_RESULTS.md) | [Findings below](#report-284) |
+| 285 | Results/notes | [Complete proved syscall returns without region handoffs](SVC_RETURN_CONTINUATION_RESULTS.md) | [Findings below](#report-285) |
+| 286 | Results/notes | [Completed sweep and combined graduation measurement](SWEEP_COMBINED_RESULTS.md) | [Findings below](#report-286) |
+| 287 | Results/notes | [Tail prefixes on the graduated branch-veneer runtime](TAIL_CURRENT_RESULTS.md) | [Findings below](#report-287) |
+| 288 | Results/notes | [Register-only tail-prefix experiment](TAIL_PREFIX_RESULTS.md) | [Findings below](#report-288) |
+| 289 | Results/notes | [Thumb arithmetic budget groups](THUMB_BUDGET_GROUP_RESULTS.md) | [Findings below](#report-289) |
+| 290 | Results/notes | [Bounded Thumb long-call fusion](THUMB_CALL_RESULTS.md) | [Findings below](#report-290) |
+| 291 | Results/notes | [Completing short Thumb calls inside their caller](THUMB_COMPLETE_CALL_RESULTS.md) | [Findings below](#report-291) |
+| 292 | Results/notes | [Compact connected Thumb regions](THUMB_CONNECTED_REGION_RESULTS.md) | [Findings below](#report-292) |
+| 293 | Results/notes | [One budget proof for an inlined Thumb helper](THUMB_LEAF_BUDGET_RESULTS.md) | [Findings below](#report-293) |
+| 294 | Results/notes | [Remove unused WASM loops from bounded Thumb regions](THUMB_LINEAR_REGION_RESULTS.md) | [Findings below](#report-294) |
+| 295 | Results/notes | [Adopt guarded Thumb memory after profiling normal play](THUMB_MEMORY_DEFAULT_RESULTS.md) | [Findings below](#report-295) |
+| 296 | Design/plan | [Direct memory accesses in compiled Thumb code](THUMB_MEMORY_DESIGN.md) | [Findings below](#report-296) |
+| 297 | Results/notes | [Thumb memory timing: first verified stage](THUMB_MEMORY_TIMING.md) | [Findings below](#report-297) |
+| 298 | Results/notes | [Thumb cache writeback at earlier exits](THUMB_PREFIX_RESULTS.md) | [Findings below](#report-298) |
+| 299 | Results/notes | [One budget proof for each bounded Thumb path](THUMB_REGION_BUDGET_RESULTS.md) | [Findings below](#report-299) |
+| 300 | Results/notes | [Fuse known Thumb return continuations](THUMB_RETURN_FUSION_RESULTS.md) | [Findings below](#report-300) |
+| 301 | Results/notes | [Inline short immutable Thumb helpers](THUMB_ROM_LEAF_RESULTS.md) | [Findings below](#report-301) |
+| 302 | Results/notes | [One-page Thumb register-transfer proofs](THUMB_SPAN_RESULTS.md) | [Findings below](#report-302) |
+| 303 | Results/notes | [Thumb runtime state cache](THUMB_STATE_RESULTS.md) | [Findings below](#report-303) |
+| 304 | Results/notes | [Thumb continuations with static instruction counts](THUMB_STATIC_REGION_RESULTS.md) | [Findings below](#report-304) |
+| 305 | Results/notes | [Direct RAM Thumb store continuation](THUMB_STORE_RESULTS.md) | [Findings below](#report-305) |
+| 306 | Results/notes | [Select Thumb continuations by state transfers](THUMB_TRANSFER_GATE_RESULTS.md) | [Findings below](#report-306) |
+| 307 | Design/plan | [Fold higher virtual-page bits into the DynCom data TLB index](TLB_HASH_DESIGN.md) | No performance excerpt; see source report |
+| 308 | Results/notes | [Folded data-TLB indexing: historical results](TLB_HASH_RESULTS.md) | [Findings below](#report-308) |
+| 309 | Results/notes | [Scalar alignment guard experiment](UNALIGNED_SCALAR_RESULTS.md) | [Findings below](#report-309) |
+| 310 | Results/notes | [Ungated counters capture a slower execution rate](UNGATED_COUNTER_RESULTS.md) | [Findings below](#report-310) |
+| 311 | Profiling/analysis | [Unsafe code-mutation cost attribution](UNSAFE_CODE_ATTRIBUTION_RESULTS.md) | [Findings below](#report-311) |
+| 312 | Results/notes | [Unsafe executable-byte assumption experiment](UNSAFE_CODE_RESULTS.md) | [Findings below](#report-312) |
+| 313 | Results/notes | [WASM executable-byte default, 2026-10-01](UNSAFE_DEFAULT_RESULTS.md) | No performance excerpt; see source report |
+| 314 | Results/notes | [Upstream master integration, 2026-09-30](UPSTREAM_20260930_RESULTS.md) | [Findings below](#report-314) |
+| 315 | Results/notes | [Upstream merge and new deterministic baseline](UPSTREAM_MERGE_RESULTS.md) | [Findings below](#report-315) |
+| 316 | Results/notes | [User::After tick deadlines](USER_AFTER_RESULTS.md) | [Findings below](#report-316) |
+| 317 | Results/notes | [Direct-call switches with production code validation](VALIDATED_LAYOUT_RESULTS.md) | [Findings below](#report-317) |
+| 318 | Results/notes | [Safe validity generations and native/browser cost comparison](VALIDITY_AND_COST_RESULTS.md) | [Findings below](#report-318) |
+| 319 | Results/notes | [Shared WASM cost accounting and Snakes diagnosis](WASM_COST_ACCOUNTING_RESULTS.md) | [Findings below](#report-319) |
+| 320 | Results/notes | [Count-free watchdog execution](WATCHDOG_RESULTS.md) | [Findings below](#report-320) |
+| 321 | Results/notes | [Adjacent long multiply result reuse: rejected](WIDE_REUSE_RESULTS.md) | [Findings below](#report-321) |
+| 322 | Profiling/analysis | [CPU sampling after eliminating measured interpreter fallback](ZERO_FALLBACK_CPU_PROFILE_RESULTS.md) | No performance excerpt; see source report |
+| 323 | Results/notes | [Recurrent literal-load fallback: data-TLB collision observed](ZERO_LITERAL_RESULTS.md) | No performance excerpt; see source report |
+| 324 | Results/notes | [Historical counted fault matrices](archive/counted-kernels/README.md) | No performance excerpt; see source report |
+| 325 | Results/notes | [Asphalt frame-timeline evidence](asphalt-timeline/README.md) | [Findings below](#report-325) |
+| 326 | Results/notes | [Browser CPU comparison (in progress)](browser_cores/README.md) | No performance excerpt; see source report |
+| 327 | Results/notes | [Runtime service overlap census](service_overlap/README.md) | [Findings below](#report-327) |
+| 328 | Results/notes | [Snakes service overlap, 2026-10-01](service_overlap/RESULTS.md) | [Findings below](#report-328) |
 
 ## Historical findings and gain/loss tables
 
@@ -8151,7 +8152,80 @@ average away the outliers or interpret one favorable pair as a universal gain.
 
 <a id="report-280"></a>
 <details>
-<summary>280. State transfer pruning and V8 cost validation</summary>
+<summary>280. Startup follow-up: compiler admission and mapping work</summary>
+
+[Full report and evidence](STARTUP_FOLLOWUP_RESULTS.md)
+
+**Attribution**
+
+A separate temporary fallback-dispatch sampler found 58,931 of 118,495 sampled
+dispatches in EZLib.dll and 45,136 in hash.dll. That is **88% of sampled fallback
+dispatches, not 88% of CPU time**. ROM headers and directory records identify the
+libraries. Diagnostic logging then showed hot PCs absent from the candidate
+map when it reached 65,536 entries, even with only 2,480–3,433 regions compiled
+against the 4,096 quota. This establishes an admission problem rather than
+evidence that a larger compiled-code quota is needed.
+
+**Adopted build: installation results**
+
+| # | Game | Published `47bab3744`, seconds | Adopted build, seconds |
+| ---: | --- | --- | --- |
+| 1 | Hooked On | 101.25, 105.46, 116.91 | 82.58, 85.00, 88.36 |
+| 2 | Asphalt 3 | 62.77, 65.88, 64.73 | 53.89, 50.56 |
+| 3 | Tetris | 47.43 | 47.00 |
+
+| # | Game | Previous first presentation, seconds | Adopted first presentation, seconds |
+| ---: | --- | ---: | ---: |
+| 1 | K-Rally | 9.00 | 10.23 |
+| 2 | Snakes | 7.94 | 8.43 |
+| 3 | Super Miners | 7.84 | 7.33 |
+| 4 | Asphalt 2 | 7.88 | 9.52 |
+| 5 | Sky Force | 7.52 | 6.76 |
+| 6 | Pathway to Glory | 4.31 | 4.14 |
+| 7 | Explode Arena | 4.89 | 5.48 |
+
+**Unpaced gameplay regression screen**
+
+Compare the adopted artifact with the unchanged public `47bab3744` build, in
+Chromium, with a fresh installation each time. Guest audio is enabled (browser
+output is muted by the harness). Instruction totals remain zero; all timed
+samples run continuously in unpaced route phase zero. No profiler, build or
+test suite runs during the measurements. Screenshots at both ends confirm
+gameplay. These are short presentation-rate screens, not deterministic
+exact-state replays, CPU-only throughput or a new Qt comparison.
+
+No consistent gameplay regression was found. This does **not** establish a
+tight statistical bound on small regressions or rare slow runs. Super Miners
+varies widely even on the unchanged control. Asphalt 2's first candidate run
+was low; its next two matched/exceeded controls, and the earlier build without
+the admission fix also produced a 101.95 FPS sample. The cause of these low
+runs was not established. They are retained, not discarded or reclassified as
+failed harness runs. Snakes, Sky Force and Pathway are within about 0.4–1.6% in
+their single pairs; those small differences are not precise speedup estimates.
+
+Dynamic gameplay can travel farther in a faster run; Tetris piece sequences
+and Pathway's selected soldier also differ. The screen rules out menus, help
+overlays, panics and gross persistent losses, but does not prove equal guest
+work instruction by instruction. No audible-output or full-game-completion
+claim is made by these muted-browser throughput measurements.
+
+**Evidence and reproduction**
+
+Hooked On's introductory help is another important confound. The moving-boat
+pair measured 288.40 versus 181.53 FPS, with the control reaching a cheaper help
+screen earlier. Keeping the boat stationary did not prevent automatic tutorial
+help: the prototype's 10-second trace moved from 160–194 FPS to about 550 FPS
+when that appeared. These aggregates are retained but cannot establish steady
+gameplay throughput or attribute the entire difference to the mapping cache.
+The focused comparison completes the anchor action, enters fishing and returns
+to the map before timing. Both ends of the window must show the unobstructed
+boat scene; closing the help dialog alone is insufficient.
+
+</details>
+
+<a id="report-281"></a>
+<details>
+<summary>281. State transfer pruning and V8 cost validation</summary>
 
 [Full report and evidence](STATE_LIVENESS_RESULTS.md)
 
@@ -8207,9 +8281,9 @@ and whole-worker checks; they do not support a guaranteed-speedup claim.
 
 </details>
 
-<a id="report-281"></a>
+<a id="report-282"></a>
 <details>
-<summary>281. Static bindings for built-in syscalls</summary>
+<summary>282. Static bindings for built-in syscalls</summary>
 
 [Full report and evidence](STATIC_SVC_BINDINGS_RESULTS.md)
 
@@ -8232,9 +8306,9 @@ These are incremental results, not percentages to add to earlier optimizations.
 
 </details>
 
-<a id="report-283"></a>
+<a id="report-284"></a>
 <details>
-<summary>283. Selecting exact comparators at snapshot construction</summary>
+<summary>284. Selecting exact comparators at snapshot construction</summary>
 
 [Full report and evidence](STORED_COMPARATOR_RESULTS.md)
 
@@ -8265,9 +8339,9 @@ the live archive is unchanged. All six observations remain in the evidence.
 
 </details>
 
-<a id="report-284"></a>
+<a id="report-285"></a>
 <details>
-<summary>284. Complete proved syscall returns without region handoffs</summary>
+<summary>285. Complete proved syscall returns without region handoffs</summary>
 
 [Full report and evidence](SVC_RETURN_CONTINUATION_RESULTS.md)
 
@@ -8303,9 +8377,9 @@ These are 18 guest seconds divided by measured elapsed wall time.
 
 </details>
 
-<a id="report-285"></a>
+<a id="report-286"></a>
 <details>
-<summary>285. Completed sweep and combined graduation measurement</summary>
+<summary>286. Completed sweep and combined graduation measurement</summary>
 
 [Full report and evidence](SWEEP_COMBINED_RESULTS.md)
 
@@ -8352,9 +8426,9 @@ wait; a detected build requires only one second clear before timing resumes.
 
 </details>
 
-<a id="report-286"></a>
+<a id="report-287"></a>
 <details>
-<summary>286. Tail prefixes on the graduated branch-veneer runtime</summary>
+<summary>287. Tail prefixes on the graduated branch-veneer runtime</summary>
 
 [Full report and evidence](TAIL_CURRENT_RESULTS.md)
 
@@ -8380,9 +8454,9 @@ native instructions. Its positive average does not establish a reliable gain.
 
 </details>
 
-<a id="report-287"></a>
+<a id="report-288"></a>
 <details>
-<summary>287. Register-only tail-prefix experiment</summary>
+<summary>288. Register-only tail-prefix experiment</summary>
 
 [Full report and evidence](TAIL_PREFIX_RESULTS.md)
 
@@ -8411,9 +8485,9 @@ The feature remains opt-in after the inconsistent serial timings. The checked ce
 
 </details>
 
-<a id="report-288"></a>
+<a id="report-289"></a>
 <details>
-<summary>288. Thumb arithmetic budget groups</summary>
+<summary>289. Thumb arithmetic budget groups</summary>
 
 [Full report and evidence](THUMB_BUDGET_GROUP_RESULTS.md)
 
@@ -8435,9 +8509,9 @@ history. Live is unchanged and the realtime goal remains open.
 
 </details>
 
-<a id="report-289"></a>
+<a id="report-290"></a>
 <details>
-<summary>289. Bounded Thumb long-call fusion</summary>
+<summary>290. Bounded Thumb long-call fusion</summary>
 
 [Full report and evidence](THUMB_CALL_RESULTS.md)
 
@@ -8453,9 +8527,9 @@ or zero Snakes loss; the candidate remains unpromoted. Static WASM grows by
 
 </details>
 
-<a id="report-290"></a>
+<a id="report-291"></a>
 <details>
-<summary>290. Completing short Thumb calls inside their caller</summary>
+<summary>291. Completing short Thumb calls inside their caller</summary>
 
 [Full report and evidence](THUMB_COMPLETE_CALL_RESULTS.md)
 
@@ -8490,9 +8564,9 @@ Snakes covers 74–86. Each has one faster and one slower adjacent CPU pair.
 
 </details>
 
-<a id="report-291"></a>
+<a id="report-292"></a>
 <details>
-<summary>291. Compact connected Thumb regions</summary>
+<summary>292. Compact connected Thumb regions</summary>
 
 [Full report and evidence](THUMB_CONNECTED_REGION_RESULTS.md)
 
@@ -8510,9 +8584,9 @@ baseline order. All observations are retained. Positive changes mean slower.
 
 </details>
 
-<a id="report-292"></a>
+<a id="report-293"></a>
 <details>
-<summary>292. One budget proof for an inlined Thumb helper</summary>
+<summary>293. One budget proof for an inlined Thumb helper</summary>
 
 [Full report and evidence](THUMB_LEAF_BUDGET_RESULTS.md)
 
@@ -8533,9 +8607,9 @@ Every valid observation remains included, including slower pairs.
 
 </details>
 
-<a id="report-293"></a>
+<a id="report-294"></a>
 <details>
-<summary>293. Remove unused WASM loops from bounded Thumb regions</summary>
+<summary>294. Remove unused WASM loops from bounded Thumb regions</summary>
 
 [Full report and evidence](THUMB_LINEAR_REGION_RESULTS.md)
 
@@ -8550,9 +8624,9 @@ Snakes has two faster pairs, including a +3.40% pair that raises its mean. Sky F
 
 </details>
 
-<a id="report-294"></a>
+<a id="report-295"></a>
 <details>
-<summary>294. Adopt guarded Thumb memory after profiling normal play</summary>
+<summary>295. Adopt guarded Thumb memory after profiling normal play</summary>
 
 [Full report and evidence](THUMB_MEMORY_DEFAULT_RESULTS.md)
 
@@ -8587,9 +8661,9 @@ this throughput comparison. The older v2 timing panel is not pooled with it.
 
 </details>
 
-<a id="report-295"></a>
+<a id="report-296"></a>
 <details>
-<summary>295. Direct memory accesses in compiled Thumb code</summary>
+<summary>296. Direct memory accesses in compiled Thumb code</summary>
 
 [Full report and evidence](THUMB_MEMORY_DESIGN.md)
 
@@ -8616,9 +8690,9 @@ untouched. The current adoption is recorded separately in the linked report.
 
 </details>
 
-<a id="report-296"></a>
+<a id="report-297"></a>
 <details>
-<summary>296. Thumb memory timing: first verified stage</summary>
+<summary>297. Thumb memory timing: first verified stage</summary>
 
 [Full report and evidence](THUMB_MEMORY_TIMING.md)
 
@@ -8635,9 +8709,9 @@ untouched. The current adoption is recorded separately in the linked report.
 
 </details>
 
-<a id="report-297"></a>
+<a id="report-298"></a>
 <details>
-<summary>297. Thumb cache writeback at earlier exits</summary>
+<summary>298. Thumb cache writeback at earlier exits</summary>
 
 [Full report and evidence](THUMB_PREFIX_RESULTS.md)
 
@@ -8659,9 +8733,9 @@ A fresh V6 CPU profile follows the screen as diagnosis, not a speed result.
 
 </details>
 
-<a id="report-298"></a>
+<a id="report-299"></a>
 <details>
-<summary>298. One budget proof for each bounded Thumb path</summary>
+<summary>299. One budget proof for each bounded Thumb path</summary>
 
 [Full report and evidence](THUMB_REGION_BUDGET_RESULTS.md)
 
@@ -8680,9 +8754,9 @@ Retired native instructions fall 2.63% in Sky Force and 0.26% in Snakes. In warm
 
 </details>
 
-<a id="report-299"></a>
+<a id="report-300"></a>
 <details>
-<summary>299. Fuse known Thumb return continuations</summary>
+<summary>300. Fuse known Thumb return continuations</summary>
 
 [Full report and evidence](THUMB_RETURN_FUSION_RESULTS.md)
 
@@ -8705,9 +8779,9 @@ The return-focused matrix passes 76,032 exact chain/state/memory/callback compar
 
 </details>
 
-<a id="report-300"></a>
+<a id="report-301"></a>
 <details>
-<summary>300. Inline short immutable Thumb helpers</summary>
+<summary>301. Inline short immutable Thumb helpers</summary>
 
 [Full report and evidence](THUMB_ROM_LEAF_RESULTS.md)
 
@@ -8722,9 +8796,9 @@ The prototype does not earn adoption: Sky Force loses 2.29% CPU throughput, with
 
 </details>
 
-<a id="report-301"></a>
+<a id="report-302"></a>
 <details>
-<summary>301. One-page Thumb register-transfer proofs</summary>
+<summary>302. One-page Thumb register-transfer proofs</summary>
 
 [Full report and evidence](THUMB_SPAN_RESULTS.md)
 
@@ -8743,9 +8817,9 @@ acceptance, with its measurements kept distinct from the stationary baseline.
 
 </details>
 
-<a id="report-302"></a>
+<a id="report-303"></a>
 <details>
-<summary>302. Thumb runtime state cache</summary>
+<summary>303. Thumb runtime state cache</summary>
 
 [Full report and evidence](THUMB_STATE_RESULTS.md)
 
@@ -8759,9 +8833,9 @@ versus 12.6529s v3 for six guest seconds). Standard Snakes is slightly slower
 
 </details>
 
-<a id="report-303"></a>
+<a id="report-304"></a>
 <details>
-<summary>303. Thumb continuations with static instruction counts</summary>
+<summary>304. Thumb continuations with static instruction counts</summary>
 
 [Full report and evidence](THUMB_STATIC_REGION_RESULTS.md)
 
@@ -8805,9 +8879,9 @@ allocation and code layout. Those are possible explanations, not measured causes
 
 </details>
 
-<a id="report-304"></a>
+<a id="report-305"></a>
 <details>
-<summary>304. Direct RAM Thumb store continuation</summary>
+<summary>305. Direct RAM Thumb store continuation</summary>
 
 [Full report and evidence](THUMB_STORE_RESULTS.md)
 
@@ -8828,9 +8902,9 @@ compiler source, keeping all V6/V7 correctness and timing evidence for review.
 
 </details>
 
-<a id="report-305"></a>
+<a id="report-306"></a>
 <details>
-<summary>305. Select Thumb continuations by state transfers</summary>
+<summary>306. Select Thumb continuations by state transfers</summary>
 
 [Full report and evidence](THUMB_TRANSFER_GATE_RESULTS.md)
 
@@ -8890,9 +8964,9 @@ are not a proof of fewer native spills, better code layout or less CPU time.
 
 </details>
 
-<a id="report-307"></a>
+<a id="report-308"></a>
 <details>
-<summary>307. Folded data-TLB indexing: historical results</summary>
+<summary>308. Folded data-TLB indexing: historical results</summary>
 
 [Full report and evidence](TLB_HASH_RESULTS.md)
 
@@ -8943,9 +9017,9 @@ Raw reports, provenance and every timing sample are in TLB_HASH_EVIDENCE.json.
 
 </details>
 
-<a id="report-308"></a>
+<a id="report-309"></a>
 <details>
-<summary>308. Scalar alignment guard experiment</summary>
+<summary>309. Scalar alignment guard experiment</summary>
 
 [Full report and evidence](UNALIGNED_SCALAR_RESULTS.md)
 
@@ -8962,9 +9036,9 @@ Direct shows a small repeatable gain: 1.3% less worker CPU in Snakes and 0.8% le
 
 </details>
 
-<a id="report-309"></a>
+<a id="report-310"></a>
 <details>
-<summary>309. Ungated counters capture a slower execution rate</summary>
+<summary>310. Ungated counters capture a slower execution rate</summary>
 
 [Full report and evidence](UNGATED_COUNTER_RESULTS.md)
 
@@ -8989,9 +9063,9 @@ other causes elsewhere in the process.
 
 </details>
 
-<a id="report-310"></a>
+<a id="report-311"></a>
 <details>
-<summary>310. Unsafe code-mutation cost attribution</summary>
+<summary>311. Unsafe code-mutation cost attribution</summary>
 
 [Full report and evidence](UNSAFE_CODE_ATTRIBUTION_RESULTS.md)
 
@@ -9015,9 +9089,9 @@ Incremental guard removal on the scan-free path (throughput change, both versus 
 
 </details>
 
-<a id="report-311"></a>
+<a id="report-312"></a>
 <details>
-<summary>311. Unsafe executable-byte assumption experiment</summary>
+<summary>312. Unsafe executable-byte assumption experiment</summary>
 
 [Full report and evidence](UNSAFE_CODE_RESULTS.md)
 
@@ -9050,9 +9124,9 @@ All four matching-control batch means favor full unsafe mode; seven of eight cor
 
 </details>
 
-<a id="report-313"></a>
+<a id="report-314"></a>
 <details>
-<summary>313. Upstream master integration, 2026-09-30</summary>
+<summary>314. Upstream master integration, 2026-09-30</summary>
 
 [Full report and evidence](UPSTREAM_20260930_RESULTS.md)
 
@@ -9066,9 +9140,9 @@ measurements. The live launcher still serves its separately verified old archive
 
 </details>
 
-<a id="report-314"></a>
+<a id="report-315"></a>
 <details>
-<summary>314. Upstream merge and new deterministic baseline</summary>
+<summary>315. Upstream merge and new deterministic baseline</summary>
 
 [Full report and evidence](UPSTREAM_MERGE_RESULTS.md)
 
@@ -9091,9 +9165,9 @@ AOT is about 1.58x the merged interpreter in this window. Another 21.4% throughp
 
 </details>
 
-<a id="report-315"></a>
+<a id="report-316"></a>
 <details>
-<summary>315. User::After tick deadlines</summary>
+<summary>316. User::After tick deadlines</summary>
 
 [Full report and evidence](USER_AFTER_RESULTS.md)
 
@@ -9138,9 +9212,9 @@ of updates performed in a fixed virtual-time interval.
 
 </details>
 
-<a id="report-316"></a>
+<a id="report-317"></a>
 <details>
-<summary>316. Direct-call switches with production code validation</summary>
+<summary>317. Direct-call switches with production code validation</summary>
 
 [Full report and evidence](VALIDATED_LAYOUT_RESULTS.md)
 
@@ -9163,9 +9237,9 @@ coverage warrants it; it does not support blindly clustering many functions.
 
 </details>
 
-<a id="report-317"></a>
+<a id="report-318"></a>
 <details>
-<summary>317. Safe validity generations and native/browser cost comparison</summary>
+<summary>318. Safe validity generations and native/browser cost comparison</summary>
 
 [Full report and evidence](VALIDITY_AND_COST_RESULTS.md)
 
@@ -9222,9 +9296,9 @@ noisy diagnostic runs, not evidence of a causal speedup.**
 
 </details>
 
-<a id="report-318"></a>
+<a id="report-319"></a>
 <details>
-<summary>318. Shared WASM cost accounting and Snakes diagnosis</summary>
+<summary>319. Shared WASM cost accounting and Snakes diagnosis</summary>
 
 [Full report and evidence](WASM_COST_ACCOUNTING_RESULTS.md)
 
@@ -9269,9 +9343,9 @@ remain follow-ups, not completed optimizations.
 
 </details>
 
-<a id="report-319"></a>
+<a id="report-320"></a>
 <details>
-<summary>319. Count-free watchdog execution</summary>
+<summary>320. Count-free watchdog execution</summary>
 
 [Full report and evidence](WATCHDOG_RESULTS.md)
 
@@ -9367,9 +9441,9 @@ renderer, which does not establish its physical GPU path.
 
 </details>
 
-<a id="report-320"></a>
+<a id="report-321"></a>
 <details>
-<summary>320. Adjacent long multiply result reuse: rejected</summary>
+<summary>321. Adjacent long multiply result reuse: rejected</summary>
 
 [Full report and evidence](WIDE_REUSE_RESULTS.md)
 
@@ -9404,9 +9478,9 @@ The rejected runtime source and binary are preserved under
 
 </details>
 
-<a id="report-324"></a>
+<a id="report-325"></a>
 <details>
-<summary>324. Asphalt frame-timeline evidence</summary>
+<summary>325. Asphalt frame-timeline evidence</summary>
 
 [Full report and evidence](asphalt-timeline/README.md)
 
@@ -9441,9 +9515,9 @@ as guest time zero. Kinds 1–7 partition the CPU worker's wall time.
 
 </details>
 
-<a id="report-326"></a>
+<a id="report-327"></a>
 <details>
-<summary>326. Runtime service overlap census</summary>
+<summary>327. Runtime service overlap census</summary>
 
 [Full report and evidence](service_overlap/README.md)
 
@@ -9468,9 +9542,9 @@ as guest time zero. Kinds 1–7 partition the CPU worker's wall time.
 
 </details>
 
-<a id="report-327"></a>
+<a id="report-328"></a>
 <details>
-<summary>327. Snakes service overlap, 2026-10-01</summary>
+<summary>328. Snakes service overlap, 2026-10-01</summary>
 
 [Full report and evidence](service_overlap/RESULTS.md)
 

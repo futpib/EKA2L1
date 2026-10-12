@@ -1,0 +1,3919 @@
+{
+  "runtime_failures": [
+    {
+      "label": "runtime-base-tutorial-dismissed-hooked-a",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-base-tutorial-dismissed-hooked-a/failure.json",
+      "error": "Error: waitForFunction failed: frame got detached.",
+      "panic_lines": [],
+      "scene_review": "terminated before timing after identical route was found to allow repeating tutorial help"
+    },
+    {
+      "label": "runtime-control-racing-c",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-control-racing-c/failure.json",
+      "error": "AssertionError [ERR_ASSERTION]: Asphalt 3 is not showing the racing HUD; reject this route",
+      "panic_lines": [],
+      "scene_review": "rejected: unchanged public build also fails launch with N-Gage -1000002; no racing HUD"
+    },
+    {
+      "label": "runtime-final-asphalt-3-a",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-final-asphalt-3-a/failure.json",
+      "error": "AssertionError [ERR_ASSERTION]: Asphalt 3 is not showing the racing HUD; reject this route",
+      "panic_lines": [
+        "[18:36:52.480] T /home/claude/REPOS/EKA2L1-benchmark/src/emu/kernel/src/thread.cpp:543 [Kernel]: Thread Main panicked with category: USER and exit code: 44 ",
+        "[18:36:52.491] T /home/claude/REPOS/EKA2L1-benchmark/src/emu/kernel/src/thread.cpp:543 [Kernel]: Thread AnonymousThread panicked with category: Domino and exit code: 44 ",
+        "[18:36:52.491] T /home/claude/REPOS/EKA2L1-benchmark/src/emu/kernel/src/thread.cpp:543 [Kernel]: Thread 01900a08155b24a3 panicked with category: Domino and exit code: 44 "
+      ],
+      "scene_review": "rejected: N-Gage -1000002 launch failure, followed by USER 44 on scripted relaunch; no racing HUD"
+    },
+    {
+      "label": "runtime-final-asphalt-3-b",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-final-asphalt-3-b/failure.json",
+      "error": "AssertionError [ERR_ASSERTION]: Asphalt 3 is not showing the racing HUD; reject this route",
+      "panic_lines": [],
+      "scene_review": "rejected: N-Gage -1000002 launch failure; no racing HUD"
+    },
+    {
+      "label": "runtime-selected-stationary-hooked-b",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-selected-stationary-hooked-b/failure.json",
+      "error": "AssertionError [ERR_ASSERTION]: Hooked On tutorial obscures the measured boat scene",
+      "panic_lines": [],
+      "scene_review": "rejected by scene guard: tutorial reappeared before the timed window ended"
+    }
+  ],
+  "manual_review": {
+    "runtime-control-asphalt-3-a": "rejected: language menu, not gameplay",
+    "runtime-table-asphalt-3-retry": "rejected: language menu, not gameplay",
+    "runtime-marks-asphalt-3-a": "rejected: language menu, not gameplay",
+    "runtime-control-racing-a": "accepted: coastal track, red car, sound YES; HUD and screenshots checked",
+    "runtime-control-racing-b": "accepted: coastal track, red car, sound YES; HUD and screenshots checked",
+    "runtime-marks-racing-b": "accepted: coastal track, red car, sound YES; HUD and screenshots checked",
+    "runtime-final-asphalt-3-a": "rejected: N-Gage -1000002 launch failure, followed by USER 44 on scripted relaunch; no racing HUD",
+    "runtime-control-racing-c": "rejected: unchanged public build also fails launch with N-Gage -1000002; no racing HUD",
+    "runtime-marks-racing-a": "rejected: USER 44 startup panic; no racing HUD",
+    "runtime-reuse-racing-a": "rejected: N-Gage -1000002 launch failure; no racing HUD",
+    "runtime-final-asphalt-3-b": "rejected: N-Gage -1000002 launch failure; no racing HUD",
+    "runtime-final-short-pilot": "accepted gameplay scene: coastal track, red car, sound YES; screen-guided startup pilot with shorter waits, not an identical startup route to previous controls",
+    "runtime-base-short-asphalt3-a": "accepted: matching shorter route, coastal racing HUD, red car, sound YES; no panics; 5-second window",
+    "runtime-final-short-asphalt3-a": "accepted: matching shorter route, coastal racing HUD, red car, sound YES; no panics; 5-second window",
+    "runtime-base-hooked-on-a": "valid Costa Rica boat/help scene, but unresolved runtime difference and unequal help-screen exposure; not a passed regression gate",
+    "runtime-final-hooked-on-a": "valid Costa Rica boat/help scene, but unresolved runtime difference and unequal help-screen exposure; not a passed regression gate",
+    "runtime-final-stationary-hooked-a": "not a fixed-scene comparison: stationary boat automatically opens tutorial help; first-half FPS 160-194, last-half reaches 550; retain but do not treat aggregate as steady gameplay",
+    "runtime-base-stationary-hooked-a": "not a fixed-scene comparison: automatic tutorial help appears; aggregate 407.43 FPS is not steady gameplay",
+    "runtime-selected-stationary-hooked-b": "rejected by scene guard: tutorial reappeared before the timed window ended",
+    "runtime-selected-stationary-hooked-a": "harness connection refused before server finished starting, no guest run",
+    "runtime-base-tutorial-dismissed-hooked-a": "terminated before timing after identical route was found to allow repeating tutorial help",
+    "runtime-base-anchor-completed-hooked-a": "accepted: matching Costa Rica stationary boat scene; anchor tutorial completed by fishing then returning to map; unobstructed start/end screenshots; guest audio enabled, no panics",
+    "runtime-admission-anchor-completed-hooked-a": "accepted: matching Costa Rica stationary boat scene; anchor tutorial completed by fishing then returning to map; unobstructed start/end screenshots; guest audio enabled, no panics",
+    "runtime-selected-anchor-completed-hooked-a": "valid unobstructed boat scene, but failed runtime performance gate; mapping cache rejected",
+    "runtime-selected-anchor-completed-hooked-b": "valid unobstructed boat scene, but failed runtime performance gate; mapping cache rejected",
+    "runtime-selected-tutorial-pilot": "route calibration only: unobstructed boat, extra menu actions differ from matched pair; not included in regression gate",
+    "runtime-base-anchor-completed-hooked-b": "accepted: matching Costa Rica stationary boat scene; anchor tutorial completed by fishing then returning to map; unobstructed start/end screenshots; guest audio enabled, no panics",
+    "runtime-base-tetris-a": "accepted: active level-1 Marathon board at both ends; random piece sequence differs, no menu/help or guest errors; 5-second regression screen, not exact deterministic replay",
+    "runtime-adopted-tetris-a": "accepted: active level-1 Marathon board at both ends; random piece sequence differs, no menu/help or guest errors; 5-second regression screen, not exact deterministic replay",
+    "runtime-base-k-rally-a": "accepted gameplay regression screen: tutorial bridge start, acceleration/steering held, active driving at end; faster run travels farther and leaves road, not an exact-work speedup estimate",
+    "runtime-adopted-k-rally-a": "accepted gameplay regression screen: tutorial bridge start, acceleration/steering held, active driving at end; faster run travels farther and leaves road, not an exact-work speedup estimate",
+    "runtime-base-snakes-a": "accepted: matching opening level, score 200, active snake at start/end; no errors, 5-second screen; FPS difference about 1 percent",
+    "runtime-adopted-snakes-a": "accepted: matching opening level, score 200, active snake at start/end; no errors, 5-second screen; FPS difference about 1 percent",
+    "runtime-base-super-miners-a": "accepted gameplay sample: same level-1 standing scene, timer advances; retain all three runs because both control and candidate vary strongly; no consistent slowdown, not a tight regression bound",
+    "runtime-base-super-miners-b": "accepted gameplay sample: same level-1 standing scene, timer advances; retain all three runs because both control and candidate vary strongly; no consistent slowdown, not a tight regression bound",
+    "runtime-base-super-miners-c": "accepted gameplay sample: same level-1 standing scene, timer advances; retain all three runs because both control and candidate vary strongly; no consistent slowdown, not a tight regression bound",
+    "runtime-adopted-super-miners-a": "accepted gameplay sample: same level-1 standing scene, timer advances; retain all three runs because both control and candidate vary strongly; no consistent slowdown, not a tight regression bound",
+    "runtime-adopted-super-miners-b": "accepted gameplay sample: same level-1 standing scene, timer advances; retain all three runs because both control and candidate vary strongly; no consistent slowdown, not a tight regression bound",
+    "runtime-adopted-super-miners-c": "accepted gameplay sample: same level-1 standing scene, timer advances; retain all three runs because both control and candidate vary strongly; no consistent slowdown, not a tight regression bound",
+    "runtime-marks-super-miners-a": "earlier-build isolation sample, active level, not selected final result",
+    "runtime-base-asphalt-2-a": "accepted gameplay sample: Golf/San Francisco barrier; 10-second window, audio enabled, no errors; first candidate low run retained, next two match/exceed controls; no consistent regression, rare slowdown not excluded",
+    "runtime-base-asphalt-2-b": "accepted gameplay sample: Golf/San Francisco barrier; 10-second window, audio enabled, no errors; first candidate low run retained, next two match/exceed controls; no consistent regression, rare slowdown not excluded",
+    "runtime-adopted-asphalt-2-a": "accepted gameplay sample: Golf/San Francisco barrier; 10-second window, audio enabled, no errors; first candidate low run retained, next two match/exceed controls; no consistent regression, rare slowdown not excluded",
+    "runtime-adopted-asphalt-2-b": "accepted gameplay sample: Golf/San Francisco barrier; 10-second window, audio enabled, no errors; first candidate low run retained, next two match/exceed controls; no consistent regression, rare slowdown not excluded",
+    "runtime-adopted-asphalt-2-c": "accepted gameplay sample: Golf/San Francisco barrier; 10-second window, audio enabled, no errors; first candidate low run retained, next two match/exceed controls; no consistent regression, rare slowdown not excluded",
+    "runtime-marks-asphalt-2-a": "valid barrier scene in earlier two-change build, 101.95 FPS; low result predates admission fix and cannot isolate a cause",
+    "runtime-base-sky-force-a": "accepted: active stage-1 flying/combat, same opening and score1950/7 percent end; 2-second regression screen, about1.6 percent FPS difference, no guest errors",
+    "runtime-adopted-sky-force-a": "accepted: active stage-1 flying/combat, same opening and score1950/7 percent end; 2-second regression screen, about1.6 percent FPS difference, no guest errors",
+    "runtime-base-pathway-to-glory-a": "accepted gameplay screen: Pantelleria battlefield, soldier-selection UI, no menu overlay or errors; selected soldier differs, FPS flat, not an exact-state replay",
+    "runtime-adopted-pathway-to-glory-a": "accepted gameplay screen: Pantelleria battlefield, soldier-selection UI, no menu overlay or errors; selected soldier differs, FPS flat, not an exact-state replay",
+    "runtime-base-explode-arena-a": "accepted: active level-1 arena at start/end, no overlays or errors; 3-second gameplay screen",
+    "runtime-adopted-explode-arena-a": "accepted: active level-1 arena at start/end, no overlays or errors; 3-second gameplay screen",
+    "runtime-base-asphalt-3-a": "accepted: actual coastal race/red car/racing HUD at both ends; sound YES selected, guest audio enabled, accelerator held, no panics; 5-second gameplay screen",
+    "runtime-adopted-asphalt-3-a": "accepted: actual coastal race/red car/racing HUD at both ends; sound YES selected, guest audio enabled, accelerator held, no panics; 5-second gameplay screen",
+    "runtime-lan-snakes": "accepted public deployment check: actual opening-level Snakes gameplay, score200,99.02 FPS, no errors; same verified WASM hash and runtime policy"
+  },
+  "source_base": "47bab3744",
+  "evidence_root": "/home/claude/.scratch/eka-startup-next-20261012",
+  "startup_metric": "Normal paced launch, fresh browser and guest filesystem, warm server asset cache; navigation to first presentation and separately successful N-Gage installer exit log receipt, checked in screenshots.",
+  "runtime_metric": "Unpaced continuous gameplay in Chromium; fixed route/input and audio configuration within each pair, screenshot review required; presentation FPS, not guest-clock speed.",
+  "startup_runs": [
+    {
+      "label": "admission-asphalt-3-a",
+      "variant": "admission_fix_4096_quota",
+      "game": "asphalt-3",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/admission-asphalt-3-a/report.json",
+      "url": "https://claude-laptop.lan:8195/",
+      "first_presentation_seconds": 9.73697000002861,
+      "installation_complete_seconds": 53.88531338,
+      "compilation": {
+        "compiled_functions": 98731,
+        "aot_eager_functions": 87761,
+        "aot_translation_us": 9311831,
+        "aot_emission_us": 590875,
+        "aot_installation_us": 1349943
+      },
+      "renderer_cpu_seconds_after_first": 61.42999999999999,
+      "busiest_renderer_thread_cpu_seconds": 32.700835439,
+      "load_before": [
+        2.37,
+        2.83,
+        2.45
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "admission-cap-asphalt-3-a",
+      "variant": "admission_fix_16384_quota",
+      "game": "asphalt-3",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/admission-cap-asphalt-3-a/report.json",
+      "url": "https://claude-laptop.lan:8196/",
+      "first_presentation_seconds": 8.33675,
+      "installation_complete_seconds": 54.357253894,
+      "compilation": {
+        "compiled_functions": 101862,
+        "aot_eager_functions": 87765,
+        "aot_translation_us": 10155943,
+        "aot_emission_us": 631397,
+        "aot_installation_us": 1463053
+      },
+      "renderer_cpu_seconds_after_first": 66.3,
+      "busiest_renderer_thread_cpu_seconds": 34.422993807,
+      "load_before": [
+        2.01,
+        2.61,
+        2.45
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "admission-cap-hooked-on-a",
+      "variant": "admission_fix_16384_quota",
+      "game": "hooked-on",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/admission-cap-hooked-on-a/report.json",
+      "url": "https://claude-laptop.lan:8196/",
+      "first_presentation_seconds": 8.435430000066757,
+      "installation_complete_seconds": 87.566066276,
+      "compilation": {
+        "compiled_functions": 102824,
+        "aot_eager_functions": 87738,
+        "aot_translation_us": 10766986,
+        "aot_emission_us": 672488,
+        "aot_installation_us": 1551096
+      },
+      "renderer_cpu_seconds_after_first": 99.96000000000001,
+      "busiest_renderer_thread_cpu_seconds": 55.472524487,
+      "load_before": [
+        4.1,
+        3.02,
+        2.55
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "admission-cap-tetris-a",
+      "variant": "admission_fix_16384_quota",
+      "game": "tetris",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/admission-cap-tetris-a/report.json",
+      "url": "https://claude-laptop.lan:8196/",
+      "first_presentation_seconds": 8.326920000076294,
+      "installation_complete_seconds": 45.228232095,
+      "compilation": {
+        "compiled_functions": 101902,
+        "aot_eager_functions": 87744,
+        "aot_translation_us": 10624367,
+        "aot_emission_us": 669926,
+        "aot_installation_us": 1493475
+      },
+      "renderer_cpu_seconds_after_first": 58.03,
+      "busiest_renderer_thread_cpu_seconds": 28.664626967,
+      "load_before": [
+        1.72,
+        2.43,
+        2.4
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "admission-hooked-on-a",
+      "variant": "admission_fix_4096_quota",
+      "game": "hooked-on",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/admission-hooked-on-a/report.json",
+      "url": "https://claude-laptop.lan:8195/",
+      "first_presentation_seconds": 8.31731500005722,
+      "installation_complete_seconds": 82.578195381,
+      "compilation": {
+        "compiled_functions": 98925,
+        "aot_eager_functions": 87753,
+        "aot_translation_us": 8771205,
+        "aot_emission_us": 565385,
+        "aot_installation_us": 1334884
+      },
+      "renderer_cpu_seconds_after_first": 88.72,
+      "busiest_renderer_thread_cpu_seconds": 52.445735515,
+      "load_before": [
+        2.44,
+        2.92,
+        2.43
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "admission-hooked-on-b",
+      "variant": "admission_fix_4096_quota",
+      "game": "hooked-on",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/admission-hooked-on-b/report.json",
+      "url": "https://claude-laptop.lan:8195/",
+      "first_presentation_seconds": 10.894295000076294,
+      "installation_complete_seconds": 84.998264406,
+      "compilation": {
+        "compiled_functions": 98947,
+        "aot_eager_functions": 87752,
+        "aot_translation_us": 10274810,
+        "aot_emission_us": 655868,
+        "aot_installation_us": 1518117
+      },
+      "renderer_cpu_seconds_after_first": 90.32000000000001,
+      "busiest_renderer_thread_cpu_seconds": 52.683907951,
+      "load_before": [
+        2.78,
+        2.59,
+        2.55
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "admission-hooked-on-c",
+      "variant": "admission_fix_4096_quota",
+      "game": "hooked-on",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/admission-hooked-on-c/report.json",
+      "url": "https://claude-laptop.lan:8195/",
+      "first_presentation_seconds": 9.456575000047684,
+      "installation_complete_seconds": 88.35799157299999,
+      "compilation": {
+        "compiled_functions": 98937,
+        "aot_eager_functions": 87738,
+        "aot_translation_us": 9805544,
+        "aot_emission_us": 620391,
+        "aot_installation_us": 1489653
+      },
+      "renderer_cpu_seconds_after_first": 95.64999999999999,
+      "busiest_renderer_thread_cpu_seconds": 55.292365824,
+      "load_before": [
+        3.76,
+        3.26,
+        2.88
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "admission-tetris-a",
+      "variant": "admission_fix_4096_quota",
+      "game": "tetris",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/admission-tetris-a/report.json",
+      "url": "https://claude-laptop.lan:8195/",
+      "first_presentation_seconds": 10.100494999885559,
+      "installation_complete_seconds": 47.003934142999995,
+      "compilation": {
+        "compiled_functions": 98713,
+        "aot_eager_functions": 87766,
+        "aot_translation_us": 9609452,
+        "aot_emission_us": 614036,
+        "aot_installation_us": 1411338
+      },
+      "renderer_cpu_seconds_after_first": 53.739999999999995,
+      "busiest_renderer_thread_cpu_seconds": 27.976443941,
+      "load_before": [
+        2.26,
+        2.72,
+        2.43
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "adopted-sky-force-visible",
+      "variant": "adopted_three_changes",
+      "game": "sky-force",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/adopted-sky-force-visible/report.json",
+      "url": "https://claude-laptop.lan:8195/",
+      "first_presentation_seconds": 6.795554999828338,
+      "installation_complete_seconds": null,
+      "compilation": {
+        "compiled_functions": 41577,
+        "aot_eager_functions": 34221,
+        "aot_translation_us": 3883122,
+        "aot_emission_us": 259346,
+        "aot_installation_us": 531183
+      },
+      "renderer_cpu_seconds_after_first": 9.729999999999999,
+      "busiest_renderer_thread_cpu_seconds": 5.464761678,
+      "load_before": [
+        1.5,
+        1.63,
+        1.84
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "adopted-startup-asphalt-2",
+      "variant": "adopted_three_changes",
+      "game": "asphalt-2",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/adopted-startup-asphalt-2/report.json",
+      "url": "https://claude-laptop.lan:8195/",
+      "first_presentation_seconds": 9.521,
+      "installation_complete_seconds": null,
+      "compilation": {
+        "compiled_functions": 38586,
+        "aot_eager_functions": 31052,
+        "aot_translation_us": 5020498,
+        "aot_emission_us": 303786,
+        "aot_installation_us": 619551
+      },
+      "renderer_cpu_seconds_after_first": 8.75,
+      "busiest_renderer_thread_cpu_seconds": 4.617707313,
+      "load_before": [
+        1.59,
+        1.74,
+        1.9
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "adopted-startup-asphalt-3",
+      "variant": "adopted_three_changes",
+      "game": "asphalt-3",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/adopted-startup-asphalt-3/report.json",
+      "url": "https://claude-laptop.lan:8195/",
+      "first_presentation_seconds": 8.540714999914169,
+      "installation_complete_seconds": 50.560612991,
+      "compilation": {
+        "compiled_functions": 98723,
+        "aot_eager_functions": 87761,
+        "aot_translation_us": 8792965,
+        "aot_emission_us": 583664,
+        "aot_installation_us": 1290653
+      },
+      "renderer_cpu_seconds_after_first": 55.44,
+      "busiest_renderer_thread_cpu_seconds": 30.131531406,
+      "load_before": [
+        1.44,
+        1.71,
+        1.91
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "adopted-startup-explode-arena",
+      "variant": "adopted_three_changes",
+      "game": "explode-arena",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/adopted-startup-explode-arena/report.json",
+      "url": "https://claude-laptop.lan:8195/",
+      "first_presentation_seconds": 5.480140000104904,
+      "installation_complete_seconds": null,
+      "compilation": {
+        "compiled_functions": 31209,
+        "aot_eager_functions": 22582,
+        "aot_translation_us": 2832672,
+        "aot_emission_us": 221914,
+        "aot_installation_us": 476489
+      },
+      "renderer_cpu_seconds_after_first": 9.049999999999999,
+      "busiest_renderer_thread_cpu_seconds": 3.638216111,
+      "load_before": [
+        1.8,
+        1.78,
+        1.91
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "adopted-startup-k-rally",
+      "variant": "adopted_three_changes",
+      "game": "k-rally",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/adopted-startup-k-rally/report.json",
+      "url": "https://claude-laptop.lan:8195/",
+      "first_presentation_seconds": 10.233759999990463,
+      "installation_complete_seconds": null,
+      "compilation": {
+        "compiled_functions": 36160,
+        "aot_eager_functions": 29105,
+        "aot_translation_us": 4081566,
+        "aot_emission_us": 341997,
+        "aot_installation_us": 609041
+      },
+      "renderer_cpu_seconds_after_first": 8.459999999999999,
+      "busiest_renderer_thread_cpu_seconds": 4.23505197,
+      "load_before": [
+        1.74,
+        1.78,
+        1.92
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "adopted-startup-pathway-to-glory",
+      "variant": "adopted_three_changes",
+      "game": "pathway-to-glory",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/adopted-startup-pathway-to-glory/report.json",
+      "url": "https://claude-laptop.lan:8195/",
+      "first_presentation_seconds": 4.14215499997139,
+      "installation_complete_seconds": null,
+      "compilation": {
+        "compiled_functions": 30257,
+        "aot_eager_functions": 22906,
+        "aot_translation_us": 1673187,
+        "aot_emission_us": 165148,
+        "aot_installation_us": 316360
+      },
+      "renderer_cpu_seconds_after_first": 6.430000000000001,
+      "busiest_renderer_thread_cpu_seconds": 3.874179037,
+      "load_before": [
+        1.87,
+        1.79,
+        1.91
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "adopted-startup-sky-force",
+      "variant": "adopted_three_changes",
+      "game": "sky-force",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/adopted-startup-sky-force/report.json",
+      "url": "https://claude-laptop.lan:8195/",
+      "first_presentation_seconds": 6.763215000152588,
+      "installation_complete_seconds": null,
+      "compilation": {
+        "compiled_functions": 41531,
+        "aot_eager_functions": 34224,
+        "aot_translation_us": 3817277,
+        "aot_emission_us": 248782,
+        "aot_installation_us": 518086
+      },
+      "renderer_cpu_seconds_after_first": 8.17,
+      "busiest_renderer_thread_cpu_seconds": 4.549714999,
+      "load_before": [
+        1.75,
+        1.77,
+        1.91
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "adopted-startup-snakes",
+      "variant": "adopted_three_changes",
+      "game": "snakes",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/adopted-startup-snakes/report.json",
+      "url": "https://claude-laptop.lan:8195/",
+      "first_presentation_seconds": 8.427090000152587,
+      "installation_complete_seconds": null,
+      "compilation": {
+        "compiled_functions": 42895,
+        "aot_eager_functions": 35475,
+        "aot_translation_us": 4339960,
+        "aot_emission_us": 287679,
+        "aot_installation_us": 551234
+      },
+      "renderer_cpu_seconds_after_first": 9.5,
+      "busiest_renderer_thread_cpu_seconds": 4.608177365,
+      "load_before": [
+        1.74,
+        1.78,
+        1.92
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "adopted-startup-super-miners",
+      "variant": "adopted_three_changes",
+      "game": "super-miners",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/adopted-startup-super-miners/report.json",
+      "url": "https://claude-laptop.lan:8195/",
+      "first_presentation_seconds": 7.33125,
+      "installation_complete_seconds": null,
+      "compilation": {
+        "compiled_functions": 46024,
+        "aot_eager_functions": 38702,
+        "aot_translation_us": 4179233,
+        "aot_emission_us": 295453,
+        "aot_installation_us": 593957
+      },
+      "renderer_cpu_seconds_after_first": 7.9399999999999995,
+      "busiest_renderer_thread_cpu_seconds": 4.539486333,
+      "load_before": [
+        1.66,
+        1.76,
+        1.91
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "baseline-asphalt-2",
+      "variant": "published_47bab3744",
+      "game": "asphalt-2",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/baseline-asphalt-2/report.json",
+      "url": "https://claude-laptop.lan:8188/",
+      "first_presentation_seconds": 7.879160000085831,
+      "installation_complete_seconds": null,
+      "compilation": {
+        "compiled_functions": 38605,
+        "aot_eager_functions": 31040,
+        "aot_translation_us": 5696809,
+        "aot_emission_us": 231196,
+        "aot_installation_us": 492156
+      },
+      "renderer_cpu_seconds_after_first": 8.16,
+      "busiest_renderer_thread_cpu_seconds": 4.561039665,
+      "load_before": [
+        1.69,
+        1.09,
+        0.76
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "baseline-asphalt-3",
+      "variant": "published_47bab3744",
+      "game": "asphalt-3",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/baseline-asphalt-3/report.json",
+      "url": "https://claude-laptop.lan:8188/",
+      "first_presentation_seconds": 10.055214999914169,
+      "installation_complete_seconds": 62.768337368,
+      "compilation": {
+        "compiled_functions": 98710,
+        "aot_eager_functions": 87753,
+        "aot_translation_us": 12819695,
+        "aot_emission_us": 565146,
+        "aot_installation_us": 1347441
+      },
+      "renderer_cpu_seconds_after_first": 66.78999999999999,
+      "busiest_renderer_thread_cpu_seconds": 44.179309061,
+      "load_before": [
+        0.79,
+        0.56,
+        0.55
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "baseline-explode-arena",
+      "variant": "published_47bab3744",
+      "game": "explode-arena",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/baseline-explode-arena/report.json",
+      "url": "https://claude-laptop.lan:8188/",
+      "first_presentation_seconds": 4.892004999876022,
+      "installation_complete_seconds": null,
+      "compilation": {
+        "compiled_functions": 31220,
+        "aot_eager_functions": 22596,
+        "aot_translation_us": 3167270,
+        "aot_emission_us": 164551,
+        "aot_installation_us": 361671
+      },
+      "renderer_cpu_seconds_after_first": 7.860000000000001,
+      "busiest_renderer_thread_cpu_seconds": 3.70965615,
+      "load_before": [
+        3.66,
+        1.67,
+        0.97
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "baseline-k-rally",
+      "variant": "published_47bab3744",
+      "game": "k-rally",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/baseline-k-rally/report.json",
+      "url": "https://claude-laptop.lan:8188/",
+      "first_presentation_seconds": 9.000009999990464,
+      "installation_complete_seconds": null,
+      "compilation": {
+        "compiled_functions": 41441,
+        "aot_eager_functions": 34387,
+        "aot_translation_us": 5136350,
+        "aot_emission_us": 286450,
+        "aot_installation_us": 554226
+      },
+      "renderer_cpu_seconds_after_first": 8.149999999999999,
+      "busiest_renderer_thread_cpu_seconds": 4.540738213,
+      "load_before": [
+        1.88,
+        1.02,
+        0.72
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "baseline-pathway-to-glory",
+      "variant": "published_47bab3744",
+      "game": "pathway-to-glory",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/baseline-pathway-to-glory/report.json",
+      "url": "https://claude-laptop.lan:8188/",
+      "first_presentation_seconds": 4.313674999952316,
+      "installation_complete_seconds": null,
+      "compilation": {
+        "compiled_functions": 30244,
+        "aot_eager_functions": 22906,
+        "aot_translation_us": 1972905,
+        "aot_emission_us": 166038,
+        "aot_installation_us": 321092
+      },
+      "renderer_cpu_seconds_after_first": 6.51,
+      "busiest_renderer_thread_cpu_seconds": 4.045337192,
+      "load_before": [
+        2.1,
+        1.26,
+        0.83
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "baseline-sky-force",
+      "variant": "published_47bab3744",
+      "game": "sky-force",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/baseline-sky-force/report.json",
+      "url": "https://claude-laptop.lan:8188/",
+      "first_presentation_seconds": 7.520195000171661,
+      "installation_complete_seconds": null,
+      "compilation": {
+        "compiled_functions": 41499,
+        "aot_eager_functions": 34227,
+        "aot_translation_us": 5471061,
+        "aot_emission_us": 238876,
+        "aot_installation_us": 516518
+      },
+      "renderer_cpu_seconds_after_first": 8.44,
+      "busiest_renderer_thread_cpu_seconds": 5.075171308,
+      "load_before": [
+        1.95,
+        1.19,
+        0.8
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "baseline-sky-force-visible",
+      "variant": "published_47bab3744",
+      "game": "sky-force",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/baseline-sky-force-visible/report.json",
+      "url": "https://claude-laptop.lan:8188/",
+      "first_presentation_seconds": 7.566919999837875,
+      "installation_complete_seconds": null,
+      "compilation": {
+        "compiled_functions": 41617,
+        "aot_eager_functions": 34222,
+        "aot_translation_us": 5519713,
+        "aot_emission_us": 242177,
+        "aot_installation_us": 542596
+      },
+      "renderer_cpu_seconds_after_first": 13.91,
+      "busiest_renderer_thread_cpu_seconds": 7.91784734,
+      "load_before": [
+        1.14,
+        1.58,
+        1.83
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "baseline-snakes",
+      "variant": "published_47bab3744",
+      "game": "snakes",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/baseline-snakes/report.json",
+      "url": "https://claude-laptop.lan:8188/",
+      "first_presentation_seconds": 7.935985000133514,
+      "installation_complete_seconds": null,
+      "compilation": {
+        "compiled_functions": 42867,
+        "aot_eager_functions": 35488,
+        "aot_translation_us": 6049440,
+        "aot_emission_us": 254204,
+        "aot_installation_us": 553982
+      },
+      "renderer_cpu_seconds_after_first": 9.77,
+      "busiest_renderer_thread_cpu_seconds": 5.272726451,
+      "load_before": [
+        1.92,
+        1.07,
+        0.74
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "baseline-super-miners",
+      "variant": "published_47bab3744",
+      "game": "super-miners",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/baseline-super-miners/report.json",
+      "url": "https://claude-laptop.lan:8188/",
+      "first_presentation_seconds": 7.842234999895096,
+      "installation_complete_seconds": null,
+      "compilation": {
+        "compiled_functions": 45975,
+        "aot_eager_functions": 38712,
+        "aot_translation_us": 5775286,
+        "aot_emission_us": 257215,
+        "aot_installation_us": 564513
+      },
+      "renderer_cpu_seconds_after_first": 8.56,
+      "busiest_renderer_thread_cpu_seconds": 5.282499609,
+      "load_before": [
+        1.71,
+        1.07,
+        0.75
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "baseline-tetris",
+      "variant": "published_47bab3744",
+      "game": "tetris",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/baseline-tetris/report.json",
+      "url": "https://claude-laptop.lan:8188/",
+      "first_presentation_seconds": 9.661840000152587,
+      "installation_complete_seconds": 47.430232978,
+      "compilation": {
+        "compiled_functions": 98711,
+        "aot_eager_functions": 87759,
+        "aot_translation_us": 12816968,
+        "aot_emission_us": 560166,
+        "aot_installation_us": 1345794
+      },
+      "renderer_cpu_seconds_after_first": 50.809999999999995,
+      "busiest_renderer_thread_cpu_seconds": 30.981585975,
+      "load_before": [
+        1.73,
+        0.86,
+        0.65
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "cap-asphalt-3-a",
+      "variant": "rejected_quota_only",
+      "game": "asphalt-3",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/cap-asphalt-3-a/report.json",
+      "url": "https://claude-laptop.lan:8191/",
+      "first_presentation_seconds": 8.365955000162124,
+      "installation_complete_seconds": 59.852151236,
+      "compilation": {
+        "compiled_functions": 99114,
+        "aot_eager_functions": 87760,
+        "aot_translation_us": 8781255,
+        "aot_emission_us": 562993,
+        "aot_installation_us": 1385197
+      },
+      "renderer_cpu_seconds_after_first": 66.71000000000001,
+      "busiest_renderer_thread_cpu_seconds": 42.71590215,
+      "load_before": [
+        3.9,
+        2.7,
+        2.24
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "cap-hooked-on-a",
+      "variant": "rejected_quota_only",
+      "game": "hooked-on",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/cap-hooked-on-a/report.json",
+      "url": "https://claude-laptop.lan:8191/",
+      "first_presentation_seconds": 8.458995000123977,
+      "installation_complete_seconds": 102.961994378,
+      "compilation": {
+        "compiled_functions": 99394,
+        "aot_eager_functions": 87763,
+        "aot_translation_us": 9996854,
+        "aot_emission_us": 639825,
+        "aot_installation_us": 1572873
+      },
+      "renderer_cpu_seconds_after_first": 112.60000000000002,
+      "busiest_renderer_thread_cpu_seconds": 77.248449136,
+      "load_before": [
+        2.93,
+        2.68,
+        2.27
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "cap-tetris-a",
+      "variant": "rejected_quota_only",
+      "game": "tetris",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/cap-tetris-a/report.json",
+      "url": "https://claude-laptop.lan:8191/",
+      "first_presentation_seconds": 8.350589999914169,
+      "installation_complete_seconds": 43.741750556,
+      "compilation": {
+        "compiled_functions": 99098,
+        "aot_eager_functions": 87735,
+        "aot_translation_us": 8767802,
+        "aot_emission_us": 565236,
+        "aot_installation_us": 1351870
+      },
+      "renderer_cpu_seconds_after_first": 49.31999999999999,
+      "busiest_renderer_thread_cpu_seconds": 27.763926731,
+      "load_before": [
+        2,
+        2.41,
+        2.22
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "control-asphalt-3-b",
+      "variant": "published_47bab3744",
+      "game": "asphalt-3",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/control-asphalt-3-b/report.json",
+      "url": "https://claude-laptop.lan:8188/",
+      "first_presentation_seconds": 9.755275000095368,
+      "installation_complete_seconds": 65.88162498599999,
+      "compilation": {
+        "compiled_functions": 98699,
+        "aot_eager_functions": 87745,
+        "aot_translation_us": 14003517,
+        "aot_emission_us": 610147,
+        "aot_installation_us": 1459675
+      },
+      "renderer_cpu_seconds_after_first": 71.59,
+      "busiest_renderer_thread_cpu_seconds": 47.559361445,
+      "load_before": [
+        1.84,
+        1.82,
+        1.45
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "control-asphalt-3-hot",
+      "variant": "published_47bab3744",
+      "game": "asphalt-3",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/control-asphalt-3-hot/report.json",
+      "url": "https://claude-laptop.lan:8188/",
+      "first_presentation_seconds": 9.672710000038148,
+      "installation_complete_seconds": 64.733318767,
+      "compilation": {
+        "compiled_functions": 98693,
+        "aot_eager_functions": 87747,
+        "aot_translation_us": 12716646,
+        "aot_emission_us": 554323,
+        "aot_installation_us": 1347723
+      },
+      "renderer_cpu_seconds_after_first": 70.15,
+      "busiest_renderer_thread_cpu_seconds": 45.903961452,
+      "load_before": [
+        3.51,
+        2.89,
+        2.09
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "control-hooked-on-c",
+      "variant": "published_47bab3744",
+      "game": "hooked-on",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/control-hooked-on-c/report.json",
+      "url": "https://claude-laptop.lan:8188/",
+      "first_presentation_seconds": 11.30819000005722,
+      "installation_complete_seconds": 116.911385513,
+      "compilation": {
+        "compiled_functions": 98923,
+        "aot_eager_functions": 87768,
+        "aot_translation_us": 14704801,
+        "aot_emission_us": 640244,
+        "aot_installation_us": 1541913
+      },
+      "renderer_cpu_seconds_after_first": 127.57,
+      "busiest_renderer_thread_cpu_seconds": 91.18919772,
+      "load_before": [
+        1.6,
+        2.58,
+        2.69
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "final-asphalt-2",
+      "variant": "two_lists_allocating_resolver_prototype",
+      "game": "asphalt-2",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/final-asphalt-2/report.json",
+      "url": "https://claude-laptop.lan:8200/",
+      "first_presentation_seconds": 6.951605000019073,
+      "installation_complete_seconds": null,
+      "compilation": {
+        "compiled_functions": 38582,
+        "aot_eager_functions": 31073,
+        "aot_translation_us": 3816257,
+        "aot_emission_us": 222715,
+        "aot_installation_us": 487236
+      },
+      "renderer_cpu_seconds_after_first": 7.449999999999999,
+      "busiest_renderer_thread_cpu_seconds": 3.840436397,
+      "load_before": [
+        2.2,
+        1.74,
+        1.55
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "final-explode-arena",
+      "variant": "two_lists_allocating_resolver_prototype",
+      "game": "explode-arena",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/final-explode-arena/report.json",
+      "url": "https://claude-laptop.lan:8200/",
+      "first_presentation_seconds": 4.400955000162124,
+      "installation_complete_seconds": null,
+      "compilation": {
+        "compiled_functions": 31244,
+        "aot_eager_functions": 22594,
+        "aot_translation_us": 2246629,
+        "aot_emission_us": 169206,
+        "aot_installation_us": 376652
+      },
+      "renderer_cpu_seconds_after_first": 9.089999999999998,
+      "busiest_renderer_thread_cpu_seconds": 3.679683578,
+      "load_before": [
+        3.75,
+        2.26,
+        1.74
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "final-hooked-on-c",
+      "variant": "two_lists_allocating_resolver_prototype",
+      "game": "hooked-on",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/final-hooked-on-c/report.json",
+      "url": "https://claude-laptop.lan:8200/",
+      "first_presentation_seconds": 8.416075000047684,
+      "installation_complete_seconds": 84.916542592,
+      "compilation": {
+        "compiled_functions": 98928,
+        "aot_eager_functions": 87749,
+        "aot_translation_us": 10025572,
+        "aot_emission_us": 643507,
+        "aot_installation_us": 1502699
+      },
+      "renderer_cpu_seconds_after_first": 91.19,
+      "busiest_renderer_thread_cpu_seconds": 52.945977163,
+      "load_before": [
+        2.39,
+        2.96,
+        2.8
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "final-k-rally",
+      "variant": "two_lists_allocating_resolver_prototype",
+      "game": "k-rally",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/final-k-rally/report.json",
+      "url": "https://claude-laptop.lan:8200/",
+      "first_presentation_seconds": 8.71159500002861,
+      "installation_complete_seconds": null,
+      "compilation": {
+        "compiled_functions": 46147,
+        "aot_eager_functions": 39099,
+        "aot_translation_us": 4052603,
+        "aot_emission_us": 303896,
+        "aot_installation_us": 600360
+      },
+      "renderer_cpu_seconds_after_first": 7.880000000000001,
+      "busiest_renderer_thread_cpu_seconds": 4.382484293,
+      "load_before": [
+        2.15,
+        1.66,
+        1.52
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "final-pathway-to-glory",
+      "variant": "two_lists_allocating_resolver_prototype",
+      "game": "pathway-to-glory",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/final-pathway-to-glory/report.json",
+      "url": "https://claude-laptop.lan:8200/",
+      "first_presentation_seconds": 4.025049999952317,
+      "installation_complete_seconds": null,
+      "compilation": {
+        "compiled_functions": 30238,
+        "aot_eager_functions": 22906,
+        "aot_translation_us": 1612631,
+        "aot_emission_us": 163747,
+        "aot_installation_us": 318452
+      },
+      "renderer_cpu_seconds_after_first": 6.65,
+      "busiest_renderer_thread_cpu_seconds": 4.005040788,
+      "load_before": [
+        3.89,
+        2.23,
+        1.72
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "final-sky-force",
+      "variant": "two_lists_allocating_resolver_prototype",
+      "game": "sky-force",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/final-sky-force/report.json",
+      "url": "https://claude-laptop.lan:8200/",
+      "first_presentation_seconds": 6.7043499999046325,
+      "installation_complete_seconds": null,
+      "compilation": {
+        "compiled_functions": 41490,
+        "aot_eager_functions": 34226,
+        "aot_translation_us": 3801765,
+        "aot_emission_us": 239601,
+        "aot_installation_us": 520422
+      },
+      "renderer_cpu_seconds_after_first": 7.950000000000001,
+      "busiest_renderer_thread_cpu_seconds": 4.396616437,
+      "load_before": [
+        3.22,
+        2.01,
+        1.64
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "final-snakes",
+      "variant": "two_lists_allocating_resolver_prototype",
+      "game": "snakes",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/final-snakes/report.json",
+      "url": "https://claude-laptop.lan:8200/",
+      "first_presentation_seconds": 6.9243599998950955,
+      "installation_complete_seconds": null,
+      "compilation": {
+        "compiled_functions": 42920,
+        "aot_eager_functions": 35479,
+        "aot_translation_us": 4069645,
+        "aot_emission_us": 255179,
+        "aot_installation_us": 541117
+      },
+      "renderer_cpu_seconds_after_first": 9.47,
+      "busiest_renderer_thread_cpu_seconds": 4.509383331,
+      "load_before": [
+        2.18,
+        1.69,
+        1.53
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "final-super-miners",
+      "variant": "two_lists_allocating_resolver_prototype",
+      "game": "super-miners",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/final-super-miners/report.json",
+      "url": "https://claude-laptop.lan:8200/",
+      "first_presentation_seconds": 8.10234500002861,
+      "installation_complete_seconds": null,
+      "compilation": {
+        "compiled_functions": 46010,
+        "aot_eager_functions": 38693,
+        "aot_translation_us": 4510273,
+        "aot_emission_us": 292313,
+        "aot_installation_us": 625696
+      },
+      "renderer_cpu_seconds_after_first": 8.089999999999998,
+      "busiest_renderer_thread_cpu_seconds": 4.568398445,
+      "load_before": [
+        1.92,
+        1.66,
+        1.52
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "lan-hooked-on",
+      "variant": "final_public_lan",
+      "game": "hooked-on",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/lan-hooked-on/report.json",
+      "url": "https://claude-laptop.lan:8188/",
+      "first_presentation_seconds": 8.55559500002861,
+      "installation_complete_seconds": 79.72247069000001,
+      "compilation": {
+        "compiled_functions": 98959,
+        "aot_eager_functions": 87755,
+        "aot_translation_us": 8811030,
+        "aot_emission_us": 594460,
+        "aot_installation_us": 1377655
+      },
+      "renderer_cpu_seconds_after_first": 84.86999999999999,
+      "busiest_renderer_thread_cpu_seconds": 49.310145481,
+      "load_before": [
+        1.09,
+        1.48,
+        1.75
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "mapping-cache-asphalt-3-a",
+      "variant": "two_mapping_lists",
+      "game": "asphalt-3",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/mapping-cache-asphalt-3-a/report.json",
+      "url": "https://claude-laptop.lan:8198/",
+      "first_presentation_seconds": 8.405389999866486,
+      "installation_complete_seconds": 52.210089631,
+      "compilation": {
+        "compiled_functions": 98733,
+        "aot_eager_functions": 87757,
+        "aot_translation_us": 9652118,
+        "aot_emission_us": 614208,
+        "aot_installation_us": 1428250
+      },
+      "renderer_cpu_seconds_after_first": 60.7,
+      "busiest_renderer_thread_cpu_seconds": 31.785940907,
+      "load_before": [
+        2.32,
+        2.57,
+        2.55
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "mapping-cache-hooked-on-a",
+      "variant": "two_mapping_lists",
+      "game": "hooked-on",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/mapping-cache-hooked-on-a/report.json",
+      "url": "https://claude-laptop.lan:8198/",
+      "first_presentation_seconds": 8.328075000047683,
+      "installation_complete_seconds": 75.74345563300001,
+      "compilation": {
+        "compiled_functions": 98972,
+        "aot_eager_functions": 87761,
+        "aot_translation_us": 8786976,
+        "aot_emission_us": 570214,
+        "aot_installation_us": 1353201
+      },
+      "renderer_cpu_seconds_after_first": 78.35000000000001,
+      "busiest_renderer_thread_cpu_seconds": 44.993747823,
+      "load_before": [
+        3.33,
+        2.7,
+        2.58
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "mapping-cache-hooked-on-b",
+      "variant": "two_mapping_lists",
+      "game": "hooked-on",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/mapping-cache-hooked-on-b/report.json",
+      "url": "https://claude-laptop.lan:8198/",
+      "first_presentation_seconds": 8.38522000002861,
+      "installation_complete_seconds": 83.40089835100001,
+      "compilation": {
+        "compiled_functions": 98940,
+        "aot_eager_functions": 87765,
+        "aot_translation_us": 9092060,
+        "aot_emission_us": 581666,
+        "aot_installation_us": 1416850
+      },
+      "renderer_cpu_seconds_after_first": 92.82,
+      "busiest_renderer_thread_cpu_seconds": 51.983369201,
+      "load_before": [
+        3.03,
+        3,
+        2.72
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "mapping-cache-tetris-a",
+      "variant": "two_mapping_lists",
+      "game": "tetris",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/mapping-cache-tetris-a/report.json",
+      "url": "https://claude-laptop.lan:8198/",
+      "first_presentation_seconds": 9.721355000019074,
+      "installation_complete_seconds": 44.140731305,
+      "compilation": {
+        "compiled_functions": 98727,
+        "aot_eager_functions": 87776,
+        "aot_translation_us": 9572250,
+        "aot_emission_us": 612487,
+        "aot_installation_us": 1393207
+      },
+      "renderer_cpu_seconds_after_first": 51.5,
+      "busiest_renderer_thread_cpu_seconds": 26.088672866,
+      "load_before": [
+        2.07,
+        2.47,
+        2.52
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "mapping-cache4-asphalt-3-a",
+      "variant": "four_mapping_lists",
+      "game": "asphalt-3",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/mapping-cache4-asphalt-3-a/report.json",
+      "url": "https://claude-laptop.lan:8199/",
+      "first_presentation_seconds": 8.299625,
+      "installation_complete_seconds": 56.108328883,
+      "compilation": {
+        "compiled_functions": 98692,
+        "aot_eager_functions": 87741,
+        "aot_translation_us": 10252956,
+        "aot_emission_us": 655089,
+        "aot_installation_us": 1499260
+      },
+      "renderer_cpu_seconds_after_first": 64.80000000000001,
+      "busiest_renderer_thread_cpu_seconds": 34.013444734,
+      "load_before": [
+        2.67,
+        2.89,
+        2.7
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "mapping-cache4-hooked-on-a",
+      "variant": "four_mapping_lists",
+      "game": "hooked-on",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/mapping-cache4-hooked-on-a/report.json",
+      "url": "https://claude-laptop.lan:8199/",
+      "first_presentation_seconds": 8.37547000002861,
+      "installation_complete_seconds": 85.04753275899999,
+      "compilation": {
+        "compiled_functions": 98950,
+        "aot_eager_functions": 87753,
+        "aot_translation_us": 9810276,
+        "aot_emission_us": 624794,
+        "aot_installation_us": 1495141
+      },
+      "renderer_cpu_seconds_after_first": 93.45,
+      "busiest_renderer_thread_cpu_seconds": 52.366997436,
+      "load_before": [
+        5.07,
+        3.14,
+        2.73
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "mapping-cache4-tetris-a",
+      "variant": "four_mapping_lists",
+      "game": "tetris",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/mapping-cache4-tetris-a/report.json",
+      "url": "https://claude-laptop.lan:8199/",
+      "first_presentation_seconds": 8.374590000152589,
+      "installation_complete_seconds": 44.123679645,
+      "compilation": {
+        "compiled_functions": 98724,
+        "aot_eager_functions": 87779,
+        "aot_translation_us": 9820756,
+        "aot_emission_us": 634315,
+        "aot_installation_us": 1459492
+      },
+      "renderer_cpu_seconds_after_first": 53.629999999999995,
+      "busiest_renderer_thread_cpu_seconds": 26.823083561,
+      "load_before": [
+        2.49,
+        2.83,
+        2.7
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "marks-asphalt-3-a",
+      "variant": "page_table_walk_and_source_marks",
+      "game": "asphalt-3",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/marks-asphalt-3-a/report.json",
+      "url": "https://claude-laptop.lan:8190/",
+      "first_presentation_seconds": 8.465644999980926,
+      "installation_complete_seconds": 58.596022841,
+      "compilation": {
+        "compiled_functions": 98714,
+        "aot_eager_functions": 87741,
+        "aot_translation_us": 8743423,
+        "aot_emission_us": 567238,
+        "aot_installation_us": 1351548
+      },
+      "renderer_cpu_seconds_after_first": 64.88999999999999,
+      "busiest_renderer_thread_cpu_seconds": 41.188401778,
+      "load_before": [
+        1.97,
+        2.55,
+        2.02
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "marks-asphalt-3-b",
+      "variant": "page_table_walk_and_source_marks",
+      "game": "asphalt-3",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/marks-asphalt-3-b/report.json",
+      "url": "https://claude-laptop.lan:8190/",
+      "first_presentation_seconds": 8.36288000011444,
+      "installation_complete_seconds": 59.022277028999994,
+      "compilation": {
+        "compiled_functions": 98484,
+        "aot_eager_functions": 87518,
+        "aot_translation_us": 8801249,
+        "aot_emission_us": 566970,
+        "aot_installation_us": 1394130
+      },
+      "renderer_cpu_seconds_after_first": 66.14,
+      "busiest_renderer_thread_cpu_seconds": 41.323989495,
+      "load_before": [
+        1.48,
+        1.55,
+        1.87
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "marks-hooked-on-a",
+      "variant": "page_table_walk_and_source_marks",
+      "game": "hooked-on",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/marks-hooked-on-a/report.json",
+      "url": "https://claude-laptop.lan:8190/",
+      "first_presentation_seconds": 8.389019999980926,
+      "installation_complete_seconds": 98.395417666,
+      "compilation": {
+        "compiled_functions": 98944,
+        "aot_eager_functions": 87743,
+        "aot_translation_us": 8793853,
+        "aot_emission_us": 562751,
+        "aot_installation_us": 1413036
+      },
+      "renderer_cpu_seconds_after_first": 109.83999999999999,
+      "busiest_renderer_thread_cpu_seconds": 74.735497104,
+      "load_before": [
+        2.29,
+        2.51,
+        2.07
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "marks-hooked-on-b",
+      "variant": "page_table_walk_and_source_marks",
+      "game": "hooked-on",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/marks-hooked-on-b/report.json",
+      "url": "https://claude-laptop.lan:8190/",
+      "first_presentation_seconds": 8.50927999997139,
+      "installation_complete_seconds": 103.64304666400001,
+      "compilation": {
+        "compiled_functions": 98951,
+        "aot_eager_functions": 87760,
+        "aot_translation_us": 9043149,
+        "aot_emission_us": 586506,
+        "aot_installation_us": 1433539
+      },
+      "renderer_cpu_seconds_after_first": 115.28,
+      "busiest_renderer_thread_cpu_seconds": 78.506407381,
+      "load_before": [
+        1.65,
+        1.72,
+        1.9
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "marks-k-rally-a",
+      "variant": "page_table_walk_and_source_marks",
+      "game": "k-rally",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/marks-k-rally-a/report.json",
+      "url": "https://claude-laptop.lan:8190/",
+      "first_presentation_seconds": 7.822619999885559,
+      "installation_complete_seconds": null,
+      "compilation": {
+        "compiled_functions": 47096,
+        "aot_eager_functions": 40041,
+        "aot_translation_us": 4109780,
+        "aot_emission_us": 313096,
+        "aot_installation_us": 626359
+      },
+      "renderer_cpu_seconds_after_first": 7.850000000000001,
+      "busiest_renderer_thread_cpu_seconds": 4.446928736,
+      "load_before": [
+        2.11,
+        2.42,
+        2.09
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "marks-tetris-a",
+      "variant": "page_table_walk_and_source_marks",
+      "game": "tetris",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/marks-tetris-a/report.json",
+      "url": "https://claude-laptop.lan:8190/",
+      "first_presentation_seconds": 9.75268499994278,
+      "installation_complete_seconds": 45.500882235,
+      "compilation": {
+        "compiled_functions": 98710,
+        "aot_eager_functions": 87751,
+        "aot_translation_us": 9064320,
+        "aot_emission_us": 574531,
+        "aot_installation_us": 1350264
+      },
+      "renderer_cpu_seconds_after_first": 50.21,
+      "busiest_renderer_thread_cpu_seconds": 27.83182968,
+      "load_before": [
+        1.9,
+        2.52,
+        2.05
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "marks-tetris-b",
+      "variant": "page_table_walk_and_source_marks",
+      "game": "tetris",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/marks-tetris-b/report.json",
+      "url": "https://claude-laptop.lan:8190/",
+      "first_presentation_seconds": 8.362179999828339,
+      "installation_complete_seconds": 46.457427433999996,
+      "compilation": {
+        "compiled_functions": 98726,
+        "aot_eager_functions": 87764,
+        "aot_translation_us": 8854782,
+        "aot_emission_us": 575988,
+        "aot_installation_us": 1390447
+      },
+      "renderer_cpu_seconds_after_first": 54.010000000000005,
+      "busiest_renderer_thread_cpu_seconds": 30.020741069,
+      "load_before": [
+        2.31,
+        1.99,
+        1.97
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "reuse-asphalt-3-a",
+      "variant": "rejected_buffer_reuse",
+      "game": "asphalt-3",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/reuse-asphalt-3-a/report.json",
+      "url": "https://claude-laptop.lan:8192/",
+      "first_presentation_seconds": 8.462330000162124,
+      "installation_complete_seconds": 58.384834825999995,
+      "compilation": {
+        "compiled_functions": 98742,
+        "aot_eager_functions": 87774,
+        "aot_translation_us": 8830278,
+        "aot_emission_us": 569311,
+        "aot_installation_us": 1394067
+      },
+      "renderer_cpu_seconds_after_first": 65.19999999999999,
+      "busiest_renderer_thread_cpu_seconds": 40.846492257,
+      "load_before": [
+        1.56,
+        1.54,
+        1.89
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "reuse-asphalt-3-b",
+      "variant": "rejected_buffer_reuse",
+      "game": "asphalt-3",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/reuse-asphalt-3-b/report.json",
+      "url": "https://claude-laptop.lan:8192/",
+      "first_presentation_seconds": 9.377489999771118,
+      "installation_complete_seconds": 60.275383375,
+      "compilation": {
+        "compiled_functions": 98701,
+        "aot_eager_functions": 87759,
+        "aot_translation_us": 9058104,
+        "aot_emission_us": 577084,
+        "aot_installation_us": 1371344
+      },
+      "renderer_cpu_seconds_after_first": 65.78999999999999,
+      "busiest_renderer_thread_cpu_seconds": 41.849238239,
+      "load_before": [
+        2.32,
+        1.77,
+        1.93
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "reuse-hooked-on-a",
+      "variant": "rejected_buffer_reuse",
+      "game": "hooked-on",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/reuse-hooked-on-a/report.json",
+      "url": "https://claude-laptop.lan:8192/",
+      "first_presentation_seconds": 8.373060000181198,
+      "installation_complete_seconds": 90.944571027,
+      "compilation": {
+        "compiled_functions": 98944,
+        "aot_eager_functions": 87761,
+        "aot_translation_us": 8719446,
+        "aot_emission_us": 558653,
+        "aot_installation_us": 1406342
+      },
+      "renderer_cpu_seconds_after_first": 97.89999999999999,
+      "busiest_renderer_thread_cpu_seconds": 66.775540832,
+      "load_before": [
+        0.61,
+        1.43,
+        1.89
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "reuse-hooked-on-b",
+      "variant": "rejected_buffer_reuse",
+      "game": "hooked-on",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/reuse-hooked-on-b/report.json",
+      "url": "https://claude-laptop.lan:8192/",
+      "first_presentation_seconds": 8.56465499997139,
+      "installation_complete_seconds": 105.38840963599999,
+      "compilation": {
+        "compiled_functions": 98951,
+        "aot_eager_functions": 87753,
+        "aot_translation_us": 8937027,
+        "aot_emission_us": 575957,
+        "aot_installation_us": 1414986
+      },
+      "renderer_cpu_seconds_after_first": 116.4,
+      "busiest_renderer_thread_cpu_seconds": 79.16103888,
+      "load_before": [
+        1.81,
+        1.78,
+        1.91
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "reuse-tetris-a",
+      "variant": "rejected_buffer_reuse",
+      "game": "tetris",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/reuse-tetris-a/report.json",
+      "url": "https://claude-laptop.lan:8192/",
+      "first_presentation_seconds": 8.68019000005722,
+      "installation_complete_seconds": 46.819038275000004,
+      "compilation": {
+        "compiled_functions": 98724,
+        "aot_eager_functions": 87749,
+        "aot_translation_us": 10064403,
+        "aot_emission_us": 649782,
+        "aot_installation_us": 1523027
+      },
+      "renderer_cpu_seconds_after_first": 53.33,
+      "busiest_renderer_thread_cpu_seconds": 29.790671296,
+      "load_before": [
+        2.19,
+        1.83,
+        1.94
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "reuse-tetris-b",
+      "variant": "rejected_buffer_reuse",
+      "game": "tetris",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/reuse-tetris-b/report.json",
+      "url": "https://claude-laptop.lan:8192/",
+      "first_presentation_seconds": 8.337950000047684,
+      "installation_complete_seconds": 43.663664308,
+      "compilation": {
+        "compiled_functions": 98699,
+        "aot_eager_functions": 87758,
+        "aot_translation_us": 8988654,
+        "aot_emission_us": 581409,
+        "aot_installation_us": 1377566
+      },
+      "renderer_cpu_seconds_after_first": 50.209999999999994,
+      "busiest_renderer_thread_cpu_seconds": 27.715894626,
+      "load_before": [
+        1.88,
+        1.93,
+        1.95
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "table-asphalt-3-a",
+      "variant": "page_table_walk",
+      "game": "asphalt-3",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/table-asphalt-3-a/report.json",
+      "url": "https://claude-laptop.lan:8189/",
+      "first_presentation_seconds": 9.788954999923707,
+      "installation_complete_seconds": 60.878977211,
+      "compilation": {
+        "compiled_functions": 98705,
+        "aot_eager_functions": 87748,
+        "aot_translation_us": 12950939,
+        "aot_emission_us": 567382,
+        "aot_installation_us": 1375833
+      },
+      "renderer_cpu_seconds_after_first": 64.42000000000002,
+      "busiest_renderer_thread_cpu_seconds": 41.828692252,
+      "load_before": [
+        1.78,
+        1.81,
+        1.42
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "table-asphalt-3-b",
+      "variant": "page_table_walk",
+      "game": "asphalt-3",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/table-asphalt-3-b/report.json",
+      "url": "https://claude-laptop.lan:8189/",
+      "first_presentation_seconds": 9.600889999866485,
+      "installation_complete_seconds": 63.237313261,
+      "compilation": {
+        "compiled_functions": 98422,
+        "aot_eager_functions": 87462,
+        "aot_translation_us": 12968521,
+        "aot_emission_us": 563885,
+        "aot_installation_us": 1372464
+      },
+      "renderer_cpu_seconds_after_first": 69.07000000000001,
+      "busiest_renderer_thread_cpu_seconds": 44.292341794,
+      "load_before": [
+        1.44,
+        1.71,
+        1.44
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "table-hooked-a",
+      "variant": "page_table_walk",
+      "game": "hooked-on",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/table-hooked-a/report.json",
+      "url": "https://claude-laptop.lan:8189/",
+      "first_presentation_seconds": 9.755639999866485,
+      "installation_complete_seconds": 102.6864307,
+      "compilation": {
+        "compiled_functions": 98943,
+        "aot_eager_functions": 87758,
+        "aot_translation_us": 12892147,
+        "aot_emission_us": 564387,
+        "aot_installation_us": 1418631
+      },
+      "renderer_cpu_seconds_after_first": 112.30999999999999,
+      "busiest_renderer_thread_cpu_seconds": 77.286807305,
+      "load_before": [
+        2.64,
+        2.11,
+        1.63
+      ],
+      "errors": [],
+      "failure": null
+    },
+    {
+      "label": "table-tetris-a",
+      "variant": "page_table_walk",
+      "game": "tetris",
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/table-tetris-a/report.json",
+      "url": "https://claude-laptop.lan:8189/",
+      "first_presentation_seconds": 9.68416000008583,
+      "installation_complete_seconds": 47.485785711000005,
+      "compilation": {
+        "compiled_functions": 98707,
+        "aot_eager_functions": 87751,
+        "aot_translation_us": 13511069,
+        "aot_emission_us": 584037,
+        "aot_installation_us": 1419023
+      },
+      "renderer_cpu_seconds_after_first": 51.75000000000001,
+      "busiest_renderer_thread_cpu_seconds": 30.156042686,
+      "load_before": [
+        1.73,
+        1.79,
+        1.49
+      ],
+      "errors": [],
+      "failure": null
+    }
+  ],
+  "runtime_runs": [
+    {
+      "game": "hooked-on",
+      "label": "costa-rica-stationary-tutorial-dismissed",
+      "edition": "0.74, N-Gage 2.0, full BiNPDA preservation copy",
+      "url": "https://claude-laptop.lan:8195/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.69,
+        1.6,
+        1.67
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 10.096049999952315,
+      "frames": 2403,
+      "fps": 238.01387671528465,
+      "guestSeconds": 80.46,
+      "guestSpeed": 7.969453400129755,
+      "compiledFunctions": 11,
+      "compilationUs": {
+        "aot_translation_us": 1163,
+        "aot_emission_us": 168,
+        "aot_installation_us": 1870
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-admission-anchor-completed-hooked-a/costa-rica-stationary-tutorial-dismissed.json",
+      "scene_review": "accepted: matching Costa Rica stationary boat scene; anchor tutorial completed by fishing then returning to map; unobstructed start/end screenshots; guest audio enabled, no panics",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 21,
+      "route_steps": [
+        "(async()=>{await step(700000000);return shot('client')})()",
+        "(async()=>{await press(164,70000000);await press(165,4000000);await press(167,10000000);return shot('language')})()",
+        "(async()=>{await press(167,5000000);await press(167,3000000);await press(16,1000000);await press(164,50000000);return shot('main')})()",
+        "(async()=>{await press(167,60000000);return shot('restart')})()",
+        "(async()=>{await press(167,2000000);await press(167,10000000);return shot('name')})()",
+        "(async()=>{await press(167,3000000);await press(16,1000000);await press(164,60000000);return shot('menu')})()",
+        "(async()=>{await press(167,8000000);await press(167,70000000);return shot('boat')})()",
+        "(async()=>{await press(164,1000000);await press(167,35000000);await shot('fishing-help');await press(164,1000000);await press(164,1000000);await shot('fishing-pause');await press(17,1000000);await press(167,30000000);await step(100000000);await shot('boat-after-tutorial');await go();const r=await measure('costa-rica-stationary-tutorial-dismissed',10);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "asphalt-2",
+      "label": "golf-san-francisco-barrier",
+      "edition": "1.0.1, N95 8GB, original Gameloft-signed S60v3 release",
+      "url": "https://claude-laptop.lan:8195/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        2.23,
+        2.45,
+        2.18
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 10.049944999933242,
+      "frames": 1024,
+      "fps": 101.89110487737018,
+      "guestSeconds": 87,
+      "guestSpeed": 8.656763793292193,
+      "compiledFunctions": 88,
+      "compilationUs": {
+        "aot_translation_us": 33425,
+        "aot_emission_us": 1879,
+        "aot_installation_us": 3379
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-adopted-asphalt-2-a/golf-san-francisco-barrier.json",
+      "scene_review": "accepted gameplay sample: Golf/San Francisco barrier; 10-second window, audio enabled, no errors; first candidate low run retained, next two match/exceed controls; no consistent regression, rare slowdown not excluded",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 21,
+      "route_steps": [
+        "(async()=>{await step(20000000);return shot('initial')})()",
+        "(async()=>{await press(164);await press(167);await press(17);await press(167);await press(167);return shot('golf')})()",
+        "(async()=>{await press(167);await shot('track');await press(167,60000000);return shot('barrier')})()",
+        "(async()=>{await go();const r=await measure('golf-san-francisco-barrier',10);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "asphalt-2",
+      "label": "golf-san-francisco-barrier",
+      "edition": "1.0.1, N95 8GB, original Gameloft-signed S60v3 release",
+      "url": "https://claude-laptop.lan:8195/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.78,
+        2.19,
+        2.1
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 10.044990000009538,
+      "frames": 1341,
+      "fps": 133.49938626108406,
+      "guestSeconds": 98.351875,
+      "guestSpeed": 9.79113717384553,
+      "compiledFunctions": 68,
+      "compilationUs": {
+        "aot_translation_us": 22572,
+        "aot_emission_us": 1130,
+        "aot_installation_us": 2112
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-adopted-asphalt-2-b/golf-san-francisco-barrier.json",
+      "scene_review": "accepted gameplay sample: Golf/San Francisco barrier; 10-second window, audio enabled, no errors; first candidate low run retained, next two match/exceed controls; no consistent regression, rare slowdown not excluded",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 21,
+      "route_steps": [
+        "(async()=>{await step(20000000);return shot('initial')})()",
+        "(async()=>{await press(164);await press(167);await press(17);await press(167);await press(167);return shot('golf')})()",
+        "(async()=>{await press(167);await shot('track');await press(167,60000000);return shot('barrier')})()",
+        "(async()=>{await go();const r=await measure('golf-san-francisco-barrier',10);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "asphalt-2",
+      "label": "golf-san-francisco-barrier",
+      "edition": "1.0.1, N95 8GB, original Gameloft-signed S60v3 release",
+      "url": "https://claude-laptop.lan:8195/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        2.65,
+        2.3,
+        2.15
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 10.043,
+      "frames": 1409,
+      "fps": 140.29672408642836,
+      "guestSeconds": 101.95,
+      "guestSpeed": 10.151349198446681,
+      "compiledFunctions": 106,
+      "compilationUs": {
+        "aot_translation_us": 25955,
+        "aot_emission_us": 1639,
+        "aot_installation_us": 3122
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-adopted-asphalt-2-c/golf-san-francisco-barrier.json",
+      "scene_review": "accepted gameplay sample: Golf/San Francisco barrier; 10-second window, audio enabled, no errors; first candidate low run retained, next two match/exceed controls; no consistent regression, rare slowdown not excluded",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 21,
+      "route_steps": [
+        "(async()=>{await step(20000000);return shot('initial')})()",
+        "(async()=>{await press(164);await press(167);await press(17);await press(167);await press(167);return shot('golf')})()",
+        "(async()=>{await press(167);await shot('track');await press(167,60000000);return shot('barrier')})()",
+        "(async()=>{await go();const r=await measure('golf-san-francisco-barrier',10);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "asphalt-3",
+      "label": "instant-play-driving-sound-on",
+      "edition": "1.2.7, N-Gage 2.0, modified BodyZ preservation copy; original fails registration",
+      "url": "https://claude-laptop.lan:8195/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.72,
+        1.78,
+        1.94
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.0408800001144405,
+      "frames": 822,
+      "fps": 163.06676611649922,
+      "guestSeconds": 30.2,
+      "guestSpeed": 5.99101744126311,
+      "compiledFunctions": 105,
+      "compilationUs": {
+        "aot_translation_us": 13221,
+        "aot_emission_us": 934,
+        "aot_installation_us": 10167
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-adopted-asphalt-3-a/instant-play-driving-sound-on.json",
+      "scene_review": "accepted: actual coastal race/red car/racing HUD at both ends; sound YES selected, guest audio enabled, accelerator held, no panics; 5-second gameplay screen",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(650000000);return shot('client')})()",
+        "(async()=>{await press(164,3000000);await shot('launch3');await step(5000000);await shot('launch8');await step(10000000);return shot('language')})()",
+        "(async()=>{await press(167,15000000);return shot('title')})()",
+        "(async()=>{await press(167,10000000);return shot('sound-prompt')})()",
+        "(async()=>{await press(164,5000000);return shot('sound-yes-menu')})()",
+        "(async()=>{await press(167,30000000);return shot('race')})()",
+        "(async()=>{await step(6000000);await page.evaluate(()=>Module._eka2l1_key_state(16,1));await go();const r=await measure('instant-play-driving-sound-on',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "explode-arena",
+      "label": "arcade-level-1",
+      "edition": "1.1, S60v1/v2, unsigned oWnPDA preservation copy",
+      "url": "https://claude-laptop.lan:8195/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.7,
+        1.86,
+        1.99
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 3.012075000047684,
+      "frames": 878,
+      "fps": 291.4934057040746,
+      "guestSeconds": 19.874552,
+      "guestSpeed": 6.598292539091944,
+      "compiledFunctions": 27,
+      "compilationUs": {
+        "aot_translation_us": 3697,
+        "aot_emission_us": 484,
+        "aot_installation_us": 1670
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-adopted-explode-arena-a/arcade-level-1.json",
+      "scene_review": "accepted: active level-1 arena at start/end, no overlays or errors; 3-second gameplay screen",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 7,
+      "route_steps": [
+        "(async()=>{await step(20000000);await press(167,2000000);await press(165,2000000);return await shot('menu')})()",
+        "(async()=>{await press(167,500000);await press(167,500000);await press(167,2000000);await press(14,100000);return await shot('active')})()",
+        "(async()=>{await step(3000000);await go();const r=await measure('arcade-level-1',3);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "k-rally",
+      "label": "tutorial-driving",
+      "edition": "1.01, S60 3rd Edition, Team SyMBiAN preservation copy",
+      "url": "https://claude-laptop.lan:8195/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.71,
+        2.06,
+        1.94
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 3.0135750000476835,
+      "frames": 587,
+      "fps": 194.7852633469258,
+      "guestSeconds": 18.36,
+      "guestSpeed": 6.092431746251376,
+      "compiledFunctions": 137,
+      "compilationUs": {
+        "aot_translation_us": 17274,
+        "aot_emission_us": 1321,
+        "aot_installation_us": 3616
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-adopted-k-rally-a/tutorial-driving.json",
+      "scene_review": "accepted gameplay regression screen: tutorial bridge start, acceleration/steering held, active driving at end; faster run travels farther and leaves road, not an exact-work speedup estimate",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 7,
+      "route_steps": [
+        "(async()=>{await step(18000000);await press(167);return shot('profile')})()",
+        "(async()=>{await step(45000000);await press(167);return shot('name')})()",
+        "(async()=>{await step(25000000);await press(167,4000000);return shot('name2')})()",
+        "(async()=>{await press(17);for(let i=0;i<7;i++)await press(167,3000000);await step(40000000);return shot('track')})()",
+        "(async()=>{await page.evaluate(()=>{Module._eka2l1_key_state(52,1);Module._eka2l1_key_state(15,1)});await go();const r=await measure('tutorial-driving',3);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "pathway-to-glory",
+      "label": "pantelleria-battlefield",
+      "edition": "1.03, original N-Gage retail card preservation image; no official SIS release",
+      "url": "https://claude-laptop.lan:8195/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.51,
+        1.97,
+        2.04
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.021125,
+      "frames": 718,
+      "fps": 142.9958425651622,
+      "guestSeconds": 16.6101,
+      "guestSpeed": 3.3080435161442905,
+      "compiledFunctions": 85,
+      "compilationUs": {
+        "aot_translation_us": 7462,
+        "aot_emission_us": 814,
+        "aot_installation_us": 1422
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-adopted-pathway-to-glory-a/pantelleria-battlefield.json",
+      "scene_review": "accepted gameplay screen: Pantelleria battlefield, soldier-selection UI, no menu overlay or errors; selected soldier differs, FPS flat, not an exact-state replay",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(20000000);for(let i=0;i<6;i++)await press(167,1500000);return await shot('campaign')})()",
+        "(async()=>{await press(164,2000000);await press(164,5000000);return await shot('next')})()",
+        "(async()=>{await press(164,7000000);return await shot('mission')})()",
+        "(async()=>{await press(164,15000000);await press(167,15000000);return await shot('loaded')})()",
+        "(async()=>{await press(165,1000000);await press(15,100000);await press(53,3000000);return await shot('battlefield')})()",
+        "(async()=>{await go();const r=await measure('pantelleria-battlefield',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "sky-force",
+      "label": "stage-1",
+      "edition": "1.22, S60 3rd Edition, 240x320",
+      "url": "https://claude-laptop.lan:8195/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        2.38,
+        2.23,
+        2.13
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 2.00822000002861,
+      "frames": 640,
+      "fps": 318.6901833419059,
+      "guestSeconds": 19.984375,
+      "guestSpeed": 9.951287707380313,
+      "compiledFunctions": 30,
+      "compilationUs": {
+        "aot_translation_us": 2771,
+        "aot_emission_us": 264,
+        "aot_installation_us": 649
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-adopted-sky-force-a/stage-1.json",
+      "scene_review": "accepted: active stage-1 flying/combat, same opening and score1950/7 percent end; 2-second regression screen, about1.6 percent FPS difference, no guest errors",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 5,
+      "route_steps": [
+        "(async()=>{await step(30000000);for(let i=0;i<4;i++)await press(167,3000000);return shot('menu')})()",
+        "(async()=>{await step(6000000);return shot('stage')})()",
+        "(async()=>{await step(4000000);await go();const r=await measure('stage-1',2);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "snakes",
+      "label": "opening-level-valid",
+      "edition": "launcher default",
+      "url": "https://claude-laptop.lan:8195/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.85,
+        1.98,
+        1.92
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.020694999933243,
+      "frames": 499,
+      "fps": 99.38863045985364,
+      "guestSeconds": 23.54,
+      "guestSpeed": 4.688593909869649,
+      "compiledFunctions": 96,
+      "compilationUs": {
+        "aot_translation_us": 8496,
+        "aot_emission_us": 855,
+        "aot_installation_us": 1854
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-adopted-snakes-a/opening-level-valid.json",
+      "scene_review": "accepted: matching opening level, score 200, active snake at start/end; no errors, 5-second screen; FPS difference about 1 percent",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(24000000);await press(167);return shot('select')})()",
+        "(async()=>{await press(167,7000000);return shot('level-ready')})()",
+        "(async()=>{await press(167,7000000);return shot('playing')})()",
+        "(async()=>{await step(8000000);return shot('active')})()",
+        "(async()=>{await go();const r=await measure('opening-level-valid',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "super-miners",
+      "label": "challenge-level-1",
+      "edition": "1.07b, S60v3 240x320, modified DeFconX preservation copy",
+      "url": "https://claude-laptop.lan:8195/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        2.7,
+        2.14,
+        1.98
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.027580000162125,
+      "frames": 1078,
+      "fps": 214.4172743079648,
+      "guestSeconds": 33.88,
+      "guestSpeed": 6.738828621107466,
+      "compiledFunctions": 15,
+      "compilationUs": {
+        "aot_translation_us": 1229,
+        "aot_emission_us": 184,
+        "aot_installation_us": 489
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-adopted-super-miners-a/challenge-level-1.json",
+      "scene_review": "accepted gameplay sample: same level-1 standing scene, timer advances; retain all three runs because both control and candidate vary strongly; no consistent slowdown, not a tight regression bound",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(30000000);await press(167,3000000);await press(167,3000000);return await shot('menu')})()",
+        "(async()=>{await press(167,1000000);await press(167,1000000);return await shot('mode')})()",
+        "(async()=>{await step(15000000);return await shot('level')})()",
+        "(async()=>{await press(14,100000);await go();const r=await measure('challenge-level-1',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "super-miners",
+      "label": "challenge-level-1",
+      "edition": "1.07b, S60v3 240x320, modified DeFconX preservation copy",
+      "url": "https://claude-laptop.lan:8195/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        2.64,
+        2.16,
+        1.99
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.020319999933243,
+      "frames": 1412,
+      "fps": 281.2569716708847,
+      "guestSeconds": 44.13,
+      "guestSpeed": 8.790276317164407,
+      "compiledFunctions": 0,
+      "compilationUs": {
+        "aot_translation_us": 459,
+        "aot_emission_us": 0,
+        "aot_installation_us": 0
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-adopted-super-miners-b/challenge-level-1.json",
+      "scene_review": "accepted gameplay sample: same level-1 standing scene, timer advances; retain all three runs because both control and candidate vary strongly; no consistent slowdown, not a tight regression bound",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(30000000);await press(167,3000000);await press(167,3000000);return await shot('menu')})()",
+        "(async()=>{await press(167,1000000);await press(167,1000000);return await shot('mode')})()",
+        "(async()=>{await step(15000000);return await shot('level')})()",
+        "(async()=>{await press(14,100000);await go();const r=await measure('challenge-level-1',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "super-miners",
+      "label": "challenge-level-1",
+      "edition": "1.07b, S60v3 240x320, modified DeFconX preservation copy",
+      "url": "https://claude-laptop.lan:8195/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        2.72,
+        2.6,
+        2.19
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.019630000114441,
+      "frames": 1706,
+      "fps": 339.8656873038661,
+      "guestSeconds": 53.3,
+      "guestSpeed": 10.618312504862873,
+      "compiledFunctions": 0,
+      "compilationUs": {
+        "aot_translation_us": 579,
+        "aot_emission_us": 0,
+        "aot_installation_us": 0
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-adopted-super-miners-c/challenge-level-1.json",
+      "scene_review": "accepted gameplay sample: same level-1 standing scene, timer advances; retain all three runs because both control and candidate vary strongly; no consistent slowdown, not a tight regression bound",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(30000000);await press(167,3000000);await press(167,3000000);return await shot('menu')})()",
+        "(async()=>{await press(167,1000000);await press(167,1000000);return await shot('mode')})()",
+        "(async()=>{await step(15000000);return await shot('level')})()",
+        "(async()=>{await press(14,100000);await go();const r=await measure('challenge-level-1',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "tetris",
+      "label": "marathon-level-1",
+      "edition": "4.21.41, original Nokia-signed N-Gage 2.0 release",
+      "url": "https://claude-laptop.lan:8195/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.8,
+        2.23,
+        1.98
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.04330999994278,
+      "frames": 717,
+      "fps": 142.16853614156872,
+      "guestSeconds": 23.499,
+      "guestSpeed": 4.659439931367815,
+      "compiledFunctions": 29,
+      "compilationUs": {
+        "aot_translation_us": 2360,
+        "aot_emission_us": 345,
+        "aot_installation_us": 2920
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-adopted-tetris-a/marathon-level-1.json",
+      "scene_review": "accepted: active level-1 Marathon board at both ends; random piece sequence differs, no menu/help or guest errors; 5-second regression screen, not exact deterministic replay",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(650000000);return await shot('client')})()",
+        "(async()=>{await press(164,60000000);await press(165,2000000);await press(167,10000000);return await shot('start')})()",
+        "(async()=>{await press(167,1000000);await press(167,1000000);await press(167,10000000);return await shot('marathon')})()",
+        "(async()=>{for(let i=0;i<4;i++)await press(164,500000);await press(167,1000000);return await shot('board')})()",
+        "(async()=>{await press(14,100000);await press(16,100000);await go();const r=await measure('marathon-level-1',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "hooked-on",
+      "label": "costa-rica-stationary-tutorial-dismissed",
+      "edition": "0.74, N-Gage 2.0, full BiNPDA preservation copy",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.69,
+        1.65,
+        1.71
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 10.10143499994278,
+      "frames": 2407,
+      "fps": 238.28297662793796,
+      "guestSeconds": 78.3,
+      "guestSpeed": 7.751373938499186,
+      "compiledFunctions": 7,
+      "compilationUs": {
+        "aot_translation_us": 801,
+        "aot_emission_us": 135,
+        "aot_installation_us": 1396
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-base-anchor-completed-hooked-a/costa-rica-stationary-tutorial-dismissed.json",
+      "scene_review": "accepted: matching Costa Rica stationary boat scene; anchor tutorial completed by fishing then returning to map; unobstructed start/end screenshots; guest audio enabled, no panics",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 21,
+      "route_steps": [
+        "(async()=>{await step(700000000);return shot('client')})()",
+        "(async()=>{await press(164,70000000);await press(165,4000000);await press(167,10000000);return shot('language')})()",
+        "(async()=>{await press(167,5000000);await press(167,3000000);await press(16,1000000);await press(164,50000000);return shot('main')})()",
+        "(async()=>{await press(167,60000000);return shot('restart')})()",
+        "(async()=>{await press(167,2000000);await press(167,10000000);return shot('name')})()",
+        "(async()=>{await press(167,3000000);await press(16,1000000);await press(164,60000000);return shot('menu')})()",
+        "(async()=>{await press(167,8000000);await press(167,70000000);return shot('boat')})()",
+        "(async()=>{await press(164,1000000);await press(167,35000000);await shot('fishing-help');await press(164,1000000);await press(164,1000000);await shot('fishing-pause');await press(17,1000000);await press(167,30000000);await step(100000000);await shot('boat-after-tutorial');await go();const r=await measure('costa-rica-stationary-tutorial-dismissed',10);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "hooked-on",
+      "label": "costa-rica-stationary-tutorial-dismissed",
+      "edition": "0.74, N-Gage 2.0, full BiNPDA preservation copy",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.46,
+        1.59,
+        1.65
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 10.09724499988556,
+      "frames": 2333,
+      "fps": 231.0531238992856,
+      "guestSeconds": 77.92875,
+      "guestSpeed": 7.717823030032769,
+      "compiledFunctions": 8,
+      "compilationUs": {
+        "aot_translation_us": 640,
+        "aot_emission_us": 85,
+        "aot_installation_us": 1187
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-base-anchor-completed-hooked-b/costa-rica-stationary-tutorial-dismissed.json",
+      "scene_review": "accepted: matching Costa Rica stationary boat scene; anchor tutorial completed by fishing then returning to map; unobstructed start/end screenshots; guest audio enabled, no panics",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 21,
+      "route_steps": [
+        "(async()=>{await step(700000000);return shot('client')})()",
+        "(async()=>{await press(164,70000000);await press(165,4000000);await press(167,10000000);return shot('language')})()",
+        "(async()=>{await press(167,5000000);await press(167,3000000);await press(16,1000000);await press(164,50000000);return shot('main')})()",
+        "(async()=>{await press(167,60000000);return shot('restart')})()",
+        "(async()=>{await press(167,2000000);await press(167,10000000);return shot('name')})()",
+        "(async()=>{await press(167,3000000);await press(16,1000000);await press(164,60000000);return shot('menu')})()",
+        "(async()=>{await press(167,8000000);await press(167,70000000);return shot('boat')})()",
+        "(async()=>{await press(164,1000000);await press(167,35000000);await shot('fishing-help');await press(164,1000000);await press(164,1000000);await shot('fishing-pause');await press(17,1000000);await press(167,30000000);await step(100000000);await shot('boat-after-tutorial');await go();const r=await measure('costa-rica-stationary-tutorial-dismissed',10);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "asphalt-2",
+      "label": "golf-san-francisco-barrier",
+      "edition": "1.0.1, N95 8GB, original Gameloft-signed S60v3 release",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        2.38,
+        2.5,
+        2.18
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 10.043059999942779,
+      "frames": 1348,
+      "fps": 134.22203989697167,
+      "guestSeconds": 98.84,
+      "guestSpeed": 9.841621975828398,
+      "compiledFunctions": 132,
+      "compilationUs": {
+        "aot_translation_us": 49490,
+        "aot_emission_us": 2309,
+        "aot_installation_us": 3613
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-base-asphalt-2-a/golf-san-francisco-barrier.json",
+      "scene_review": "accepted gameplay sample: Golf/San Francisco barrier; 10-second window, audio enabled, no errors; first candidate low run retained, next two match/exceed controls; no consistent regression, rare slowdown not excluded",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 21,
+      "route_steps": [
+        "(async()=>{await step(20000000);return shot('initial')})()",
+        "(async()=>{await press(164);await press(167);await press(17);await press(167);await press(167);return shot('golf')})()",
+        "(async()=>{await press(167);await shot('track');await press(167,60000000);return shot('barrier')})()",
+        "(async()=>{await go();const r=await measure('golf-san-francisco-barrier',10);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "asphalt-2",
+      "label": "golf-san-francisco-barrier",
+      "edition": "1.0.1, N95 8GB, original Gameloft-signed S60v3 release",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.67,
+        2.12,
+        2.08
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 10.046359999895095,
+      "frames": 1362,
+      "fps": 135.57149057113443,
+      "guestSeconds": 99.68,
+      "guestSpeed": 9.92200160068332,
+      "compiledFunctions": 100,
+      "compilationUs": {
+        "aot_translation_us": 40772,
+        "aot_emission_us": 1744,
+        "aot_installation_us": 2933
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-base-asphalt-2-b/golf-san-francisco-barrier.json",
+      "scene_review": "accepted gameplay sample: Golf/San Francisco barrier; 10-second window, audio enabled, no errors; first candidate low run retained, next two match/exceed controls; no consistent regression, rare slowdown not excluded",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 21,
+      "route_steps": [
+        "(async()=>{await step(20000000);return shot('initial')})()",
+        "(async()=>{await press(164);await press(167);await press(17);await press(167);await press(167);return shot('golf')})()",
+        "(async()=>{await press(167);await shot('track');await press(167,60000000);return shot('barrier')})()",
+        "(async()=>{await go();const r=await measure('golf-san-francisco-barrier',10);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "asphalt-3",
+      "label": "instant-play-driving-sound-on",
+      "edition": "1.2.7, N-Gage 2.0, modified BodyZ preservation copy; original fails registration",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.48,
+        1.76,
+        1.94
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.043745000123978,
+      "frames": 740,
+      "fps": 146.7163784017254,
+      "guestSeconds": 28.5275,
+      "guestSpeed": 5.656015520074623,
+      "compiledFunctions": 103,
+      "compilationUs": {
+        "aot_translation_us": 17806,
+        "aot_emission_us": 1128,
+        "aot_installation_us": 8227
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-base-asphalt-3-a/instant-play-driving-sound-on.json",
+      "scene_review": "accepted: actual coastal race/red car/racing HUD at both ends; sound YES selected, guest audio enabled, accelerator held, no panics; 5-second gameplay screen",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(650000000);return shot('client')})()",
+        "(async()=>{await press(164,3000000);await shot('launch3');await step(5000000);await shot('launch8');await step(10000000);return shot('language')})()",
+        "(async()=>{await press(167,15000000);return shot('title')})()",
+        "(async()=>{await press(167,10000000);return shot('sound-prompt')})()",
+        "(async()=>{await press(164,5000000);return shot('sound-yes-menu')})()",
+        "(async()=>{await press(167,30000000);return shot('race')})()",
+        "(async()=>{await step(6000000);await page.evaluate(()=>Module._eka2l1_key_state(16,1));await go();const r=await measure('instant-play-driving-sound-on',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "explode-arena",
+      "label": "arcade-level-1",
+      "edition": "1.1, S60v1/v2, unsigned oWnPDA preservation copy",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.16,
+        1.78,
+        1.97
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 3.0125,
+      "frames": 862,
+      "fps": 286.1410788381743,
+      "guestSeconds": 19.6113,
+      "guestSpeed": 6.5099751037344395,
+      "compiledFunctions": 31,
+      "compilationUs": {
+        "aot_translation_us": 5079,
+        "aot_emission_us": 659,
+        "aot_installation_us": 1004
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-base-explode-arena-a/arcade-level-1.json",
+      "scene_review": "accepted: active level-1 arena at start/end, no overlays or errors; 3-second gameplay screen",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 7,
+      "route_steps": [
+        "(async()=>{await step(20000000);await press(167,2000000);await press(165,2000000);return await shot('menu')})()",
+        "(async()=>{await press(167,500000);await press(167,500000);await press(167,2000000);await press(14,100000);return await shot('active')})()",
+        "(async()=>{await step(3000000);await go();const r=await measure('arcade-level-1',3);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "hooked-on",
+      "label": "costa-rica-boat",
+      "edition": "0.74, N-Gage 2.0, full BiNPDA preservation copy",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.44,
+        1.29,
+        1.39
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.055475000143051,
+      "frames": 1458,
+      "fps": 288.40019977524247,
+      "guestSeconds": 46.34825,
+      "guestSpeed": 9.167931796456024,
+      "compiledFunctions": 125,
+      "compilationUs": {
+        "aot_translation_us": 23349,
+        "aot_emission_us": 1565,
+        "aot_installation_us": 13185
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-base-hooked-on-a/costa-rica-boat.json",
+      "scene_review": "valid Costa Rica boat/help scene, but unresolved runtime difference and unequal help-screen exposure; not a passed regression gate",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(700000000);return shot('client')})()",
+        "(async()=>{await press(164,70000000);await press(165,4000000);await press(167,10000000);return shot('language')})()",
+        "(async()=>{await press(167,5000000);await press(167,3000000);await press(16,1000000);await press(164,50000000);return shot('main')})()",
+        "(async()=>{await press(167,60000000);return shot('restart')})()",
+        "(async()=>{await press(167,2000000);await press(167,10000000);return shot('name')})()",
+        "(async()=>{await press(167,3000000);await press(16,1000000);await press(164,60000000);return shot('menu')})()",
+        "(async()=>{await press(167,8000000);await press(167,70000000);return shot('boat')})()",
+        "(async()=>{await press(164,1000000);await page.evaluate(()=>Module._eka2l1_key_state(16,1));await go();const r=await measure('costa-rica-boat',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "k-rally",
+      "label": "tutorial-driving",
+      "edition": "1.01, S60 3rd Edition, Team SyMBiAN preservation copy",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.55,
+        2.08,
+        1.94
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 3.01727999997139,
+      "frames": 463,
+      "fps": 153.44946441973903,
+      "guestSeconds": 15.2,
+      "guestSpeed": 5.037649803844564,
+      "compiledFunctions": 133,
+      "compilationUs": {
+        "aot_translation_us": 30028,
+        "aot_emission_us": 1654,
+        "aot_installation_us": 4071
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-base-k-rally-a/tutorial-driving.json",
+      "scene_review": "accepted gameplay regression screen: tutorial bridge start, acceleration/steering held, active driving at end; faster run travels farther and leaves road, not an exact-work speedup estimate",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 7,
+      "route_steps": [
+        "(async()=>{await step(18000000);await press(167);return shot('profile')})()",
+        "(async()=>{await step(45000000);await press(167);return shot('name')})()",
+        "(async()=>{await step(25000000);await press(167,4000000);return shot('name2')})()",
+        "(async()=>{await press(17);for(let i=0;i<7;i++)await press(167,3000000);await step(40000000);return shot('track')})()",
+        "(async()=>{await page.evaluate(()=>{Module._eka2l1_key_state(52,1);Module._eka2l1_key_state(15,1)});await go();const r=await measure('tutorial-driving',3);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "pathway-to-glory",
+      "label": "pantelleria-battlefield",
+      "edition": "1.03, original N-Gage retail card preservation image; no official SIS release",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.73,
+        2.05,
+        2.07
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.027144999980926,
+      "frames": 722,
+      "fps": 143.62028547072728,
+      "guestSeconds": 15.829272,
+      "guestSpeed": 3.148759783149294,
+      "compiledFunctions": 105,
+      "compilationUs": {
+        "aot_translation_us": 10709,
+        "aot_emission_us": 1136,
+        "aot_installation_us": 2043
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-base-pathway-to-glory-a/pantelleria-battlefield.json",
+      "scene_review": "accepted gameplay screen: Pantelleria battlefield, soldier-selection UI, no menu overlay or errors; selected soldier differs, FPS flat, not an exact-state replay",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(20000000);for(let i=0;i<6;i++)await press(167,1500000);return await shot('campaign')})()",
+        "(async()=>{await press(164,2000000);await press(164,5000000);return await shot('next')})()",
+        "(async()=>{await press(164,7000000);return await shot('mission')})()",
+        "(async()=>{await press(164,15000000);await press(167,15000000);return await shot('loaded')})()",
+        "(async()=>{await press(165,1000000);await press(15,100000);await press(53,3000000);return await shot('battlefield')})()",
+        "(async()=>{await go();const r=await measure('pantelleria-battlefield',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "asphalt-3",
+      "label": "instant-play-driving-sound-on",
+      "edition": "1.2.7, N-Gage 2.0, modified BodyZ preservation copy; original fails registration",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.28,
+        0.97,
+        1.36
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.039375,
+      "frames": 778,
+      "fps": 154.38422423415602,
+      "guestSeconds": 30.306,
+      "guestSpeed": 6.013841002108397,
+      "compiledFunctions": 101,
+      "compilationUs": {
+        "aot_translation_us": 16802,
+        "aot_emission_us": 966,
+        "aot_installation_us": 7272
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-base-short-asphalt3-a/instant-play-driving-sound-on.json",
+      "scene_review": "accepted: matching shorter route, coastal racing HUD, red car, sound YES; no panics; 5-second window",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(650000000);return shot('client')})()",
+        "(async()=>{await press(164,3000000);await shot('launch3');await step(5000000);await shot('launch8');await step(10000000);return shot('language')})()",
+        "(async()=>{await press(167,15000000);return shot('title')})()",
+        "(async()=>{await press(167,10000000);return shot('sound-prompt')})()",
+        "(async()=>{await press(164,5000000);return shot('sound-yes-menu')})()",
+        "(async()=>{await press(167,30000000);return shot('race')})()",
+        "(async()=>{await step(6000000);await page.evaluate(()=>Module._eka2l1_key_state(16,1));await go();const r=await measure('instant-play-driving-sound-on',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "sky-force",
+      "label": "stage-1",
+      "edition": "1.22, S60 3rd Edition, 240x320",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        2.53,
+        2.25,
+        2.13
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 2.0079650001525877,
+      "frames": 650,
+      "fps": 323.7108216281687,
+      "guestSeconds": 20.28125,
+      "guestSpeed": 10.100400155609686,
+      "compiledFunctions": 33,
+      "compilationUs": {
+        "aot_translation_us": 3501,
+        "aot_emission_us": 419,
+        "aot_installation_us": 839
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-base-sky-force-a/stage-1.json",
+      "scene_review": "accepted: active stage-1 flying/combat, same opening and score1950/7 percent end; 2-second regression screen, about1.6 percent FPS difference, no guest errors",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 5,
+      "route_steps": [
+        "(async()=>{await step(30000000);for(let i=0;i<4;i++)await press(167,3000000);return shot('menu')})()",
+        "(async()=>{await step(6000000);return shot('stage')})()",
+        "(async()=>{await step(4000000);await go();const r=await measure('stage-1',2);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "snakes",
+      "label": "opening-level-valid",
+      "edition": "launcher default",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.41,
+        1.9,
+        1.89
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.023324999809265,
+      "frames": 505,
+      "fps": 100.53102278255433,
+      "guestSeconds": 23.71,
+      "guestSpeed": 4.719981287473987,
+      "compiledFunctions": 101,
+      "compilationUs": {
+        "aot_translation_us": 8644,
+        "aot_emission_us": 908,
+        "aot_installation_us": 1822
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-base-snakes-a/opening-level-valid.json",
+      "scene_review": "accepted: matching opening level, score 200, active snake at start/end; no errors, 5-second screen; FPS difference about 1 percent",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(24000000);await press(167);return shot('select')})()",
+        "(async()=>{await press(167,7000000);return shot('level-ready')})()",
+        "(async()=>{await press(167,7000000);return shot('playing')})()",
+        "(async()=>{await step(8000000);return shot('active')})()",
+        "(async()=>{await go();const r=await measure('opening-level-valid',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "hooked-on",
+      "label": "costa-rica-stationary-boat",
+      "edition": "0.74, N-Gage 2.0, full BiNPDA preservation copy",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.52,
+        1.96,
+        1.83
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 10.099839999914169,
+      "frames": 4115,
+      "fps": 407.43219694915666,
+      "guestSeconds": 129.386,
+      "guestSpeed": 12.810697991364176,
+      "compiledFunctions": 12,
+      "compilationUs": {
+        "aot_translation_us": 2657,
+        "aot_emission_us": 320,
+        "aot_installation_us": 1936
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-base-stationary-hooked-a/costa-rica-stationary-boat.json",
+      "scene_review": "not a fixed-scene comparison: automatic tutorial help appears; aggregate 407.43 FPS is not steady gameplay",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 21,
+      "route_steps": [
+        "(async()=>{await step(700000000);return shot('client')})()",
+        "(async()=>{await press(164,70000000);await press(165,4000000);await press(167,10000000);return shot('language')})()",
+        "(async()=>{await press(167,5000000);await press(167,3000000);await press(16,1000000);await press(164,50000000);return shot('main')})()",
+        "(async()=>{await press(167,60000000);return shot('restart')})()",
+        "(async()=>{await press(167,2000000);await press(167,10000000);return shot('name')})()",
+        "(async()=>{await press(167,3000000);await press(16,1000000);await press(164,60000000);return shot('menu')})()",
+        "(async()=>{await press(167,8000000);await press(167,70000000);return shot('boat')})()",
+        "(async()=>{await press(164,1000000);await go();const r=await measure('costa-rica-stationary-boat',10);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "super-miners",
+      "label": "challenge-level-1",
+      "edition": "1.07b, S60v3 240x320, modified DeFconX preservation copy",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        2.25,
+        2.01,
+        1.93
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.020525000095367,
+      "frames": 1479,
+      "fps": 294.59070514974144,
+      "guestSeconds": 46.20375,
+      "guestSpeed": 9.202971800583073,
+      "compiledFunctions": 12,
+      "compilationUs": {
+        "aot_translation_us": 707,
+        "aot_emission_us": 100,
+        "aot_installation_us": 314
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-base-super-miners-a/challenge-level-1.json",
+      "scene_review": "accepted gameplay sample: same level-1 standing scene, timer advances; retain all three runs because both control and candidate vary strongly; no consistent slowdown, not a tight regression bound",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(30000000);await press(167,3000000);await press(167,3000000);return await shot('menu')})()",
+        "(async()=>{await press(167,1000000);await press(167,1000000);return await shot('mode')})()",
+        "(async()=>{await step(15000000);return await shot('level')})()",
+        "(async()=>{await press(14,100000);await go();const r=await measure('challenge-level-1',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "super-miners",
+      "label": "challenge-level-1",
+      "edition": "1.07b, S60v3 240x320, modified DeFconX preservation copy",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        4.29,
+        2.55,
+        2.13
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.032384999990463,
+      "frames": 866,
+      "fps": 172.08540284609407,
+      "guestSeconds": 27.97,
+      "guestSpeed": 5.558000828643477,
+      "compiledFunctions": 13,
+      "compilationUs": {
+        "aot_translation_us": 1081,
+        "aot_emission_us": 140,
+        "aot_installation_us": 559
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-base-super-miners-b/challenge-level-1.json",
+      "scene_review": "accepted gameplay sample: same level-1 standing scene, timer advances; retain all three runs because both control and candidate vary strongly; no consistent slowdown, not a tight regression bound",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(30000000);await press(167,3000000);await press(167,3000000);return await shot('menu')})()",
+        "(async()=>{await press(167,1000000);await press(167,1000000);return await shot('mode')})()",
+        "(async()=>{await step(15000000);return await shot('level')})()",
+        "(async()=>{await press(14,100000);await go();const r=await measure('challenge-level-1',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "super-miners",
+      "label": "challenge-level-1",
+      "edition": "1.07b, S60v3 240x320, modified DeFconX preservation copy",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        3.19,
+        2.68,
+        2.21
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.016475000143052,
+      "frames": 1748,
+      "fps": 348.45185114052265,
+      "guestSeconds": 54.59,
+      "guestSpeed": 10.882143337391952,
+      "compiledFunctions": 12,
+      "compilationUs": {
+        "aot_translation_us": 856,
+        "aot_emission_us": 84,
+        "aot_installation_us": 315
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-base-super-miners-c/challenge-level-1.json",
+      "scene_review": "accepted gameplay sample: same level-1 standing scene, timer advances; retain all three runs because both control and candidate vary strongly; no consistent slowdown, not a tight regression bound",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(30000000);await press(167,3000000);await press(167,3000000);return await shot('menu')})()",
+        "(async()=>{await press(167,1000000);await press(167,1000000);return await shot('mode')})()",
+        "(async()=>{await step(15000000);return await shot('level')})()",
+        "(async()=>{await press(14,100000);await go();const r=await measure('challenge-level-1',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "tetris",
+      "label": "marathon-level-1",
+      "edition": "4.21.41, original Nokia-signed N-Gage 2.0 release",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        2.33,
+        2.4,
+        2.02
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.047575000047684,
+      "frames": 644,
+      "fps": 127.58601902773435,
+      "guestSeconds": 21.785,
+      "guestSpeed": 4.315933889004958,
+      "compiledFunctions": 25,
+      "compilationUs": {
+        "aot_translation_us": 2686,
+        "aot_emission_us": 340,
+        "aot_installation_us": 2515
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-base-tetris-a/marathon-level-1.json",
+      "scene_review": "accepted: active level-1 Marathon board at both ends; random piece sequence differs, no menu/help or guest errors; 5-second regression screen, not exact deterministic replay",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(650000000);return await shot('client')})()",
+        "(async()=>{await press(164,60000000);await press(165,2000000);await press(167,10000000);return await shot('start')})()",
+        "(async()=>{await press(167,1000000);await press(167,1000000);await press(167,10000000);return await shot('marathon')})()",
+        "(async()=>{for(let i=0;i<4;i++)await press(164,500000);await press(167,1000000);return await shot('board')})()",
+        "(async()=>{await press(14,100000);await press(16,100000);await go();const r=await measure('marathon-level-1',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "asphalt-3",
+      "label": "instant-play-driving-sound-on",
+      "edition": "1.2.7, N-Gage 2.0, modified BodyZ preservation copy; original fails registration",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.47,
+        1.95,
+        1.68
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.048379999876023,
+      "frames": 576,
+      "fps": 114.09600703872239,
+      "guestSeconds": 25.932,
+      "guestSpeed": 5.136697316889148,
+      "compiledFunctions": 77,
+      "compilationUs": {
+        "aot_translation_us": 13957,
+        "aot_emission_us": 744,
+        "aot_installation_us": 5801
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-control-asphalt-3-a/instant-play-driving-sound-on.json",
+      "scene_review": "rejected: language menu, not gameplay",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(650000000);return shot('client')})()",
+        "(async()=>{await press(164,70000000);await press(165,5000000);await press(167,10000000);return shot('language')})()",
+        "(async()=>{await step(60000000);return shot('english')})()",
+        "(async()=>{await press(167,5000000);return await shot('prompt')})()",
+        "(async()=>{await press(164,5000000);return await shot('menu')})()",
+        "(async()=>{await press(167,30000000);return await shot('race')})()",
+        "(async()=>{await step(6000000);await page.evaluate(()=>Module._eka2l1_key_state(16,1));await go();const r=await measure('instant-play-driving-sound-on',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "asphalt-3",
+      "label": "instant-play-driving-sound-on",
+      "edition": "1.2.7, N-Gage 2.0, modified BodyZ preservation copy; original fails registration",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.86,
+        1.88,
+        1.94
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.048024999856949,
+      "frames": 592,
+      "fps": 117.2735871983154,
+      "guestSeconds": 26.164375,
+      "guestSpeed": 5.183091407182303,
+      "compiledFunctions": 91,
+      "compilationUs": {
+        "aot_translation_us": 16577,
+        "aot_emission_us": 1017,
+        "aot_installation_us": 7944
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-control-racing-a/instant-play-driving-sound-on.json",
+      "scene_review": "accepted: coastal track, red car, sound YES; HUD and screenshots checked",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(650000000);return shot('client')})()",
+        "(async()=>{await press(164,70000000);return shot('language')})()",
+        "(async()=>{await press(167,25000000);return shot('title')})()",
+        "(async()=>{await press(167,10000000);return shot('sound-prompt')})()",
+        "(async()=>{await press(164,5000000);return shot('sound-yes-menu')})()",
+        "(async()=>{await press(167,30000000);return shot('race')})()",
+        "(async()=>{await step(6000000);await page.evaluate(()=>Module._eka2l1_key_state(16,1));await go();const r=await measure('instant-play-driving-sound-on',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "asphalt-3",
+      "label": "instant-play-driving-sound-on",
+      "edition": "1.2.7, N-Gage 2.0, modified BodyZ preservation copy; original fails registration",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.76,
+        1.93,
+        1.96
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.042524999856949,
+      "frames": 776,
+      "fps": 153.89115572496206,
+      "guestSeconds": 30.074,
+      "guestSpeed": 5.964075537722306,
+      "compiledFunctions": 106,
+      "compilationUs": {
+        "aot_translation_us": 18326,
+        "aot_emission_us": 1109,
+        "aot_installation_us": 7974
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-control-racing-b/instant-play-driving-sound-on.json",
+      "scene_review": "accepted: coastal track, red car, sound YES; HUD and screenshots checked",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(650000000);return shot('client')})()",
+        "(async()=>{await press(164,70000000);return shot('language')})()",
+        "(async()=>{await press(167,25000000);return shot('title')})()",
+        "(async()=>{await press(167,10000000);return shot('sound-prompt')})()",
+        "(async()=>{await press(164,5000000);return shot('sound-yes-menu')})()",
+        "(async()=>{await press(167,30000000);return shot('race')})()",
+        "(async()=>{await step(6000000);await page.evaluate(()=>Module._eka2l1_key_state(16,1));await go();const r=await measure('instant-play-driving-sound-on',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "hooked-on",
+      "label": "costa-rica-boat",
+      "edition": "0.74, N-Gage 2.0, full BiNPDA preservation copy",
+      "url": "https://claude-laptop.lan:8200/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        2.15,
+        1.66,
+        1.52
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.062640000104905,
+      "frames": 919,
+      "fps": 181.5258442198057,
+      "guestSeconds": 29.51,
+      "guestSpeed": 5.828974606013565,
+      "compiledFunctions": 104,
+      "compilationUs": {
+        "aot_translation_us": 18871,
+        "aot_emission_us": 1604,
+        "aot_installation_us": 11737
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-final-hooked-on-a/costa-rica-boat.json",
+      "scene_review": "valid Costa Rica boat/help scene, but unresolved runtime difference and unequal help-screen exposure; not a passed regression gate",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(700000000);return shot('client')})()",
+        "(async()=>{await press(164,70000000);await press(165,4000000);await press(167,10000000);return shot('language')})()",
+        "(async()=>{await press(167,5000000);await press(167,3000000);await press(16,1000000);await press(164,50000000);return shot('main')})()",
+        "(async()=>{await press(167,60000000);return shot('restart')})()",
+        "(async()=>{await press(167,2000000);await press(167,10000000);return shot('name')})()",
+        "(async()=>{await press(167,3000000);await press(16,1000000);await press(164,60000000);return shot('menu')})()",
+        "(async()=>{await press(167,8000000);await press(167,70000000);return shot('boat')})()",
+        "(async()=>{await press(164,1000000);await page.evaluate(()=>Module._eka2l1_key_state(16,1));await go();const r=await measure('costa-rica-boat',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "asphalt-3",
+      "label": "instant-play-driving-sound-on",
+      "edition": "1.2.7, N-Gage 2.0, modified BodyZ preservation copy; original fails registration",
+      "url": "https://claude-laptop.lan:8200/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.57,
+        1.15,
+        1.39
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.043640000104904,
+      "frames": 756,
+      "fps": 149.89174484782333,
+      "guestSeconds": 29.62,
+      "guestSpeed": 5.872742701577417,
+      "compiledFunctions": 96,
+      "compilationUs": {
+        "aot_translation_us": 13320,
+        "aot_emission_us": 933,
+        "aot_installation_us": 7259
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-final-short-asphalt3-a/instant-play-driving-sound-on.json",
+      "scene_review": "accepted: matching shorter route, coastal racing HUD, red car, sound YES; no panics; 5-second window",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(650000000);return shot('client')})()",
+        "(async()=>{await press(164,3000000);await shot('launch3');await step(5000000);await shot('launch8');await step(10000000);return shot('language')})()",
+        "(async()=>{await press(167,15000000);return shot('title')})()",
+        "(async()=>{await press(167,10000000);return shot('sound-prompt')})()",
+        "(async()=>{await press(164,5000000);return shot('sound-yes-menu')})()",
+        "(async()=>{await press(167,30000000);return shot('race')})()",
+        "(async()=>{await step(6000000);await page.evaluate(()=>Module._eka2l1_key_state(16,1));await go();const r=await measure('instant-play-driving-sound-on',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "asphalt-3",
+      "label": "instant-play-driving-sound-on",
+      "edition": "1.2.7, N-Gage 2.0, modified BodyZ preservation copy; original fails registration",
+      "url": "https://claude-laptop.lan:8200/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        0.78,
+        0.77,
+        1.36
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.040989999771118,
+      "frames": 739,
+      "fps": 146.59818806098676,
+      "guestSeconds": 29.378125,
+      "guestSpeed": 5.827848299904164,
+      "compiledFunctions": 101,
+      "compilationUs": {
+        "aot_translation_us": 16650,
+        "aot_emission_us": 1020,
+        "aot_installation_us": 7642
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-final-short-pilot/instant-play-driving-sound-on.json",
+      "scene_review": "accepted gameplay scene: coastal track, red car, sound YES; screen-guided startup pilot with shorter waits, not an identical startup route to previous controls",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "await step(650000000); await shot('installed')",
+        "(async()=>{await step(650000000);return shot('installed')})()",
+        "(async()=>{await press(164,3000000);return shot('launch3')})()",
+        "(async()=>{await step(5000000);return shot('launch8')})()",
+        "(async()=>{await step(10000000);return shot('launch18')})()",
+        "(async()=>{await press(167,15000000);return shot('title')})()",
+        "(async()=>{await press(167,10000000);return shot('sound-prompt')})()",
+        "(async()=>{await press(164,5000000);return shot('sound-yes')})()",
+        "(async()=>{await press(167,30000000);return shot('race')})()",
+        "(async()=>{await step(6000000);await page.evaluate(()=>Module._eka2l1_key_state(16,1));await go();return measure('instant-play-driving-sound-on',5)})()",
+        "browser.close()"
+      ]
+    },
+    {
+      "game": "hooked-on",
+      "label": "costa-rica-stationary-boat",
+      "edition": "0.74, N-Gage 2.0, full BiNPDA preservation copy",
+      "url": "https://claude-laptop.lan:8200/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        2.41,
+        2.3,
+        1.89
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 10.12072000002861,
+      "frames": 3257,
+      "fps": 321.81504873080104,
+      "guestSeconds": 102.599,
+      "guestSpeed": 10.13751986021844,
+      "compiledFunctions": 13,
+      "compilationUs": {
+        "aot_translation_us": 2155,
+        "aot_emission_us": 357,
+        "aot_installation_us": 2111
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-final-stationary-hooked-a/costa-rica-stationary-boat.json",
+      "scene_review": "not a fixed-scene comparison: stationary boat automatically opens tutorial help; first-half FPS 160-194, last-half reaches 550; retain but do not treat aggregate as steady gameplay",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 21,
+      "route_steps": [
+        "(async()=>{await step(700000000);return shot('client')})()",
+        "(async()=>{await press(164,70000000);await press(165,4000000);await press(167,10000000);return shot('language')})()",
+        "(async()=>{await press(167,5000000);await press(167,3000000);await press(16,1000000);await press(164,50000000);return shot('main')})()",
+        "(async()=>{await press(167,60000000);return shot('restart')})()",
+        "(async()=>{await press(167,2000000);await press(167,10000000);return shot('name')})()",
+        "(async()=>{await press(167,3000000);await press(16,1000000);await press(164,60000000);return shot('menu')})()",
+        "(async()=>{await press(167,8000000);await press(167,70000000);return shot('boat')})()",
+        "(async()=>{await press(164,1000000);await go();const r=await measure('costa-rica-stationary-boat',10);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "snakes",
+      "label": "opening-level-valid",
+      "edition": "launcher default",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        2.01,
+        1.74,
+        1.82
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.019085000038147,
+      "frames": 497,
+      "fps": 99.0220328996665,
+      "guestSeconds": 23.451875,
+      "guestSpeed": 4.672539915108383,
+      "compiledFunctions": 95,
+      "compilationUs": {
+        "aot_translation_us": 6698,
+        "aot_emission_us": 913,
+        "aot_installation_us": 1897
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-lan-snakes/opening-level-valid.json",
+      "scene_review": "accepted public deployment check: actual opening-level Snakes gameplay, score200,99.02 FPS, no errors; same verified WASM hash and runtime policy",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(24000000);await press(167);return shot('select')})()",
+        "(async()=>{await press(167,7000000);return shot('level-ready')})()",
+        "(async()=>{await press(167,7000000);return shot('playing')})()",
+        "(async()=>{await step(8000000);return shot('active')})()",
+        "(async()=>{await go();const r=await measure('opening-level-valid',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "asphalt-2",
+      "label": "golf-san-francisco-barrier",
+      "edition": "1.0.1, N95 8GB, original Gameloft-signed S60v3 release",
+      "url": "https://claude-laptop.lan:8190/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.93,
+        2.14,
+        2.09
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 10.053810000181198,
+      "frames": 1025,
+      "fps": 101.9513995173498,
+      "guestSeconds": 87.47,
+      "guestSpeed": 8.700184308080573,
+      "compiledFunctions": 158,
+      "compilationUs": {
+        "aot_translation_us": 50266,
+        "aot_emission_us": 3392,
+        "aot_installation_us": 5568
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-marks-asphalt-2-a/golf-san-francisco-barrier.json",
+      "scene_review": "valid barrier scene in earlier two-change build, 101.95 FPS; low result predates admission fix and cannot isolate a cause",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 21,
+      "route_steps": [
+        "(async()=>{await step(20000000);return shot('initial')})()",
+        "(async()=>{await press(164);await press(167);await press(17);await press(167);await press(167);return shot('golf')})()",
+        "(async()=>{await press(167);await shot('track');await press(167,60000000);return shot('barrier')})()",
+        "(async()=>{await go();const r=await measure('golf-san-francisco-barrier',10);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "asphalt-3",
+      "label": "instant-play-driving-sound-on",
+      "edition": "1.2.7, N-Gage 2.0, modified BodyZ preservation copy; original fails registration",
+      "url": "https://claude-laptop.lan:8190/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        2.08,
+        2.24,
+        2.08
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.046515000104904,
+      "frames": 583,
+      "fps": 115.52526842541455,
+      "guestSeconds": 26.4,
+      "guestSpeed": 5.231332909830093,
+      "compiledFunctions": 74,
+      "compilationUs": {
+        "aot_translation_us": 11553,
+        "aot_emission_us": 649,
+        "aot_installation_us": 5477
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-marks-asphalt-3-a/instant-play-driving-sound-on.json",
+      "scene_review": "rejected: language menu, not gameplay",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(650000000);return shot('client')})()",
+        "(async()=>{await press(164,70000000);await press(165,5000000);await press(167,10000000);return shot('language')})()",
+        "(async()=>{await step(60000000);return shot('english')})()",
+        "(async()=>{await press(167,5000000);return await shot('prompt')})()",
+        "(async()=>{await press(164,5000000);return await shot('menu')})()",
+        "(async()=>{await press(167,30000000);return await shot('race')})()",
+        "(async()=>{await step(6000000);await page.evaluate(()=>Module._eka2l1_key_state(16,1));await go();const r=await measure('instant-play-driving-sound-on',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "asphalt-3",
+      "label": "instant-play-driving-sound-on",
+      "edition": "1.2.7, N-Gage 2.0, modified BodyZ preservation copy; original fails registration",
+      "url": "https://claude-laptop.lan:8190/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.65,
+        1.72,
+        1.9
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.042115000009537,
+      "frames": 787,
+      "fps": 156.08529357194578,
+      "guestSeconds": 29.804,
+      "guestSpeed": 5.911011549705555,
+      "compiledFunctions": 99,
+      "compilationUs": {
+        "aot_translation_us": 14670,
+        "aot_emission_us": 1043,
+        "aot_installation_us": 8139
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-marks-racing-b/instant-play-driving-sound-on.json",
+      "scene_review": "accepted: coastal track, red car, sound YES; HUD and screenshots checked",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(650000000);return shot('client')})()",
+        "(async()=>{await press(164,70000000);return shot('language')})()",
+        "(async()=>{await press(167,25000000);return shot('title')})()",
+        "(async()=>{await press(167,10000000);return shot('sound-prompt')})()",
+        "(async()=>{await press(164,5000000);return shot('sound-yes-menu')})()",
+        "(async()=>{await press(167,30000000);return shot('race')})()",
+        "(async()=>{await step(6000000);await page.evaluate(()=>Module._eka2l1_key_state(16,1));await go();const r=await measure('instant-play-driving-sound-on',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "super-miners",
+      "label": "challenge-level-1",
+      "edition": "1.07b, S60v3 240x320, modified DeFconX preservation copy",
+      "url": "https://claude-laptop.lan:8190/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        4,
+        2.63,
+        2.16
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.029169999837875,
+      "frames": 1238,
+      "fps": 246.1638799324559,
+      "guestSeconds": 38.69,
+      "guestSpeed": 7.693118347808335,
+      "compiledFunctions": 18,
+      "compilationUs": {
+        "aot_translation_us": 774,
+        "aot_emission_us": 190,
+        "aot_installation_us": 454
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-marks-super-miners-a/challenge-level-1.json",
+      "scene_review": "earlier-build isolation sample, active level, not selected final result",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(30000000);await press(167,3000000);await press(167,3000000);return await shot('menu')})()",
+        "(async()=>{await press(167,1000000);await press(167,1000000);return await shot('mode')})()",
+        "(async()=>{await step(15000000);return await shot('level')})()",
+        "(async()=>{await press(14,100000);await go();const r=await measure('challenge-level-1',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "asphalt-3",
+      "label": "verified-racing-sound-on",
+      "edition": "1.2.7, N-Gage 2.0, modified BodyZ preservation copy; original fails registration",
+      "url": "https://claude-laptop.lan:8190/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        0.69,
+        1.54,
+        1.94
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.044819999933242,
+      "frames": 752,
+      "fps": 149.06379216898742,
+      "guestSeconds": 29.43,
+      "guestSpeed": 5.8337066536347075,
+      "compiledFunctions": 101,
+      "compilationUs": {
+        "aot_translation_us": 14096,
+        "aot_emission_us": 970,
+        "aot_installation_us": 8196
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-pilot-asphalt-3/verified-racing-sound-on.json",
+      "scene_review": "not accepted until reviewed",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "await step(650000000); await shot('client')",
+        "(async()=>{await step(650000000);return await shot('client')})()",
+        "(async()=>{await press(164,70000000);return await shot('after-start')})()",
+        "(async()=>{await press(167,5000000);return await shot('sound-prompt')})()",
+        "(async()=>{await step(20000000);return await shot('sound-prompt-ready')})()",
+        "(async()=>{await press(167,10000000);return await shot('title-continue')})()",
+        "(async()=>{await press(164,5000000);return await shot('yes-sound-menu')})()",
+        "(async()=>{await press(167,30000000);return await shot('instant-play')})()",
+        "(async()=>{await step(6000000);await page.evaluate(()=>Module._eka2l1_key_state(16,1));await go();const r=await measure('verified-racing-sound-on',5);await browser.close();return {fps:r.fps,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "hooked-on",
+      "label": "costa-rica-stationary-tutorial-dismissed",
+      "edition": "0.74, N-Gage 2.0, full BiNPDA preservation copy",
+      "url": "https://claude-laptop.lan:8201/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        2.36,
+        1.93,
+        1.81
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 10.123715000152588,
+      "frames": 1852,
+      "fps": 182.9367974080746,
+      "guestSeconds": 61.1,
+      "guestSpeed": 6.035333866972656,
+      "compiledFunctions": 7,
+      "compilationUs": {
+        "aot_translation_us": 995,
+        "aot_emission_us": 148,
+        "aot_installation_us": 1412
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-selected-anchor-completed-hooked-a/costa-rica-stationary-tutorial-dismissed.json",
+      "scene_review": "valid unobstructed boat scene, but failed runtime performance gate; mapping cache rejected",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 21,
+      "route_steps": [
+        "(async()=>{await step(700000000);return shot('client')})()",
+        "(async()=>{await press(164,70000000);await press(165,4000000);await press(167,10000000);return shot('language')})()",
+        "(async()=>{await press(167,5000000);await press(167,3000000);await press(16,1000000);await press(164,50000000);return shot('main')})()",
+        "(async()=>{await press(167,60000000);return shot('restart')})()",
+        "(async()=>{await press(167,2000000);await press(167,10000000);return shot('name')})()",
+        "(async()=>{await press(167,3000000);await press(16,1000000);await press(164,60000000);return shot('menu')})()",
+        "(async()=>{await press(167,8000000);await press(167,70000000);return shot('boat')})()",
+        "(async()=>{await press(164,1000000);await press(167,35000000);await shot('fishing-help');await press(164,1000000);await press(164,1000000);await shot('fishing-pause');await press(17,1000000);await press(167,30000000);await step(100000000);await shot('boat-after-tutorial');await go();const r=await measure('costa-rica-stationary-tutorial-dismissed',10);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "hooked-on",
+      "label": "costa-rica-stationary-tutorial-dismissed",
+      "edition": "0.74, N-Gage 2.0, full BiNPDA preservation copy",
+      "url": "https://claude-laptop.lan:8201/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.48,
+        1.63,
+        1.68
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 10.112494999885559,
+      "frames": 2066,
+      "fps": 204.30170793887962,
+      "guestSeconds": 68.94,
+      "guestSpeed": 6.817308686014695,
+      "compiledFunctions": 8,
+      "compilationUs": {
+        "aot_translation_us": 838,
+        "aot_emission_us": 123,
+        "aot_installation_us": 17801
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-selected-anchor-completed-hooked-b/costa-rica-stationary-tutorial-dismissed.json",
+      "scene_review": "valid unobstructed boat scene, but failed runtime performance gate; mapping cache rejected",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 21,
+      "route_steps": [
+        "(async()=>{await step(700000000);return shot('client')})()",
+        "(async()=>{await press(164,70000000);await press(165,4000000);await press(167,10000000);return shot('language')})()",
+        "(async()=>{await press(167,5000000);await press(167,3000000);await press(16,1000000);await press(164,50000000);return shot('main')})()",
+        "(async()=>{await press(167,60000000);return shot('restart')})()",
+        "(async()=>{await press(167,2000000);await press(167,10000000);return shot('name')})()",
+        "(async()=>{await press(167,3000000);await press(16,1000000);await press(164,60000000);return shot('menu')})()",
+        "(async()=>{await press(167,8000000);await press(167,70000000);return shot('boat')})()",
+        "(async()=>{await press(164,1000000);await press(167,35000000);await shot('fishing-help');await press(164,1000000);await press(164,1000000);await shot('fishing-pause');await press(17,1000000);await press(167,30000000);await step(100000000);await shot('boat-after-tutorial');await go();const r=await measure('costa-rica-stationary-tutorial-dismissed',10);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "hooked-on",
+      "label": "costa-rica-stationary-tutorial-dismissed",
+      "edition": "0.74, N-Gage 2.0, full BiNPDA preservation copy",
+      "url": "https://claude-laptop.lan:8201/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        2.08,
+        2.19,
+        2
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 10.097409999847413,
+      "frames": 4334,
+      "fps": 429.2189779424123,
+      "guestSeconds": 136.22175,
+      "guestSpeed": 13.490761492507337,
+      "compiledFunctions": 2,
+      "compilationUs": {
+        "aot_translation_us": 318,
+        "aot_emission_us": 74,
+        "aot_installation_us": 564
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-selected-stationary-hooked-b/costa-rica-stationary-tutorial-dismissed.json",
+      "scene_review": "rejected by scene guard: tutorial reappeared before the timed window ended",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 21,
+      "route_steps": [
+        "(async()=>{await step(700000000);return shot('client')})()",
+        "(async()=>{await press(164,70000000);await press(165,4000000);await press(167,10000000);return shot('language')})()",
+        "(async()=>{await press(167,5000000);await press(167,3000000);await press(16,1000000);await press(164,50000000);return shot('main')})()",
+        "(async()=>{await press(167,60000000);return shot('restart')})()",
+        "(async()=>{await press(167,2000000);await press(167,10000000);return shot('name')})()",
+        "(async()=>{await press(167,3000000);await press(16,1000000);await press(164,60000000);return shot('menu')})()",
+        "(async()=>{await press(167,8000000);await press(167,70000000);return shot('boat')})()",
+        "(async()=>{await press(164,1000000);await step(100000000);await shot('anchor-help');await press(164,1000000);await shot('anchor-dismissed');await go();const r=await measure('costa-rica-stationary-tutorial-dismissed',10);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    },
+    {
+      "game": "hooked-on",
+      "label": "costa-rica-stationary-tutorial-dismissed",
+      "edition": "0.74, N-Gage 2.0, full BiNPDA preservation copy",
+      "url": "https://claude-laptop.lan:8201/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.81,
+        1.39,
+        1.67
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 10.099289999961853,
+      "frames": 2387,
+      "fps": 236.35324859559594,
+      "guestSeconds": 75.05,
+      "guestSpeed": 7.431215461709039,
+      "compiledFunctions": 2,
+      "compilationUs": {
+        "aot_translation_us": 163,
+        "aot_emission_us": 44,
+        "aot_installation_us": 519
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-selected-tutorial-pilot/costa-rica-stationary-tutorial-dismissed.json",
+      "scene_review": "route calibration only: unobstructed boat, extra menu actions differ from matched pair; not included in regression gate",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 21,
+      "route_steps": [
+        "(async()=>{await step(700000000);return shot('client')})()",
+        "(async()=>{await press(164,70000000);await press(165,4000000);await press(167,10000000);return shot('language')})()",
+        "(async()=>{await press(167,5000000);await press(167,3000000);await press(16,1000000);await press(164,50000000);return shot('main')})()",
+        "(async()=>{await press(167,60000000);return shot('restart')})()",
+        "(async()=>{await press(167,2000000);await press(167,10000000);return shot('name')})()",
+        "(async()=>{await press(167,3000000);await press(16,1000000);await press(164,60000000);return shot('menu')})()",
+        "(async()=>{await press(167,8000000);await press(167,70000000);return shot('boat')})()",
+        "(async()=>{await press(164,1000000);await press(164,1000000);return shot('pause')})()",
+        "(async()=>{await press(17,1000000);await press(167,1000000);return shot('pocket')})()",
+        "(async()=>{await press(165,1000000);await press(165,1000000);await press(167,5000000);return shot('anchor')})()",
+        "(async()=>{await step(30000000);return shot('fishing')})()",
+        "(async()=>{await press(164,1000000);await press(165,10000000);return shot('back-to-boat')})()",
+        "(async()=>{await press(164,1000000);return shot('fishing-pause')})()",
+        "(async()=>{await press(17,1000000);await press(167,30000000);return shot('map-after-anchor')})()",
+        "(async()=>{await step(100000000);return shot('map-after-wait')})()",
+        "(async()=>{process.env.RUNTIME_PROFILE='1';const c=await browser.target().createCDPSession();await c.send('Target.setDiscoverTargets',{discover:true,filter:[{}]});await wait(150);await go();return measure('costa-rica-stationary-tutorial-dismissed',10)})()",
+        "browser.close()"
+      ]
+    },
+    {
+      "game": "asphalt-3",
+      "label": "instant-play-driving-sound-on",
+      "edition": "1.2.7, N-Gage 2.0, modified BodyZ preservation copy; original fails registration",
+      "url": "https://claude-laptop.lan:8189/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.96,
+        2.28,
+        2.08
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.049924999952316,
+      "frames": 464,
+      "fps": 91.88255271204648,
+      "guestSeconds": 24.40625,
+      "guestSpeed": 4.832992569242207,
+      "compiledFunctions": 74,
+      "compilationUs": {
+        "aot_translation_us": 14314,
+        "aot_emission_us": 819,
+        "aot_installation_us": 5924
+      },
+      "errors": [],
+      "evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-table-asphalt-3-retry/instant-play-driving-sound-on.json",
+      "scene_review": "rejected: language menu, not gameplay",
+      "all_samples_phase_zero": true,
+      "all_instruction_totals_zero": true,
+      "sample_count": 11,
+      "route_steps": [
+        "(async()=>{await step(650000000);return shot('client')})()",
+        "(async()=>{await press(164,70000000);await press(165,5000000);await press(167,10000000);return shot('language')})()",
+        "(async()=>{await step(60000000);return shot('english')})()",
+        "(async()=>{await press(167,5000000);return await shot('prompt')})()",
+        "(async()=>{await press(164,5000000);return await shot('menu')})()",
+        "(async()=>{await press(167,30000000);return await shot('race')})()",
+        "(async()=>{await step(6000000);await page.evaluate(()=>Module._eka2l1_key_state(16,1));await go();const r=await measure('instant-play-driving-sound-on',5);await browser.close();return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+      ]
+    }
+  ],
+  "artifacts": {
+    "table-walk-build": {
+      "path": "/home/claude/.scratch/eka-startup-next-20261012/table-walk-build/eka2l1.wasm",
+      "wasm_sha256": "e0ef7ac071c5ad992f41c28f7e5358d5b9d4395d1b5d473e5cd43f0a1fbcd1d0"
+    },
+    "marks-build": {
+      "path": "/home/claude/.scratch/eka-startup-next-20261012/marks-build/eka2l1.wasm",
+      "wasm_sha256": "61022ae09506e1d2b5a685aa55eb234d4e3ed6bb442d6d2b769a97eab05603b8"
+    },
+    "cap-build": {
+      "path": "/home/claude/.scratch/eka-startup-next-20261012/cap-build/eka2l1.wasm",
+      "wasm_sha256": "6f415d3fc58fdea8f040a7dfa2b8f938f8cb6a4c2a68e76bfeb391a043268a45"
+    },
+    "reuse-build": {
+      "path": "/home/claude/.scratch/eka-startup-next-20261012/reuse-build/eka2l1.wasm",
+      "wasm_sha256": "261514ad39f8beb9e530bb132634d6ca7a668c31993146a598515f9fd216f3d2"
+    },
+    "admission-build": {
+      "path": "/home/claude/.scratch/eka-startup-next-20261012/admission-build/eka2l1.wasm",
+      "wasm_sha256": "c0103c19db43678dcbe2c53ff41fb70f2a15e6955a444833c01fd0e09d244cb5"
+    },
+    "admission-cap-build": {
+      "path": "/home/claude/.scratch/eka-startup-next-20261012/admission-cap-build/eka2l1.wasm",
+      "wasm_sha256": "0815c2806916f54e48e25de8c09ba83a71f1a78d9a9789e08eabda4aed77d157"
+    },
+    "mapping-cache-build": {
+      "path": "/home/claude/.scratch/eka-startup-next-20261012/mapping-cache-build/eka2l1.wasm",
+      "wasm_sha256": "0d6f27e55e3b99900b9556290ba9a4d3fbd9d7f2595d2f6d43b64c1bf7f2a038"
+    },
+    "mapping-cache4-build": {
+      "path": "/home/claude/.scratch/eka-startup-next-20261012/mapping-cache4-build/eka2l1.wasm",
+      "wasm_sha256": "9c0869a7915095d2d2fea2a59fc7dab1f2f57a9e98cd1a09f0c2a375541675fb"
+    },
+    "candidate-final-build": {
+      "path": "/home/claude/.scratch/eka-startup-next-20261012/candidate-final-build/eka2l1.wasm",
+      "wasm_sha256": "ac5f55ceadbfe63b27da7f4b94a445779aa86becaf0176a1154eed7a30594e7b"
+    },
+    "candidate-resolver-build": {
+      "path": "/home/claude/.scratch/eka-startup-next-20261012/candidate-resolver-build/eka2l1.wasm",
+      "wasm_sha256": "36c2a65ee44a0791384e4c9ac76148f87a33841c9eb6900a444f0d91b1c884d2"
+    }
+  },
+  "admission_diagnosis": {
+    "stride": 32749,
+    "missingSentinel": 999,
+    "columns": [
+      "entry_observation_count",
+      "total_count_map_size",
+      "compiled_hot_rom_regions"
+    ],
+    "entries": {
+      "808657e3": {
+        "samples": 204,
+        "counts": {
+          "999": 204
+        },
+        "first": [
+          999,
+          65536,
+          2480
+        ],
+        "last": [
+          999,
+          65608,
+          3370
+        ]
+      },
+      "80865a1f": {
+        "samples": 217,
+        "counts": {
+          "999": 217
+        },
+        "first": [
+          999,
+          65604,
+          3091
+        ],
+        "last": [
+          999,
+          65608,
+          3370
+        ]
+      },
+      "802fb6f1": {
+        "samples": 128,
+        "counts": {
+          "999": 128
+        },
+        "first": [
+          999,
+          65608,
+          3376
+        ],
+        "last": [
+          999,
+          65608,
+          3433
+        ]
+      },
+      "802fc485": {
+        "samples": 96,
+        "counts": {
+          "999": 96
+        },
+        "first": [
+          999,
+          65608,
+          3376
+        ],
+        "last": [
+          999,
+          65608,
+          3433
+        ]
+      }
+    }
+  },
+  "fallback_dispatch_diagnosis": {
+    "diagnosticOnly": true,
+    "sampleStride": 1021,
+    "total": 118495,
+    "dispatchSamplesByRomImage": {
+      "other": 14428,
+      "EZLib.dll": 58931,
+      "hash.dll": 45136
+    },
+    "romImages": [
+      {
+        "name": "hash.dll",
+        "uid3": "0x10005e11",
+        "base": "0x802fa628",
+        "size": 12292
+      },
+      {
+        "name": "EZLib.dll",
+        "uid3": "0x10005706",
+        "base": "0x80861e18",
+        "size": 32000
+      }
+    ],
+    "mappingEvidence": "ROM image headers checked for code ranges; ROM directory records identify both names. Not CPU-time attribution."
+  },
+  "prior_round_controls": [
+    {
+      "label": "sparse-clear-hooked-on",
+      "source": "STARTUP_BOOKKEEPING_RESULTS.md",
+      "evidence": "/home/claude/.scratch/eka-startup-20261012/sparse-clear-hooked-on/report.json",
+      "installation_complete_seconds": 101.246789947
+    },
+    {
+      "label": "public-repeat-hooked-on",
+      "source": "STARTUP_BOOKKEEPING_RESULTS.md",
+      "evidence": "/home/claude/.scratch/eka-startup-20261012/public-repeat-hooked-on/report.json",
+      "installation_complete_seconds": 105.459345719
+    }
+  ],
+  "adopted_artifact": "admission-build",
+  "deployment": {
+    "url": "https://claude-laptop.lan:8188/",
+    "wasm_sha256": "c0103c19db43678dcbe2c53ff41fb70f2a15e6955a444833c01fd0e09d244cb5",
+    "public_startup_evidence": "/home/claude/.scratch/eka-startup-next-20261012/lan-hooked-on/report.json",
+    "public_gameplay_evidence": "/home/claude/.scratch/eka-startup-next-20261012/runtime-lan-snakes/opening-level-valid.json",
+    "stopped_preview_units": {
+      "eka-startup-admission-cap-preview.service": "inactive",
+      "eka-startup-admission-preview.service": "inactive",
+      "eka-startup-cap-preview.service": "inactive",
+      "eka-startup-final-preview.service": "inactive",
+      "eka-startup-mapping-cache-preview.service": "inactive",
+      "eka-startup-mapping-cache4-preview.service": "inactive",
+      "eka-startup-marks-preview.service": "inactive",
+      "eka-startup-next-preview.service": "inactive",
+      "eka-startup-resolver-preview.service": "inactive",
+      "eka-startup-reuse-preview.service": "inactive",
+      "eka-startup-trace-after-admission-preview.service": "inactive",
+      "eka-startup-trace-counts-preview.service": "inactive",
+      "eka-startup-trace-preview.service": "inactive"
+    }
+  },
+  "validation": {
+    "wasm_tests_passed": 188,
+    "native_ctest_targets_passed": 3,
+    "source_map_randomized_ranges": 10000,
+    "release_assertions_enabled": true,
+    "logs": [
+      "/home/claude/.scratch/eka-startup-next-20261012/test-adopted-final.log",
+      "/home/claude/.scratch/eka-startup-next-20261012/test-source-adopted-final.log",
+      "/home/claude/.scratch/eka-startup-next-20261012/test-native-adopted-final.log"
+    ],
+    "runtime_conclusion": "No consistent gameplay regression in the ten-game screen; short samples do not tightly bound small regressions or rare slow runs; all observations retained."
+  },
+  "startup_color_heuristic_correction": "Earlier nontrivial color counts included HTML overlays; fixed harness hides overlays only while capturing. Corrected paired Sky Force visible-startup reports and public Hooked On report are included; first-presentation and installer-exit signals are separate.",
+  "adopted_code_commits": [
+    "dc2797d19",
+    "7f6d456c4",
+    "edd9dbe88"
+  ],
+  "rejected_cache_patch": "/home/claude/.scratch/eka-startup-next-20261012/rejected-mapping-cache.patch"
+}

@@ -11,7 +11,8 @@ Measure a cold browser launch through this same UI with
 `node startup.mjs https://claude-laptop.lan:8188/ NEW_OUTPUT hooked-on 240`.
 The output includes first-presentation timing, N-Gage installation completion,
 logs and screenshots. Inspect the screenshots: a logo or client frame is not a
-playable game. See the [startup results](../benchmark/STARTUP_BOOKKEEPING_RESULTS.md).
+playable game. See the [startup results](../benchmark/STARTUP_BOOKKEEPING_RESULTS.md)
+and [compiler/admission follow-up](../benchmark/STARTUP_FOLLOWUP_RESULTS.md).
 
 Direct links use `?game=sky-force`, `?game=snakes`, `?game=k-rally`, `?game=asphalt-2`,
 `?game=hooked-on` or `?game=custom`.

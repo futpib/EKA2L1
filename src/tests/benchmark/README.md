@@ -57,6 +57,9 @@ and concurrent native compressed-buffer access.
 The [startup bookkeeping results](STARTUP_BOOKKEEPING_RESULTS.md) identify Hooked On's
 fresh N-Gage installation as the longest loading stage, profile invalidation and
 memory-view rebuilding, and check gameplay throughput after reducing that work.
+The [startup follow-up](STARTUP_FOLLOWUP_RESULTS.md) covers source-provenance
+copying, page-table walks and ROM candidate admission, including rejected
+mapping caches and options for shipping prepared images.
 
 - The native benchmark clock advances from executed instructions (one synthetic cycle per instruction, 484 MHz at the default clock), with at most 4,840 instructions per dispatch. This is a reproducible clock model, not a hardware cycle-accuracy claim.
 - When no guest thread is runnable, execution jumps to the next scheduled event. There is no real-time timer thread or host vsync pacing.
