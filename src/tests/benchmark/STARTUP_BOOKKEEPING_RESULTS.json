@@ -1,0 +1,451 @@
+{
+  "source_base": "2283f58b9",
+  "evidence_root": "/home/claude/.scratch/eka-startup-20261012",
+  "startup_metric": "navigation to successful N-Gage installer exit log batch; normal paced launch, fresh browser and guest filesystem",
+  "startup_screen": [
+    {
+      "game": "snakes",
+      "first_presentation_seconds": 8.36541000008583,
+      "installation_complete_seconds": null,
+      "evidence": "/home/claude/.scratch/eka-startup-20261012/baseline-snakes",
+      "errors": []
+    },
+    {
+      "game": "sky-force",
+      "first_presentation_seconds": 7.791375,
+      "installation_complete_seconds": null,
+      "evidence": "/home/claude/.scratch/eka-startup-20261012/baseline-sky-force",
+      "errors": []
+    },
+    {
+      "game": "k-rally",
+      "first_presentation_seconds": 9.219890000104904,
+      "installation_complete_seconds": null,
+      "evidence": "/home/claude/.scratch/eka-startup-20261012/baseline-k-rally",
+      "errors": []
+    },
+    {
+      "game": "asphalt-2",
+      "first_presentation_seconds": 8.034164999961853,
+      "installation_complete_seconds": null,
+      "evidence": "/home/claude/.scratch/eka-startup-20261012/baseline-asphalt-2",
+      "errors": []
+    },
+    {
+      "game": "hooked-on",
+      "first_presentation_seconds": 9.891764999866485,
+      "installation_complete_seconds": 135.29039,
+      "evidence": "/home/claude/.scratch/eka-startup-20261012/baseline-hooked-on",
+      "errors": []
+    },
+    {
+      "game": "asphalt-3",
+      "first_presentation_seconds": 9.908820000171662,
+      "installation_complete_seconds": 80.19539999999999,
+      "evidence": "/home/claude/.scratch/eka-startup-20261012/baseline-asphalt-3",
+      "errors": []
+    },
+    {
+      "game": "tetris",
+      "first_presentation_seconds": 9.88252999997139,
+      "installation_complete_seconds": 62.19393359,
+      "evidence": "/home/claude/.scratch/eka-startup-20261012/baseline-tetris",
+      "errors": []
+    },
+    {
+      "game": "super-miners",
+      "first_presentation_seconds": 8.123389999866486,
+      "installation_complete_seconds": null,
+      "evidence": "/home/claude/.scratch/eka-startup-20261012/baseline-super-miners",
+      "errors": []
+    },
+    {
+      "game": "explode-arena",
+      "first_presentation_seconds": 5.144594999790192,
+      "installation_complete_seconds": null,
+      "evidence": "/home/claude/.scratch/eka-startup-20261012/baseline-explode-arena",
+      "errors": []
+    },
+    {
+      "game": "pathway-to-glory",
+      "first_presentation_seconds": 5.866454999923706,
+      "installation_complete_seconds": null,
+      "evidence": "/home/claude/.scratch/eka-startup-20261012/baseline-pathway-to-glory",
+      "errors": []
+    }
+  ],
+  "startup_runs": [
+    {
+      "label": "baseline-hooked-on",
+      "url": "https://claude-laptop.lan:8188/",
+      "first_presentation_seconds": 9.891764999866485,
+      "installation_complete_seconds": 135.29039,
+      "renderer_cpu_seconds_after_first": null,
+      "busiest_renderer_thread_cpu_seconds": null,
+      "errors": [],
+      "report": "/home/claude/.scratch/eka-startup-20261012/baseline-hooked-on/report.json"
+    },
+    {
+      "label": "control-repeat-hooked-on",
+      "url": "https://claude-laptop.lan:8188/",
+      "first_presentation_seconds": 10.438875,
+      "installation_complete_seconds": 137.283616347,
+      "renderer_cpu_seconds_after_first": 150.08,
+      "busiest_renderer_thread_cpu_seconds": 114.362499727,
+      "errors": [],
+      "report": "/home/claude/.scratch/eka-startup-20261012/control-repeat-hooked-on/report.json"
+    },
+    {
+      "label": "page-index-hooked-on",
+      "url": "https://claude-laptop.lan:8189/",
+      "first_presentation_seconds": 9.725045000076294,
+      "installation_complete_seconds": 113.048156503,
+      "renderer_cpu_seconds_after_first": 123.75000000000001,
+      "busiest_renderer_thread_cpu_seconds": 91.095078976,
+      "errors": [],
+      "report": "/home/claude/.scratch/eka-startup-20261012/page-index-hooked-on/report.json"
+    },
+    {
+      "label": "sparse-clear-hooked-on",
+      "url": "https://claude-laptop.lan:8190/",
+      "first_presentation_seconds": 9.81466000008583,
+      "installation_complete_seconds": 101.246789947,
+      "renderer_cpu_seconds_after_first": 109.74,
+      "busiest_renderer_thread_cpu_seconds": 77.745083498,
+      "errors": [],
+      "report": "/home/claude/.scratch/eka-startup-20261012/sparse-clear-hooked-on/report.json"
+    },
+    {
+      "label": "public-repeat-hooked-on",
+      "url": "https://claude-laptop.lan:8188/",
+      "first_presentation_seconds": 9.71330999994278,
+      "installation_complete_seconds": 105.459345719,
+      "renderer_cpu_seconds_after_first": 114.29,
+      "busiest_renderer_thread_cpu_seconds": 80.521799357,
+      "errors": [],
+      "report": "/home/claude/.scratch/eka-startup-20261012/public-repeat-hooked-on/report.json"
+    }
+  ],
+  "gameplay_runs": [
+    {
+      "game": "asphalt-2",
+      "label": "golf-san-francisco-barrier",
+      "fps": 135.43085184383472,
+      "frames": 1360,
+      "seconds": 10.042025000095368,
+      "guestSeconds": 99.71,
+      "guestSpeed": 9.929272233344674,
+      "compiledFunctions": 109,
+      "compilationUs": {
+        "aot_translation_us": 39080,
+        "aot_emission_us": 1812,
+        "aot_installation_us": 3599
+      },
+      "errors": [],
+      "run": "runtime-candidate-asphalt-2",
+      "report": "/home/claude/.scratch/eka-startup-20261012/runtime-candidate-asphalt-2/golf-san-francisco-barrier.json"
+    },
+    {
+      "game": "hooked-on",
+      "label": "costa-rica-boat",
+      "fps": 285.08839224672164,
+      "frames": 1440,
+      "seconds": 5.05106500005722,
+      "guestSeconds": 45.74,
+      "guestSpeed": 9.05551601483684,
+      "compiledFunctions": 133,
+      "compilationUs": {
+        "aot_translation_us": 25621,
+        "aot_emission_us": 1663,
+        "aot_installation_us": 13373
+      },
+      "errors": [],
+      "run": "runtime-candidate-hooked-on",
+      "report": "/home/claude/.scratch/eka-startup-20261012/runtime-candidate-hooked-on/costa-rica-boat.json"
+    },
+    {
+      "game": "sky-force",
+      "label": "stage-1",
+      "fps": 319.6049245015029,
+      "frames": 642,
+      "seconds": 2.0087300000190735,
+      "guestSeconds": 20.040625,
+      "guestSpeed": 9.97676392537061,
+      "compiledFunctions": 29,
+      "compilationUs": {
+        "aot_translation_us": 2643,
+        "aot_emission_us": 309,
+        "aot_installation_us": 788
+      },
+      "errors": [],
+      "run": "runtime-candidate-repeat-sky-force",
+      "report": "/home/claude/.scratch/eka-startup-20261012/runtime-candidate-repeat-sky-force/stage-1.json"
+    },
+    {
+      "game": "snakes",
+      "label": "opening-level-valid",
+      "fps": 99.3724995073091,
+      "frames": 499,
+      "seconds": 5.021509999990463,
+      "guestSeconds": 23.57,
+      "guestSpeed": 4.6938072412570655,
+      "compiledFunctions": 85,
+      "compilationUs": {
+        "aot_translation_us": 6733,
+        "aot_emission_us": 752,
+        "aot_installation_us": 1831
+      },
+      "errors": [],
+      "run": "runtime-candidate-repeat-snakes",
+      "report": "/home/claude/.scratch/eka-startup-20261012/runtime-candidate-repeat-snakes/opening-level-valid.json"
+    },
+    {
+      "game": "sky-force",
+      "label": "stage-1",
+      "fps": 328.08268283206735,
+      "frames": 659,
+      "seconds": 2.0086399998664857,
+      "guestSeconds": 20.5725,
+      "guestSpeed": 10.242004541066322,
+      "compiledFunctions": 27,
+      "compilationUs": {
+        "aot_translation_us": 3043,
+        "aot_emission_us": 309,
+        "aot_installation_us": 678
+      },
+      "errors": [],
+      "run": "runtime-candidate-repeat2-sky-force",
+      "report": "/home/claude/.scratch/eka-startup-20261012/runtime-candidate-repeat2-sky-force/stage-1.json"
+    },
+    {
+      "game": "snakes",
+      "label": "opening-level-valid",
+      "fps": 99.12410517351977,
+      "frames": 498,
+      "seconds": 5.024004999876023,
+      "guestSeconds": 23.46,
+      "guestSpeed": 4.6695813401019555,
+      "compiledFunctions": 95,
+      "compilationUs": {
+        "aot_translation_us": 9337,
+        "aot_emission_us": 892,
+        "aot_installation_us": 2297
+      },
+      "errors": [],
+      "run": "runtime-candidate-repeat2-snakes",
+      "report": "/home/claude/.scratch/eka-startup-20261012/runtime-candidate-repeat2-snakes/opening-level-valid.json"
+    },
+    {
+      "game": "sky-force",
+      "label": "stage-1",
+      "fps": 272.3649192263975,
+      "frames": 547,
+      "seconds": 2.0083349997997284,
+      "guestSeconds": 17.11,
+      "guestSpeed": 8.519495005418026,
+      "compiledFunctions": 28,
+      "compilationUs": {
+        "aot_translation_us": 3323,
+        "aot_emission_us": 350,
+        "aot_installation_us": 844
+      },
+      "errors": [],
+      "run": "runtime-candidate-sky-force",
+      "report": "/home/claude/.scratch/eka-startup-20261012/runtime-candidate-sky-force/stage-1.json"
+    },
+    {
+      "game": "snakes",
+      "label": "opening-level-valid",
+      "fps": 72.20087357281744,
+      "frames": 363,
+      "seconds": 5.027639999866485,
+      "guestSeconds": 21.12,
+      "guestSpeed": 4.200778098782106,
+      "compiledFunctions": 85,
+      "compilationUs": {
+        "aot_translation_us": 11453,
+        "aot_emission_us": 1214,
+        "aot_installation_us": 2528
+      },
+      "errors": [],
+      "run": "runtime-candidate-snakes",
+      "report": "/home/claude/.scratch/eka-startup-20261012/runtime-candidate-snakes/opening-level-valid.json"
+    },
+    {
+      "game": "asphalt-2",
+      "label": "golf-san-francisco-barrier",
+      "fps": 104.56743803985802,
+      "frames": 1051,
+      "seconds": 10.05092999982834,
+      "guestSeconds": 87.953125,
+      "guestSpeed": 8.750744956088855,
+      "compiledFunctions": 94,
+      "compilationUs": {
+        "aot_translation_us": 52464,
+        "aot_emission_us": 1952,
+        "aot_installation_us": 3278
+      },
+      "errors": [],
+      "run": "runtime-control-asphalt-2",
+      "report": "/home/claude/.scratch/eka-startup-20261012/runtime-control-asphalt-2/golf-san-francisco-barrier.json"
+    },
+    {
+      "game": "hooked-on",
+      "label": "costa-rica-boat",
+      "fps": 256.7589771696481,
+      "frames": 1297,
+      "seconds": 5.051429999828339,
+      "guestSeconds": 41.468,
+      "guestSpeed": 8.209160574611387,
+      "compiledFunctions": 119,
+      "compilationUs": {
+        "aot_translation_us": 23448,
+        "aot_emission_us": 1402,
+        "aot_installation_us": 11545
+      },
+      "errors": [],
+      "run": "runtime-control-hooked-on",
+      "report": "/home/claude/.scratch/eka-startup-20261012/runtime-control-hooked-on/costa-rica-boat.json"
+    },
+    {
+      "game": "sky-force",
+      "label": "stage-1",
+      "fps": 321.4256348247942,
+      "frames": 645,
+      "seconds": 2.0066849999427796,
+      "guestSeconds": 20.14125,
+      "guestSpeed": 10.03707607351145,
+      "compiledFunctions": 31,
+      "compilationUs": {
+        "aot_translation_us": 2538,
+        "aot_emission_us": 299,
+        "aot_installation_us": 950
+      },
+      "errors": [],
+      "run": "runtime-control-repeat-sky-force",
+      "report": "/home/claude/.scratch/eka-startup-20261012/runtime-control-repeat-sky-force/stage-1.json"
+    },
+    {
+      "game": "snakes",
+      "label": "opening-level-valid",
+      "fps": 99.96395721500548,
+      "frames": 502,
+      "seconds": 5.0218100001811985,
+      "guestSeconds": 23.59,
+      "guestSpeed": 4.69750946354976,
+      "compiledFunctions": 86,
+      "compilationUs": {
+        "aot_translation_us": 8512,
+        "aot_emission_us": 837,
+        "aot_installation_us": 1822
+      },
+      "errors": [],
+      "run": "runtime-control-repeat-snakes",
+      "report": "/home/claude/.scratch/eka-startup-20261012/runtime-control-repeat-snakes/opening-level-valid.json"
+    },
+    {
+      "game": "sky-force",
+      "label": "stage-1",
+      "fps": 220.51869181092624,
+      "frames": 443,
+      "seconds": 2.0089000000953674,
+      "guestSeconds": 13.89,
+      "guestSpeed": 6.914231668744391,
+      "compiledFunctions": 31,
+      "compilationUs": {
+        "aot_translation_us": 4116,
+        "aot_emission_us": 440,
+        "aot_installation_us": 1065
+      },
+      "errors": [],
+      "run": "runtime-control-repeat2-sky-force",
+      "report": "/home/claude/.scratch/eka-startup-20261012/runtime-control-repeat2-sky-force/stage-1.json"
+    },
+    {
+      "game": "snakes",
+      "label": "opening-level-valid",
+      "fps": 97.98591154026047,
+      "frames": 492,
+      "seconds": 5.021129999876022,
+      "guestSeconds": 23.46,
+      "guestSpeed": 4.672255050273396,
+      "compiledFunctions": 90,
+      "compilationUs": {
+        "aot_translation_us": 9048,
+        "aot_emission_us": 818,
+        "aot_installation_us": 1784
+      },
+      "errors": [],
+      "run": "runtime-control-repeat2-snakes",
+      "report": "/home/claude/.scratch/eka-startup-20261012/runtime-control-repeat2-snakes/opening-level-valid.json"
+    },
+    {
+      "game": "sky-force",
+      "label": "stage-1",
+      "fps": 295.8211527022498,
+      "frames": 594,
+      "seconds": 2.0079700000286103,
+      "guestSeconds": 18.55,
+      "guestSpeed": 9.238185829337935,
+      "compiledFunctions": 31,
+      "compilationUs": {
+        "aot_translation_us": 3117,
+        "aot_emission_us": 334,
+        "aot_installation_us": 803
+      },
+      "errors": [],
+      "run": "runtime-control-sky-force",
+      "report": "/home/claude/.scratch/eka-startup-20261012/runtime-control-sky-force/stage-1.json"
+    },
+    {
+      "game": "snakes",
+      "label": "opening-level-valid",
+      "fps": 97.40570171925468,
+      "frames": 489,
+      "seconds": 5.020240000009537,
+      "guestSeconds": 23.08625,
+      "guestSpeed": 4.598634726617879,
+      "compiledFunctions": 100,
+      "compilationUs": {
+        "aot_translation_us": 10907,
+        "aot_emission_us": 817,
+        "aot_installation_us": 1929
+      },
+      "errors": [],
+      "run": "runtime-control-snakes",
+      "report": "/home/claude/.scratch/eka-startup-20261012/runtime-control-snakes/opening-level-valid.json"
+    },
+    {
+      "game": "snakes",
+      "label": "opening-level-valid",
+      "fps": 85.37840145264974,
+      "frames": 429,
+      "seconds": 5.0246900000572206,
+      "guestSeconds": 22.2,
+      "guestSpeed": 4.418183012235021,
+      "compiledFunctions": 95,
+      "compilationUs": {
+        "aot_translation_us": 10022,
+        "aot_emission_us": 1064,
+        "aot_installation_us": 2401
+      },
+      "errors": [],
+      "run": "runtime-page-index-snakes",
+      "report": "/home/claude/.scratch/eka-startup-20261012/runtime-page-index-snakes/opening-level-valid.json"
+    }
+  ],
+  "builds": {
+    "page-index-build": {
+      "path": "/home/claude/.scratch/eka-startup-20261012/page-index-build/eka2l1.wasm",
+      "wasm_sha256": "2c61077c21358203052971d770fed5e4c2b1def514d07c1a08b14e29afdfa208"
+    },
+    "sparse-clear-build": {
+      "path": "/home/claude/.scratch/eka-startup-20261012/sparse-clear-build/eka2l1.wasm",
+      "wasm_sha256": "b61ef34a52f800493da8a9d952c8f6ed65bd27e6f38b2a7f093c34c43f1fd7a7"
+    },
+    "control": {
+      "path": "/home/claude/.scratch/eka-asphalt3-fix-20261012/served-build",
+      "wasm_sha256": "ad02135c672a175de7fb48e17b10df17cfdfc70385278002996599b31ff13284"
+    }
+  }
+}

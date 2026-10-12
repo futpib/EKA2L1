@@ -314,7 +314,7 @@ static void compile_at(core &cpu, std::uint32_t key, std::vector<std::uint32_t> 
                 entry.live = false;
                 return;
             }
-            validated_code_cache::add_dependency(entry, dependency.address, leaf.bytes, dependency.bytes);
+            ram_cache.add_dependency(entry, dependency.address, leaf.bytes, dependency.bytes);
         }
         tr.func.export_name = "r_" + std::to_string(entry.version) + "_pc_" + std::to_string(pc);
         if (successors) {

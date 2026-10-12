@@ -9,6 +9,7 @@
 #include <array>
 #include <algorithm>
 #include <deque>
+#include <map>
 #include <unordered_map>
 
 namespace eka2l1::arm::aot {
@@ -143,15 +144,17 @@ namespace eka2l1::arm::aot {
             auto &entry = versions_.back();
             entry.guard_begin = reinterpret_cast<std::uintptr_t>(view.bytes);
             entry.guard_end = entry.guard_begin + size;
+            index_span(entry.version, pc_mode & ~1u, size);
             return entry;
         }
 
-        static void add_dependency(block &entry, std::uint32_t address,
+        void add_dependency(block &entry, std::uint32_t address,
             const std::uint8_t *backing, const std::vector<std::uint8_t> &bytes) {
             entry.dependencies.push_back({address, backing, bytes});
             const auto begin = reinterpret_cast<std::uintptr_t>(backing);
             entry.guard_begin = std::min(entry.guard_begin, begin);
             entry.guard_end = std::max(entry.guard_end, begin + bytes.size());
+            index_span(entry.version, address, bytes.size());
         }
 
         static bool diagnostic_code_overlap(const block &entry, std::uintptr_t host, std::size_t size) {
@@ -173,18 +176,26 @@ namespace eka2l1::arm::aot {
         }
 
         void invalidate(std::uint32_t address, std::size_t size) {
-            const std::uint64_t end = std::uint64_t(address) + size;
-            for (auto it = current_.begin(); it != current_.end();) {
-                auto &entry = versions_[it->second];
-                const auto start = static_cast<std::uint32_t>(entry.key) & ~1u;
-                const bool dependency_hit = std::any_of(entry.dependencies.begin(), entry.dependencies.end(),
-                    [&](const auto &d) { return d.address < end && std::uint64_t(d.address) + d.code.size() > address; });
-                if (dependency_hit || (start < end && std::uint64_t(start) + entry.code.size() > address)) {
-                    forget_dispatch(entry.key);
-                    entry.live = false;
-                    it = current_.erase(it);
-                    ++invalidations;
-                } else ++it;
+            if (!size) return;
+            const auto end = std::uint64_t(address) + std::min<std::uint64_t>(size, 0x100000000ull - address);
+            // Data-page unmaps must not walk every translated region. The index
+            // overapproximates by page; retain exact primary/dependency overlap
+            // checks and invalidate every address space, as before.
+            for (auto page = invalidation_pages_.lower_bound(address >> 12);
+                    page != invalidation_pages_.end() && (std::uint64_t(page->first) << 12) < end; ++page) {
+                for (auto version : page->second) {
+                    auto &entry = versions_[version];
+                    if (!entry.live) continue;
+                    const auto start = static_cast<std::uint32_t>(entry.key) & ~1u;
+                    const bool dependency_hit = std::any_of(entry.dependencies.begin(), entry.dependencies.end(),
+                        [&](const auto &d) { return d.address < end && std::uint64_t(d.address) + d.code.size() > address; });
+                    if (dependency_hit || (start < end && std::uint64_t(start) + entry.code.size() > address)) {
+                        forget_dispatch(entry.key);
+                        entry.live = false;
+                        current_.erase(entry.key);
+                        ++invalidations;
+                    }
+                }
             }
         }
 
@@ -192,6 +203,15 @@ namespace eka2l1::arm::aot {
         std::uint64_t invalidations = 0;
 
     private:
+        void index_span(std::uint32_t version, std::uint32_t address, std::size_t size) {
+            if (!size) return;
+            const auto end = std::uint64_t(address) + std::min<std::uint64_t>(size, 0x100000000ull - address);
+            for (auto page = std::uint64_t(address) >> 12; page <= ((end - 1) >> 12); ++page) {
+                auto &versions = invalidation_pages_[static_cast<std::uint32_t>(page)];
+                if (versions.empty() || versions.back() != version) versions.push_back(version);
+            }
+        }
+
         template <typename Snapshot>
         static bool snapshot_equal(const Snapshot &snapshot) {
             return equal_code_bytes(snapshot.backing, snapshot.code.data(), snapshot.code.size());
@@ -223,5 +243,8 @@ namespace eka2l1::arm::aot {
         // budgeted separately from preparation of loaded images.
         std::deque<block> versions_;
         std::unordered_map<std::uint64_t, std::uint32_t> current_;
+        // Like versions_, old index entries survive until reset. Dead versions
+        // are ignored and cannot invalidate or attach to their replacements.
+        std::map<std::uint32_t, std::vector<std::uint32_t>> invalidation_pages_;
     };
 }

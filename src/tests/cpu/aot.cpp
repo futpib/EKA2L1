@@ -1168,7 +1168,7 @@ TEST_CASE("Inlined code dependencies validate every mapping and exact byte", "[a
     };
     auto insert=[&]() {
         auto &b=cache.insert(0x1000,{1,caller.data(),16},8);
-        aot::validated_code_cache::add_dependency(b,0x2000,leaf_backing,{leaf_backing,leaf_backing+dependency_size});
+        cache.add_dependency(b,0x2000,leaf_backing,{leaf_backing,leaf_backing+dependency_size});
         return b.version;
     };
     insert();REQUIRE(cache.find(0x1000,*cpu));REQUIRE(cache.find(0x1000,*cpu));
@@ -1339,6 +1339,51 @@ TEST_CASE("TLB indexing preserves invalidation and permissions", "[aot][cpu][mem
     CHECK(cache.lookup(second)==nullptr);
 }
 
+TEST_CASE("Code invalidation preserves exact spans across pages and address spaces", "[aot][cpu]") {
+    using namespace eka2l1::arm;
+    using namespace eka2l1::arm::aot;
+    validated_code_cache cache;
+    std::array<std::uint8_t, 32> bytes{};
+    auto insert = [&](std::uint32_t space, std::uint32_t pc, std::size_t size) -> validated_code_cache::block & {
+        return cache.insert(pc, {space, bytes.data(), bytes.size()}, size);
+    };
+    auto &first = insert(1, 0x1fff, 4);
+    auto &other_space = insert(2, 0x1fff, 4);
+    auto &neighbour = insert(1, 0x2002, 4);
+    cache.invalidate(0x2000, 0);
+    cache.invalidate(0x1000, 1);
+    CHECK(first.live); CHECK(other_space.live); CHECK(neighbour.live);
+    cache.invalidate(0x2001, 1);
+    CHECK_FALSE(first.live); CHECK_FALSE(other_space.live); CHECK(neighbour.live);
+    CHECK(cache.invalidations == 2);
+
+    auto &old = insert(1, 0x4001, 8);
+    cache.add_dependency(old, 0x5ffe, bytes.data(), {bytes.begin(), bytes.begin() + 4});
+    auto &replacement = insert(1, 0x4001, 8);
+    cache.add_dependency(replacement, 0x7ffe, bytes.data(), {bytes.begin(), bytes.begin() + 4});
+    cache.add_dependency(replacement, 0x8000, bytes.data(), {bytes.begin(), bytes.begin() + 8});
+    cache.invalidate(0x6000, 1);
+    CHECK_FALSE(old.live); CHECK(replacement.live);
+    // Crossing primary and dependency pages must count each version once.
+    cache.invalidate(0x4000, 0x4008);
+    CHECK_FALSE(replacement.live); CHECK(cache.invalidations == 3);
+    cache.attach(old.version, +[](ARMul_State *) -> std::uint32_t { return 1; });
+    CHECK(old.function == nullptr);
+
+    auto &high = insert(1, 0xfffffff1, 16);
+    auto &low = insert(1, 0x1001, 4);
+    validated_code_cache moved = std::move(cache);
+    moved.invalidate(0xffffffff, 16);
+    CHECK_FALSE(high.live); CHECK(low.live); CHECK(neighbour.live);
+    CHECK(moved.invalidations == 4);
+    moved.invalidate(0, 0xffffffffu);
+    CHECK_FALSE(low.live); CHECK_FALSE(neighbour.live);
+    CHECK(moved.invalidations == 6);
+    moved = {};
+    moved.invalidate(0, 0xffffffffu);
+    CHECK(moved.invalidations == 0);
+}
+
 TEST_CASE("Diagnostic code guard overlap excludes interval gaps", "[aot][cpu][diagnostic]") {
     using namespace eka2l1::arm;
     using namespace eka2l1::arm::aot;
@@ -1346,7 +1391,7 @@ TEST_CASE("Diagnostic code guard overlap excludes interval gaps", "[aot][cpu][di
     validated_code_cache cache;
     core::code_mapping view{1,bytes.data(),bytes.size()};
     auto &entry=cache.insert(0x1000,view,8);
-    validated_code_cache::add_dependency(entry,0x2000,bytes.data()+64,{bytes.begin()+64,bytes.begin()+72});
+    cache.add_dependency(entry,0x2000,bytes.data()+64,{bytes.begin()+64,bytes.begin()+72});
     const auto base=reinterpret_cast<std::uintptr_t>(bytes.data());
     CHECK(entry.guard_begin==base);CHECK(entry.guard_end==base+72);
     for(unsigned offset:{0u,4u,7u,63u,64u,68u,71u})CHECK(validated_code_cache::diagnostic_code_overlap(entry,base+offset,4));

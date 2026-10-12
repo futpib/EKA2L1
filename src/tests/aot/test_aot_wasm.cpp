@@ -3265,7 +3265,7 @@ static bool test_code_cache_lifecycle() {
         validated_code_cache cache;
         auto install = [&]() -> validated_code_cache::block & {
             auto &entry = cache.insert(0x1000, {1, primary_backing, extent}, snapshot_size);
-            validated_code_cache::add_dependency(entry, 0x2000, leaf_backing,
+            cache.add_dependency(entry, 0x2000, leaf_backing,
                 {leaf_backing, leaf_backing + snapshot_size});
             return entry;
         };
@@ -4716,7 +4716,7 @@ static bool test_boundary_details() {
         r12l1::tlb tlb(12);
         for(unsigned page:{0x1000u,0x2000u,0x3000u})tlb.add(page,memory.data.data()+page,3);
         validated_code_cache cache;core::code_mapping view{1,memory.data.data()+0x1000,8};auto &entry=cache.insert(0x1000,view,8);
-        validated_code_cache::add_dependency(entry,0x2000,memory.data.data()+0x2000,{memory.data.begin()+0x2000,memory.data.begin()+0x2004});
+        cache.add_dependency(entry,0x2000,memory.data.data()+0x2000,{memory.data.begin()+0x2000,memory.data.begin()+0x2004});
         alignas(8) unsigned state[256]{};state[0]=0xe1a00000;state[1]=address;state[15]=0x1000;
         state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=16;state[state_offsets::NIRQ/4]=1;
         state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
@@ -4745,7 +4745,7 @@ static bool test_boundary_details() {
         r12l1::tlb tlb(12);
         for(unsigned page:{0x1000u,0x2000u,0x3000u})tlb.add(page,memory.data.data()+page,permission);
         validated_code_cache cache;core::code_mapping view{1,memory.data.data()+0x1000,sizeof(code)};auto &entry=cache.insert(0x1000,view,sizeof(code));
-        validated_code_cache::add_dependency(entry,0x2000,memory.data.data()+0x2000,{memory.data.begin()+0x2000,memory.data.begin()+0x2004});
+        cache.add_dependency(entry,0x2000,memory.data.data()+0x2000,{memory.data.begin()+0x2000,memory.data.begin()+0x2004});
         alignas(8) unsigned state[256]{};state[0]=0xe1a00000;state[1]=address;state[15]=0x1000;
         state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=16;state[state_offsets::NIRQ/4]=1;
         state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
@@ -5287,7 +5287,7 @@ static bool test_frozen_code_cache() {
             case 0: case 1: case 2:
                 for (auto *cache : {&normal, &frozen, &dispatch}) {
                     auto &entry = cache->insert(0x1001, {cpu->code_address_space, backing, 64}, 16);
-                    validated_code_cache::add_dependency(entry, 0x2000, leaf, {leaf, leaf + 16});
+                    cache->add_dependency(entry, 0x2000, leaf, {leaf, leaf + 16});
                     cache->attach(entry.version, publication_test_function);
                 }
                 break;
@@ -5476,7 +5476,7 @@ static bool test_unsafe_code_diagnostic() {
         bool mapped=true;auto *backing=primary.data();auto *dep=leaf.data();unsigned extent=32;
         cpu->resolve_code=[&](unsigned pc,core::code_mapping &view){view={1,pc==0x1000?backing:dep,extent};return mapped;};
         validated_code_cache cache;
-        auto install=[&](){auto &entry=cache.insert(0x1000,{1,backing,extent},16);validated_code_cache::add_dependency(entry,0x2000,dep,{dep,dep+16});};
+        auto install=[&](){auto &entry=cache.insert(0x1000,{1,backing,extent},16);cache.add_dependency(entry,0x2000,dep,{dep,dep+16});};
         install();if(!cache.find(0x1000,*cpu))return false;
         (dependency?leaf:primary)[4]^=1;
         if(bool(cache.find(0x1000,*cpu))!=bool(mode&1))return false;
@@ -5713,7 +5713,8 @@ static bool test_direct_memory_translation() {
         const range direct{0x8000,4096,static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(memory.data.data()+0x8000)),3};
         memory.write32(0x8000,0x11223344);memory.write32(0x9000,0x55667788);
         const std::uint16_t code[]={0x6808,0x782a,0x680b};
-        auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),0x1000,nullptr,nullptr,true,true,true);
+        // Exercise callbacks; RAM store continuation deliberately defers misses.
+        auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true);
         const auto module=build_wasm_module({tr.func},imports);
         alignas(8)std::uint32_t state[256]{};state[1]=0x8000;state[5]=0xc000;state[15]=0x1000;
         state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=48;state[state_offsets::TFLAG/4]=1;
@@ -6792,6 +6793,8 @@ int main(int argc, char **argv) {
     if (test_registry_lookup_lifecycle()) passed++; else failed++;
     printf("TEST test_arm_short_block_memory\n"); watchdog::request=0;
     if (test_arm_short_block_memory()) passed++; else failed++;
+    printf("TEST test_memory_implementations\n"); watchdog::request=0;
+    if (test_memory_implementations()) passed++; else failed++;
     printf("TEST test_bounded_execution\n"); watchdog::request=0;
     if (test_bounded_execution()) passed++; else failed++;
     printf("TEST test_tlb_guards\n"); watchdog::request=0;

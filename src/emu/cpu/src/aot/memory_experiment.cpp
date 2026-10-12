@@ -8,8 +8,11 @@ namespace eka2l1::arm::aot::memory_experiment {
         if (active_) throw std::runtime_error("Nested experimental memory entry");
         const bool rebuilt=generation_ != generation || space_ != space;
         if (rebuilt) {
+            // Only pages published by the previous view can contain a mapping.
+            // Avoid clearing the entire 8 MiB table on every process switch.
+            if (pages_.empty()) pages_.resize(1<<20);
+            else for (auto b:bindings_) pages_[b.guest>>12]={};
             bindings_ = resolve();
-            pages_.assign(1<<20,{});
             for(auto b:bindings_) pages_[b.guest>>12]={b.permissions&prot_read?b.host:0,b.permissions&prot_write?b.host:0};
             // External mappings/remaps inside the arena invalidate the affine
             // shortcut. The canonical page table still handles those pages.
