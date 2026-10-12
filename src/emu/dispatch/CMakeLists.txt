@@ -50,6 +50,8 @@ add_library(epocdispatch
         include/dispatch/libraries/gles2/register.h
         include/dispatch/libraries/featmgr/functions.h
         include/dispatch/libraries/featmgr/register.h
+        include/dispatch/libraries/securitymanager/functions.h
+        include/dispatch/libraries/securitymanager/register.h
         include/dispatch/libraries/sysutils/functions.h
         include/dispatch/libraries/sysutils/register.h
         include/dispatch/libraries/buffer_pusher.h
@@ -73,6 +75,7 @@ add_library(epocdispatch
         src/libraries/gles1/shaderman.cpp
         src/libraries/gles2/gles2.cpp
         src/libraries/featmgr/functions.cpp
+        src/libraries/securitymanager/functions.cpp
         src/libraries/sysutils/functions.cpp
         src/libraries/buffer_pusher.cpp
         src/libraries/register.cpp

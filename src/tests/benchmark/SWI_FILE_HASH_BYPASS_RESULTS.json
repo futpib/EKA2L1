@@ -1,0 +1,1199 @@
+{
+  "source_base": "7b09cc8bf",
+  "branch": "wasm-port",
+  "date": "2026-10-12",
+  "change": "HLE patch securitymanager.dll ordinal 6: VerifyFileHashL returns true",
+  "semantics": "Skip installed-file content verification; do not stub hash.dll or certificate verification",
+  "artifacts": {
+    "baseline": {
+      "eka2l1.js": "f4484572fc7e47995105c66937caad36936e5586dbae24c491ad804a697794f6",
+      "eka2l1.html": "ff40407c736e739178c97eb002fef0f7bbd047a7ada73d11ca57fc55d80931a5",
+      "eka2l1.data": "8b7dd0983892bd09e5a12b06788a7a4073a8431d87890ffd2c8519dc1bbaadba",
+      "eka2l1.wasm": "7f827a1c1810c629329dc32fd587fd85efe10f181e99a229a36be2b150564257"
+    },
+    "candidate": {
+      "eka2l1.js": "12127b7167da326cf565085a0f640c08ca41a7836f6f93e6930029688260c13e",
+      "eka2l1.html": "ff40407c736e739178c97eb002fef0f7bbd047a7ada73d11ca57fc55d80931a5",
+      "eka2l1.data": "8b7dd0983892bd09e5a12b06788a7a4073a8431d87890ffd2c8519dc1bbaadba",
+      "eka2l1.wasm": "e715734a51b115f529727070a56147124b7544ac1f2ef1245aa98eb1e8ccfa67"
+    }
+  },
+  "raw_root": "/home/claude/.scratch/eka-swi-hash-bypass-20261012",
+  "caller_proof_root": "/home/claude/.scratch/eka-hash-caller-research-20261012",
+  "startup_runs": [
+    {
+      "evidence_dir": "/home/claude/.scratch/eka-swi-hash-bypass-20261012/baseline-hooked-a",
+      "variant": "baseline",
+      "started": "2026-10-12T22:14:40.418Z",
+      "installation_seconds": 60.008409142,
+      "errors": [],
+      "policy": {
+        "requested": {
+          "watchdogUs": 2000,
+          "unsafeCode": 3,
+          "memoryImpl": 2
+        },
+        "applied": true,
+        "observed": {
+          "unsafeCode": 3,
+          "memoryImpl": 2
+        }
+      },
+      "assets": {
+        "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+        "/preload/games/k-rally": "/preload/games/k-rally?v=e93abd790e7c5b05427e5e141f34532b329982e89f1a0112c856b59eb03db9e4",
+        "/preload/games/asphalt-2": "/preload/games/asphalt-2?v=d55bb082f53deb40b3b4d9f7440b7eb7b7087a648eabc8c8c9cdf1b8aa756b40",
+        "/preload/games/hooked-on": "/preload/games/hooked-on?v=ce8eeb53432f735ac2b2343290fb31ce37646f6231edc35610c0b07596d043f6",
+        "/preload/games/asphalt-3": "/preload/games/asphalt-3?v=53e38bf8770d9b98e49b263ee4d376cb6c49aea8ef646da8ae8e00a41cde9b6e",
+        "/preload/games/tetris": "/preload/games/tetris?v=71a6218eb6e6ace77fb2b85e850d5ac7f18fb1f7eaaa2c89df7b54412a8ba052",
+        "/preload/games/super-miners": "/preload/games/super-miners?v=3c48a19cbc061e40778a05b03002768d9014481c7ac290a69b12cf004bdc8e7c",
+        "/preload/games/explode-arena": "/preload/games/explode-arena?v=2d47263342b3adc72fa9d8c1206bcb00c487adde40e282e6b29c6c813ffa8587",
+        "/preload/games/pathway-to-glory": "/preload/games/pathway-to-glory?v=a67248caad9d78dee3dbe5f63ada1236eb068caea6b4341c3caf772c5b48947d",
+        "/preload/games/hooked-on/ngage": "/preload/games/hooked-on/ngage?v=a52da7a5d3d9f7ebd3eb81e49e3294d8998060f7cc2539fe955b8bfe14e1745c",
+        "/preload/games/hooked-on/runtime": "/preload/games/hooked-on/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+        "/preload/games/asphalt-3/ngage": "/preload/games/asphalt-3/ngage?v=afe7964b0968acc8c45908ac6abd48b25e1b171dd1abea1d07a098209c250093",
+        "/preload/games/asphalt-3/runtime": "/preload/games/asphalt-3/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+        "/preload/games/tetris/ngage": "/preload/games/tetris/ngage?v=37222257e26cfc1b1bbc1f0dbb684b04fd569e3638c2fbb58f44fe7fe7446569",
+        "/preload/games/tetris/runtime": "/preload/games/tetris/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+        "/preload/games/explode-arena/rom": "/preload/games/explode-arena/rom?v=cb062dc84820b728a60b525115049b250e3f4912638a777d49edef79972c4e0e",
+        "/preload/games/explode-arena/rpkg": "/preload/games/explode-arena/rpkg?v=c40beb14d3ca4a530b7d59133b52ed28b650d1a12dd07a982df14a22d6ee1aa4",
+        "/preload/games/pathway-to-glory/rom": "/preload/games/pathway-to-glory/rom?v=582a049f9e573c0245441ddb01bb5b3db76ede7677ec05cafc16f314a02ef6ef",
+        "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+        "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+        "/eka2l1.data": "/eka2l1.data?v=8b7dd0983892bd09e5a12b06788a7a4073a8431d87890ffd2c8519dc1bbaadba",
+        "/eka2l1.js": "/eka2l1.js?v=f4484572fc7e47995105c66937caad36936e5586dbae24c491ad804a697794f6",
+        "/eka2l1.wasm": "/eka2l1.wasm?v=7f827a1c1810c629329dc32fd587fd85efe10f181e99a229a36be2b150564257",
+        "/touch-controls.css": "/touch-controls.css?v=b27bf7a794232427da4c47351f4f77d4765a95e2c767141dff027e269166bb98",
+        "/touch-controls.js": "/touch-controls.js?v=1b9f560af28e4d5bcaf0aa2695ac5435d7a411d1d7a89dea3b011b6de75aecac"
+      },
+      "browser": "Chrome/153.0.8010.52"
+    },
+    {
+      "evidence_dir": "/home/claude/.scratch/eka-swi-hash-bypass-20261012/candidate-hooked-a",
+      "variant": "candidate",
+      "started": "2026-10-12T22:17:09.219Z",
+      "installation_seconds": 50.960333679,
+      "errors": [],
+      "policy": {
+        "requested": {
+          "watchdogUs": 2000,
+          "unsafeCode": 3,
+          "memoryImpl": 2
+        },
+        "applied": true,
+        "observed": {
+          "unsafeCode": 3,
+          "memoryImpl": 2
+        }
+      },
+      "assets": {
+        "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+        "/preload/games/k-rally": "/preload/games/k-rally?v=e93abd790e7c5b05427e5e141f34532b329982e89f1a0112c856b59eb03db9e4",
+        "/preload/games/asphalt-2": "/preload/games/asphalt-2?v=d55bb082f53deb40b3b4d9f7440b7eb7b7087a648eabc8c8c9cdf1b8aa756b40",
+        "/preload/games/hooked-on": "/preload/games/hooked-on?v=ce8eeb53432f735ac2b2343290fb31ce37646f6231edc35610c0b07596d043f6",
+        "/preload/games/asphalt-3": "/preload/games/asphalt-3?v=53e38bf8770d9b98e49b263ee4d376cb6c49aea8ef646da8ae8e00a41cde9b6e",
+        "/preload/games/tetris": "/preload/games/tetris?v=71a6218eb6e6ace77fb2b85e850d5ac7f18fb1f7eaaa2c89df7b54412a8ba052",
+        "/preload/games/super-miners": "/preload/games/super-miners?v=3c48a19cbc061e40778a05b03002768d9014481c7ac290a69b12cf004bdc8e7c",
+        "/preload/games/explode-arena": "/preload/games/explode-arena?v=2d47263342b3adc72fa9d8c1206bcb00c487adde40e282e6b29c6c813ffa8587",
+        "/preload/games/pathway-to-glory": "/preload/games/pathway-to-glory?v=a67248caad9d78dee3dbe5f63ada1236eb068caea6b4341c3caf772c5b48947d",
+        "/preload/games/hooked-on/ngage": "/preload/games/hooked-on/ngage?v=a52da7a5d3d9f7ebd3eb81e49e3294d8998060f7cc2539fe955b8bfe14e1745c",
+        "/preload/games/hooked-on/runtime": "/preload/games/hooked-on/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+        "/preload/games/asphalt-3/ngage": "/preload/games/asphalt-3/ngage?v=afe7964b0968acc8c45908ac6abd48b25e1b171dd1abea1d07a098209c250093",
+        "/preload/games/asphalt-3/runtime": "/preload/games/asphalt-3/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+        "/preload/games/tetris/ngage": "/preload/games/tetris/ngage?v=37222257e26cfc1b1bbc1f0dbb684b04fd569e3638c2fbb58f44fe7fe7446569",
+        "/preload/games/tetris/runtime": "/preload/games/tetris/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+        "/preload/games/explode-arena/rom": "/preload/games/explode-arena/rom?v=cb062dc84820b728a60b525115049b250e3f4912638a777d49edef79972c4e0e",
+        "/preload/games/explode-arena/rpkg": "/preload/games/explode-arena/rpkg?v=c40beb14d3ca4a530b7d59133b52ed28b650d1a12dd07a982df14a22d6ee1aa4",
+        "/preload/games/pathway-to-glory/rom": "/preload/games/pathway-to-glory/rom?v=582a049f9e573c0245441ddb01bb5b3db76ede7677ec05cafc16f314a02ef6ef",
+        "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+        "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+        "/eka2l1.data": "/eka2l1.data?v=8b7dd0983892bd09e5a12b06788a7a4073a8431d87890ffd2c8519dc1bbaadba",
+        "/eka2l1.js": "/eka2l1.js?v=12127b7167da326cf565085a0f640c08ca41a7836f6f93e6930029688260c13e",
+        "/eka2l1.wasm": "/eka2l1.wasm?v=e715734a51b115f529727070a56147124b7544ac1f2ef1245aa98eb1e8ccfa67",
+        "/touch-controls.css": "/touch-controls.css?v=b27bf7a794232427da4c47351f4f77d4765a95e2c767141dff027e269166bb98",
+        "/touch-controls.js": "/touch-controls.js?v=1b9f560af28e4d5bcaf0aa2695ac5435d7a411d1d7a89dea3b011b6de75aecac"
+      },
+      "browser": "Chrome/153.0.8010.52"
+    },
+    {
+      "evidence_dir": "/home/claude/.scratch/eka-swi-hash-bypass-20261012/candidate-hooked-b",
+      "variant": "candidate",
+      "started": "2026-10-12T22:19:57.522Z",
+      "installation_seconds": 52.094011647,
+      "errors": [],
+      "policy": {
+        "requested": {
+          "watchdogUs": 2000,
+          "unsafeCode": 3,
+          "memoryImpl": 2
+        },
+        "applied": true,
+        "observed": {
+          "unsafeCode": 3,
+          "memoryImpl": 2
+        }
+      },
+      "assets": {
+        "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+        "/preload/games/k-rally": "/preload/games/k-rally?v=e93abd790e7c5b05427e5e141f34532b329982e89f1a0112c856b59eb03db9e4",
+        "/preload/games/asphalt-2": "/preload/games/asphalt-2?v=d55bb082f53deb40b3b4d9f7440b7eb7b7087a648eabc8c8c9cdf1b8aa756b40",
+        "/preload/games/hooked-on": "/preload/games/hooked-on?v=ce8eeb53432f735ac2b2343290fb31ce37646f6231edc35610c0b07596d043f6",
+        "/preload/games/asphalt-3": "/preload/games/asphalt-3?v=53e38bf8770d9b98e49b263ee4d376cb6c49aea8ef646da8ae8e00a41cde9b6e",
+        "/preload/games/tetris": "/preload/games/tetris?v=71a6218eb6e6ace77fb2b85e850d5ac7f18fb1f7eaaa2c89df7b54412a8ba052",
+        "/preload/games/super-miners": "/preload/games/super-miners?v=3c48a19cbc061e40778a05b03002768d9014481c7ac290a69b12cf004bdc8e7c",
+        "/preload/games/explode-arena": "/preload/games/explode-arena?v=2d47263342b3adc72fa9d8c1206bcb00c487adde40e282e6b29c6c813ffa8587",
+        "/preload/games/pathway-to-glory": "/preload/games/pathway-to-glory?v=a67248caad9d78dee3dbe5f63ada1236eb068caea6b4341c3caf772c5b48947d",
+        "/preload/games/hooked-on/ngage": "/preload/games/hooked-on/ngage?v=a52da7a5d3d9f7ebd3eb81e49e3294d8998060f7cc2539fe955b8bfe14e1745c",
+        "/preload/games/hooked-on/runtime": "/preload/games/hooked-on/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+        "/preload/games/asphalt-3/ngage": "/preload/games/asphalt-3/ngage?v=afe7964b0968acc8c45908ac6abd48b25e1b171dd1abea1d07a098209c250093",
+        "/preload/games/asphalt-3/runtime": "/preload/games/asphalt-3/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+        "/preload/games/tetris/ngage": "/preload/games/tetris/ngage?v=37222257e26cfc1b1bbc1f0dbb684b04fd569e3638c2fbb58f44fe7fe7446569",
+        "/preload/games/tetris/runtime": "/preload/games/tetris/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+        "/preload/games/explode-arena/rom": "/preload/games/explode-arena/rom?v=cb062dc84820b728a60b525115049b250e3f4912638a777d49edef79972c4e0e",
+        "/preload/games/explode-arena/rpkg": "/preload/games/explode-arena/rpkg?v=c40beb14d3ca4a530b7d59133b52ed28b650d1a12dd07a982df14a22d6ee1aa4",
+        "/preload/games/pathway-to-glory/rom": "/preload/games/pathway-to-glory/rom?v=582a049f9e573c0245441ddb01bb5b3db76ede7677ec05cafc16f314a02ef6ef",
+        "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+        "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+        "/eka2l1.data": "/eka2l1.data?v=8b7dd0983892bd09e5a12b06788a7a4073a8431d87890ffd2c8519dc1bbaadba",
+        "/eka2l1.js": "/eka2l1.js?v=12127b7167da326cf565085a0f640c08ca41a7836f6f93e6930029688260c13e",
+        "/eka2l1.wasm": "/eka2l1.wasm?v=e715734a51b115f529727070a56147124b7544ac1f2ef1245aa98eb1e8ccfa67",
+        "/touch-controls.css": "/touch-controls.css?v=b27bf7a794232427da4c47351f4f77d4765a95e2c767141dff027e269166bb98",
+        "/touch-controls.js": "/touch-controls.js?v=1b9f560af28e4d5bcaf0aa2695ac5435d7a411d1d7a89dea3b011b6de75aecac"
+      },
+      "browser": "Chrome/153.0.8010.52"
+    },
+    {
+      "evidence_dir": "/home/claude/.scratch/eka-swi-hash-bypass-20261012/baseline-hooked-b",
+      "variant": "baseline",
+      "started": "2026-10-12T22:20:54.240Z",
+      "installation_seconds": 64.505487517,
+      "errors": [],
+      "policy": {
+        "requested": {
+          "watchdogUs": 2000,
+          "unsafeCode": 3,
+          "memoryImpl": 2
+        },
+        "applied": true,
+        "observed": {
+          "unsafeCode": 3,
+          "memoryImpl": 2
+        }
+      },
+      "assets": {
+        "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+        "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+        "/preload/games/k-rally": "/preload/games/k-rally?v=e93abd790e7c5b05427e5e141f34532b329982e89f1a0112c856b59eb03db9e4",
+        "/preload/games/asphalt-2": "/preload/games/asphalt-2?v=d55bb082f53deb40b3b4d9f7440b7eb7b7087a648eabc8c8c9cdf1b8aa756b40",
+        "/preload/games/hooked-on": "/preload/games/hooked-on?v=ce8eeb53432f735ac2b2343290fb31ce37646f6231edc35610c0b07596d043f6",
+        "/preload/games/asphalt-3": "/preload/games/asphalt-3?v=53e38bf8770d9b98e49b263ee4d376cb6c49aea8ef646da8ae8e00a41cde9b6e",
+        "/preload/games/tetris": "/preload/games/tetris?v=71a6218eb6e6ace77fb2b85e850d5ac7f18fb1f7eaaa2c89df7b54412a8ba052",
+        "/preload/games/super-miners": "/preload/games/super-miners?v=3c48a19cbc061e40778a05b03002768d9014481c7ac290a69b12cf004bdc8e7c",
+        "/preload/games/explode-arena": "/preload/games/explode-arena?v=2d47263342b3adc72fa9d8c1206bcb00c487adde40e282e6b29c6c813ffa8587",
+        "/preload/games/pathway-to-glory": "/preload/games/pathway-to-glory?v=a67248caad9d78dee3dbe5f63ada1236eb068caea6b4341c3caf772c5b48947d",
+        "/preload/games/hooked-on/ngage": "/preload/games/hooked-on/ngage?v=a52da7a5d3d9f7ebd3eb81e49e3294d8998060f7cc2539fe955b8bfe14e1745c",
+        "/preload/games/hooked-on/runtime": "/preload/games/hooked-on/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+        "/preload/games/asphalt-3/ngage": "/preload/games/asphalt-3/ngage?v=afe7964b0968acc8c45908ac6abd48b25e1b171dd1abea1d07a098209c250093",
+        "/preload/games/asphalt-3/runtime": "/preload/games/asphalt-3/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+        "/preload/games/tetris/ngage": "/preload/games/tetris/ngage?v=37222257e26cfc1b1bbc1f0dbb684b04fd569e3638c2fbb58f44fe7fe7446569",
+        "/preload/games/tetris/runtime": "/preload/games/tetris/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+        "/preload/games/explode-arena/rom": "/preload/games/explode-arena/rom?v=cb062dc84820b728a60b525115049b250e3f4912638a777d49edef79972c4e0e",
+        "/preload/games/explode-arena/rpkg": "/preload/games/explode-arena/rpkg?v=c40beb14d3ca4a530b7d59133b52ed28b650d1a12dd07a982df14a22d6ee1aa4",
+        "/preload/games/pathway-to-glory/rom": "/preload/games/pathway-to-glory/rom?v=582a049f9e573c0245441ddb01bb5b3db76ede7677ec05cafc16f314a02ef6ef",
+        "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+        "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+        "/eka2l1.data": "/eka2l1.data?v=8b7dd0983892bd09e5a12b06788a7a4073a8431d87890ffd2c8519dc1bbaadba",
+        "/eka2l1.js": "/eka2l1.js?v=f4484572fc7e47995105c66937caad36936e5586dbae24c491ad804a697794f6",
+        "/eka2l1.wasm": "/eka2l1.wasm?v=7f827a1c1810c629329dc32fd587fd85efe10f181e99a229a36be2b150564257",
+        "/touch-controls.css": "/touch-controls.css?v=b27bf7a794232427da4c47351f4f77d4765a95e2c767141dff027e269166bb98",
+        "/touch-controls.js": "/touch-controls.js?v=1b9f560af28e4d5bcaf0aa2695ac5435d7a411d1d7a89dea3b011b6de75aecac"
+      },
+      "browser": "Chrome/153.0.8010.52"
+    }
+  ],
+  "startup_mean_seconds": {
+    "baseline": 62.256948329500005,
+    "candidate": 51.527172663
+  },
+  "startup_reduction_percent": 17.23466368719486,
+  "public_profile": {
+    "evidence_dir": "/home/claude/.scratch/eka-swi-hash-bypass-20261012/public-profile-hooked",
+    "installation_seconds": 52.678515792999995,
+    "errors": [],
+    "profile_errors": [],
+    "assets": {
+      "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+      "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+      "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+      "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+      "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+      "/preload/games/k-rally": "/preload/games/k-rally?v=e93abd790e7c5b05427e5e141f34532b329982e89f1a0112c856b59eb03db9e4",
+      "/preload/games/asphalt-2": "/preload/games/asphalt-2?v=d55bb082f53deb40b3b4d9f7440b7eb7b7087a648eabc8c8c9cdf1b8aa756b40",
+      "/preload/games/hooked-on": "/preload/games/hooked-on?v=ce8eeb53432f735ac2b2343290fb31ce37646f6231edc35610c0b07596d043f6",
+      "/preload/games/asphalt-3": "/preload/games/asphalt-3?v=53e38bf8770d9b98e49b263ee4d376cb6c49aea8ef646da8ae8e00a41cde9b6e",
+      "/preload/games/tetris": "/preload/games/tetris?v=71a6218eb6e6ace77fb2b85e850d5ac7f18fb1f7eaaa2c89df7b54412a8ba052",
+      "/preload/games/super-miners": "/preload/games/super-miners?v=3c48a19cbc061e40778a05b03002768d9014481c7ac290a69b12cf004bdc8e7c",
+      "/preload/games/explode-arena": "/preload/games/explode-arena?v=2d47263342b3adc72fa9d8c1206bcb00c487adde40e282e6b29c6c813ffa8587",
+      "/preload/games/pathway-to-glory": "/preload/games/pathway-to-glory?v=a67248caad9d78dee3dbe5f63ada1236eb068caea6b4341c3caf772c5b48947d",
+      "/preload/games/hooked-on/ngage": "/preload/games/hooked-on/ngage?v=a52da7a5d3d9f7ebd3eb81e49e3294d8998060f7cc2539fe955b8bfe14e1745c",
+      "/preload/games/hooked-on/runtime": "/preload/games/hooked-on/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+      "/preload/games/asphalt-3/ngage": "/preload/games/asphalt-3/ngage?v=afe7964b0968acc8c45908ac6abd48b25e1b171dd1abea1d07a098209c250093",
+      "/preload/games/asphalt-3/runtime": "/preload/games/asphalt-3/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+      "/preload/games/tetris/ngage": "/preload/games/tetris/ngage?v=37222257e26cfc1b1bbc1f0dbb684b04fd569e3638c2fbb58f44fe7fe7446569",
+      "/preload/games/tetris/runtime": "/preload/games/tetris/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+      "/preload/games/explode-arena/rom": "/preload/games/explode-arena/rom?v=cb062dc84820b728a60b525115049b250e3f4912638a777d49edef79972c4e0e",
+      "/preload/games/explode-arena/rpkg": "/preload/games/explode-arena/rpkg?v=c40beb14d3ca4a530b7d59133b52ed28b650d1a12dd07a982df14a22d6ee1aa4",
+      "/preload/games/pathway-to-glory/rom": "/preload/games/pathway-to-glory/rom?v=582a049f9e573c0245441ddb01bb5b3db76ede7677ec05cafc16f314a02ef6ef",
+      "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "/eka2l1.data": "/eka2l1.data?v=8b7dd0983892bd09e5a12b06788a7a4073a8431d87890ffd2c8519dc1bbaadba",
+      "/eka2l1.js": "/eka2l1.js?v=12127b7167da326cf565085a0f640c08ca41a7836f6f93e6930029688260c13e",
+      "/eka2l1.wasm": "/eka2l1.wasm?v=e715734a51b115f529727070a56147124b7544ac1f2ef1245aa98eb1e8ccfa67",
+      "/touch-controls.css": "/touch-controls.css?v=b27bf7a794232427da4c47351f4f77d4765a95e2c767141dff027e269166bb98",
+      "/touch-controls.js": "/touch-controls.js?v=1b9f560af28e4d5bcaf0aa2695ac5435d7a411d1d7a89dea3b011b6de75aecac"
+    },
+    "policy": {
+      "requested": {
+        "watchdogUs": 2000,
+        "unsafeCode": 3,
+        "memoryImpl": 2
+      },
+      "applied": true,
+      "observed": {
+        "unsafeCode": 3,
+        "memoryImpl": 2
+      }
+    },
+    "last_monitor": {
+      "guest_us": 41900056,
+      "instructions": 0,
+      "compiled_functions": 98920,
+      "aot_translation_us": 8742711,
+      "aot_emission_us": 576706,
+      "aot_installation_us": 1364823,
+      "aot_eager_functions": 87755,
+      "aot_eager_passes": 91,
+      "allocated_bytes": 1816430440,
+      "free_bytes": 211686744
+    },
+    "profile_targets": [
+      {
+        "name": "page",
+        "url": "https://claude-laptop.lan:8188/",
+        "request_ms": 0.8515820000000076,
+        "started_ms": 3.177978000000053,
+        "files": [
+          {
+            "file": "page-part-0.cpuprofile",
+            "stop_ms": 28197.681626,
+            "startTime": 1130980331577,
+            "endTime": 1131008472026,
+            "samples": 26261
+          },
+          {
+            "file": "page-part-1.cpuprofile",
+            "stop_ms": 49680.317107,
+            "startTime": 1131008515907,
+            "endTime": 1131029985324,
+            "samples": 20112
+          },
+          {
+            "file": "page-part-2.cpuprofile",
+            "stop_ms": 54212.119038,
+            "startTime": 1131029998387,
+            "endTime": 1131034524058,
+            "samples": 4222
+          }
+        ]
+      },
+      {
+        "name": "worker-13",
+        "url": "https://claude-laptop.lan:8188/eka2l1.js?v=12127b7167da326cf565085a0f640c08ca41a7836f6f93e6930029688260c13e",
+        "request_ms": 125.58396899999991,
+        "started_ms": 173.27383199999997,
+        "files": [
+          {
+            "file": "worker-13-part-0.cpuprofile",
+            "stop_ms": 28258.143555,
+            "startTime": 1130980475409,
+            "endTime": 1131008472071,
+            "samples": 26496
+          },
+          {
+            "file": "worker-13-part-1.cpuprofile",
+            "stop_ms": 49762.090823,
+            "startTime": 1131008576131,
+            "endTime": 1131029985204,
+            "samples": 19877
+          },
+          {
+            "file": "worker-13-part-2.cpuprofile",
+            "stop_ms": 54264.654946,
+            "startTime": 1131030080054,
+            "endTime": 1131034524012,
+            "samples": 3966
+          }
+        ]
+      }
+    ],
+    "categories": [
+      {
+        "worker": "page",
+        "cutoff_us": 1131033006914.815,
+        "window": "Through receipt of successful installer exit log; profiler clock aligned using start acknowledgement (small RPC skew possible)",
+        "sampled_us": 52617160.814941406,
+        "categories_us": {
+          "(program)": 1584318,
+          "other active": 1822417,
+          "(idle)": 48508530.814941406,
+          "ARM translation / module preparation subtree": 695587,
+          "parked": 6308
+        },
+        "waits_us": {
+          "other wait": 6308
+        },
+        "proxy_wait_syscalls_us": {},
+        "parts": [
+          {
+            "file": "page-part-0.cpuprofile",
+            "start": 1130980331577,
+            "end": 1131008472026,
+            "categories_us": {
+              "(program)": 1042980,
+              "other active": 1580556,
+              "(idle)": 24814867,
+              "ARM translation / module preparation subtree": 695587,
+              "parked": 6308
+            },
+            "sampled_us": 28140298
+          },
+          {
+            "file": "page-part-1.cpuprofile",
+            "start": 1131008515907,
+            "end": 1131029985324,
+            "categories_us": {
+              "(program)": 458808,
+              "(idle)": 20795991,
+              "other active": 213536
+            },
+            "sampled_us": 21468335
+          },
+          {
+            "file": "page-part-2.cpuprofile",
+            "start": 1131029998387,
+            "end": 1131034524058,
+            "categories_us": {
+              "(program)": 82530,
+              "(idle)": 2897672.8149414062,
+              "other active": 28325
+            },
+            "sampled_us": 3008527.8149414062
+          }
+        ]
+      },
+      {
+        "worker": "worker-13",
+        "cutoff_us": 1131032980650.961,
+        "window": "Through receipt of successful installer exit log; profiler clock aligned using start acknowledgement (small RPC skew possible)",
+        "sampled_us": 52304814.9609375,
+        "categories_us": {
+          "(idle)": 3251858,
+          "other active": 6119130,
+          "ARM translation / module preparation subtree": 9788790,
+          "memory view subtree": 7654054,
+          "execute_chain self (includes inlined work)": 4695243,
+          "generated guest (self)": 5078024.9609375,
+          "interpreter outer loop self (includes inlined work)": 3000140,
+          "(program)": 47795,
+          "parked": 12669780
+        },
+        "waits_us": {
+          "graphics": 222534,
+          "other wait": 37530,
+          "sleep/pacing": 12409716
+        },
+        "proxy_wait_syscalls_us": {},
+        "parts": [
+          {
+            "file": "worker-13-part-0.cpuprofile",
+            "start": 1130980475409,
+            "end": 1131008472071,
+            "categories_us": {
+              "(idle)": 3251858,
+              "other active": 2461058,
+              "ARM translation / module preparation subtree": 9695280,
+              "memory view subtree": 1683380,
+              "execute_chain self (includes inlined work)": 3010377,
+              "generated guest (self)": 2208066,
+              "interpreter outer loop self (includes inlined work)": 582884,
+              "(program)": 38161,
+              "parked": 5065406
+            },
+            "sampled_us": 27996470
+          },
+          {
+            "file": "worker-13-part-1.cpuprofile",
+            "start": 1131008576131,
+            "end": 1131029985204,
+            "categories_us": {
+              "parked": 7573561,
+              "other active": 3151696,
+              "memory view subtree": 4970901,
+              "execute_chain self (includes inlined work)": 1378589,
+              "interpreter outer loop self (includes inlined work)": 1876903,
+              "generated guest (self)": 2374218,
+              "ARM translation / module preparation subtree": 73314,
+              "(program)": 8566
+            },
+            "sampled_us": 21407748
+          },
+          {
+            "file": "worker-13-part-2.cpuprofile",
+            "start": 1131030080054,
+            "end": 1131034524012,
+            "categories_us": {
+              "memory view subtree": 999773,
+              "generated guest (self)": 495740.9609375,
+              "execute_chain self (includes inlined work)": 306277,
+              "interpreter outer loop self (includes inlined work)": 540353,
+              "other active": 506376,
+              "ARM translation / module preparation subtree": 20196,
+              "parked": 30813,
+              "(program)": 1068
+            },
+            "sampled_us": 2900596.9609375
+          }
+        ]
+      }
+    ],
+    "worker_top_self": [
+      [
+        "emscripten_futex_wait",
+        12669780
+      ],
+      [
+        "std::__2::__function::__func<eka2l1::mem::mmu_base::mmu_base(eka2l1::mem::control_base*, eka2l1::arm::core*, eka2l1::config::state*)::$_0, std::__2::allocator<eka2l1::mem::mmu_base::mmu_base(eka2l1::mem::control_base*, eka2l1::arm::core*, eka2l1::config::state*)::$_0>, unsigned long (bool)>::operator()(bool&&)",
+        7545816
+      ],
+      [
+        "eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))",
+        4695243
+      ],
+      [
+        "(idle)",
+        3251858
+      ],
+      [
+        "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+        3000140
+      ],
+      [
+        "eka2l1::arm::aot::state_local_cache::finish(eka2l1::arm::aot::wasm_func_def&, bool)",
+        2102011
+      ],
+      [
+        "emscripten_builtin_malloc",
+        1397010
+      ],
+      [
+        "emscripten_builtin_free",
+        1086252
+      ],
+      [
+        "eka2l1::arm::aot::emit_thumb_block(eka2l1::arm::aot::translate_result&, eka2l1::arm::aot::emit&, unsigned char const*, unsigned long, unsigned int, std::__2::unordered_map<unsigned int, unsigned int, std::__2::hash<unsigned int>, std::__2::equal_to<unsigned int>, std::__2::allocator<std::__2::pair<unsigned int const, unsigned int>>> const*, eka2l1::arm::aot::code_window const*, bool, bool, eka2l1::arm::aot::code_window const*, unsigned int, eka2l1::arm::aot::thumb_fusion_context*)",
+        1009088
+      ],
+      [
+        "Module",
+        845770
+      ],
+      [
+        "f_2149216519",
+        686892
+      ],
+      [
+        "f_2156287987",
+        466164
+      ],
+      [
+        "eka2l1::arm::aot::lookup_compiled(ARMul_State*)",
+        457010
+      ],
+      [
+        "__pthread_mutex_unlock",
+        449159
+      ],
+      [
+        "void std::__2::__tree_balance_after_insert[abi:ne200100]<std::__2::__tree_node_base<void*>*>(std::__2::__tree_node_base<void*>*, std::__2::__tree_node_base<void*>*)",
+        353953
+      ],
+      [
+        "js_instantiate_aot_module",
+        347911
+      ],
+      [
+        "_emscripten_get_now",
+        330140
+      ],
+      [
+        "eka2l1::arm::aot::build_wasm_module(std::__2::vector<eka2l1::arm::aot::wasm_func_def, std::__2::allocator<eka2l1::arm::aot::wasm_func_def>> const&, std::__2::vector<eka2l1::arm::aot::wasm_import_func, std::__2::allocator<eka2l1::arm::aot::wasm_import_func>> const&)",
+        291973
+      ],
+      [
+        "wasmfs::Directory::Handle::getChild(std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>> const&)",
+        279615
+      ],
+      [
+        "eka2l1::flate::inflater::inflate()",
+        228165
+      ]
+    ],
+    "guest_modules_us": [
+      [
+        "z:/Sys/Bin/EUser.dll",
+        2384171
+      ],
+      [
+        "z:/Sys/Bin/EStor.dll",
+        868337.9609375
+      ],
+      [
+        "z:/Sys/Bin/EZLib.dll",
+        746186
+      ],
+      [
+        "z:/Sys/Bin/EDbms.dll",
+        218048
+      ],
+      [
+        "unresolved",
+        182658
+      ],
+      [
+        "z:/Sys/Bin/DRTAEABI.dll",
+        90212
+      ],
+      [
+        "z:/Sys/Bin/Cone.dll",
+        74275
+      ],
+      [
+        "z:/Sys/Bin/EComServer.exe",
+        67132
+      ],
+      [
+        "z:/Sys/Bin/Bafl.dll",
+        53249
+      ],
+      [
+        "z:/Sys/Bin/Ws32.dll",
+        51704
+      ],
+      [
+        "z:/Sys/Bin/ECom.dll",
+        43463
+      ],
+      [
+        "z:/Sys/Bin/EFSrv.dll",
+        41628
+      ],
+      [
+        "z:/Sys/Bin/FbsCli.dll",
+        25588
+      ],
+      [
+        "z:/Sys/Bin/hash.dll",
+        21065
+      ],
+      [
+        "z:/Sys/Bin/SCPPNWDL.dll",
+        16022
+      ],
+      [
+        "z:/Sys/Bin/FntStr.dll",
+        16011
+      ],
+      [
+        "z:/Sys/Bin/xmlparserplugin.dll",
+        14881
+      ],
+      [
+        "z:/Sys/Bin/ImageConversion.dll",
+        12800
+      ],
+      [
+        "z:/Sys/Bin/imageconversionresolver.dll",
+        12723
+      ],
+      [
+        "z:/Sys/Bin/sisxfile.dll",
+        11775
+      ],
+      [
+        "z:/Sys/Bin/installserver.exe",
+        11738
+      ],
+      [
+        "z:/Sys/Bin/cryptography.dll",
+        10427
+      ],
+      [
+        "z:/Sys/Bin/CHARCONV.DLL",
+        9563
+      ],
+      [
+        "z:/Sys/Bin/ScDv.dll",
+        7509
+      ],
+      [
+        "z:/Sys/Bin/libopenvg.dll",
+        7437
+      ],
+      [
+        "z:/Sys/Bin/commsdat.dll",
+        6430
+      ],
+      [
+        "z:/Sys/Bin/pngcodec.dll",
+        6374
+      ],
+      [
+        "z:/Sys/Bin/centralrepository.dll",
+        5373
+      ],
+      [
+        "z:/Sys/Bin/Gdi.dll",
+        5333
+      ],
+      [
+        "z:/Sys/Bin/asn1.dll",
+        5328
+      ],
+      [
+        "z:/Sys/Bin/sishelper.dll",
+        5294
+      ],
+      [
+        "z:/Sys/Bin/MultipartParser.dll",
+        4232
+      ],
+      [
+        "z:/Sys/Bin/EText.dll",
+        4221
+      ],
+      [
+        "z:/Sys/Bin/Tagma.dll",
+        3668
+      ],
+      [
+        "z:/Sys/Bin/Commdb.dll",
+        3263
+      ],
+      [
+        "z:/Sys/Bin/plan.dll",
+        3214
+      ],
+      [
+        "z:/Sys/Bin/BitGdi.dll",
+        3210
+      ],
+      [
+        "z:/Sys/Bin/avkon.dll",
+        3174
+      ],
+      [
+        "z:/Sys/Bin/ApEngine.dll",
+        2192
+      ],
+      [
+        "z:/Sys/Bin/XmlFramework.dll",
+        2173
+      ],
+      [
+        "z:/Sys/Bin/x500.dll",
+        2123
+      ],
+      [
+        "z:/Sys/Bin/x509.dll",
+        2115
+      ],
+      [
+        "z:/Sys/Bin/Etel3rdParty.dll",
+        2113
+      ],
+      [
+        "z:/Sys/Bin/NetMeta.dll",
+        1094
+      ],
+      [
+        "z:/Sys/Bin/f32agent.dll",
+        1093
+      ],
+      [
+        "z:/Sys/Bin/sisregistryclient.dll",
+        1065
+      ],
+      [
+        "z:/Sys/Bin/eikctl.dll",
+        1058
+      ],
+      [
+        "z:/Sys/Bin/OmaDrmAgent.dll",
+        1058
+      ],
+      [
+        "z:/Sys/Bin/EikCore.dll",
+        1057
+      ],
+      [
+        "z:/Sys/Bin/CONNMON.DLL",
+        1056
+      ],
+      [
+        "z:/Sys/Bin/caf.dll",
+        1056
+      ],
+      [
+        "z:/Sys/Bin/sysutil.dll",
+        1055
+      ],
+      [
+        "z:/Sys/Bin/Egul.dll",
+        0
+      ]
+    ],
+    "rom_sha256": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+    "limits": "ROM entry attribution may include inlined callees; unresolved RAM versions not assigned; nested wait totals overlap. Same installer-exit cutoff as aggregated.json."
+  },
+  "gameplay_checks": [
+    {
+      "game": "hooked-on",
+      "label": "costa-rica-stationary-tutorial-dismissed",
+      "edition": "0.74, N-Gage 2.0, full BiNPDA preservation copy",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        2.54,
+        2.02,
+        1.87
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 10.12046499991417,
+      "frames": 2265,
+      "fps": 223.8039457692121,
+      "guestSeconds": 72.23,
+      "guestSpeed": 7.137023842344456,
+      "compiledFunctions": 8,
+      "compilationUs": {
+        "aot_translation_us": 1268,
+        "aot_emission_us": 208,
+        "aot_installation_us": 1822
+      },
+      "errors": [],
+      "evidence_dir": "/home/claude/.scratch/eka-swi-hash-bypass-20261012/runtime-baseline-hooked-a"
+    },
+    {
+      "game": "hooked-on",
+      "label": "costa-rica-stationary-tutorial-dismissed",
+      "edition": "0.74, N-Gage 2.0, full BiNPDA preservation copy",
+      "url": "https://claude-laptop.lan:8242/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.8,
+        1.91,
+        1.85
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 10.127,
+      "frames": 2302,
+      "fps": 227.31312333366247,
+      "guestSeconds": 74.683,
+      "guestSpeed": 7.374642046015602,
+      "compiledFunctions": 10,
+      "compilationUs": {
+        "aot_translation_us": 963,
+        "aot_emission_us": 178,
+        "aot_installation_us": 1982
+      },
+      "errors": [],
+      "evidence_dir": "/home/claude/.scratch/eka-swi-hash-bypass-20261012/runtime-candidate-hooked-a"
+    },
+    {
+      "game": "tetris",
+      "label": "marathon-level-1",
+      "edition": "4.21.41, original Nokia-signed N-Gage 2.0 release",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        2.38,
+        2.12,
+        1.95
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.049514999866486,
+      "frames": 871,
+      "fps": 172.49181357477502,
+      "guestSeconds": 27.36,
+      "guestSpeed": 5.418342157756423,
+      "compiledFunctions": 26,
+      "compilationUs": {
+        "aot_translation_us": 2066,
+        "aot_emission_us": 283,
+        "aot_installation_us": 2565
+      },
+      "errors": [],
+      "evidence_dir": "/home/claude/.scratch/eka-swi-hash-bypass-20261012/runtime-candidate-tetris-a"
+    },
+    {
+      "game": "asphalt-3",
+      "label": "instant-play-driving-sound-on",
+      "edition": "1.2.7, N-Gage 2.0, modified BodyZ preservation copy; original fails registration",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.29,
+        1.27,
+        1.59
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.056509999990463,
+      "frames": 769,
+      "fps": 152.0811785206497,
+      "guestSeconds": 29.390625,
+      "guestSpeed": 5.81243288356108,
+      "compiledFunctions": 100,
+      "compilationUs": {
+        "aot_translation_us": 15502,
+        "aot_emission_us": 1110,
+        "aot_installation_us": 7935
+      },
+      "errors": [],
+      "evidence_dir": "/home/claude/.scratch/eka-swi-hash-bypass-20261012/runtime-candidate-asphalt3-interactive"
+    }
+  ],
+  "gameplay_limits": "Hooked On is one short pair in an equivalent stationary scene, not a deterministic replay or proof of a runtime speedup. Tetris and Asphalt 3 are fresh-install compatibility checks without a paired baseline. Not a full ten-game rerun.",
+  "failed_routes": [
+    {
+      "evidence_dir": "/home/claude/.scratch/eka-swi-hash-bypass-20261012/runtime-candidate-asphalt3-a",
+      "failure": {
+        "error": "AssertionError [ERR_ASSERTION]: Asphalt 3 is not showing the racing HUD; reject this route",
+        "errors": [],
+        "status": {
+          "ms": 57483.51999998093,
+          "guest": 741810000,
+          "frames": 1559,
+          "phase": 0,
+          "inputs": 11,
+          "monitor": {
+            "guest_us": 741820000,
+            "instructions": 0,
+            "compiled_functions": 164180,
+            "aot_translation_us": 18086145,
+            "aot_emission_us": 1401556,
+            "aot_installation_us": 2935058,
+            "aot_eager_functions": 152492,
+            "aot_eager_passes": 149,
+            "allocated_bytes": 1922386376,
+            "free_bytes": 116351736
+          }
+        }
+      }
+    },
+    {
+      "evidence_dir": "/home/claude/.scratch/eka-swi-hash-bypass-20261012/runtime-candidate-asphalt3-b",
+      "failure": {
+        "error": "AssertionError [ERR_ASSERTION]: Asphalt 3 is not showing the racing HUD; reject this route",
+        "errors": [],
+        "status": {
+          "ms": 67360.88999986649,
+          "guest": 777080000,
+          "frames": 2235,
+          "phase": 0,
+          "inputs": 15,
+          "monitor": {
+            "guest_us": 777090000,
+            "instructions": 0,
+            "compiled_functions": 164155,
+            "aot_translation_us": 17335044,
+            "aot_emission_us": 1367998,
+            "aot_installation_us": 2924819,
+            "aot_eager_functions": 152480,
+            "aot_eager_passes": 149,
+            "allocated_bytes": 1921254584,
+            "free_bytes": 117417992
+          }
+        }
+      }
+    }
+  ],
+  "build_commands": [
+    "cmake --build build-wasm --target eka2l1_wasm -j4",
+    "cmake --build build --target eka2l1_qt ekatests eka_cpu_tests -j4",
+    "ctest --test-dir build --output-on-failure"
+  ],
+  "ctest": "3/3 passed",
+  "evidence_sha256": {
+    "baseline-hooked-a/screen-24.png": "ede5599658f9d045098d0d389ae175a0719f0587a004703c77b390baee94ab8b",
+    "baseline-hooked-a/screen-4.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+    "baseline-hooked-a/screen-2.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+    "baseline-hooked-a/screen-7.png": "59ebe1792143350296a1938dca8df068321ecef1fa63ac83dd8bd74bc29099eb",
+    "baseline-hooked-a/screen-15.png": "4ff6de9d24cf4e33c18b5b6afe72745416d90d3ded79faca70da5f5195ec8987",
+    "baseline-hooked-a/screen-11.png": "7a62b97b17ea7b14af5886c5e1183102c19f5dd4c9465c6173661579fbf8cc73",
+    "baseline-hooked-a/screen-9.png": "b5e03144a2e916dba5292bf3d3cf98876828f34958f5cc28b66b3b2a5a1b0608",
+    "baseline-hooked-a/screen-25.png": "866eb15e72f42ff531d64ad38f22d520d8326762a28ccf3da6e1b7d38460ab71",
+    "baseline-hooked-a/screen-17.png": "4ff6de9d24cf4e33c18b5b6afe72745416d90d3ded79faca70da5f5195ec8987",
+    "baseline-hooked-a/screen-23.png": "2a54dcbb5a83982530f30a64acc74192573af248107a64e6d98d1d8d26cba7ea",
+    "baseline-hooked-a/screen-19.png": "4ff6de9d24cf4e33c18b5b6afe72745416d90d3ded79faca70da5f5195ec8987",
+    "baseline-hooked-a/screen-12.png": "a3152b46561c57ee0b2f93b23f844c1ef51962a5518ebb0c39e1b6593e613590",
+    "baseline-hooked-a/browser.log": "07f0991bb5e11ff82b0ff69bfe0968dfca7dd93f642a8a4a74a387ccf07ebd07",
+    "baseline-hooked-a/screen-6.png": "70b3c8f61502fe35592b12b3ef5c4d78c9ab6697581cc668c3b4d908259da5ac",
+    "baseline-hooked-a/screen-20.png": "949730acf4f392752cf0dacdca4f331eb3d84849a299531abd7ee0522245cfc0",
+    "baseline-hooked-a/screen-3.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+    "baseline-hooked-a/screen-16.png": "4ff6de9d24cf4e33c18b5b6afe72745416d90d3ded79faca70da5f5195ec8987",
+    "baseline-hooked-a/screen-10.png": "1aebb429f289ab2534e2cb743459a327d1751c2a846ae906fb5d521a5aa390ec",
+    "baseline-hooked-a/screen-14.png": "a498f7a90e09ccbb4c0c11a64f7f7786472c0d4c0aadd121215d4b8ef8dcac58",
+    "baseline-hooked-a/screen-26.png": "f240a06cab9cd8d436a42d05143c5025b5347a967b3fbe0072d42e3fd4ed0378",
+    "baseline-hooked-a/report.json": "c3b3d2708badd13df1933af73612685540fb2ccfa5d1ed49bb4b6aa561959df4",
+    "baseline-hooked-a/screen-0.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+    "baseline-hooked-a/screen-8.png": "fa2ac8dba5b0b419677e6eecd982b4a805651ed4e449d783396e1b43fe1f58d3",
+    "baseline-hooked-a/screen-1.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+    "baseline-hooked-a/screen-13.png": "2336c9392d8a03de83bae2804cb4c28ce905b843a4ef78e6b536c0036a5ce943",
+    "baseline-hooked-a/screen-22.png": "ae063ee32f9b3a9ed486d98ee04537b05e70e0dd24500f37e15fa0ce120fa575",
+    "baseline-hooked-a/screen-18.png": "4ff6de9d24cf4e33c18b5b6afe72745416d90d3ded79faca70da5f5195ec8987",
+    "baseline-hooked-a/screen-5.png": "5ecc77e657ba4e4506a7877bd2de9280fb0d1b4a63fdcc69bb1caaaabaf5d263",
+    "baseline-hooked-a/screen-21.png": "594abbb7b26de804e4e0aa0e5c01f40217097dc8d74443ecce31c0d20b826184",
+    "candidate-hooked-a/screen-4.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+    "candidate-hooked-a/screen-2.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+    "candidate-hooked-a/screen-7.png": "59ebe1792143350296a1938dca8df068321ecef1fa63ac83dd8bd74bc29099eb",
+    "candidate-hooked-a/screen-15.png": "4ff6de9d24cf4e33c18b5b6afe72745416d90d3ded79faca70da5f5195ec8987",
+    "candidate-hooked-a/screen-11.png": "7a62b97b17ea7b14af5886c5e1183102c19f5dd4c9465c6173661579fbf8cc73",
+    "candidate-hooked-a/screen-9.png": "b5e03144a2e916dba5292bf3d3cf98876828f34958f5cc28b66b3b2a5a1b0608",
+    "candidate-hooked-a/screen-17.png": "64b9fe0ac2b4df057c4ae90c1fe43bf5a80032d9429a873a46b0c75ef3390021",
+    "candidate-hooked-a/screen-19.png": "9070efedac5307305ae079ef72e518f91faaa7d782086de6a39420600dce3d84",
+    "candidate-hooked-a/screen-12.png": "a3152b46561c57ee0b2f93b23f844c1ef51962a5518ebb0c39e1b6593e613590",
+    "candidate-hooked-a/browser.log": "4f31244cf437b5096a87a6361ac7480bb5f4b2f6b2bb124324d2c11a189b141e",
+    "candidate-hooked-a/screen-6.png": "70b3c8f61502fe35592b12b3ef5c4d78c9ab6697581cc668c3b4d908259da5ac",
+    "candidate-hooked-a/screen-20.png": "c4f57be225995a0291994ce8b05431418eb3a4408feca44d71e08004cbe4c9f0",
+    "candidate-hooked-a/screen-3.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+    "candidate-hooked-a/screen-16.png": "0ed8371ee8e108a89fe1dcf077c508a35fc1902b4e0a3e00cf5bcb7264cadb0c",
+    "candidate-hooked-a/screen-10.png": "733d7418d69dd647b6f979d73ecb99517c234d4d4c4cfe229c5fee0e17ab4bb2",
+    "candidate-hooked-a/screen-14.png": "a498f7a90e09ccbb4c0c11a64f7f7786472c0d4c0aadd121215d4b8ef8dcac58",
+    "candidate-hooked-a/report.json": "977c50b0678fe86ff5522c5a1b2e64e114da785778f7286850042f114f633d77",
+    "candidate-hooked-a/screen-0.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+    "candidate-hooked-a/screen-8.png": "fa2ac8dba5b0b419677e6eecd982b4a805651ed4e449d783396e1b43fe1f58d3",
+    "candidate-hooked-a/screen-1.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+    "candidate-hooked-a/screen-13.png": "662cfee5e20115c66cd376fb1b6cbf101d457e883d29d5b49431bcd1bda4678c",
+    "candidate-hooked-a/screen-22.png": "f240a06cab9cd8d436a42d05143c5025b5347a967b3fbe0072d42e3fd4ed0378",
+    "candidate-hooked-a/screen-18.png": "978efb9687fd95c8efccc9e90f84e357c47a1e552eabd289aabb30d537d1d05a",
+    "candidate-hooked-a/screen-5.png": "5ecc77e657ba4e4506a7877bd2de9280fb0d1b4a63fdcc69bb1caaaabaf5d263",
+    "candidate-hooked-a/screen-21.png": "f240a06cab9cd8d436a42d05143c5025b5347a967b3fbe0072d42e3fd4ed0378",
+    "candidate-hooked-b/screen-4.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+    "candidate-hooked-b/screen-2.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+    "candidate-hooked-b/screen-7.png": "b89488f2b9e418837d44d89d646b1abba414bf7584de9cee3a72de2ece6b646b",
+    "candidate-hooked-b/screen-15.png": "4ff6de9d24cf4e33c18b5b6afe72745416d90d3ded79faca70da5f5195ec8987",
+    "candidate-hooked-b/screen-11.png": "137d7c4c29f9a887d2451e4625b43312b378974cdcac36ee0ad88ba2ec4ece0d",
+    "candidate-hooked-b/screen-9.png": "e600d8558fa12c2589faae8817e23db45be78d7a8ee681b00852c3bc985dffb8",
+    "candidate-hooked-b/screen-17.png": "8ee809f0f3b472539139f1b60bed2b2fe875449b4e3087bd265dd0de7ab2a13a",
+    "candidate-hooked-b/screen-23.png": "f240a06cab9cd8d436a42d05143c5025b5347a967b3fbe0072d42e3fd4ed0378",
+    "candidate-hooked-b/screen-19.png": "2a54dcbb5a83982530f30a64acc74192573af248107a64e6d98d1d8d26cba7ea",
+    "candidate-hooked-b/screen-12.png": "2daf3ad5af553d359e1736d08ba6454101c52f0e7abe635900b3537227501913",
+    "candidate-hooked-b/browser.log": "f98f97ae3be0841da760a948757e74f49a54f864637c8f6d27882eaf15be0289",
+    "candidate-hooked-b/screen-6.png": "70b3c8f61502fe35592b12b3ef5c4d78c9ab6697581cc668c3b4d908259da5ac",
+    "candidate-hooked-b/screen-20.png": "ede5599658f9d045098d0d389ae175a0719f0587a004703c77b390baee94ab8b",
+    "candidate-hooked-b/screen-3.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+    "candidate-hooked-b/screen-16.png": "b0025db81ee77178e0846115a2fc76956bcddedb8c0c84ea33bf4a829073fe5e",
+    "candidate-hooked-b/screen-10.png": "7f0025890643762c5969ba07510e9fc7be01122b88a6071131335e612841958b",
+    "candidate-hooked-b/screen-14.png": "8efc0e6a1f4f94d236b14392892037132f9abe8dfcc8492b83e19d85e64855e9",
+    "candidate-hooked-b/report.json": "a3462c3e972da703c9c313207d37c1e60480c61c9ad309aa233c5166c4f3b7ff",
+    "candidate-hooked-b/screen-0.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+    "candidate-hooked-b/screen-8.png": "3f996c43c9c418dc7d1e2e69dc52e7cb3bf610b493696a5f8deec9c79da45185",
+    "candidate-hooked-b/screen-1.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+    "candidate-hooked-b/screen-13.png": "219bbfef63ccc7ea1293099a4d0377e45dfcce9a39a6f4624b7742e24026af05",
+    "candidate-hooked-b/screen-22.png": "f240a06cab9cd8d436a42d05143c5025b5347a967b3fbe0072d42e3fd4ed0378",
+    "candidate-hooked-b/screen-18.png": "ae063ee32f9b3a9ed486d98ee04537b05e70e0dd24500f37e15fa0ce120fa575",
+    "candidate-hooked-b/screen-5.png": "5ecc77e657ba4e4506a7877bd2de9280fb0d1b4a63fdcc69bb1caaaabaf5d263",
+    "candidate-hooked-b/screen-21.png": "866eb15e72f42ff531d64ad38f22d520d8326762a28ccf3da6e1b7d38460ab71",
+    "baseline-hooked-b/screen-24.png": "978efb9687fd95c8efccc9e90f84e357c47a1e552eabd289aabb30d537d1d05a",
+    "baseline-hooked-b/screen-4.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+    "baseline-hooked-b/screen-2.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+    "baseline-hooked-b/screen-7.png": "7556aee0f1d4d9f186c2b8579ff63a9be06d5b531003de5e7c77c689e65b25ce",
+    "baseline-hooked-b/screen-15.png": "4ff6de9d24cf4e33c18b5b6afe72745416d90d3ded79faca70da5f5195ec8987",
+    "baseline-hooked-b/screen-11.png": "137d7c4c29f9a887d2451e4625b43312b378974cdcac36ee0ad88ba2ec4ece0d",
+    "baseline-hooked-b/screen-9.png": "e600d8558fa12c2589faae8817e23db45be78d7a8ee681b00852c3bc985dffb8",
+    "baseline-hooked-b/screen-25.png": "2a54dcbb5a83982530f30a64acc74192573af248107a64e6d98d1d8d26cba7ea",
+    "baseline-hooked-b/screen-27.png": "866eb15e72f42ff531d64ad38f22d520d8326762a28ccf3da6e1b7d38460ab71",
+    "baseline-hooked-b/screen-28.png": "f240a06cab9cd8d436a42d05143c5025b5347a967b3fbe0072d42e3fd4ed0378",
+    "baseline-hooked-b/screen-17.png": "4ff6de9d24cf4e33c18b5b6afe72745416d90d3ded79faca70da5f5195ec8987",
+    "baseline-hooked-b/screen-23.png": "64b9fe0ac2b4df057c4ae90c1fe43bf5a80032d9429a873a46b0c75ef3390021",
+    "baseline-hooked-b/screen-19.png": "4ff6de9d24cf4e33c18b5b6afe72745416d90d3ded79faca70da5f5195ec8987",
+    "baseline-hooked-b/screen-12.png": "2daf3ad5af553d359e1736d08ba6454101c52f0e7abe635900b3537227501913",
+    "baseline-hooked-b/browser.log": "9189495d75c6ac8ce189a9a0abe89392571fe6eed5499da785863493d0061acc",
+    "baseline-hooked-b/screen-6.png": "cbeb6f8a92cf08f082d3530231a57000b7d77ffaf672757ecad4c70f6ba563f4",
+    "baseline-hooked-b/screen-20.png": "4ff6de9d24cf4e33c18b5b6afe72745416d90d3ded79faca70da5f5195ec8987",
+    "baseline-hooked-b/screen-3.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+    "baseline-hooked-b/screen-16.png": "4ff6de9d24cf4e33c18b5b6afe72745416d90d3ded79faca70da5f5195ec8987",
+    "baseline-hooked-b/screen-10.png": "7f0025890643762c5969ba07510e9fc7be01122b88a6071131335e612841958b",
+    "baseline-hooked-b/screen-14.png": "b865b33e845aff214477feb1597cd4b37a4108272dd32c0eeb51d5cefa653e10",
+    "baseline-hooked-b/screen-26.png": "ede5599658f9d045098d0d389ae175a0719f0587a004703c77b390baee94ab8b",
+    "baseline-hooked-b/report.json": "066ea1ba51919c6919c2abf4f9d2a5ef81a2080016844456cec119829e724c00",
+    "baseline-hooked-b/screen-0.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+    "baseline-hooked-b/screen-8.png": "3f996c43c9c418dc7d1e2e69dc52e7cb3bf610b493696a5f8deec9c79da45185",
+    "baseline-hooked-b/screen-1.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+    "baseline-hooked-b/screen-13.png": "219bbfef63ccc7ea1293099a4d0377e45dfcce9a39a6f4624b7742e24026af05",
+    "baseline-hooked-b/screen-22.png": "9305583dc84e9a4fc8ab740a40d6d3f994b46d267ac869b930c2e7600dad16fe",
+    "baseline-hooked-b/screen-18.png": "4ff6de9d24cf4e33c18b5b6afe72745416d90d3ded79faca70da5f5195ec8987",
+    "baseline-hooked-b/screen-5.png": "5ecc77e657ba4e4506a7877bd2de9280fb0d1b4a63fdcc69bb1caaaabaf5d263",
+    "baseline-hooked-b/screen-21.png": "b0025db81ee77178e0846115a2fc76956bcddedb8c0c84ea33bf4a829073fe5e",
+    "public-profile-hooked/screen-4.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+    "public-profile-hooked/screen-2.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+    "public-profile-hooked/screen-7.png": "069fb12c360aa39a49f5c40862a20aa35450bcaed3ef5427a9b9be19514dd743",
+    "public-profile-hooked/screen-15.png": "4ff6de9d24cf4e33c18b5b6afe72745416d90d3ded79faca70da5f5195ec8987",
+    "public-profile-hooked/screen-11.png": "7a62b97b17ea7b14af5886c5e1183102c19f5dd4c9465c6173661579fbf8cc73",
+    "public-profile-hooked/page-part-2.cpuprofile": "cc59ae0c64a8e653f874e130e9066194bbbadcb3e5823b9664a0bf29c402b24e",
+    "public-profile-hooked/page-part-0.cpuprofile": "80b99317be3db364cb1a2ddfe1937c97b0ecf9d2aba356350a61150ff6273246",
+    "public-profile-hooked/screen-9.png": "21ad9b158fdfc7cdcb3e364d227f46a5010817ef584c6646ebeb1b0b91c8d151",
+    "public-profile-hooked/guest-and-path-attribution.json": "95bef3781d74a48d35e2eb4644d4f2d8403e39f2a3967a186e3c12d843d44a51",
+    "public-profile-hooked/worker-13-part-1.cpuprofile": "20b8ce5ef270c29cf6d7a7cc6ea7a511a65c32b4ae0a1f1cbcee60e5cc4b1d8f",
+    "public-profile-hooked/screen-17.png": "8ee809f0f3b472539139f1b60bed2b2fe875449b4e3087bd265dd0de7ab2a13a",
+    "public-profile-hooked/worker-13-part-2.cpuprofile": "8acfeddf607f76d4b0201ad2d42cc6406d8db6162380799ccb246cf2e8151839",
+    "public-profile-hooked/screen-19.png": "2a54dcbb5a83982530f30a64acc74192573af248107a64e6d98d1d8d26cba7ea",
+    "public-profile-hooked/page-part-1.cpuprofile": "850a782854dd18b10ecc8bd973dc60ee16deb330ec239c1d4d27c9e1dc34e8f6",
+    "public-profile-hooked/screen-12.png": "bcfb9e319055138f81a7d00fe3b1eb49bb943189bd807674e8f0cf5ed586b988",
+    "public-profile-hooked/browser.log": "a62e1356a02ab791143e6edd3a5d0a0226a557472d0ee70b0f7b0134b0ad279d",
+    "public-profile-hooked/screen-6.png": "70b3c8f61502fe35592b12b3ef5c4d78c9ab6697581cc668c3b4d908259da5ac",
+    "public-profile-hooked/screen-20.png": "ede5599658f9d045098d0d389ae175a0719f0587a004703c77b390baee94ab8b",
+    "public-profile-hooked/screen-3.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+    "public-profile-hooked/screen-16.png": "b0025db81ee77178e0846115a2fc76956bcddedb8c0c84ea33bf4a829073fe5e",
+    "public-profile-hooked/screen-10.png": "1aebb429f289ab2534e2cb743459a327d1751c2a846ae906fb5d521a5aa390ec",
+    "public-profile-hooked/worker-13-part-0.cpuprofile": "342f73c378569475bcdafcdef9999f26112c23f7143fb4d31abdd07fa82f7fcc",
+    "public-profile-hooked/screen-14.png": "a498f7a90e09ccbb4c0c11a64f7f7786472c0d4c0aadd121215d4b8ef8dcac58",
+    "public-profile-hooked/report.json": "9d521237aeae00bb71073b45edd589a4c5f7183dec0edccace8df539df5862fd",
+    "public-profile-hooked/screen-0.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+    "public-profile-hooked/aggregated.json": "3c814e85d68b9116fb964a2039ba3cbb7cd39d1b217ab90477a8ebf1703c4b3c",
+    "public-profile-hooked/screen-8.png": "3f996c43c9c418dc7d1e2e69dc52e7cb3bf610b493696a5f8deec9c79da45185",
+    "public-profile-hooked/screen-1.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+    "public-profile-hooked/screen-13.png": "2336c9392d8a03de83bae2804cb4c28ce905b843a4ef78e6b536c0036a5ce943",
+    "public-profile-hooked/screen-22.png": "f240a06cab9cd8d436a42d05143c5025b5347a967b3fbe0072d42e3fd4ed0378",
+    "public-profile-hooked/screen-18.png": "978efb9687fd95c8efccc9e90f84e357c47a1e552eabd289aabb30d537d1d05a",
+    "public-profile-hooked/screen-5.png": "5ecc77e657ba4e4506a7877bd2de9280fb0d1b4a63fdcc69bb1caaaabaf5d263",
+    "public-profile-hooked/screen-21.png": "866eb15e72f42ff531d64ad38f22d520d8326762a28ccf3da6e1b7d38460ab71",
+    "runtime-baseline-hooked-a/costa-rica-stationary-tutorial-dismissed.json": "ac459e07d34fc09835d9b266721d50ed6feb0b3b8a84e81a56a307bca243eab0",
+    "runtime-baseline-hooked-a/boat.png": "d1b18d38eb6e23f74727e9c4b253fc0aaa68d706175497a9196f54fe4e7bce49",
+    "runtime-baseline-hooked-a/fishing-pause.png": "bd0bfb8ff2f602404c36baa305078323ac1488c87e3ac0f487d4c79c120bd98a",
+    "runtime-baseline-hooked-a/client.png": "c78620cc9a0294a69b04062656c300a0d1b231053ce0e431111be1a79ad33af7",
+    "runtime-baseline-hooked-a/steps.log": "57f854b039785868c3d8d0cf7f6490c7aa80b9bf35565dd05de02e203cb1cfe5",
+    "runtime-baseline-hooked-a/fishing-help.png": "4ddcd9a968cc585d501741e513dbe80c004b0753864e265df4018e6c29820226",
+    "runtime-baseline-hooked-a/costa-rica-stationary-tutorial-dismissed-end.png": "b09e83b18112e032ee25f1a7bc0224f5d2ead1e5371eddc66dd1095373752a25",
+    "runtime-baseline-hooked-a/browser.log": "94e332ebcfde785fb0d7f0b88ae58c314b924b12bd99bbf1afab3d1bc2da900b",
+    "runtime-baseline-hooked-a/boat-after-tutorial.png": "bdd740f1eee796b77cf1c2d80f8ccf8064657d82504749ac5bbd581a75806eca",
+    "runtime-baseline-hooked-a/restart.png": "d6a57fb97a09e5189681131f145be4f090303e846a37ad4c9178ea4de9f7b321",
+    "runtime-baseline-hooked-a/language.png": "14280675541e8840f48eca1e232b88b67479082411b7bc6057f22d50651e2145",
+    "runtime-baseline-hooked-a/costa-rica-stationary-tutorial-dismissed-start.png": "bdd740f1eee796b77cf1c2d80f8ccf8064657d82504749ac5bbd581a75806eca",
+    "runtime-baseline-hooked-a/menu.png": "0e4d85c82e6807d7d2f11d69a14a5b41da529aa198c17508ae8ec8ccd46785c4",
+    "runtime-baseline-hooked-a/main.png": "8fc70eca542f57528d27b130e6e0c1d1655531cd6de25e69e9444becfd4fa25d",
+    "runtime-baseline-hooked-a/name.png": "453a7bb432d99985249dc032a0729a313999f160d36c65aeed43307072c59fcc",
+    "runtime-candidate-hooked-a/costa-rica-stationary-tutorial-dismissed.json": "33fae74652bce783004275faf4dd93cb491a2c42528f22019de25740bc5a76b1",
+    "runtime-candidate-hooked-a/boat.png": "d9a19d5cb14e188f949c02beae4fd2891090b083e1e56dea07d177bf767af5e2",
+    "runtime-candidate-hooked-a/fishing-pause.png": "217a627120d40d50b1b88e8a39f5b783c1a4530bada70d6395c0cd69d505eb72",
+    "runtime-candidate-hooked-a/client.png": "1be5fc928de0f8f42c883bf1728b2395e6d090be82da3c6d6b1242ad239ec02c",
+    "runtime-candidate-hooked-a/steps.log": "57f854b039785868c3d8d0cf7f6490c7aa80b9bf35565dd05de02e203cb1cfe5",
+    "runtime-candidate-hooked-a/fishing-help.png": "f1a55c0b39ffcb6828590913d75e9879fcb069dad77e66e564af3a8a5e87020f",
+    "runtime-candidate-hooked-a/costa-rica-stationary-tutorial-dismissed-end.png": "cac0a49c4014d6998e7f705237d5c1589b1e88ebef4c3cf3f71d31a8d9d19a43",
+    "runtime-candidate-hooked-a/browser.log": "8af84cfef85e14c950e87da0183cdeb9562120fc00220a300a44692b7005e894",
+    "runtime-candidate-hooked-a/boat-after-tutorial.png": "42d1b0130a6bae9b198231cede252dda7d496e66b9e9a872e0e6c3dda87d3e98",
+    "runtime-candidate-hooked-a/restart.png": "a99f44e510c69d65eb30aefb6273f2b8d5b1b7c95d115dd30f98b7fffe855a63",
+    "runtime-candidate-hooked-a/language.png": "e957342d16c4e67ba4b1669681eee231287b18d0cabf3c0918f38496e9b6942f",
+    "runtime-candidate-hooked-a/costa-rica-stationary-tutorial-dismissed-start.png": "42d1b0130a6bae9b198231cede252dda7d496e66b9e9a872e0e6c3dda87d3e98",
+    "runtime-candidate-hooked-a/menu.png": "32c87715e336a0e5e960eb1d8b8674b0ff6364a36a622d029d92ab7afc6e0167",
+    "runtime-candidate-hooked-a/main.png": "e9dc004b8c0f8179fec63435e08e8d040337b17400dc038378960d93de821070",
+    "runtime-candidate-hooked-a/name.png": "3ee9cbe0e1b35659f71ee6f5b21e327d53545460851d458fde965d3353c9f786",
+    "runtime-candidate-tetris-a/client.png": "b5c0f8ba2a3ba7a2e70898fcd569b2320c1b153a089d6864d7abf35e14be8e13",
+    "runtime-candidate-tetris-a/steps.log": "b6df11977b087fd097eabe8dae35ee63db116005c137f6d5645c087e8df09f21",
+    "runtime-candidate-tetris-a/start.png": "0a7688f0bc1817acbc9dc3e2f401e100fe8aa5434abff99a52165c804d4a399e",
+    "runtime-candidate-tetris-a/marathon-level-1-end.png": "92c4bf42ca059fe5aafafd385a7c69b8f6b1ae23e22e5983e566e6eafd435b88",
+    "runtime-candidate-tetris-a/browser.log": "69ced87cb951eb7fd312c94f5b0309983a23292c0254597232a01f187dca2ef7",
+    "runtime-candidate-tetris-a/marathon-level-1.json": "158a5e138ab43f9cde785d892986ade9ce70c316b9a4a58f8b6c1d3f42b3cec0",
+    "runtime-candidate-tetris-a/marathon.png": "78d74739ec04b28680aeecbd47c94392a60570a40eb84ed36cd0491eeb71ebfa",
+    "runtime-candidate-tetris-a/marathon-level-1-start.png": "ac72073ebe924e50eff3228463f0a14701f65545d91ed8d126d85734c714363d",
+    "runtime-candidate-tetris-a/board.png": "5763ea37aaddddf557a4a34a784c0df09d82f9e5de67487e4455aa77eb9fef24",
+    "runtime-candidate-asphalt3-a/failure.json": "9d30521dcf718e26ce37a2e4fcdbc23c944b1ba93dae288d43f1e1ff9f76bfdd",
+    "runtime-candidate-asphalt3-a/client.png": "1c1fd112965e477075c27aeddd82812f2c77465361a44b2e172fb89a9f228c06",
+    "runtime-candidate-asphalt3-a/race-hud.json": "66c47e3954456d7838f61fa55ddef2aaadcb967fa59a59e10fdc8471d078008f",
+    "runtime-candidate-asphalt3-a/steps.log": "4488c38599f2c8b2f71a5f60f537e0f4ccf917511dfc8505e2a4f40d76802144",
+    "runtime-candidate-asphalt3-a/sound-yes-menu.png": "427a466d49e5a808f57fedf8e15d91adb995b7342159fd7edb2d882baa857e9e",
+    "runtime-candidate-asphalt3-a/launch3.png": "7db3533271b6a0e595d67220c67d588f2d79f5deafbc28a8ae4e822673ea0ec3",
+    "runtime-candidate-asphalt3-a/launch8.png": "6c72a2de2704e9269ccbee62003ddc507c3d0cc70494e10ccb71bd6a0f336d82",
+    "runtime-candidate-asphalt3-a/sound-prompt.png": "1504c435a9ee59b170afb588d16d7a228d704b1aaf4add16d608fc4683b9466c",
+    "runtime-candidate-asphalt3-a/browser.log": "4f1f83f0f83d76cb8fcd87ac8c6ed588c28f95b4cf380962f3ad1d39fc649e4e",
+    "runtime-candidate-asphalt3-a/language.png": "1f392a6e87d35790130e35f11fc110a91440045a6b030625e39071d67690356e",
+    "runtime-candidate-asphalt3-a/instant-play-driving-sound-on-start.png": "33b7d05b0baa9b72ec3ac3ab0052b0da0a48fbaabce9dfd71de457d66003d2df",
+    "runtime-candidate-asphalt3-a/title.png": "8c43e39eff8ed18ace63f60d1b3eb06a505760033d3af38ddf3ed832c82cd171",
+    "runtime-candidate-asphalt3-a/race.png": "db281df2a5fc1076b27445bc21555baa13c7f06d594a03e4821c2314fb236c11",
+    "runtime-candidate-asphalt3-b/failure.json": "06dac1bacc463994b988e749df543a9bd911e462728147a910c549888e0eac8e",
+    "runtime-candidate-asphalt3-b/race-after-confirm.png": "06de734f17183e08ea6ae6e1932d7939638257ddbc6edb7fb4f025eb296993de",
+    "runtime-candidate-asphalt3-b/client.png": "ba7da935ce7b37f46cd2a6c1cc8ed4b38aa1841c1319f7407330fc9e95c6f6f2",
+    "runtime-candidate-asphalt3-b/race-hud.json": "bd3c6f8fdf6decb1a572ee09cd7171340d558dd6d8f326484ea8c7fd03496339",
+    "runtime-candidate-asphalt3-b/steps.log": "f3e964d0e1c7fc70a87bafc19b0885cf89b5e802de0111d2cf8b7720e391b445",
+    "runtime-candidate-asphalt3-b/sound-yes-menu.png": "66d8f5e15a93248cee720af62624ba903fe190e20535af889703e59bb7163d4a",
+    "runtime-candidate-asphalt3-b/launch3.png": "2d08428bd15a8f1a2098f195f2fbc784138931ccda53587aa10c27bc0b4c4de1",
+    "runtime-candidate-asphalt3-b/launch8.png": "794fc396048d0884f36a3d5b1994c716ce7a2d887c9fa0d0634816297ff775ed",
+    "runtime-candidate-asphalt3-b/sound-prompt.png": "b8a110a6398a66fd34ab40d19cea0408f4c0894b5d58b1e25d33c09c7ee4c6cb",
+    "runtime-candidate-asphalt3-b/browser.log": "d323af72b989449225ef9d212c3bf5b031b5bc8b07c5aa940c9fff8e60bf0b18",
+    "runtime-candidate-asphalt3-b/language.png": "ba0400f4213ebdb66aad3b3389d8f986c6c591e75ce04aa52da05ffd75f69358",
+    "runtime-candidate-asphalt3-b/instant-play-driving-sound-on-start.png": "d203b9422de9b18d337d3556c03c98a491a0a768bb9c2586fc4915f637653292",
+    "runtime-candidate-asphalt3-b/title.png": "4945b4e91a1812cf5f73ec2729c76ec62e787c205434b539d7fe96db07fba19a",
+    "runtime-candidate-asphalt3-b/race.png": "ebcdefaabda30df9c747ffe0688d6b29a87d1801c14eb3b511ae0cb838605958",
+    "runtime-candidate-asphalt3-interactive/after-start.png": "e4ae97ab28956c03871528891684cdd240991baa1bc8b3e18dff06578095cb01",
+    "runtime-candidate-asphalt3-interactive/route-times.jsonl": "a9e3f54ad9c034bd28ad50bf05c658792614ed54707f904f98951f1917a88a94",
+    "runtime-candidate-asphalt3-interactive/instant-play-driving-sound-on.json": "c4d30b75a1a24bbfd6d8ccc9cc04d763acaf346cd58eab8c3481d04c60a49fdc",
+    "runtime-candidate-asphalt3-interactive/installed.png": "cf0bbc9da220d20c4a0f6fafa2cd71a699497053d683521ec9bdeb533222b360",
+    "runtime-candidate-asphalt3-interactive/launched.png": "b67b867e366941660b0f7390dd263d724ce35be027742d6ccab0a467c7fade77",
+    "runtime-candidate-asphalt3-interactive/race-hud.json": "67913bd89b6061c98d103d7625ed17438cd14e3d4d1aec912fb0ac17b254b8bc",
+    "runtime-candidate-asphalt3-interactive/steps.log": "bb87984301f65dd5a546c929b81bd6d4fae7b57430e066d683258f466bf37d23",
+    "runtime-candidate-asphalt3-interactive/language-selected.png": "92ca15f3025ce43b80582b9f557932aa98751b9e73870145b6ad664872407ec8",
+    "runtime-candidate-asphalt3-interactive/sound-yes.png": "c44c1290aacc1e6d69cc38ebab4d984a4df4952f54b7907846a3df36f7d92fa1",
+    "runtime-candidate-asphalt3-interactive/instant-play.png": "e71599af46fee8f9fe5967604d37fd45c9b8c081c97549d8679ef2ab04d07d25",
+    "runtime-candidate-asphalt3-interactive/instant-play-driving-sound-on-end.png": "0b1dfa1d47fa55a6e1bb65dc2a72242093c1a3af12066eaad5160158616da98a",
+    "runtime-candidate-asphalt3-interactive/browser.log": "356d27400b1abedf3f338fd7d151b84ec6a6b39109e68d3f460c023d3e0d68dd",
+    "runtime-candidate-asphalt3-interactive/instant-play-driving-sound-on-start.png": "257e0e0c13f60f4d4f3d1901c5fd385584c4186e8db0c2c04cd3896200d58da0",
+    "runtime.mjs": "42e2a948638d48802b1369c386eb89a7bddda1392c19918d0daae4c4e2d88a28",
+    "compat-runtime.mjs": "b6f80c84cf2de5f5a0043b7c0be39c32d487fdde50604345c13273dfd26ae326",
+    "interactive.mjs": "31b1d3811f38791bb94f984baf7f67f6d00ce3b675cb3add7eb94889da8596a2",
+    "routes.json": "5a1fc08dd9a9ed71347c880642284d24189abb43287d51ea808ca8ced6189c9d",
+    "compat-routes.json": "300be3b53bffc8a77e0a4153b7687cfd5a5aee986e93161ab0836cb6de57d1c8",
+    "startup-profile.mjs": "9a7227fddbd86d1926a0cd7cdb786c0a8cbe4c08b9327336b43a97a6e47bcd9f",
+    "ctest.log": "29e8335f6420c4c4838698fc80c3706c6d8fbc93673099a1acc84e9b06042ff6",
+    "build-wasm.log": "b1b097e81f6e600ca61db7fd925086b413a50007c2480a8265a9f6990582939f",
+    "build-native.log": "4f682867eacc1c38ad6467cd80793d1421c1d3ee4ef1a5cf0cf7518134b87528"
+  },
+  "failed_route_resolution": "Both automated Asphalt 3 routes ended in menus and were rejected by the racing-HUD assertion. Visually guided key presses reached Instant Play with sound enabled, passed the HUD assertion, and completed the recorded compatibility window without errors.",
+  "tetris_controls": {
+    "installation_complete": "L / F1 activates Start Game",
+    "menu": "Select / Enter selects Single-player and Marathon",
+    "tutorial": "L / F1 advances Next pages; Select / Enter starts the board",
+    "proof": "/home/claude/.scratch/eka-swi-hash-bypass-20261012/runtime-candidate-tetris-a/marathon-level-1-end.png"
+  }
+}

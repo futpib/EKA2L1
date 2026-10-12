@@ -69,7 +69,10 @@ filesystem handoff waits, guest hashing, compilation and mapping work on the
 deployed build, with a focused repeat to reduce profiler disturbance.
 The [post-WasmFS profile repeat](HOOKED_POST_WASMFS_PROFILE.md) confirms removal
 of those waits and separates early compilation, subsequent guest hashing and
-late mapping maintenance on the current deployed artifact.
+late mapping maintenance on its captured artifact.
+The [SWI hash-bypass results](SWI_FILE_HASH_BYPASS_RESULTS.md) measure skipping
+installed-file verification and profile the deployed build again. Compilation
+and memory-view maintenance remain the largest active startup categories.
 
 - The native benchmark clock advances from executed instructions (one synthetic cycle per instruction, 484 MHz at the default clock), with at most 4,840 instructions per dispatch. This is a reproducible clock model, not a hardware cycle-accuracy claim.
 - When no guest thread is runnable, execution jumps to the next scheduled event. There is no real-time timer thread or host vsync pacing.

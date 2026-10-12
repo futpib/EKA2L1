@@ -20,6 +20,7 @@
 #include <dispatch/dispatcher.h>
 #include <dispatch/libraries/register.h>
 #include <dispatch/libraries/featmgr/register.h>
+#include <dispatch/libraries/securitymanager/register.h>
 #include <dispatch/libraries/sysutils/register.h>
 #include <dispatch/libraries/egl/register.h>
 #include <dispatch/libraries/gles1/register.h>
@@ -49,6 +50,9 @@ namespace eka2l1::dispatch::libraries {
             }
         } else if (kern->get_epoc_version() >= epocver::epoc91) {
             config::state *conf = kern->get_config();
+
+            disp->patch_libraries(u"Z:\\Sys\\Bin\\securitymanager.dll", SECURITYMANAGER_PATCH_INFOS,
+                SECURITYMANAGER_PATCH_COUNT);
 
             if (kern->get_epoc_version() == epocver::epoc91) {
                 disp->patch_libraries(u"Z:\\Sys\\Bin\\FEATMGR.DLL", FEATMGR_PATCH_INFOS, FEATMGR_PATCH_COUNT);
