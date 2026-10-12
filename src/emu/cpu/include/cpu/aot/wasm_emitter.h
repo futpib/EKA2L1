@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
 #include <memory>
 #include <map>
@@ -157,13 +158,15 @@ namespace eka2l1::arm::aot {
         std::size_t end, std::size_t destination, source_marks &to) {
         if (begin == end || from.empty()) return;
         source_mark active{0, 0, source_kind::unknown};
-        for (const auto &mark : from) {
-            if (mark.offset <= begin) active = mark;
-            else break;
-        }
+        // Marks follow emission order. Find the active mark once, then visit
+        // only this range, even when a function has many deferred barriers.
+        const auto first = std::upper_bound(from.begin(), from.end(), begin,
+            [](std::size_t offset, const source_mark &mark) { return offset < mark.offset; });
+        if (first != from.begin()) active = *(first - 1);
         active.offset = static_cast<std::uint32_t>(destination);
         to.push_back(active);
-        for (auto mark : from) if (mark.offset > begin && mark.offset < end) {
+        for (auto it = first; it != from.end() && it->offset < end; ++it) {
+            auto mark = *it;
             mark.offset = static_cast<std::uint32_t>(destination + mark.offset - begin);
             to.push_back(mark);
         }

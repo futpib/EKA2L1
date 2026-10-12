@@ -3,6 +3,7 @@
 #include <cassert>
 #include <fstream>
 #include <iostream>
+#include <random>
 
 using namespace eka2l1::arm::aot;
 
@@ -26,6 +27,37 @@ int main(int argc, char **argv) {
     assert(copied[1].offset == 2 && copied[1].pc == 20);
     copy_source_marks(marks, 9, 12, 5, copied);
     assert(copied.back().offset == 5 && copied.back().pc == 30);
+
+    // Compare against the original linear definition, including duplicate
+    // offsets, gaps, empty intervals and ranges beyond the final mark.
+    std::mt19937 random(0xeca210);
+    for (unsigned trial = 0; trial < 10000; ++trial) {
+        source_marks input, expected{{0, 7, source_kind::helper}}, actual = expected;
+        std::uint32_t offset = random() % 5;
+        for (unsigned i = 0, count = random() % 100; i < count; ++i) {
+            offset += random() % 4;
+            input.push_back({offset, static_cast<std::uint32_t>(random()), static_cast<source_kind>(random() % 8)});
+        }
+        const std::size_t begin = random() % (offset + 10), end = begin + random() % 100;
+        const std::size_t destination = random() % 500;
+        if (begin != end && !input.empty()) {
+            source_mark active{0, 0, source_kind::unknown};
+            for (const auto &mark : input) {
+                if (mark.offset <= begin) active = mark;
+                else break;
+            }
+            active.offset = destination; expected.push_back(active);
+            for (auto mark : input) if (mark.offset > begin && mark.offset < end) {
+                mark.offset = destination + mark.offset - begin; expected.push_back(mark);
+            }
+        }
+        copy_source_marks(input, begin, end, destination, actual);
+        assert(actual.size() == expected.size());
+        for (std::size_t i = 0; i < actual.size(); ++i) {
+            assert(actual[i].offset == expected[i].offset && actual[i].pc == expected[i].pc
+                && actual[i].kind == expected[i].kind);
+        }
+    }
 
     wasm_func_def cached;
     cached.num_locals = 1;
