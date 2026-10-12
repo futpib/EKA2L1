@@ -24,6 +24,7 @@
 #include <cpu/aot/code_cache.h>
 #include <cpu/aot/exit_census.h>
 #include <cpu/aot/execution_limits.h>
+#include <cpu/aot/hot_entries.h>
 #include <common/performance.h>
 #include <common/deterministic.h>
 #include <common/guest_profile.h>
@@ -71,7 +72,7 @@ static std::unordered_map<std::uint64_t, unsigned> ram_counts;
 static const std::uint8_t *hot_rom = nullptr;
 static std::uint64_t hot_dispatches = 0;
 static std::uint32_t hot_compiled = 0;
-static std::unordered_map<std::uint32_t, unsigned> hot_counts;
+static rom_entry_counts hot_counts;
 static std::vector<wasm_func_def> hot_pending;
 struct precompile_image {
     std::uint32_t space, base, size;
@@ -328,11 +329,7 @@ static void compile_at(core &cpu, std::uint32_t key, std::vector<std::uint32_t> 
     }
     if (global_registry().lookup(key)) return;
     if (!successors && hot_compiled >= 4096) return;
-    if (!successors && hot_counts.size() >= 65536 && !hot_counts.count(key)) return;
-    auto &count = hot_counts[key];
-    if (count >= 8) return; // one attempt per immutable entry
-    if (successors) count = 8;
-    else if (++count != 8) return;
+    if (!hot_counts.ready(key, successors != nullptr)) return;
     const auto offset = pc - hot_rom_base;
     const auto size = std::min(primary_window_bytes, hot_rom_size - offset);
     const code_window immutable_code{hot_rom, hot_rom_base, hot_rom_size};

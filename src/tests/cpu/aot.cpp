@@ -23,6 +23,7 @@
 #include <cpu/dyncom/arm_dyncom.h>
 #include <cpu/aot/aot_registry.h>
 #include <cpu/aot/code_cache.h>
+#include <cpu/aot/hot_entries.h>
 #include <common/guest_profile.h>
 #include <cpu/dyncom/arm_dyncom_dec.h>
 #include <common/performance.h>
@@ -172,6 +173,32 @@ namespace {
 }
 
 // --- Test: AOT registry basics ---
+
+TEST_CASE("Eager ROM entries preserve bounded runtime discovery", "[aot]") {
+    eka2l1::arm::aot::rom_entry_counts entries(3);
+    for (unsigned key = 100; key < 200; ++key) {
+        REQUIRE(entries.ready(key, true));
+        REQUIRE_FALSE(entries.ready(key, true));
+        REQUIRE_FALSE(entries.ready(key, false));
+    }
+    for (unsigned key = 0; key < 3; ++key) {
+        for (unsigned sample = 0; sample < 7; ++sample) REQUIRE_FALSE(entries.ready(key, false));
+        REQUIRE(entries.ready(key, false));
+        REQUIRE_FALSE(entries.ready(key, false));
+        REQUIRE_FALSE(entries.ready(key, true));
+    }
+    for (unsigned sample = 0; sample < 16; ++sample) REQUIRE_FALSE(entries.ready(3, false));
+    REQUIRE(entries.ready(3, true));
+    entries.clear();
+    REQUIRE_FALSE(entries.ready(100, false));
+    REQUIRE(entries.ready(100, true));
+    REQUIRE_FALSE(entries.ready(100, false));
+    for (unsigned key = 200; key < 202; ++key) {
+        for (unsigned sample = 0; sample < 7; ++sample) REQUIRE_FALSE(entries.ready(key, false));
+        REQUIRE(entries.ready(key, false));
+    }
+    REQUIRE_FALSE(entries.ready(202, false));
+}
 
 TEST_CASE("aot_registry_basic", "[aot]") {
     eka2l1::arm::aot::registry reg;
