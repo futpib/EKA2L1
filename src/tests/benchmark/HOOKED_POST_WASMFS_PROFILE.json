@@ -1,0 +1,2323 @@
+{
+  "source_commit": "578ccc6148073490d439a71465d613326da732d6",
+  "branch": "wasm-port",
+  "public_url": "https://claude-laptop.lan:8188/",
+  "started": "2026-10-12T21:31:46.645Z",
+  "wasm_sha256": "7f827a1c1810c629329dc32fd587fd85efe10f181e99a229a36be2b150564257",
+  "scope": "Fresh normal-paced Hooked On installation after WasmFS adoption. Profiling only; production code and deployment unchanged. Warm server assets, fresh browser HTTP cache and guest installation. Internet/IPFS download excluded.",
+  "browser": "Chrome/153.0.8010.52",
+  "cpu_model": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+  "gpu_backend": "ANGLE_VULKAN",
+  "sampling_interval_us": 1000,
+  "profiled_threads": [
+    "page",
+    "worker-13"
+  ],
+  "worker_identity": "execute_chain, InterpreterMainLoop and generated f_/r_ stacks observed",
+  "installation_complete_ms": 63952.452510999996,
+  "first": {
+    "runtime": 266.6950001716614,
+    "running": 3421.1500000953674,
+    "first": {
+      "ms": 6853.715000152588,
+      "frames": 1,
+      "monitor": {
+        "guest_us": 1090291,
+        "instructions": 0,
+        "compiled_functions": 27219,
+        "aot_translation_us": 2756148,
+        "aot_emission_us": 178333,
+        "aot_installation_us": 342743,
+        "aot_eager_functions": 20694,
+        "aot_eager_passes": 7,
+        "allocated_bytes": 1007088032,
+        "free_bytes": 41204512
+      }
+    }
+  },
+  "completion_screenshot": "/home/claude/.scratch/eka-post-wasmfs-profile-20261012/hooked-on/screen-28.png",
+  "screenshot_review": "Installation complete screen confirmed",
+  "errors": [],
+  "profile_errors": [],
+  "policy": {
+    "requested": {
+      "watchdogUs": 2000,
+      "unsafeCode": 3,
+      "memoryImpl": 2
+    },
+    "applied": true,
+    "observed": {
+      "unsafeCode": 3,
+      "memoryImpl": 2
+    }
+  },
+  "final_monitor": {
+    "guest_us": 54129609,
+    "instructions": 0,
+    "compiled_functions": 98912,
+    "aot_translation_us": 9321589,
+    "aot_emission_us": 615347,
+    "aot_installation_us": 1491582,
+    "aot_eager_functions": 87742,
+    "aot_eager_passes": 91,
+    "allocated_bytes": 1816314688,
+    "free_bytes": 210164096
+  },
+  "assets": {
+    "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+    "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+    "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+    "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+    "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+    "/preload/games/k-rally": "/preload/games/k-rally?v=e93abd790e7c5b05427e5e141f34532b329982e89f1a0112c856b59eb03db9e4",
+    "/preload/games/asphalt-2": "/preload/games/asphalt-2?v=d55bb082f53deb40b3b4d9f7440b7eb7b7087a648eabc8c8c9cdf1b8aa756b40",
+    "/preload/games/hooked-on": "/preload/games/hooked-on?v=ce8eeb53432f735ac2b2343290fb31ce37646f6231edc35610c0b07596d043f6",
+    "/preload/games/asphalt-3": "/preload/games/asphalt-3?v=53e38bf8770d9b98e49b263ee4d376cb6c49aea8ef646da8ae8e00a41cde9b6e",
+    "/preload/games/tetris": "/preload/games/tetris?v=71a6218eb6e6ace77fb2b85e850d5ac7f18fb1f7eaaa2c89df7b54412a8ba052",
+    "/preload/games/super-miners": "/preload/games/super-miners?v=3c48a19cbc061e40778a05b03002768d9014481c7ac290a69b12cf004bdc8e7c",
+    "/preload/games/explode-arena": "/preload/games/explode-arena?v=2d47263342b3adc72fa9d8c1206bcb00c487adde40e282e6b29c6c813ffa8587",
+    "/preload/games/pathway-to-glory": "/preload/games/pathway-to-glory?v=a67248caad9d78dee3dbe5f63ada1236eb068caea6b4341c3caf772c5b48947d",
+    "/preload/games/hooked-on/ngage": "/preload/games/hooked-on/ngage?v=a52da7a5d3d9f7ebd3eb81e49e3294d8998060f7cc2539fe955b8bfe14e1745c",
+    "/preload/games/hooked-on/runtime": "/preload/games/hooked-on/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+    "/preload/games/asphalt-3/ngage": "/preload/games/asphalt-3/ngage?v=afe7964b0968acc8c45908ac6abd48b25e1b171dd1abea1d07a098209c250093",
+    "/preload/games/asphalt-3/runtime": "/preload/games/asphalt-3/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+    "/preload/games/tetris/ngage": "/preload/games/tetris/ngage?v=37222257e26cfc1b1bbc1f0dbb684b04fd569e3638c2fbb58f44fe7fe7446569",
+    "/preload/games/tetris/runtime": "/preload/games/tetris/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+    "/preload/games/explode-arena/rom": "/preload/games/explode-arena/rom?v=cb062dc84820b728a60b525115049b250e3f4912638a777d49edef79972c4e0e",
+    "/preload/games/explode-arena/rpkg": "/preload/games/explode-arena/rpkg?v=c40beb14d3ca4a530b7d59133b52ed28b650d1a12dd07a982df14a22d6ee1aa4",
+    "/preload/games/pathway-to-glory/rom": "/preload/games/pathway-to-glory/rom?v=582a049f9e573c0245441ddb01bb5b3db76ede7677ec05cafc16f314a02ef6ef",
+    "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+    "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+    "/eka2l1.data": "/eka2l1.data?v=8b7dd0983892bd09e5a12b06788a7a4073a8431d87890ffd2c8519dc1bbaadba",
+    "/eka2l1.js": "/eka2l1.js?v=f4484572fc7e47995105c66937caad36936e5586dbae24c491ad804a697794f6",
+    "/eka2l1.wasm": "/eka2l1.wasm?v=7f827a1c1810c629329dc32fd587fd85efe10f181e99a229a36be2b150564257",
+    "/touch-controls.css": "/touch-controls.css?v=b27bf7a794232427da4c47351f4f77d4765a95e2c767141dff027e269166bb98",
+    "/touch-controls.js": "/touch-controls.js?v=1b9f560af28e4d5bcaf0aa2695ac5435d7a411d1d7a89dea3b011b6de75aecac"
+  },
+  "profiles": [
+    {
+      "name": "page",
+      "url": "https://claude-laptop.lan:8188/",
+      "request_ms": 1.0277189999999337,
+      "started_ms": 3.8774859999999762,
+      "files": [
+        {
+          "file": "page-part-0.cpuprofile",
+          "stop_ms": 28263.317136,
+          "startTime": 1127568737765,
+          "endTime": 1127596941497,
+          "samples": 26382
+        },
+        {
+          "file": "page-part-1.cpuprofile",
+          "stop_ms": 49810.616488,
+          "startTime": 1127596987161,
+          "endTime": 1127618521139,
+          "samples": 20140
+        },
+        {
+          "file": "page-part-2.cpuprofile",
+          "stop_ms": 67108.619417,
+          "startTime": 1127618534415,
+          "endTime": 1127635822477,
+          "samples": 16175
+        }
+      ]
+    },
+    {
+      "name": "worker-13",
+      "url": "https://claude-laptop.lan:8188/eka2l1.js?v=f4484572fc7e47995105c66937caad36936e5586dbae24c491ad804a697794f6",
+      "request_ms": 128.97610300000008,
+      "started_ms": 171.89187700000014,
+      "files": [
+        {
+          "file": "worker-13-part-0.cpuprofile",
+          "stop_ms": 28327.412142,
+          "startTime": 1127568880756,
+          "endTime": 1127596941445,
+          "samples": 26568
+        },
+        {
+          "file": "worker-13-part-1.cpuprofile",
+          "stop_ms": 49864.653765999996,
+          "startTime": 1127597051058,
+          "endTime": 1127618521137,
+          "samples": 19913
+        },
+        {
+          "file": "worker-13-part-2.cpuprofile",
+          "stop_ms": 67189.34839,
+          "startTime": 1127618588278,
+          "endTime": 1127635822425,
+          "samples": 15973
+        }
+      ]
+    }
+  ],
+  "sampled_us": 63602324.6340332,
+  "categories_us": {
+    "other active": 6370714,
+    "(idle)": 3211809,
+    "(program)": 44722,
+    "ARM translation / module preparation subtree": 10522374,
+    "memory view subtree": 7395836,
+    "execute_chain self (includes inlined work)": 5726464.634033203,
+    "interpreter outer loop self (includes inlined work)": 3419015,
+    "generated guest (self)": 14519308,
+    "parked": 12392082
+  },
+  "waits_us": {
+    "graphics": 337663,
+    "other wait": 57538,
+    "sleep/pacing": 11996881
+  },
+  "proxy_wait_syscalls_us": {},
+  "worker_top_self": [
+    [
+      "emscripten_futex_wait",
+      12392082
+    ],
+    [
+      "std::__2::__function::__func<eka2l1::mem::mmu_base::mmu_base(eka2l1::mem::control_base*, eka2l1::arm::core*, eka2l1::config::state*)::$_0, std::__2::allocator<eka2l1::mem::mmu_base::mmu_base(eka2l1::mem::control_base*, eka2l1::arm::core*, eka2l1::config::state*)::$_0>, unsigned long (bool)>::operator()(bool&&)",
+      7300118
+    ],
+    [
+      "eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))",
+      5726464.634033203
+    ],
+    [
+      "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+      3419015
+    ],
+    [
+      "(idle)",
+      3211809
+    ],
+    [
+      "eka2l1::arm::aot::state_local_cache::finish(eka2l1::arm::aot::wasm_func_def&, bool)",
+      2278223
+    ],
+    [
+      "emscripten_builtin_malloc",
+      1419904
+    ],
+    [
+      "eka2l1::arm::aot::emit_thumb_block(eka2l1::arm::aot::translate_result&, eka2l1::arm::aot::emit&, unsigned char const*, unsigned long, unsigned int, std::__2::unordered_map<unsigned int, unsigned int, std::__2::hash<unsigned int>, std::__2::equal_to<unsigned int>, std::__2::allocator<std::__2::pair<unsigned int const, unsigned int>>> const*, eka2l1::arm::aot::code_window const*, bool, bool, eka2l1::arm::aot::code_window const*, unsigned int, eka2l1::arm::aot::thumb_fusion_context*)",
+      1110927
+    ],
+    [
+      "emscripten_builtin_free",
+      1072569
+    ],
+    [
+      "Module",
+      942855
+    ],
+    [
+      "f_2149216519",
+      729956
+    ],
+    [
+      "__pthread_mutex_unlock",
+      493873
+    ],
+    [
+      "f_2156287987",
+      474645
+    ],
+    [
+      "eka2l1::arm::aot::lookup_compiled(ARMul_State*)",
+      459305
+    ],
+    [
+      "js_instantiate_aot_module",
+      353919
+    ],
+    [
+      "void std::__2::__tree_balance_after_insert[abi:ne200100]<std::__2::__tree_node_base<void*>*>(std::__2::__tree_node_base<void*>*, std::__2::__tree_node_base<void*>*)",
+      331796
+    ],
+    [
+      "_emscripten_get_now",
+      330916
+    ],
+    [
+      "eka2l1::arm::aot::build_wasm_module(std::__2::vector<eka2l1::arm::aot::wasm_func_def, std::__2::allocator<eka2l1::arm::aot::wasm_func_def>> const&, std::__2::vector<eka2l1::arm::aot::wasm_import_func, std::__2::allocator<eka2l1::arm::aot::wasm_import_func>> const&)",
+      323151
+    ]
+  ],
+  "filesystem_examples_inclusive_us": [
+    [
+      "__syscall_newfstatat",
+      743192
+    ],
+    [
+      "wasmfs::path::getFileAt(unsigned int, std::__2::basic_string_view<char, std::__2::char_traits<char>>, int)",
+      731426
+    ],
+    [
+      "__wasi_fd_seek",
+      44948
+    ]
+  ],
+  "guest_modules_us": [
+    [
+      "z:/Sys/Bin/hash.dll",
+      9191703
+    ],
+    [
+      "z:/Sys/Bin/EUser.dll",
+      2588048
+    ],
+    [
+      "z:/Sys/Bin/EStor.dll",
+      892022
+    ],
+    [
+      "z:/Sys/Bin/EZLib.dll",
+      750070
+    ],
+    [
+      "z:/Sys/Bin/EDbms.dll",
+      209207
+    ],
+    [
+      "unresolved",
+      197607
+    ],
+    [
+      "z:/Sys/Bin/DRTAEABI.dll",
+      89246
+    ],
+    [
+      "z:/Sys/Bin/Cone.dll",
+      83677
+    ],
+    [
+      "z:/Sys/Bin/EFSrv.dll",
+      69143
+    ],
+    [
+      "z:/Sys/Bin/EComServer.exe",
+      56471
+    ],
+    [
+      "z:/Sys/Bin/Bafl.dll",
+      49124
+    ],
+    [
+      "z:/Sys/Bin/Ws32.dll",
+      48795
+    ],
+    [
+      "z:/Sys/Bin/ECom.dll",
+      48757
+    ],
+    [
+      "z:/Sys/Bin/FbsCli.dll",
+      40393
+    ],
+    [
+      "z:/Sys/Bin/xmlparserplugin.dll",
+      24603
+    ],
+    [
+      "z:/Sys/Bin/installserver.exe",
+      16136
+    ],
+    [
+      "z:/Sys/Bin/CHARCONV.DLL",
+      15048
+    ],
+    [
+      "z:/Sys/Bin/imageconversionresolver.dll",
+      14873
+    ],
+    [
+      "z:/Sys/Bin/sisxfile.dll",
+      11778
+    ],
+    [
+      "z:/Sys/Bin/cryptography.dll",
+      11728
+    ],
+    [
+      "z:/Sys/Bin/SCPPNWDL.dll",
+      11726
+    ],
+    [
+      "z:/Sys/Bin/ScDv.dll",
+      10637
+    ],
+    [
+      "z:/Sys/Bin/libopenvg.dll",
+      10617
+    ],
+    [
+      "z:/Sys/Bin/BitGdi.dll",
+      8663
+    ],
+    [
+      "z:/Sys/Bin/ImageConversion.dll",
+      8530
+    ],
+    [
+      "z:/Sys/Bin/FntStr.dll",
+      8512
+    ],
+    [
+      "z:/Sys/Bin/Gdi.dll",
+      6357
+    ],
+    [
+      "z:/Sys/Bin/Tagma.dll",
+      5320
+    ],
+    [
+      "z:/Sys/Bin/pngcodec.dll",
+      4274
+    ],
+    [
+      "z:/Sys/Bin/sisregistryclient.dll",
+      3219
+    ],
+    [
+      "z:/Sys/Bin/centralrepository.dll",
+      3212
+    ],
+    [
+      "z:/Sys/Bin/commsdat.dll",
+      3184
+    ],
+    [
+      "z:/Sys/Bin/DFPAEABI.dll",
+      3163
+    ],
+    [
+      "z:/Sys/Bin/Form.dll",
+      2154
+    ],
+    [
+      "z:/Sys/Bin/AknLayout2scalable.dll",
+      2120
+    ],
+    [
+      "z:/Sys/Bin/sishelper.dll",
+      2115
+    ],
+    [
+      "z:/Sys/Bin/wmdrmagent.dll",
+      2113
+    ],
+    [
+      "z:/Sys/Bin/EikCore.dll",
+      2111
+    ],
+    [
+      "z:/Sys/Bin/SVGEngine.dll",
+      2109
+    ],
+    [
+      "z:/Sys/Bin/EText.dll",
+      1101
+    ],
+    [
+      "z:/Sys/Bin/MultipartParser.dll",
+      1095
+    ],
+    [
+      "z:/Sys/Bin/XmlFramework.dll",
+      1094
+    ],
+    [
+      "z:/Sys/Bin/eikcoctl.dll",
+      1094
+    ],
+    [
+      "z:/Sys/Bin/FEATMGR.DLL",
+      1066
+    ],
+    [
+      "z:/Sys/Bin/asn1.dll",
+      1063
+    ],
+    [
+      "z:/Sys/Bin/siscontroller.dll",
+      1059
+    ],
+    [
+      "z:/Sys/Bin/caf.dll",
+      1059
+    ],
+    [
+      "z:/Sys/Bin/avkon.dll",
+      1057
+    ],
+    [
+      "z:/Sys/Bin/OmaDrmAgent.dll",
+      1055
+    ]
+  ],
+  "guest_top_entries_us": [
+    [
+      [
+        "z:/Sys/Bin/EUser.dll",
+        "f_2149216519"
+      ],
+      729956
+    ],
+    [
+      [
+        "z:/Sys/Bin/EZLib.dll",
+        "f_2156287987"
+      ],
+      474645
+    ],
+    [
+      [
+        "z:/Sys/Bin/hash.dll",
+        "f_2150614149"
+      ],
+      216165
+    ],
+    [
+      [
+        "z:/Sys/Bin/hash.dll",
+        "f_2150613461"
+      ],
+      185370
+    ],
+    [
+      [
+        "z:/Sys/Bin/hash.dll",
+        "f_2150612233"
+      ],
+      172718
+    ],
+    [
+      [
+        "z:/Sys/Bin/hash.dll",
+        "f_2150612939"
+      ],
+      161096
+    ],
+    [
+      [
+        "z:/Sys/Bin/hash.dll",
+        "f_2150612819"
+      ],
+      161050
+    ],
+    [
+      [
+        "z:/Sys/Bin/hash.dll",
+        "f_2150611661"
+      ],
+      151280
+    ],
+    [
+      [
+        "z:/Sys/Bin/EUser.dll",
+        "f_2149189520"
+      ],
+      149923
+    ],
+    [
+      [
+        "z:/Sys/Bin/hash.dll",
+        "f_2150611297"
+      ],
+      149176
+    ],
+    [
+      [
+        "z:/Sys/Bin/hash.dll",
+        "f_2150612271"
+      ],
+      148111
+    ],
+    [
+      [
+        "z:/Sys/Bin/hash.dll",
+        "f_2150611181"
+      ],
+      147851
+    ],
+    [
+      [
+        "z:/Sys/Bin/hash.dll",
+        "f_2150612539"
+      ],
+      146094
+    ],
+    [
+      [
+        "z:/Sys/Bin/hash.dll",
+        "f_2150612579"
+      ],
+      142296
+    ],
+    [
+      [
+        "z:/Sys/Bin/hash.dll",
+        "f_2150612659"
+      ],
+      141574
+    ],
+    [
+      [
+        "z:/Sys/Bin/hash.dll",
+        "f_2150611259"
+      ],
+      138533
+    ],
+    [
+      [
+        "z:/Sys/Bin/hash.dll",
+        "f_2150613141"
+      ],
+      137381
+    ],
+    [
+      [
+        "z:/Sys/Bin/hash.dll",
+        "f_2150611509"
+      ],
+      136984
+    ],
+    [
+      [
+        "z:/Sys/Bin/hash.dll",
+        "f_2150613301"
+      ],
+      136117
+    ],
+    [
+      [
+        "z:/Sys/Bin/hash.dll",
+        "f_2150613341"
+      ],
+      134251
+    ],
+    [
+      [
+        "z:/Sys/Bin/hash.dll",
+        "f_2150612005"
+      ],
+      133906
+    ],
+    [
+      [
+        "z:/Sys/Bin/hash.dll",
+        "f_2150612195"
+      ],
+      132692
+    ],
+    [
+      [
+        "z:/Sys/Bin/hash.dll",
+        "f_2150611851"
+      ],
+      130773
+    ],
+    [
+      [
+        "z:/Sys/Bin/hash.dll",
+        "f_2150612619"
+      ],
+      127691
+    ],
+    [
+      [
+        "z:/Sys/Bin/hash.dll",
+        "f_2150611373"
+      ],
+      126332
+    ]
+  ],
+  "unresolved_generated_us": {
+    "ROM entries without image mapping": 29680,
+    "RAM versions": 167927
+  },
+  "rom_sha256": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+  "phases": [
+    {
+      "file": "worker-13-part-0.cpuprofile",
+      "start": 1127568880756,
+      "end": 1127596941445,
+      "categories_us": {
+        "other active": 2527877,
+        "(idle)": 3211809,
+        "(program)": 37241,
+        "ARM translation / module preparation subtree": 10445753,
+        "memory view subtree": 1528302,
+        "execute_chain self (includes inlined work)": 3317223,
+        "interpreter outer loop self (includes inlined work)": 688378,
+        "generated guest (self)": 2261749,
+        "parked": 4041286
+      },
+      "sampled_us": 28059618,
+      "guest_modules_us": [
+        [
+          "z:/Sys/Bin/EUser.dll",
+          1376764
+        ],
+        [
+          "z:/Sys/Bin/EZLib.dll",
+          258770
+        ],
+        [
+          "z:/Sys/Bin/EStor.dll",
+          150627
+        ],
+        [
+          "z:/Sys/Bin/hash.dll",
+          66058
+        ],
+        [
+          "unresolved",
+          64967
+        ],
+        [
+          "z:/Sys/Bin/DRTAEABI.dll",
+          36189
+        ],
+        [
+          "z:/Sys/Bin/FbsCli.dll",
+          35061
+        ],
+        [
+          "z:/Sys/Bin/EComServer.exe",
+          33119
+        ],
+        [
+          "z:/Sys/Bin/Cone.dll",
+          30809
+        ],
+        [
+          "z:/Sys/Bin/Bafl.dll",
+          29895
+        ],
+        [
+          "z:/Sys/Bin/Ws32.dll",
+          23405
+        ],
+        [
+          "z:/Sys/Bin/installserver.exe",
+          15040
+        ],
+        [
+          "z:/Sys/Bin/EDbms.dll",
+          11804
+        ],
+        [
+          "z:/Sys/Bin/sisxfile.dll",
+          11778
+        ],
+        [
+          "z:/Sys/Bin/EFSrv.dll",
+          11759
+        ],
+        [
+          "z:/Sys/Bin/cryptography.dll",
+          11728
+        ],
+        [
+          "z:/Sys/Bin/libopenvg.dll",
+          10617
+        ],
+        [
+          "z:/Sys/Bin/ScDv.dll",
+          9566
+        ],
+        [
+          "z:/Sys/Bin/BitGdi.dll",
+          8663
+        ],
+        [
+          "z:/Sys/Bin/FntStr.dll",
+          8512
+        ],
+        [
+          "z:/Sys/Bin/ECom.dll",
+          6329
+        ],
+        [
+          "z:/Sys/Bin/Tagma.dll",
+          5320
+        ],
+        [
+          "z:/Sys/Bin/Gdi.dll",
+          5301
+        ],
+        [
+          "z:/Sys/Bin/SCPPNWDL.dll",
+          4309
+        ],
+        [
+          "z:/Sys/Bin/sisregistryclient.dll",
+          3219
+        ],
+        [
+          "z:/Sys/Bin/pngcodec.dll",
+          3218
+        ],
+        [
+          "z:/Sys/Bin/centralrepository.dll",
+          3212
+        ],
+        [
+          "z:/Sys/Bin/xmlparserplugin.dll",
+          3210
+        ],
+        [
+          "z:/Sys/Bin/commsdat.dll",
+          3184
+        ],
+        [
+          "z:/Sys/Bin/CHARCONV.DLL",
+          2155
+        ],
+        [
+          "z:/Sys/Bin/Form.dll",
+          2154
+        ],
+        [
+          "z:/Sys/Bin/ImageConversion.dll",
+          2149
+        ],
+        [
+          "z:/Sys/Bin/AknLayout2scalable.dll",
+          2120
+        ],
+        [
+          "z:/Sys/Bin/SVGEngine.dll",
+          2109
+        ],
+        [
+          "z:/Sys/Bin/EText.dll",
+          1101
+        ],
+        [
+          "z:/Sys/Bin/MultipartParser.dll",
+          1095
+        ],
+        [
+          "z:/Sys/Bin/XmlFramework.dll",
+          1094
+        ],
+        [
+          "z:/Sys/Bin/eikcoctl.dll",
+          1094
+        ],
+        [
+          "z:/Sys/Bin/FEATMGR.DLL",
+          1066
+        ],
+        [
+          "z:/Sys/Bin/asn1.dll",
+          1063
+        ],
+        [
+          "z:/Sys/Bin/EikCore.dll",
+          1058
+        ],
+        [
+          "z:/Sys/Bin/sishelper.dll",
+          1058
+        ]
+      ]
+    },
+    {
+      "file": "worker-13-part-1.cpuprofile",
+      "start": 1127597051058,
+      "end": 1127618521137,
+      "categories_us": {
+        "parked": 7553366,
+        "other active": 992536,
+        "memory view subtree": 1899503,
+        "execute_chain self (includes inlined work)": 1093270,
+        "interpreter outer loop self (includes inlined work)": 369726,
+        "generated guest (self)": 9552805,
+        "ARM translation / module preparation subtree": 7405,
+        "(program)": 1057
+      },
+      "sampled_us": 21469668,
+      "guest_modules_us": [
+        [
+          "z:/Sys/Bin/hash.dll",
+          8550890
+        ],
+        [
+          "z:/Sys/Bin/EZLib.dll",
+          491300
+        ],
+        [
+          "z:/Sys/Bin/EUser.dll",
+          310626
+        ],
+        [
+          "z:/Sys/Bin/EStor.dll",
+          69895
+        ],
+        [
+          "unresolved",
+          41186
+        ],
+        [
+          "z:/Sys/Bin/Cone.dll",
+          31630
+        ],
+        [
+          "z:/Sys/Bin/DRTAEABI.dll",
+          25474
+        ],
+        [
+          "z:/Sys/Bin/Ws32.dll",
+          16883
+        ],
+        [
+          "z:/Sys/Bin/EFSrv.dll",
+          8531
+        ],
+        [
+          "z:/Sys/Bin/FbsCli.dll",
+          2126
+        ],
+        [
+          "z:/Sys/Bin/installserver.exe",
+          1096
+        ],
+        [
+          "z:/Sys/Bin/SCPPNWDL.dll",
+          1058
+        ],
+        [
+          "z:/Sys/Bin/sishelper.dll",
+          1057
+        ],
+        [
+          "z:/Sys/Bin/EikCore.dll",
+          1053
+        ]
+      ]
+    },
+    {
+      "file": "worker-13-part-2.cpuprofile",
+      "start": 1127618588278,
+      "end": 1127635822425,
+      "categories_us": {
+        "interpreter outer loop self (includes inlined work)": 2360911,
+        "execute_chain self (includes inlined work)": 1315971.6340332031,
+        "generated guest (self)": 2704754,
+        "other active": 2850301,
+        "memory view subtree": 3968031,
+        "ARM translation / module preparation subtree": 69216,
+        "parked": 797430,
+        "(program)": 6424
+      },
+      "sampled_us": 14073038.634033203,
+      "guest_modules_us": [
+        [
+          "z:/Sys/Bin/EUser.dll",
+          900658
+        ],
+        [
+          "z:/Sys/Bin/EStor.dll",
+          671500
+        ],
+        [
+          "z:/Sys/Bin/hash.dll",
+          574755
+        ],
+        [
+          "z:/Sys/Bin/EDbms.dll",
+          197403
+        ],
+        [
+          "unresolved",
+          91454
+        ],
+        [
+          "z:/Sys/Bin/EFSrv.dll",
+          48853
+        ],
+        [
+          "z:/Sys/Bin/ECom.dll",
+          42428
+        ],
+        [
+          "z:/Sys/Bin/DRTAEABI.dll",
+          27583
+        ],
+        [
+          "z:/Sys/Bin/EComServer.exe",
+          23352
+        ],
+        [
+          "z:/Sys/Bin/xmlparserplugin.dll",
+          21393
+        ],
+        [
+          "z:/Sys/Bin/Cone.dll",
+          21238
+        ],
+        [
+          "z:/Sys/Bin/Bafl.dll",
+          19229
+        ],
+        [
+          "z:/Sys/Bin/imageconversionresolver.dll",
+          14873
+        ],
+        [
+          "z:/Sys/Bin/CHARCONV.DLL",
+          12893
+        ],
+        [
+          "z:/Sys/Bin/Ws32.dll",
+          8507
+        ],
+        [
+          "z:/Sys/Bin/ImageConversion.dll",
+          6381
+        ],
+        [
+          "z:/Sys/Bin/SCPPNWDL.dll",
+          6359
+        ],
+        [
+          "z:/Sys/Bin/FbsCli.dll",
+          3206
+        ],
+        [
+          "z:/Sys/Bin/DFPAEABI.dll",
+          3163
+        ],
+        [
+          "z:/Sys/Bin/wmdrmagent.dll",
+          2113
+        ],
+        [
+          "z:/Sys/Bin/ScDv.dll",
+          1071
+        ],
+        [
+          "z:/Sys/Bin/siscontroller.dll",
+          1059
+        ],
+        [
+          "z:/Sys/Bin/caf.dll",
+          1059
+        ],
+        [
+          "z:/Sys/Bin/avkon.dll",
+          1057
+        ],
+        [
+          "z:/Sys/Bin/pngcodec.dll",
+          1056
+        ],
+        [
+          "z:/Sys/Bin/Gdi.dll",
+          1056
+        ],
+        [
+          "z:/Sys/Bin/OmaDrmAgent.dll",
+          1055
+        ]
+      ]
+    }
+  ],
+  "main_thread": {
+    "sampled_us": 63888177.024902344,
+    "categories_us": {
+      "(program)": 1785677,
+      "other active": 1874491,
+      "(idle)": 59533278.024902344,
+      "ARM translation / module preparation subtree": 691561,
+      "parked": 3170
+    },
+    "waits_us": {
+      "other wait": 3170
+    }
+  },
+  "linux_scheduler_bracket": {
+    "source": "Chrome SystemInfo.getProcessInfo; Linux /proc/PID/task/TID/schedstat runtime",
+    "scope": "Host samples bracket resume and observed completion, including polling margins. Renderer totals include CPU emulation, rendering, audio and compiler threads; GPU device time is excluded.",
+    "renderer_cpu_seconds": 67.23,
+    "renderer_complete": true,
+    "host_interval_seconds": 60.233490843,
+    "collection_ms": {
+      "before": 3.7558179999996355,
+      "after": 3.68385099999432
+    },
+    "processes": [
+      {
+        "pid": 2340826,
+        "type": "browser",
+        "cpu_seconds": 1.8599999999999999,
+        "status": "matched"
+      },
+      {
+        "pid": 2341024,
+        "type": "renderer",
+        "cpu_seconds": 0,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "type": "renderer",
+        "cpu_seconds": 67.17,
+        "status": "matched"
+      },
+      {
+        "pid": 2340928,
+        "type": "renderer",
+        "cpu_seconds": 0.010000000000000002,
+        "status": "matched"
+      },
+      {
+        "pid": 2340918,
+        "type": "renderer",
+        "cpu_seconds": 0.04999999999999999,
+        "status": "matched"
+      },
+      {
+        "pid": 2340854,
+        "type": "GPU",
+        "cpu_seconds": 16.16,
+        "status": "matched"
+      },
+      {
+        "pid": 2340857,
+        "type": "network.mojom.NetworkService",
+        "cpu_seconds": 0.17000000000000004,
+        "status": "matched"
+      },
+      {
+        "pid": 2340896,
+        "type": "storage.mojom.StorageService",
+        "cpu_seconds": 0,
+        "status": "matched"
+      }
+    ],
+    "missing_processes": [],
+    "threads": [
+      {
+        "pid": 2341013,
+        "tid": 2341080,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 44.905159789,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341018,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 5.654798856,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341020,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 2.871210709,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341081,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 2.67854003,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341013,
+        "name": "chromium",
+        "cpu_seconds": 2.356315033,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341032,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 1.358455837,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341019,
+        "name": "Chrome_ChildIOT",
+        "cpu_seconds": 1.27817744,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341034,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 0.869916943,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341035,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 0.579294489,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341021,
+        "name": "Compositor",
+        "cpu_seconds": 0.519294955,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341057,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 0.496250313,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341058,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 0.363801418,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341059,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 0.334410521,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341060,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 0.223671972,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341124,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.201486383,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341061,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 0.196165225,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341062,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 0.158960925,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341066,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 0.156654264,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341065,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 0.132671299,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341063,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 0.128205684,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341064,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 0.12158138,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341017,
+        "name": "ThreadPoolServi",
+        "cpu_seconds": 0.019490363,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341082,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.017590523,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341093,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.017276239,
+        "status": "matched"
+      },
+      {
+        "pid": 2340918,
+        "tid": 2340918,
+        "name": "chromium",
+        "cpu_seconds": 0.013912416,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341089,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.012809568,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341090,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.012214083,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341095,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.011925703,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341097,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.01177096,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341092,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.011760108,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341085,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.011696368,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341084,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.011030591,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341088,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.011013278,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341087,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.010980652,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341096,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.010831126,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341098,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.010787365,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341083,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.010724844,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341091,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.010587741,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341086,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.010254771,
+        "status": "matched"
+      },
+      {
+        "pid": 2340918,
+        "tid": 2340946,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 0.007895966,
+        "status": "matched"
+      },
+      {
+        "pid": 2340918,
+        "tid": 2340922,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 0.007628581,
+        "status": "matched"
+      },
+      {
+        "pid": 2340918,
+        "tid": 2340924,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 0.006785245,
+        "status": "matched"
+      },
+      {
+        "pid": 2340918,
+        "tid": 2340947,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 0.004552655,
+        "status": "matched"
+      },
+      {
+        "pid": 2340918,
+        "tid": 2340949,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 0.00449294,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341078,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.004017924,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341072,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.003854729,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341068,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.003641016,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341073,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.003404663,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341077,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.003323555,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341074,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.00328125,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341067,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.003246319,
+        "status": "matched"
+      },
+      {
+        "pid": 2340918,
+        "tid": 2340950,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 0.003209143,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341076,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.003180881,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341069,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.003167215,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341071,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.003081594,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341099,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.003065797,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341070,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.00290129,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341075,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.002899293,
+        "status": "matched"
+      },
+      {
+        "pid": 2340918,
+        "tid": 2340951,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 0.002236516,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341079,
+        "name": "DedicatedWorker",
+        "cpu_seconds": 0.002210474,
+        "status": "matched"
+      },
+      {
+        "pid": 2340918,
+        "tid": 2340952,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 0.002191489,
+        "status": "matched"
+      },
+      {
+        "pid": 2340928,
+        "tid": 2340928,
+        "name": "chromium",
+        "cpu_seconds": 0.001849258,
+        "status": "matched"
+      },
+      {
+        "pid": 2341024,
+        "tid": 2341024,
+        "name": "chromium",
+        "cpu_seconds": 0.000697804,
+        "status": "matched"
+      },
+      {
+        "pid": 2340918,
+        "tid": 2340923,
+        "name": "Chrome_ChildIOT",
+        "cpu_seconds": 0.000240094,
+        "status": "matched"
+      },
+      {
+        "pid": 2340928,
+        "tid": 2340939,
+        "name": "Chrome_ChildIOT",
+        "cpu_seconds": 0.000209039,
+        "status": "matched"
+      },
+      {
+        "pid": 2340928,
+        "tid": 2340943,
+        "name": "Compositor",
+        "cpu_seconds": 0.000200967,
+        "status": "matched"
+      },
+      {
+        "pid": 2341024,
+        "tid": 2341029,
+        "name": "Chrome_ChildIOT",
+        "cpu_seconds": 0.00015456,
+        "status": "matched"
+      },
+      {
+        "pid": 2340918,
+        "tid": 2340919,
+        "name": "HangWatcher",
+        "cpu_seconds": 0.000137127,
+        "status": "matched"
+      },
+      {
+        "pid": 2341024,
+        "tid": 2341025,
+        "name": "HangWatcher",
+        "cpu_seconds": 0.000126008,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341014,
+        "name": "HangWatcher",
+        "cpu_seconds": 0.000118766,
+        "status": "matched"
+      },
+      {
+        "pid": 2340928,
+        "tid": 2340930,
+        "name": "HangWatcher",
+        "cpu_seconds": 0.000100165,
+        "status": "matched"
+      },
+      {
+        "pid": 2340918,
+        "tid": 2340921,
+        "name": "ThreadPoolServi",
+        "cpu_seconds": 5.303e-05,
+        "status": "matched"
+      },
+      {
+        "pid": 2340918,
+        "tid": 2340926,
+        "name": "ThreadPoolSingl",
+        "cpu_seconds": 1.6431e-05,
+        "status": "matched"
+      },
+      {
+        "pid": 2341024,
+        "tid": 2341037,
+        "name": "ThreadPoolSingl",
+        "cpu_seconds": 1.3748e-05,
+        "status": "matched"
+      },
+      {
+        "pid": 2340928,
+        "tid": 2340940,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 1.2324e-05,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341022,
+        "name": "ThreadPoolSingl",
+        "cpu_seconds": 1.1695e-05,
+        "status": "matched"
+      },
+      {
+        "pid": 2340928,
+        "tid": 2340938,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 1.1498e-05,
+        "status": "matched"
+      },
+      {
+        "pid": 2341024,
+        "tid": 2341028,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 1.0486e-05,
+        "status": "matched"
+      },
+      {
+        "pid": 2340928,
+        "tid": 2340944,
+        "name": "ThreadPoolSingl",
+        "cpu_seconds": 9.804e-06,
+        "status": "matched"
+      },
+      {
+        "pid": 2341024,
+        "tid": 2341030,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": 7.782e-06,
+        "status": "matched"
+      },
+      {
+        "pid": 2341024,
+        "tid": 2341026,
+        "name": "PerfettoTrace",
+        "cpu_seconds": 0,
+        "status": "matched"
+      },
+      {
+        "pid": 2341024,
+        "tid": 2341027,
+        "name": "ThreadPoolServi",
+        "cpu_seconds": 0,
+        "status": "matched"
+      },
+      {
+        "pid": 2341024,
+        "tid": 2341036,
+        "name": "Compositor",
+        "cpu_seconds": 0,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341016,
+        "name": "PerfettoTrace",
+        "cpu_seconds": 0,
+        "status": "matched"
+      },
+      {
+        "pid": 2340928,
+        "tid": 2340936,
+        "name": "PerfettoTrace",
+        "cpu_seconds": 0,
+        "status": "matched"
+      },
+      {
+        "pid": 2340928,
+        "tid": 2340937,
+        "name": "ThreadPoolServi",
+        "cpu_seconds": 0,
+        "status": "matched"
+      },
+      {
+        "pid": 2340918,
+        "tid": 2340920,
+        "name": "PerfettoTrace",
+        "cpu_seconds": 0,
+        "status": "matched"
+      },
+      {
+        "pid": 2340918,
+        "tid": 2340925,
+        "name": "Compositor",
+        "cpu_seconds": 0,
+        "status": "matched"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2343996,
+        "name": "v8:ProfEvntProc",
+        "cpu_seconds": null,
+        "status": "new_or_reused_thread"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2343998,
+        "name": "v8:ProfEvntProc",
+        "cpu_seconds": null,
+        "status": "new_or_reused_thread"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2345054,
+        "name": "MemoryInfra",
+        "cpu_seconds": null,
+        "status": "new_or_reused_thread"
+      },
+      {
+        "pid": 2340928,
+        "tid": 2344965,
+        "name": "MemoryInfra",
+        "cpu_seconds": null,
+        "status": "new_or_reused_thread"
+      },
+      {
+        "pid": 2340918,
+        "tid": 2343059,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": null,
+        "status": "new_or_reused_thread"
+      },
+      {
+        "pid": 2340918,
+        "tid": 2343060,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": null,
+        "status": "new_or_reused_thread"
+      },
+      {
+        "pid": 2340918,
+        "tid": 2343061,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": null,
+        "status": "new_or_reused_thread"
+      },
+      {
+        "pid": 2340918,
+        "tid": 2343062,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": null,
+        "status": "new_or_reused_thread"
+      },
+      {
+        "pid": 2340918,
+        "tid": 2343063,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": null,
+        "status": "new_or_reused_thread"
+      },
+      {
+        "pid": 2340918,
+        "tid": 2343064,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": null,
+        "status": "new_or_reused_thread"
+      },
+      {
+        "pid": 2340918,
+        "tid": 2343065,
+        "name": "ThreadPoolForeg",
+        "cpu_seconds": null,
+        "status": "new_or_reused_thread"
+      }
+    ],
+    "missing_threads": [
+      {
+        "pid": 2341013,
+        "tid": 2341031,
+        "name": "v8:ProfEvntProc"
+      },
+      {
+        "pid": 2341013,
+        "tid": 2341094,
+        "name": "v8:ProfEvntProc"
+      }
+    ],
+    "thread_errors": [],
+    "busiest_renderer_thread": {
+      "pid": 2341013,
+      "tid": 2341080,
+      "name": "DedicatedWorker",
+      "cpu_seconds": 44.905159789,
+      "status": "matched"
+    },
+    "thread_attribution": "Busiest thread is an observation, not verified guest-worker identity."
+  },
+  "comparison_captures": [
+    {
+      "label": "Legacy JS filesystem focused capture",
+      "directory": "/home/claude/.scratch/eka-startup-profile-20261012/hooked-on-focused",
+      "installation_complete_ms": 78535.493033,
+      "sampled_us": 77995822.5690918,
+      "categories_us": {
+        "other active": 9022753,
+        "(idle)": 4799744,
+        "(program)": 81433,
+        "parked": 24929115,
+        "ARM translation / module preparation subtree": 9742974,
+        "memory view subtree": 6972835,
+        "interpreter outer loop self (includes inlined work)": 3038831,
+        "execute_chain self (includes inlined work)": 5600300,
+        "generated guest (self)": 13807837.569091797
+      },
+      "waits_us": {
+        "main-thread proxy": 13274262,
+        "graphics": 319767,
+        "other wait": 28923,
+        "sleep/pacing": 11306163
+      },
+      "guest_modules_us": [
+        [
+          "z:/Sys/Bin/hash.dll",
+          8684720
+        ],
+        [
+          "z:/Sys/Bin/EUser.dll",
+          2421622
+        ],
+        [
+          "z:/Sys/Bin/EZLib.dll",
+          818846
+        ],
+        [
+          "z:/Sys/Bin/EStor.dll",
+          788504
+        ],
+        [
+          "z:/Sys/Bin/EDbms.dll",
+          195948
+        ],
+        [
+          "unresolved",
+          184170
+        ],
+        [
+          "z:/Sys/Bin/DRTAEABI.dll",
+          99706
+        ],
+        [
+          "z:/Sys/Bin/Cone.dll",
+          79694
+        ],
+        [
+          "z:/Sys/Bin/EFSrv.dll",
+          63711
+        ],
+        [
+          "z:/Sys/Bin/Ws32.dll",
+          61609
+        ],
+        [
+          "z:/Sys/Bin/EComServer.exe",
+          54382
+        ],
+        [
+          "z:/Sys/Bin/ECom.dll",
+          48851
+        ],
+        [
+          "z:/Sys/Bin/Bafl.dll",
+          42640
+        ],
+        [
+          "z:/Sys/Bin/xmlparserplugin.dll",
+          32979
+        ],
+        [
+          "z:/Sys/Bin/FbsCli.dll",
+          32970
+        ],
+        [
+          "z:/Sys/Bin/installserver.exe",
+          19480
+        ],
+        [
+          "z:/Sys/Bin/Gdi.dll",
+          17030
+        ],
+        [
+          "z:/Sys/Bin/imageconversionresolver.dll",
+          15897
+        ],
+        [
+          "z:/Sys/Bin/ImageConversion.dll",
+          15867
+        ],
+        [
+          "z:/Sys/Bin/FntStr.dll",
+          13888
+        ],
+        [
+          "z:/Sys/Bin/CHARCONV.DLL",
+          13762
+        ],
+        [
+          "z:/Sys/Bin/ScDv.dll",
+          10640
+        ],
+        [
+          "z:/Sys/Bin/SCPPNWDL.dll",
+          8533
+        ],
+        [
+          "z:/Sys/Bin/asn1.dll",
+          7506
+        ],
+        [
+          "z:/Sys/Bin/Tagma.dll",
+          7495
+        ],
+        [
+          "z:/Sys/Bin/sisxfile.dll",
+          7439
+        ],
+        [
+          "z:/Sys/Bin/libopenvg.dll",
+          6461
+        ],
+        [
+          "z:/Sys/Bin/cryptography.dll",
+          6417
+        ],
+        [
+          "z:/Sys/Bin/pngcodec.dll",
+          4266
+        ],
+        [
+          "z:/Sys/Bin/sisregistryclient.dll",
+          4266
+        ],
+        [
+          "z:/Sys/Bin/commsdat.dll",
+          4258
+        ],
+        [
+          "z:/Sys/Bin/plan.dll",
+          3250
+        ],
+        [
+          "z:/Sys/Bin/MultipartParser.dll",
+          3244
+        ],
+        [
+          "z:/Sys/Bin/avkon.dll",
+          3224
+        ],
+        [
+          "z:/Sys/Bin/XmlFramework.dll",
+          3179
+        ],
+        [
+          "z:/Sys/Bin/centralrepository.dll",
+          3175
+        ],
+        [
+          "z:/Sys/Bin/EText.dll",
+          2196
+        ],
+        [
+          "z:/Sys/Bin/ApGrfx.dll",
+          2177
+        ],
+        [
+          "z:/Sys/Bin/BitGdi.dll",
+          2170.569091796875
+        ],
+        [
+          "z:/Sys/Bin/x500.dll",
+          1094
+        ],
+        [
+          "z:/Sys/Bin/ApEngine.dll",
+          1093
+        ],
+        [
+          "z:/Sys/Bin/EikCore.dll",
+          1063
+        ],
+        [
+          "z:/Sys/Bin/aknskins.dll",
+          1059
+        ],
+        [
+          "z:/Sys/Bin/eikcoctl.dll",
+          1058
+        ],
+        [
+          "z:/Sys/Bin/f32agent.dll",
+          1056
+        ],
+        [
+          "z:/Sys/Bin/Form.dll",
+          1055
+        ],
+        [
+          "z:/Sys/Bin/OmaDrmAgent.dll",
+          1055
+        ],
+        [
+          "z:/Sys/Bin/AknLayout2scalable.dll",
+          1053
+        ],
+        [
+          "z:/Sys/Bin/DFPAEABI.dll",
+          1052
+        ],
+        [
+          "z:/Sys/Bin/siscontroller.dll",
+          1027
+        ]
+      ]
+    },
+    {
+      "label": "First WasmFS focused capture",
+      "directory": "/home/claude/.scratch/eka-fs-20261012/profile-hooked",
+      "installation_complete_ms": 67856.41764500001,
+      "sampled_us": 67405237.86889648,
+      "categories_us": {
+        "(idle)": 4520523,
+        "other active": 6974311,
+        "ARM translation / module preparation subtree": 10493949,
+        "(program)": 41499,
+        "interpreter outer loop self (includes inlined work)": 3557611,
+        "execute_chain self (includes inlined work)": 6203906,
+        "generated guest (self)": 15782010.868896484,
+        "memory view subtree": 9043091,
+        "parked": 10788337
+      },
+      "waits_us": {
+        "graphics": 530059,
+        "other wait": 65651,
+        "sleep/pacing": 10192627
+      },
+      "guest_modules_us": [
+        [
+          "z:/Sys/Bin/hash.dll",
+          9139138
+        ],
+        [
+          "z:/Sys/Bin/EUser.dll",
+          3227980.8688964844
+        ],
+        [
+          "z:/Sys/Bin/EStor.dll",
+          1122826
+        ],
+        [
+          "z:/Sys/Bin/EZLib.dll",
+          1075645
+        ],
+        [
+          "z:/Sys/Bin/EDbms.dll",
+          278299
+        ],
+        [
+          "unresolved",
+          203723
+        ],
+        [
+          "z:/Sys/Bin/Cone.dll",
+          105758
+        ],
+        [
+          "z:/Sys/Bin/DRTAEABI.dll",
+          98780
+        ],
+        [
+          "z:/Sys/Bin/Ws32.dll",
+          68982
+        ],
+        [
+          "z:/Sys/Bin/EFSrv.dll",
+          68274
+        ],
+        [
+          "z:/Sys/Bin/ECom.dll",
+          53579
+        ],
+        [
+          "z:/Sys/Bin/EComServer.exe",
+          48265
+        ],
+        [
+          "z:/Sys/Bin/Bafl.dll",
+          41883
+        ],
+        [
+          "z:/Sys/Bin/FbsCli.dll",
+          34385
+        ],
+        [
+          "z:/Sys/Bin/installserver.exe",
+          28274
+        ],
+        [
+          "z:/Sys/Bin/xmlparserplugin.dll",
+          19548
+        ],
+        [
+          "z:/Sys/Bin/ScDv.dll",
+          19320
+        ],
+        [
+          "z:/Sys/Bin/ImageConversion.dll",
+          16012
+        ],
+        [
+          "z:/Sys/Bin/sisxfile.dll",
+          15223
+        ],
+        [
+          "z:/Sys/Bin/FntStr.dll",
+          13812
+        ],
+        [
+          "z:/Sys/Bin/Gdi.dll",
+          11647
+        ],
+        [
+          "z:/Sys/Bin/SCPPNWDL.dll",
+          9600
+        ],
+        [
+          "z:/Sys/Bin/libopenvg.dll",
+          8532
+        ],
+        [
+          "z:/Sys/Bin/imageconversionresolver.dll",
+          7437
+        ],
+        [
+          "z:/Sys/Bin/CHARCONV.DLL",
+          6423
+        ],
+        [
+          "z:/Sys/Bin/cryptography.dll",
+          5294
+        ],
+        [
+          "z:/Sys/Bin/Tagma.dll",
+          5288
+        ],
+        [
+          "z:/Sys/Bin/MultipartParser.dll",
+          5287
+        ],
+        [
+          "z:/Sys/Bin/XmlFramework.dll",
+          4308
+        ],
+        [
+          "z:/Sys/Bin/pngcodec.dll",
+          4297
+        ],
+        [
+          "z:/Sys/Bin/EText.dll",
+          4269
+        ],
+        [
+          "z:/Sys/Bin/EikCore.dll",
+          3245
+        ],
+        [
+          "z:/Sys/Bin/commsdat.dll",
+          3206
+        ],
+        [
+          "z:/Sys/Bin/ApEngine.dll",
+          2186
+        ],
+        [
+          "z:/Sys/Bin/sisregistryclient.dll",
+          2164
+        ],
+        [
+          "z:/Sys/Bin/AknLayout2scalable.dll",
+          2159
+        ],
+        [
+          "z:/Sys/Bin/BitGdi.dll",
+          2124
+        ],
+        [
+          "z:/Sys/Bin/DFPAEABI.dll",
+          2121
+        ],
+        [
+          "z:/Sys/Bin/INetProtUtil.dll",
+          2119
+        ],
+        [
+          "z:/Sys/Bin/AknIcon.dll",
+          1090
+        ],
+        [
+          "z:/Sys/Bin/wmdrmagent.dll",
+          1063
+        ],
+        [
+          "z:/Sys/Bin/centralrepository.dll",
+          1060
+        ],
+        [
+          "z:/Sys/Bin/sishelper.dll",
+          1060
+        ],
+        [
+          "z:/Sys/Bin/NetMeta.dll",
+          1059
+        ],
+        [
+          "z:/Sys/Bin/Etel3rdParty.dll",
+          1058
+        ],
+        [
+          "z:/Sys/Bin/f32agent.dll",
+          1058
+        ],
+        [
+          "z:/Sys/Bin/etelmm.dll",
+          1056
+        ],
+        [
+          "z:/Sys/Bin/Form.dll",
+          1055
+        ],
+        [
+          "z:/Sys/Bin/caf.dll",
+          1039
+        ],
+        [
+          "z:/Sys/Bin/avkon.dll",
+          0
+        ]
+      ]
+    }
+  ],
+  "annotated_profiles": [
+    {
+      "file": "/home/claude/.scratch/eka-post-wasmfs-profile-20261012/hooked-on/annotated-worker-13-part-0.cpuprofile",
+      "renamed_nodes": 695
+    },
+    {
+      "file": "/home/claude/.scratch/eka-post-wasmfs-profile-20261012/hooked-on/annotated-worker-13-part-1.cpuprofile",
+      "renamed_nodes": 439
+    },
+    {
+      "file": "/home/claude/.scratch/eka-post-wasmfs-profile-20261012/hooked-on/annotated-worker-13-part-2.cpuprofile",
+      "renamed_nodes": 1006
+    }
+  ],
+  "evidence_root": "/home/claude/.scratch/eka-post-wasmfs-profile-20261012",
+  "evidence_checksums_sha256": {
+    "annotated-worker-13-part-0.cpuprofile": "1b1f805678b65c1da86abad31172c395ef31ad3c1a5c96d2f6683cb471c4fb63",
+    "annotated-worker-13-part-1.cpuprofile": "5311a46a99db8ea0ff8d1c4611c0196397ee2a36bbcc36f91fe9c5209c86dfb9",
+    "annotated-worker-13-part-2.cpuprofile": "b33afe84823f16e65b4250b45ff616b2bdb1412b820e9e516b950313fea3524b",
+    "page-part-0.cpuprofile": "20ede6321f12620dcca6ce04947313f66a04fc8a5935b1d8d0e971cde6cabeff",
+    "page-part-1.cpuprofile": "f674ff9e4ca876751b21dce65cc3b9abc65afaf6ee6e61309cec4ec89f5547b8",
+    "page-part-2.cpuprofile": "6f3171f0c809d59faad09d45afc19f5c1034e3740f9a836834c195a201205bc0",
+    "worker-13-part-0.cpuprofile": "9c0ce8a95cdfa7e605208e214dd308cbd764937b06df11c5c29e8d3f5bcbe510",
+    "worker-13-part-1.cpuprofile": "cc222835f55cb32fc82626c8f1c5ac373c3c09e66104ed5802e50c01cddfcab8",
+    "worker-13-part-2.cpuprofile": "fcbb6762422e3565deab8a08bd132f04db59140526c5756db8a83c6e43891552",
+    "hooked-on/report.json": "b132422c63bb5e6045f74f232f0cce1b06fb19a706ffaf5f4a763496ca597870",
+    "hooked-on/aggregated.json": "96591d6a78a13e886d859c38d30364b4508914ddd2fc6e83b558f12fa7cb4dea",
+    "hooked-on/guest-and-path-attribution.json": "c0ca8d56f93a0fb409a43cc68947a8e7c0b0e729ee4c63f321ebdd248641d434",
+    "hooked-on/screen-28.png": "f240a06cab9cd8d436a42d05143c5025b5347a967b3fbe0072d42e3fd4ed0378",
+    "profile.log": "374ea6836c091caaf51e0fd23f9403a72eeacb2985c979dad3bb89226dddb1ab",
+    "deployed.html": "923c4859c227a72f86b0fb8cb21dea4ceee46a2027ec17490c35862dd3c69388",
+    "save_evidence.py": "01778bbe471628c282bdd9a9c14728e2f1dcde361d39525f72017f4478182187"
+  },
+  "analysis_scripts": [
+    "/home/claude/.scratch/eka-startup-profile-20261012/profile.mjs",
+    "/home/claude/.scratch/eka-startup-profile-20261012/analyze.py",
+    "/home/claude/.scratch/eka-startup-profile-20261012/attribute.py",
+    "/home/claude/.scratch/eka-post-wasmfs-profile-20261012/save_evidence.py"
+  ],
+  "limits": [
+    "Categories are disjoint sample-weighted elapsed time, not exact CPU durations or guaranteed removable overhead.",
+    "Compiler, mapping and filesystem inclusive subtrees overlap named self/inclusive examples; do not add those examples to categories.",
+    "Profiler start acknowledgement aligns cutoff; small RPC skew and chunk-rotation gaps remain.",
+    "Raw and annotated profiles contain post-completion polling; aggregated attribution is clipped to successful installer exit.",
+    "Generated ROM entry attribution can include inlined callees; algorithm and exact native instruction costs remain unresolved.",
+    "Unresolved RAM versions and ROM entries without image mapping remain unassigned.",
+    "Scheduler bracket is first presentation through final screenshot, different from sampled worker interval; OS thread and CDP worker identities are not directly linked.",
+    "Profiled installation wall times are diagnostic runs, not a paired unprofiled speedup measurement."
+  ]
+}
