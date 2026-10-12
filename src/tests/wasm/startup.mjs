@@ -56,7 +56,7 @@ try {
     // Package deletion precedes extraction completion and is not a ready signal.
     if (text.includes('Thread N-Gage Installer forcefully killed with category: None and exit code: 0'))
       report.installationComplete = {ms, text};
-    if (/Access violation|KERN-EXEC|ABORT:/.test(text)) report.errors.push(text);
+    if (/Access violation|KERN-EXEC|ABORT:|panicked with category:/.test(text)) report.errors.push(text);
   });
   page.on('pageerror', e => report.errors.push(String(e)));
   const url = new URL(baseUrl);
@@ -73,7 +73,22 @@ try {
       monitor:JSON.parse(Module.ccall('eka2l1_monitor_report', 'string', [], [])),
       status:document.querySelector('#status').textContent}));
     sample.screenshot = `screen-${index}.png`;
-    const bytes = await (await page.$('#canvas')).screenshot({path:file(sample.screenshot)});
+    // A canvas bounding-box screenshot also includes HTML layered above it.
+    // Exclude controls/FPS so they cannot make a black guest frame nontrivial.
+    const overlays = await page.evaluate(() => Array.from(document.querySelector('#play-surface').children)
+      .filter(element => element.id !== 'canvas-container').map(element => {
+        const previous = element.style.visibility;
+        element.style.visibility = 'hidden';
+        return [element.id, previous];
+      }));
+    let bytes;
+    try {
+      bytes = await (await page.$('#canvas')).screenshot({path:file(sample.screenshot)});
+    } finally {
+      await page.evaluate(previous => {
+        for (const [id, visibility] of previous) document.getElementById(id).style.visibility = visibility;
+      }, overlays);
+    }
     const png = PNG.sync.read(Buffer.from(bytes)), colors = new Set();
     for (let i = 0; i < png.data.length; i += 4) colors.add(png.data.readUInt32LE(i));
     sample.colors = colors.size;
@@ -91,6 +106,7 @@ try {
       name:x.name, start:x.startTime, end:x.responseEnd, transfer:x.transferSize})),
     assets:window.ekaAssetUrls, policy:window.ekaCompilerPolicy}));
   if (entry.ngage && !report.installationComplete) throw Error('Installer did not complete before timeout');
+  if (!entry.ngage && !report.nontrivial) throw Error('No nontrivial guest image before timeout');
   if (report.errors.length) throw Error('Browser or guest error; inspect report.json');
 } catch (e) {
   report.failure = String(e);
