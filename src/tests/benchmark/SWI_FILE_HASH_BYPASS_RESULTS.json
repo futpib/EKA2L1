@@ -1195,5 +1195,1151 @@
     "menu": "Select / Enter selects Single-player and Marathon",
     "tutorial": "L / F1 advances Next pages; Select / Enter starts the board",
     "proof": "/home/claude/.scratch/eka-swi-hash-bypass-20261012/runtime-candidate-tetris-a/marathon-level-1-end.png"
+  },
+  "startup_profile_repeat": {
+    "source_base": "b94980498",
+    "branch": "wasm-port",
+    "date": "2026-10-12",
+    "raw_root": "/home/claude/.scratch/eka-startup-reprofile-20261012",
+    "endpoint": "Receipt of successful N-Gage installer exit; screenshots reviewed. Excludes manual launch and gameplay navigation.",
+    "runs": [
+      {
+        "game": "asphalt-3",
+        "evidence_dir": "/home/claude/.scratch/eka-startup-reprofile-20261012/asphalt-3",
+        "profiled": false,
+        "started": "2026-10-12T22:42:05.787Z",
+        "installation_seconds": 44.341827886,
+        "first_presentation_seconds": 6.589974999904633,
+        "load_before": [
+          0.74,
+          0.96,
+          1.39
+        ],
+        "browser": "Chrome/153.0.8010.52",
+        "policy": {
+          "requested": {
+            "watchdogUs": 2000,
+            "unsafeCode": 3,
+            "memoryImpl": 2
+          },
+          "applied": true,
+          "observed": {
+            "unsafeCode": 3,
+            "memoryImpl": 2
+          }
+        },
+        "final_monitor": {
+          "guest_us": 34325786,
+          "instructions": 0,
+          "compiled_functions": 98702,
+          "aot_translation_us": 8671452,
+          "aot_emission_us": 560182,
+          "aot_installation_us": 1399551,
+          "aot_eager_functions": 87754,
+          "aot_eager_passes": 91,
+          "allocated_bytes": 1795343968,
+          "free_bytes": 172205664
+        },
+        "final_screenshot": "screen-18.png",
+        "errors": [],
+        "installation_screen_reviewed": true
+      },
+      {
+        "game": "tetris",
+        "evidence_dir": "/home/claude/.scratch/eka-startup-reprofile-20261012/tetris",
+        "profiled": false,
+        "started": "2026-10-12T22:42:52.879Z",
+        "installation_seconds": 43.587385089,
+        "first_presentation_seconds": 12.808480000019074,
+        "load_before": [
+          5.14,
+          2.04,
+          1.73
+        ],
+        "browser": "Chrome/153.0.8010.52",
+        "policy": {
+          "requested": {
+            "watchdogUs": 2000,
+            "unsafeCode": 3,
+            "memoryImpl": 2
+          },
+          "applied": true,
+          "observed": {
+            "unsafeCode": 3,
+            "memoryImpl": 2
+          }
+        },
+        "final_monitor": {
+          "guest_us": 28680056,
+          "instructions": 0,
+          "compiled_functions": 98694,
+          "aot_translation_us": 13767967,
+          "aot_emission_us": 896025,
+          "aot_installation_us": 2073674,
+          "aot_eager_functions": 87765,
+          "aot_eager_passes": 92,
+          "allocated_bytes": 1779077616,
+          "free_bytes": 161094352
+        },
+        "final_screenshot": "screen-16.png",
+        "errors": [],
+        "installation_screen_reviewed": true
+      },
+      {
+        "game": "hooked-on",
+        "evidence_dir": "/home/claude/.scratch/eka-startup-reprofile-20261012/hooked-on",
+        "profiled": true,
+        "started": "2026-10-12T22:43:40.951Z",
+        "installation_seconds": 76.231119603,
+        "first_presentation_seconds": 13.338009999990463,
+        "load_before": [
+          5.59,
+          2.7,
+          1.98
+        ],
+        "browser": "Chrome/153.0.8010.52",
+        "policy": {
+          "requested": {
+            "watchdogUs": 2000,
+            "unsafeCode": 3,
+            "memoryImpl": 2
+          },
+          "applied": true,
+          "observed": {
+            "unsafeCode": 3,
+            "memoryImpl": 2
+          }
+        },
+        "final_monitor": {
+          "guest_us": 49078577,
+          "instructions": 0,
+          "compiled_functions": 98922,
+          "aot_translation_us": 19850073,
+          "aot_emission_us": 1360779,
+          "aot_installation_us": 4348247,
+          "aot_eager_functions": 87754,
+          "aot_eager_passes": 93,
+          "allocated_bytes": 1816324512,
+          "free_bytes": 212382496
+        },
+        "final_screenshot": "screen-29.png",
+        "errors": [],
+        "installation_screen_reviewed": true
+      },
+      {
+        "game": "hooked-on",
+        "evidence_dir": "/home/claude/.scratch/eka-startup-reprofile-20261012/hooked-on-unprofiled",
+        "profiled": false,
+        "started": "2026-10-12T22:46:09.040Z",
+        "installation_seconds": 51.510755644,
+        "first_presentation_seconds": 6.644099999904633,
+        "load_before": [
+          2.73,
+          3.36,
+          2.4
+        ],
+        "browser": "Chrome/153.0.8010.52",
+        "policy": {
+          "requested": {
+            "watchdogUs": 2000,
+            "unsafeCode": 3,
+            "memoryImpl": 2
+          },
+          "applied": true,
+          "observed": {
+            "unsafeCode": 3,
+            "memoryImpl": 2
+          }
+        },
+        "final_monitor": {
+          "guest_us": 41620084,
+          "instructions": 0,
+          "compiled_functions": 98958,
+          "aot_translation_us": 8644585,
+          "aot_emission_us": 565168,
+          "aot_installation_us": 1370190,
+          "aot_eager_functions": 87768,
+          "aot_eager_passes": 90,
+          "allocated_bytes": 1816319672,
+          "free_bytes": 211404296
+        },
+        "final_screenshot": "screen-22.png",
+        "errors": [],
+        "installation_screen_reviewed": true
+      }
+    ],
+    "profile": {
+      "profile_targets": [
+        {
+          "name": "page",
+          "url": "https://claude-laptop.lan:8188/",
+          "request_ms": 1.1983060000000023,
+          "started_ms": 4.1677290000000085,
+          "files": [
+            {
+              "file": "page-part-0.cpuprofile",
+              "stop_ms": 36649.285750999996,
+              "startTime": 1131883033171,
+              "endTime": 1131919610999,
+              "samples": 30363
+            },
+            {
+              "file": "page-part-1.cpuprofile",
+              "stop_ms": 58334.375327,
+              "startTime": 1131919696860,
+              "endTime": 1131941333962,
+              "samples": 20224
+            },
+            {
+              "file": "page-part-2.cpuprofile",
+              "stop_ms": 77935.017968,
+              "startTime": 1131941350829,
+              "endTime": 1131960938222,
+              "samples": 18327
+            }
+          ]
+        },
+        {
+          "name": "worker-13",
+          "url": "https://claude-laptop.lan:8188/eka2l1.js?v=12127b7167da326cf565085a0f640c08ca41a7836f6f93e6930029688260c13e",
+          "request_ms": 136.89341000000002,
+          "started_ms": 171.7246570000001,
+          "files": [
+            {
+              "file": "worker-13-part-0.cpuprofile",
+              "stop_ms": 36701.908632,
+              "startTime": 1131883173777,
+              "endTime": 1131919610912,
+              "samples": 29888
+            },
+            {
+              "file": "worker-13-part-1.cpuprofile",
+              "stop_ms": 58437.527861999995,
+              "startTime": 1131919718324,
+              "endTime": 1131941334017,
+              "samples": 20067
+            },
+            {
+              "file": "worker-13-part-2.cpuprofile",
+              "stop_ms": 78018.647028,
+              "startTime": 1131941453993,
+              "endTime": 1131960938284,
+              "samples": 18005
+            }
+          ]
+        }
+      ],
+      "errors": [],
+      "profile_errors": [],
+      "categories": [
+        {
+          "worker": "page",
+          "cutoff_us": 1131959260122.874,
+          "window": "Through receipt of successful installer exit log; profiler clock aligned using start acknowledgement (small RPC skew possible)",
+          "sampled_us": 76122768.87402344,
+          "categories_us": {
+            "(program)": 2692734,
+            "other active": 2291698,
+            "(idle)": 70312517.87402344,
+            "ARM translation / module preparation subtree": 824762,
+            "parked": 1057
+          },
+          "waits_us": {
+            "other wait": 1057
+          },
+          "proxy_wait_syscalls_us": {},
+          "parts": [
+            {
+              "file": "page-part-0.cpuprofile",
+              "start": 1131883033171,
+              "end": 1131919610999,
+              "categories_us": {
+                "(program)": 1853226,
+                "other active": 1927432,
+                "(idle)": 31970300,
+                "ARM translation / module preparation subtree": 824762,
+                "parked": 1057
+              },
+              "sampled_us": 36576777
+            },
+            {
+              "file": "page-part-1.cpuprofile",
+              "start": 1131919696860,
+              "end": 1131941333962,
+              "categories_us": {
+                "(program)": 398832,
+                "(idle)": 21049385,
+                "other active": 188481
+              },
+              "sampled_us": 21636698
+            },
+            {
+              "file": "page-part-2.cpuprofile",
+              "start": 1131941350829,
+              "end": 1131960938222,
+              "categories_us": {
+                "(program)": 440676,
+                "(idle)": 17292832.874023438,
+                "other active": 175785
+              },
+              "sampled_us": 17909293.874023438
+            }
+          ]
+        },
+        {
+          "worker": "worker-13",
+          "cutoff_us": 1131959233171.946,
+          "window": "Through receipt of successful installer exit log; profiler clock aligned using start acknowledgement (small RPC skew possible)",
+          "sampled_us": 75830722.94604492,
+          "categories_us": {
+            "other active": 8847639.946044922,
+            "(idle)": 5067701,
+            "ARM translation / module preparation subtree": 24447832,
+            "(program)": 117225,
+            "interpreter outer loop self (includes inlined work)": 3884427,
+            "execute_chain self (includes inlined work)": 7059835,
+            "memory view subtree": 9013571,
+            "generated guest (self)": 6356557,
+            "parked": 11035935
+          },
+          "waits_us": {
+            "graphics": 349296,
+            "other wait": 79655,
+            "sleep/pacing": 10606984
+          },
+          "proxy_wait_syscalls_us": {},
+          "parts": [
+            {
+              "file": "worker-13-part-0.cpuprofile",
+              "start": 1131883173777,
+              "end": 1131919610912,
+              "categories_us": {
+                "other active": 3104465,
+                "(idle)": 5067701,
+                "ARM translation / module preparation subtree": 22901385,
+                "(program)": 107473,
+                "interpreter outer loop self (includes inlined work)": 712149,
+                "execute_chain self (includes inlined work)": 3156990,
+                "memory view subtree": 413309,
+                "generated guest (self)": 919801,
+                "parked": 53602
+              },
+              "sampled_us": 36436875
+            },
+            {
+              "file": "worker-13-part-1.cpuprofile",
+              "start": 1131919718324,
+              "end": 1131941334017,
+              "categories_us": {
+                "other active": 2055985,
+                "memory view subtree": 3380232,
+                "interpreter outer loop self (includes inlined work)": 608279,
+                "execute_chain self (includes inlined work)": 2282787,
+                "ARM translation / module preparation subtree": 1448040,
+                "(program)": 2110,
+                "generated guest (self)": 2886480,
+                "parked": 8950756
+              },
+              "sampled_us": 21614669
+            },
+            {
+              "file": "worker-13-part-2.cpuprofile",
+              "start": 1131941453993,
+              "end": 1131960938284,
+              "categories_us": {
+                "parked": 2031577,
+                "memory view subtree": 5220030,
+                "other active": 3687189.946044922,
+                "generated guest (self)": 2550276,
+                "execute_chain self (includes inlined work)": 1620058,
+                "interpreter outer loop self (includes inlined work)": 2563999,
+                "ARM translation / module preparation subtree": 98407,
+                "(program)": 7642
+              },
+              "sampled_us": 17779178.946044922
+            }
+          ]
+        }
+      ],
+      "worker_active_sample_us": 59609861.94604492,
+      "worker_top_self": [
+        [
+          "emscripten_futex_wait",
+          11035935
+        ],
+        [
+          "std::__2::__function::__func<eka2l1::mem::mmu_base::mmu_base(eka2l1::mem::control_base*, eka2l1::arm::core*, eka2l1::config::state*)::$_0, std::__2::allocator<eka2l1::mem::mmu_base::mmu_base(eka2l1::mem::control_base*, eka2l1::arm::core*, eka2l1::config::state*)::$_0>, unsigned long (bool)>::operator()(bool&&)",
+          8909709
+        ],
+        [
+          "eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))",
+          7059835
+        ],
+        [
+          "(idle)",
+          5067701
+        ],
+        [
+          "eka2l1::arm::aot::state_local_cache::finish(eka2l1::arm::aot::wasm_func_def&, bool)",
+          5025979
+        ],
+        [
+          "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+          3884427
+        ],
+        [
+          "Module",
+          3232609
+        ],
+        [
+          "emscripten_builtin_malloc",
+          2638945
+        ],
+        [
+          "eka2l1::arm::aot::emit_thumb_block(eka2l1::arm::aot::translate_result&, eka2l1::arm::aot::emit&, unsigned char const*, unsigned long, unsigned int, std::__2::unordered_map<unsigned int, unsigned int, std::__2::hash<unsigned int>, std::__2::equal_to<unsigned int>, std::__2::allocator<std::__2::pair<unsigned int const, unsigned int>>> const*, eka2l1::arm::aot::code_window const*, bool, bool, eka2l1::arm::aot::code_window const*, unsigned int, eka2l1::arm::aot::thumb_fusion_context*)",
+          2397838
+        ],
+        [
+          "emscripten_builtin_free",
+          2136905
+        ],
+        [
+          "__pthread_mutex_unlock",
+          1093838
+        ],
+        [
+          "void std::__2::__tree_balance_after_insert[abi:ne200100]<std::__2::__tree_node_base<void*>*>(std::__2::__tree_node_base<void*>*, std::__2::__tree_node_base<void*>*)",
+          840025
+        ],
+        [
+          "eka2l1::arm::aot::build_wasm_module(std::__2::vector<eka2l1::arm::aot::wasm_func_def, std::__2::allocator<eka2l1::arm::aot::wasm_func_def>> const&, std::__2::vector<eka2l1::arm::aot::wasm_import_func, std::__2::allocator<eka2l1::arm::aot::wasm_import_func>> const&)",
+          822429
+        ],
+        [
+          "f_2149216519",
+          666984
+        ],
+        [
+          "f_2156287987",
+          649170
+        ],
+        [
+          "_emscripten_get_now",
+          636523
+        ],
+        [
+          "js_instantiate_aot_module",
+          580294
+        ],
+        [
+          "eka2l1::arm::aot::lookup_compiled(ARMul_State*)",
+          552543
+        ],
+        [
+          "eka2l1::arm::aot::emit::op(unsigned char)",
+          454844
+        ],
+        [
+          "eka2l1::arm::aot::state_local_cache::local(unsigned int)",
+          454756
+        ],
+        [
+          "InterpreterTranslateInstruction(ARMul_State*, unsigned int, arm_inst*&)",
+          441134.9460449219
+        ],
+        [
+          "wasmfs::Directory::Handle::getChild(std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>> const&)",
+          408792
+        ],
+        [
+          "eka2l1::arm::aot::translate_arm_block_impl(unsigned char const*, unsigned long, unsigned int, std::__2::unordered_map<unsigned int, unsigned int, std::__2::hash<unsigned int>, std::__2::equal_to<unsigned int>, std::__2::allocator<std::__2::pair<unsigned int const, unsigned int>>> const*, eka2l1::arm::aot::code_window const*, bool, bool, bool, bool, std::__2::function<std::__2::vector<unsigned char, std::__2::allocator<unsigned char>> (unsigned int)> const*, bool, bool, eka2l1::arm::aot::arm_ir_policy, eka2l1::arm::aot::stack_return_context*)",
+          404039
+        ],
+        [
+          "std::__2::__wrap_iter<unsigned char*> std::__2::vector<unsigned char, std::__2::allocator<unsigned char>>::__insert_with_size[abi:ne200100]<unsigned char const*, unsigned char const*>(std::__2::__wrap_iter<unsigned char const*>, unsigned char const*, unsigned char const*, long)",
+          402341
+        ],
+        [
+          "postMessage",
+          400345
+        ],
+        [
+          "eka2l1::arm::aot::state_local_cache::transfer(std::__2::vector<unsigned char, std::__2::allocator<unsigned char>>&, bool, std::__2::vector<eka2l1::arm::aot::state_transfer, std::__2::allocator<eka2l1::arm::aot::state_transfer>>*, eka2l1::arm::aot::state_local_cache::entry_fields const*) const",
+          396826
+        ],
+        [
+          "__memset",
+          366661
+        ],
+        [
+          "eka2l1::flate::inflater::inflate()",
+          293591
+        ],
+        [
+          "std::__2::__tree<std::__2::__value_type<unsigned int, unsigned int>, std::__2::__map_value_compare<unsigned int, std::__2::__value_type<unsigned int, unsigned int>, std::__2::less<unsigned int>, true>, std::__2::allocator<std::__2::__value_type<unsigned int, unsigned int>>>::destroy(std::__2::__tree_node<std::__2::__value_type<unsigned int, unsigned int>, void*>*)",
+          281219
+        ],
+        [
+          "eka2l1::arm::aot::state_local_cache::finish(eka2l1::arm::aot::wasm_func_def&, bool)::'lambda'(bool, eka2l1::arm::aot::state_local_cache::entry_fields const*)::operator()(bool, eka2l1::arm::aot::state_local_cache::entry_fields const*) const",
+          270074
+        ]
+      ],
+      "worker_top_inclusive": [
+        [
+          "(root)",
+          75830722.94604492
+        ],
+        [
+          "",
+          70420683.94604492
+        ],
+        [
+          "handleMessage",
+          70417812.94604492
+        ],
+        [
+          "invokeEntryPoint",
+          70405941.94604492
+        ],
+        [
+          "eka2l1::arm::dyncom_core::run(unsigned int)",
+          58639387.94604492
+        ],
+        [
+          "js-to-wasm:i:i",
+          39352005.94604492
+        ],
+        [
+          "js-to-wasm",
+          31071625
+        ],
+        [
+          "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, eka2l1_run::$_1>>(void*)",
+          31063992
+        ],
+        [
+          "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+          29695996.946044922
+        ],
+        [
+          "eka2l1::arm::aot::compile_at(eka2l1::arm::core&, unsigned int, std::__2::vector<unsigned int, std::__2::allocator<unsigned int>>*)",
+          24475189
+        ],
+        [
+          "eka2l1::arm::aot::translate_thumb_block(unsigned char const*, unsigned long, unsigned int, std::__2::unordered_map<unsigned int, unsigned int, std::__2::hash<unsigned int>, std::__2::equal_to<unsigned int>, std::__2::allocator<std::__2::pair<unsigned int const, unsigned int>>> const*, eka2l1::arm::aot::code_window const*, bool, bool, bool, eka2l1::arm::aot::code_window const*, std::__2::function<std::__2::vector<unsigned char, std::__2::allocator<unsigned char>> (unsigned int)> const*)",
+          15096393
+        ],
+        [
+          "eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))",
+          12842612
+        ],
+        [
+          "emscripten_futex_wait",
+          11035935
+        ],
+        [
+          "std::__2::this_thread::sleep_for(std::__2::chrono::duration<long long, std::__2::ratio<1ll, 1000000000ll>> const&)",
+          10710288
+        ],
+        [
+          "nanosleep",
+          10699635
+        ],
+        [
+          "eka2l1::arm::aot::emit_thumb_block(eka2l1::arm::aot::translate_result&, eka2l1::arm::aot::emit&, unsigned char const*, unsigned long, unsigned int, std::__2::unordered_map<unsigned int, unsigned int, std::__2::hash<unsigned int>, std::__2::equal_to<unsigned int>, std::__2::allocator<std::__2::pair<unsigned int const, unsigned int>>> const*, eka2l1::arm::aot::code_window const*, bool, bool, eka2l1::arm::aot::code_window const*, unsigned int, eka2l1::arm::aot::thumb_fusion_context*)",
+          9090656
+        ],
+        [
+          "std::__2::__function::__func<eka2l1::mem::mmu_base::mmu_base(eka2l1::mem::control_base*, eka2l1::arm::core*, eka2l1::config::state*)::$_0, std::__2::allocator<eka2l1::mem::mmu_base::mmu_base(eka2l1::mem::control_base*, eka2l1::arm::core*, eka2l1::config::state*)::$_0>, unsigned long (bool)>::operator()(bool&&)",
+          9034852
+        ],
+        [
+          "eka2l1::arm::aot::state_local_cache::finish(eka2l1::arm::aot::wasm_func_def&, bool)",
+          7028692
+        ],
+        [
+          "wasm-to-js",
+          5966672
+        ],
+        [
+          "eka2l1::arm::aot::flush_hot_blocks()",
+          5753476
+        ]
+      ],
+      "guest_modules_us": [
+        [
+          "z:/Sys/Bin/EUser.dll",
+          2980575
+        ],
+        [
+          "z:/Sys/Bin/EZLib.dll",
+          1007082
+        ],
+        [
+          "z:/Sys/Bin/EStor.dll",
+          961273
+        ],
+        [
+          "z:/Sys/Bin/EDbms.dll",
+          236542
+        ],
+        [
+          "unresolved",
+          194203
+        ],
+        [
+          "z:/Sys/Bin/DRTAEABI.dll",
+          121604
+        ],
+        [
+          "z:/Sys/Bin/Cone.dll",
+          98381
+        ],
+        [
+          "z:/Sys/Bin/libopenvg.dll",
+          85727
+        ],
+        [
+          "z:/Sys/Bin/EComServer.exe",
+          71452
+        ],
+        [
+          "z:/Sys/Bin/EFSrv.dll",
+          71270
+        ],
+        [
+          "z:/Sys/Bin/Ws32.dll",
+          68124
+        ],
+        [
+          "z:/Sys/Bin/Bafl.dll",
+          63376
+        ],
+        [
+          "z:/Sys/Bin/ECom.dll",
+          39410
+        ],
+        [
+          "z:/Sys/Bin/xmlparserplugin.dll",
+          29239
+        ],
+        [
+          "z:/Sys/Bin/FbsCli.dll",
+          28707
+        ],
+        [
+          "z:/Sys/Bin/hash.dll",
+          27128
+        ],
+        [
+          "z:/Sys/Bin/installserver.exe",
+          23475
+        ],
+        [
+          "z:/Sys/Bin/ImageConversion.dll",
+          20171
+        ],
+        [
+          "z:/Sys/Bin/centralrepository.dll",
+          18538
+        ],
+        [
+          "z:/Sys/Bin/sisxfile.dll",
+          18285
+        ],
+        [
+          "z:/Sys/Bin/FntStr.dll",
+          15002
+        ],
+        [
+          "z:/Sys/Bin/cryptography.dll",
+          14810
+        ],
+        [
+          "z:/Sys/Bin/commsdat.dll",
+          13902
+        ],
+        [
+          "z:/Sys/Bin/CHARCONV.DLL",
+          12910
+        ],
+        [
+          "z:/Sys/Bin/imageconversionresolver.dll",
+          12690
+        ],
+        [
+          "z:/Sys/Bin/SCPPNWDL.dll",
+          11717
+        ],
+        [
+          "z:/Sys/Bin/ScDv.dll",
+          11678
+        ],
+        [
+          "z:/Sys/Bin/ApEngine.dll",
+          9642
+        ],
+        [
+          "z:/Sys/Bin/Gdi.dll",
+          9574
+        ],
+        [
+          "z:/Sys/Bin/avkon.dll",
+          8894
+        ],
+        [
+          "z:/Sys/Bin/pngcodec.dll",
+          7411
+        ],
+        [
+          "z:/Sys/Bin/Tagma.dll",
+          6367
+        ],
+        [
+          "z:/Sys/Bin/BitGdi.dll",
+          6205
+        ],
+        [
+          "z:/Sys/Bin/caf.dll",
+          5315
+        ],
+        [
+          "z:/Sys/Bin/DFPAEABI.dll",
+          5291
+        ],
+        [
+          "z:/Sys/Bin/NetMeta.dll",
+          5072
+        ],
+        [
+          "z:/Sys/Bin/EText.dll",
+          4307
+        ],
+        [
+          "z:/Sys/Bin/cdlengine.dll",
+          3369
+        ],
+        [
+          "z:/Sys/Bin/asn1.dll",
+          3214
+        ],
+        [
+          "z:/Sys/Bin/plan.dll",
+          3179
+        ],
+        [
+          "z:/Sys/Bin/MultipartParser.dll",
+          3167
+        ],
+        [
+          "z:/Sys/Bin/Form.dll",
+          2119
+        ],
+        [
+          "z:/Sys/Bin/sysutil.dll",
+          2118
+        ],
+        [
+          "z:/Sys/Bin/sishelper.dll",
+          2115
+        ],
+        [
+          "z:/Sys/Bin/SVGEngine.dll",
+          1778
+        ],
+        [
+          "z:/Sys/Bin/AknLayout2scalable.dll",
+          1607
+        ],
+        [
+          "z:/Sys/Bin/XmlFramework.dll",
+          1096
+        ],
+        [
+          "z:/Sys/Bin/EikCore.dll",
+          1076
+        ],
+        [
+          "z:/Sys/Bin/aknfepuiinterface.dll",
+          1073
+        ],
+        [
+          "z:/Sys/Bin/Http.dll",
+          1067
+        ],
+        [
+          "z:/Sys/Bin/bsul.dll",
+          1060
+        ],
+        [
+          "z:/Sys/Bin/OmaDrmAgent.dll",
+          1060
+        ],
+        [
+          "z:/Sys/Bin/etelmm.dll",
+          1056
+        ],
+        [
+          "z:/Sys/Bin/eikcoctl.dll",
+          1054
+        ]
+      ],
+      "guest_entries_us": [
+        [
+          [
+            "z:/Sys/Bin/EUser.dll",
+            "f_2149216519"
+          ],
+          666984
+        ],
+        [
+          [
+            "z:/Sys/Bin/EZLib.dll",
+            "f_2156287987"
+          ],
+          649170
+        ],
+        [
+          [
+            "z:/Sys/Bin/EUser.dll",
+            "f_2149189520"
+          ],
+          194459
+        ],
+        [
+          [
+            "z:/Sys/Bin/EZLib.dll",
+            "f_2156281833"
+          ],
+          127378
+        ],
+        [
+          [
+            "z:/Sys/Bin/EStor.dll",
+            "f_2153051961"
+          ],
+          115082
+        ],
+        [
+          [
+            "z:/Sys/Bin/EStor.dll",
+            "f_2153051101"
+          ],
+          63781
+        ],
+        [
+          [
+            "z:/Sys/Bin/EUser.dll",
+            "f_2149255167"
+          ],
+          56595
+        ],
+        [
+          [
+            "z:/Sys/Bin/EStor.dll",
+            "f_2153051229"
+          ],
+          55123
+        ],
+        [
+          [
+            "z:/Sys/Bin/EStor.dll",
+            "f_2153051377"
+          ],
+          53403
+        ],
+        [
+          [
+            "z:/Sys/Bin/EStor.dll",
+            "f_2153051129"
+          ],
+          46869
+        ],
+        [
+          [
+            "z:/Sys/Bin/EUser.dll",
+            "f_2149188496"
+          ],
+          45648
+        ],
+        [
+          [
+            "z:/Sys/Bin/EUser.dll",
+            "f_2149188704"
+          ],
+          43659
+        ],
+        [
+          [
+            "z:/Sys/Bin/EStor.dll",
+            "f_2153051897"
+          ],
+          38073
+        ],
+        [
+          [
+            "z:/Sys/Bin/EZLib.dll",
+            "f_2156287971"
+          ],
+          33940
+        ],
+        [
+          [
+            "z:/Sys/Bin/EUser.dll",
+            "f_2149177368"
+          ],
+          33047
+        ],
+        [
+          [
+            "z:/Sys/Bin/EStor.dll",
+            "f_2153052051"
+          ],
+          29829
+        ],
+        [
+          [
+            "z:/Sys/Bin/EZLib.dll",
+            "f_2156288289"
+          ],
+          28781
+        ],
+        [
+          [
+            "z:/Sys/Bin/EUser.dll",
+            "f_2149183500"
+          ],
+          28741
+        ],
+        [
+          [
+            "unresolved",
+            "f_2149150696"
+          ],
+          28714
+        ],
+        [
+          [
+            "z:/Sys/Bin/EUser.dll",
+            "f_2149188396"
+          ],
+          26798
+        ],
+        [
+          [
+            "z:/Sys/Bin/EUser.dll",
+            "f_2149198875"
+          ],
+          25433
+        ],
+        [
+          [
+            "z:/Sys/Bin/EUser.dll",
+            "f_2149177656"
+          ],
+          22380
+        ],
+        [
+          [
+            "z:/Sys/Bin/EStor.dll",
+            "f_2153051857"
+          ],
+          22353
+        ],
+        [
+          [
+            "z:/Sys/Bin/EUser.dll",
+            "f_2149259877"
+          ],
+          22288
+        ],
+        [
+          [
+            "z:/Sys/Bin/EDbms.dll",
+            "f_2157326737"
+          ],
+          21239
+        ]
+      ],
+      "attribution_limits": "ROM entry attribution may include inlined callees; unresolved RAM versions not assigned; nested wait totals overlap. Same installer-exit cutoff as aggregated.json.",
+      "rom_sha256": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+      "policy": {
+        "requested": {
+          "watchdogUs": 2000,
+          "unsafeCode": 3,
+          "memoryImpl": 2
+        },
+        "applied": true,
+        "observed": {
+          "unsafeCode": 3,
+          "memoryImpl": 2
+        }
+      },
+      "assets": {
+        "/eka2l1.wasm": "/eka2l1.wasm?v=e715734a51b115f529727070a56147124b7544ac1f2ef1245aa98eb1e8ccfa67",
+        "/eka2l1.js": "/eka2l1.js?v=12127b7167da326cf565085a0f640c08ca41a7836f6f93e6930029688260c13e",
+        "/eka2l1.data": "/eka2l1.data?v=8b7dd0983892bd09e5a12b06788a7a4073a8431d87890ffd2c8519dc1bbaadba",
+        "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "/preload/games/hooked-on/ngage": "/preload/games/hooked-on/ngage?v=a52da7a5d3d9f7ebd3eb81e49e3294d8998060f7cc2539fe955b8bfe14e1745c",
+        "/preload/games/hooked-on/runtime": "/preload/games/hooked-on/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4"
+      },
+      "matched_prior_assets": true,
+      "os_cpu_bracket": {
+        "source": "Chrome SystemInfo.getProcessInfo; Linux /proc/PID/task/TID/schedstat runtime",
+        "scope": "Host samples bracket resume and observed completion, including polling margins. Renderer totals include CPU emulation, rendering, audio and compiler threads; GPU device time is excluded.",
+        "renderer_cpu_seconds": 77.17999999999999,
+        "renderer_complete": true,
+        "host_interval_seconds": 64.57096853499999,
+        "collection_ms": {
+          "before": 5.980744999998933,
+          "after": 3.33312000001024
+        },
+        "missing_processes": [],
+        "missing_threads": [
+          {
+            "pid": 2657370,
+            "tid": 2657401,
+            "name": "v8:ProfEvntProc"
+          },
+          {
+            "pid": 2657370,
+            "tid": 2657442,
+            "name": "v8:ProfEvntProc"
+          }
+        ],
+        "thread_errors": [],
+        "busiest_renderer_thread": {
+          "pid": 2657370,
+          "tid": 2657430,
+          "name": "DedicatedWorker",
+          "cpu_seconds": 47.132075528,
+          "status": "matched"
+        },
+        "thread_attribution": "Busiest thread is an observation, not verified guest-worker identity."
+      }
+    },
+    "interpretation": "Compilation and memory maintenance remain the leading startup targets. Capture duration is distorted relative to the unprofiled control; sampling, browser tiering, and host contention are not isolated. Sample categories are not guaranteed removable CPU costs.",
+    "raw_evidence_sha256": {
+      "asphalt-3.log": "7618de4e2c1349ddaae8adb987460df11b8ac383623b573dc9c434007a0b3e94",
+      "hooked-on.log": "9cc262c758a67811b009e6e63ea816aef7402df9c2a11ea8c191a427bdfa1f6b",
+      "hooked-on-unprofiled.log": "88f1b430e600d105e2e2320631f761d17510729f2543c9a4bdcd3f29f090a992",
+      "runs.json": "56c9556ddcef6ce385b98bd583b422d52d7a69932fa2b7f29fcf65b1d7a4b708",
+      "tetris.log": "b383b04a133bad7a86e6ae83bfc9e15467d5f4e9c552f6a45fe5712cef1c8347",
+      "asphalt-3/screen-4.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "asphalt-3/screen-2.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "asphalt-3/screen-7.png": "8ac901afb7611aabd7c779b3605e564e6d7febb5e14d4dabd134056ec4c0515e",
+      "asphalt-3/screen-15.png": "cf93baf3d6169e63d23cde4034c29d363a409e6d7a01b0c6184bacf529a29bf7",
+      "asphalt-3/screen-11.png": "5af0f27203aecee6c0e0c55359cda88a19ec829411ea046787cd44f7cf8bc717",
+      "asphalt-3/screen-9.png": "d5134dbe0f2da4f9b1cc45b97c8df5474b7837bca62f123ff1f93c0a1392eb16",
+      "asphalt-3/screen-17.png": "cc94a97b99545268de7438005d4350d6ebfe90a794e19303c15807ed4b770852",
+      "asphalt-3/screen-12.png": "5af0f27203aecee6c0e0c55359cda88a19ec829411ea046787cd44f7cf8bc717",
+      "asphalt-3/browser.log": "3ed303335f62362ce22097855d04e7d92b5969d36d8c553c152fff0a69a3386b",
+      "asphalt-3/screen-6.png": "70b3c8f61502fe35592b12b3ef5c4d78c9ab6697581cc668c3b4d908259da5ac",
+      "asphalt-3/screen-3.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "asphalt-3/screen-16.png": "a0325b1c87d603507536b0ac1f4e5066acf1b5d3f8aa6af36ba30f8a45e2f088",
+      "asphalt-3/screen-10.png": "339ef50bdb505aa7edac65262e489b7b2b932f70707fc85e50fe1876552b0703",
+      "asphalt-3/screen-14.png": "4373d0996a324442bf8e3957f892c5b496e2f7951422c12809d8e37183f5a331",
+      "asphalt-3/report.json": "7ce4cfd53a667234050cacd71ff6d7c36382b922650a76dba7aa88280ead42a8",
+      "asphalt-3/screen-0.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "asphalt-3/screen-8.png": "b18bd0fc5a506c44fb0d9bffa9561200112892de6aa17c232512b22477558baa",
+      "asphalt-3/screen-1.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "asphalt-3/screen-13.png": "493673f1f9379aee5a33e36ced374b2077a9dae8acc69855e861d58280f44a6c",
+      "asphalt-3/screen-18.png": "b7effd4a6afe45ad3d3f8d346621bd22b880ef82d62d222de4ea0e4dedf843f1",
+      "asphalt-3/screen-5.png": "5ecc77e657ba4e4506a7877bd2de9280fb0d1b4a63fdcc69bb1caaaabaf5d263",
+      "hooked-on/screen-24.png": "8ee809f0f3b472539139f1b60bed2b2fe875449b4e3087bd265dd0de7ab2a13a",
+      "hooked-on/screen-4.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "hooked-on/screen-2.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "hooked-on/screen-7.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "hooked-on/screen-15.png": "17657ebdd406a25279e71c6f5f57c42d97d263aeb0abeab6383084e8cf8a0b17",
+      "hooked-on/screen-11.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "hooked-on/page-part-2.cpuprofile": "b3eceb9c536c5cbf75b6a9c08c56a391523b59bdf828d69c300c5b7f97d1856e",
+      "hooked-on/page-part-0.cpuprofile": "36f83b42d65c3c44f1a851fa3ae813c11dca197280e7920f49041b74ea267f8f",
+      "hooked-on/screen-9.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "hooked-on/screen-25.png": "978efb9687fd95c8efccc9e90f84e357c47a1e552eabd289aabb30d537d1d05a",
+      "hooked-on/screen-27.png": "ede5599658f9d045098d0d389ae175a0719f0587a004703c77b390baee94ab8b",
+      "hooked-on/screen-28.png": "866eb15e72f42ff531d64ad38f22d520d8326762a28ccf3da6e1b7d38460ab71",
+      "hooked-on/guest-and-path-attribution.json": "4ecfc444aefb3d161b35a502b8fa35f9edafde331d3162f223c07b86d0be8f21",
+      "hooked-on/worker-13-part-1.cpuprofile": "ae44a89fc77b4ecf447c348aa6448b75e6c3cd1abbc28cea109f8e466f2f1125",
+      "hooked-on/screen-17.png": "a06694516c465c58c21045614ce8d71af43036a2db2d3e369ec40493023d4828",
+      "hooked-on/screen-23.png": "51c34a59fc56dfa65ded9a95af435b31d96254f9373cf6519501acec27bd96b5",
+      "hooked-on/worker-13-part-2.cpuprofile": "5dd65966c634b0041fc5d61b2b23102ae9f5a3b84e122c619baaa0e1a095d44c",
+      "hooked-on/screen-19.png": "0a04a633a896b657c6d6d387edbf882db31170870d304e924809948824a98aa2",
+      "hooked-on/screen-29.png": "f240a06cab9cd8d436a42d05143c5025b5347a967b3fbe0072d42e3fd4ed0378",
+      "hooked-on/page-part-1.cpuprofile": "dd0b057f9c7f91d2257a661618bbd14eb55b674ef73ea55e645804b8a312fcd8",
+      "hooked-on/screen-12.png": "70b3c8f61502fe35592b12b3ef5c4d78c9ab6697581cc668c3b4d908259da5ac",
+      "hooked-on/browser.log": "13f64ed4d6ca3724f9fc397fe24cd129b03e58bbf860be596dc7cea1c2b5e900",
+      "hooked-on/screen-6.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "hooked-on/screen-20.png": "fbdf983b9f72d95d13b43342d7f5449f60ab425fc9d45a60cd675bf9bf9d5733",
+      "hooked-on/screen-3.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "hooked-on/screen-16.png": "218ba839801a0b10717cad47bd296f9af68d6a8f381036ed184838eb06ccd529",
+      "hooked-on/screen-10.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "hooked-on/worker-13-part-0.cpuprofile": "556c49fb1b70f9b105fba9d24b5fa2f82ad8f6a9eb9b053a21238cb8f80c675b",
+      "hooked-on/screen-14.png": "4f71de15e235e51282f8542f01e8765034b7605ff60f9e652f5f56c84d36fc78",
+      "hooked-on/screen-26.png": "2a54dcbb5a83982530f30a64acc74192573af248107a64e6d98d1d8d26cba7ea",
+      "hooked-on/report.json": "89a93c929c81e0d232e37a418d7a2c7a4f528e02b244fc68caef7ce2aa2a3e11",
+      "hooked-on/screen-0.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "hooked-on/aggregated.json": "93709116d9ec5ed8c96fa66657decd35930b5cd0cd0d3a07ca617597f45fc70a",
+      "hooked-on/screen-8.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "hooked-on/screen-1.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "hooked-on/screen-13.png": "9a1d1af4f5f3d77cb613a10f183bae2b93f0ef52a0db9078c5fc429e0c4446e4",
+      "hooked-on/screen-22.png": "cc2ff0553b28ffd3215b78a9d9e5cce6a706e7074f89b66ae9cc788877b62a49",
+      "hooked-on/screen-18.png": "faa3a9a40bec88d3145192481d197988d478f874266910943cd8a02377ec038b",
+      "hooked-on/screen-5.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "hooked-on/screen-21.png": "4200738a2d4701373f656304ef21e9467c2b4e757f19b8d810a0ac903fd64c89",
+      "hooked-on-unprofiled/screen-4.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "hooked-on-unprofiled/screen-2.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "hooked-on-unprofiled/screen-7.png": "cf30fdd38701a441991d758812f840efcd9ba529bb55075e49a2313dad1680f0",
+      "hooked-on-unprofiled/screen-15.png": "4ff6de9d24cf4e33c18b5b6afe72745416d90d3ded79faca70da5f5195ec8987",
+      "hooked-on-unprofiled/screen-11.png": "137d7c4c29f9a887d2451e4625b43312b378974cdcac36ee0ad88ba2ec4ece0d",
+      "hooked-on-unprofiled/screen-9.png": "21ad9b158fdfc7cdcb3e364d227f46a5010817ef584c6646ebeb1b0b91c8d151",
+      "hooked-on-unprofiled/screen-17.png": "8ee809f0f3b472539139f1b60bed2b2fe875449b4e3087bd265dd0de7ab2a13a",
+      "hooked-on-unprofiled/screen-19.png": "2a54dcbb5a83982530f30a64acc74192573af248107a64e6d98d1d8d26cba7ea",
+      "hooked-on-unprofiled/screen-12.png": "bcfb9e319055138f81a7d00fe3b1eb49bb943189bd807674e8f0cf5ed586b988",
+      "hooked-on-unprofiled/browser.log": "9b0e34931ec0a747580faf2245cd1ece451697e95d4e1802b93c6b9f5a54baf7",
+      "hooked-on-unprofiled/screen-6.png": "70b3c8f61502fe35592b12b3ef5c4d78c9ab6697581cc668c3b4d908259da5ac",
+      "hooked-on-unprofiled/screen-20.png": "ede5599658f9d045098d0d389ae175a0719f0587a004703c77b390baee94ab8b",
+      "hooked-on-unprofiled/screen-3.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "hooked-on-unprofiled/screen-16.png": "b0025db81ee77178e0846115a2fc76956bcddedb8c0c84ea33bf4a829073fe5e",
+      "hooked-on-unprofiled/screen-10.png": "1aebb429f289ab2534e2cb743459a327d1751c2a846ae906fb5d521a5aa390ec",
+      "hooked-on-unprofiled/screen-14.png": "8efc0e6a1f4f94d236b14392892037132f9abe8dfcc8492b83e19d85e64855e9",
+      "hooked-on-unprofiled/report.json": "c82d30054464b8660a066911e41fb686828d9eaadff04e210188b57b88f3e7c2",
+      "hooked-on-unprofiled/screen-0.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "hooked-on-unprofiled/screen-8.png": "3f996c43c9c418dc7d1e2e69dc52e7cb3bf610b493696a5f8deec9c79da45185",
+      "hooked-on-unprofiled/screen-1.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "hooked-on-unprofiled/screen-13.png": "219bbfef63ccc7ea1293099a4d0377e45dfcce9a39a6f4624b7742e24026af05",
+      "hooked-on-unprofiled/screen-22.png": "f240a06cab9cd8d436a42d05143c5025b5347a967b3fbe0072d42e3fd4ed0378",
+      "hooked-on-unprofiled/screen-18.png": "978efb9687fd95c8efccc9e90f84e357c47a1e552eabd289aabb30d537d1d05a",
+      "hooked-on-unprofiled/screen-5.png": "5ecc77e657ba4e4506a7877bd2de9280fb0d1b4a63fdcc69bb1caaaabaf5d263",
+      "hooked-on-unprofiled/screen-21.png": "866eb15e72f42ff531d64ad38f22d520d8326762a28ccf3da6e1b7d38460ab71",
+      "tetris/screen-4.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "tetris/screen-2.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "tetris/screen-7.png": "5ecc77e657ba4e4506a7877bd2de9280fb0d1b4a63fdcc69bb1caaaabaf5d263",
+      "tetris/screen-15.png": "67cdbce8ff2cb5a05c670208fca8efcefc5767ad6b68303e6cb91503ecc5d213",
+      "tetris/screen-11.png": "f81d7f7ab61db21a03402c06da0e8adfa21da537bf38284793aa3e23ad942f5b",
+      "tetris/screen-9.png": "e681c5e06832be3a4ef1b7cfb220af9f56dcfe6d23b25e92ad50440a7001b176",
+      "tetris/screen-12.png": "9e30cd9445fbf4053dc527c8e718e5b877758b4d563177472be77df2d9d4af85",
+      "tetris/browser.log": "89d6dfe1954a617de918faa5add39164d9fffc7bed55dbefa3ba4baed6e3a287",
+      "tetris/screen-6.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "tetris/screen-3.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "tetris/screen-16.png": "67cdbce8ff2cb5a05c670208fca8efcefc5767ad6b68303e6cb91503ecc5d213",
+      "tetris/screen-10.png": "f40b74366b92b826393725bbc6918256b2d5acf306f84e39d79b8d28c810db85",
+      "tetris/screen-14.png": "2d1d748228cea56ba0a872dae5160bcadd4114d76f8262a723b6d7ace40d5a09",
+      "tetris/report.json": "ebb9b02e527615f9eeef4295f492d50e33e7a6dc2c8a5eeeb1e0449e5ce81af2",
+      "tetris/screen-0.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "tetris/screen-8.png": "70b3c8f61502fe35592b12b3ef5c4d78c9ab6697581cc668c3b4d908259da5ac",
+      "tetris/screen-1.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "tetris/screen-13.png": "45d83dd194d3af1f99df8dca0de0860e7d86368e06ba63a8753ba16c138bf1ed",
+      "tetris/screen-5.png": "7f3ec54272a73e05bbf4f734320b435bc0927e0aa4739eaa861b8094465b32cd",
+      "hooked-on/annotated/worker-13-part-1.cpuprofile": "090d70282b08d1d340b0047ba5dc5ab4f6b0362bed08a210f515feea9d539e25",
+      "hooked-on/annotated/worker-13-part-2.cpuprofile": "dd162f3d5f248bb37158b61bdeb8ea191d3c6f969c13858d0af7ee69058e530e",
+      "hooked-on/annotated/worker-13-part-0.cpuprofile": "d9f660bae036c4597204438de98e1ca055c7806dd2d8e0dcbd3bafa0848cd6ad"
+    },
+    "harnesses": {
+      "/home/claude/code/EKA2L1/src/tests/wasm/startup.mjs": "46d47debf2d83615a720109ee0bd1062ccce8f031e43d671ee543a1f02a755d2",
+      "/home/claude/.scratch/eka-startup-profile-20261012/profile.mjs": "05ad9b9cce96f64f27c3412795662033fa2222590fa5e5b523d6ba816986671c",
+      "/home/claude/.scratch/eka-startup-profile-20261012/analyze.py": "008009d94bdc64c376cfa393b88762538a64619ae336b39be7dadc5b04f96c27",
+      "/home/claude/.scratch/eka-startup-profile-20261012/attribute.py": "bf433de2f63eed2ff8bca2269c9f369eb202b695a7eae4f34338aeab11b348d7"
+    }
   }
 }

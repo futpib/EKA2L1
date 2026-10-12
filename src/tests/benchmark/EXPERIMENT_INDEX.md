@@ -8590,6 +8590,39 @@ not a deterministic replay or evidence of a runtime speedup. Tetris and Asphalt
 output is muted while guest audio remains enabled. This is not a ten-game
 regression rerun, and these rates are not paced gameplay FPS.
 
+**Fresh repeat on the unchanged public build**
+
+| # | Game / capture | Fresh-install wall seconds | First presentation seconds |
+| ---: | --- | ---: | ---: |
+| 1 | Asphalt 3, unprofiled | 44.342 | 6.590 |
+| 2 | Tetris, unprofiled | 43.587 | 12.808 |
+| 3 | Hooked On, profiled | 76.231 | 13.338 |
+| 4 | Hooked On, subsequent unprofiled control | 51.511 | 6.644 |
+
+The profiler capture is unusually slow compared with both the preceding
+52.679-second profile and its subsequent unprofiled control. Its compiler
+counters record 19.850 seconds translation, 1.361 emission and 4.348
+installation, versus 8.645, 0.565 and 1.370 in the unprofiled control. The final
+compiled-function totals are similar (98,922 versus 98,958). Host load changes
+across the serial runs: one-minute load is 5.59 before the profile and 2.73
+before the control. These observations do not separate sampling overhead,
+browser tiering and host contention. This capture supplies hotspot evidence;
+its longer wall time does not establish a runtime or startup regression.
+
+| # | Emulation-worker active category | Sampled seconds | Active share |
+| ---: | --- | ---: | ---: |
+| 1 | ARM translation / module preparation subtree | 24.448 | 41.0% |
+| 2 | Memory-view maintenance subtree | 9.014 | 15.1% |
+| 3 | Other active runtime work | 8.848 | 14.8% |
+| 4 | `execute_chain` self, including inlined work | 7.060 | 11.8% |
+| 5 | Generated ARM translations, self | 6.357 | 10.7% |
+| 6 | Interpreter outer-loop self, including inlined work | 3.884 | 6.5% |
+
+The repeat reinforces **compiler preparation first and memory-view maintenance
+second** as the startup targets. Compiler share varies from 26.9% to 41.0% of
+active samples across the two public captures; exact production cost or a
+speedup prediction needs a controlled implementation comparison.
+
 </details>
 
 <a id="report-290"></a>

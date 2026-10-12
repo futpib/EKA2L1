@@ -157,3 +157,100 @@ the measured runs, profile totals, policy, asset hashes and raw evidence
 checksums. Raw logs, profiles, screenshots and runnable scratch harnesses are
 retained under `/home/claude/.scratch/eka-swi-hash-bypass-20261012/`; caller proof
 snapshots are in `/home/claude/.scratch/eka-hash-caller-research-20261012/`.
+
+## Fresh repeat on the unchanged public build
+
+A second campaign from source base `b94980498` repeats the profile and checks
+the three previously slowest automatic loading stages. The downloaded public
+WASM, launcher JS, data, ROM, RPKG and Hooked On packages match the preceding
+capture. The compiler policy is unchanged and instruction totals remain zero.
+All runs are serial, with no concurrent own build or benchmark, on the same
+Chrome/ANGLE/Vulkan host. Screenshots confirm Installation complete; no
+guest/browser errors occur. These endpoints still exclude manual game launch
+and navigation into gameplay.
+
+| # | Game / capture | Fresh-install wall seconds | First presentation seconds |
+| ---: | --- | ---: | ---: |
+| 1 | Asphalt 3, unprofiled | 44.342 | 6.590 |
+| 2 | Tetris, unprofiled | 43.587 | 12.808 |
+| 3 | Hooked On, profiled | 76.231 | 13.338 |
+| 4 | Hooked On, subsequent unprofiled control | 51.511 | 6.644 |
+
+Hooked On remains the slowest of these fresh checks. Its unprofiled result
+matches the previous two-run mean of 51.527 seconds. The other seven games
+were not rerun; their preceding automatic startup stages were much shorter.
+
+The profiler capture is unusually slow compared with both the preceding
+52.679-second profile and its subsequent unprofiled control. Its compiler
+counters record 19.850 seconds translation, 1.361 emission and 4.348
+installation, versus 8.645, 0.565 and 1.370 in the unprofiled control. The final
+compiled-function totals are similar (98,922 versus 98,958). Host load changes
+across the serial runs: one-minute load is 5.59 before the profile and 2.73
+before the control. These observations do not separate sampling overhead,
+browser tiering and host contention. This capture supplies hotspot evidence;
+its longer wall time does not establish a runtime or startup regression.
+
+Attribution is clipped to successful installer exit using the same 1-ms CDP
+sampling and profiler-clock alignment as before. The worker contains 75.831
+sampled elapsed seconds, with 59.610 seconds in active categories. These are
+sample weights, not exact CPU durations or guaranteed removable delays.
+
+| # | Emulation-worker active category | Sampled seconds | Active share |
+| ---: | --- | ---: | ---: |
+| 1 | ARM translation / module preparation subtree | 24.448 | 41.0% |
+| 2 | Memory-view maintenance subtree | 9.014 | 15.1% |
+| 3 | Other active runtime work | 8.848 | 14.8% |
+| 4 | `execute_chain` self, including inlined work | 7.060 | 11.8% |
+| 5 | Generated ARM translations, self | 6.357 | 10.7% |
+| 6 | Interpreter outer-loop self, including inlined work | 3.884 | 6.5% |
+
+Excluded from the active denominator are 11.036 seconds parked (10.607 in
+sleep/pacing), 5.068 idle and 0.117 program samples. No main-thread filesystem
+proxy waits are observed. The page contains 3.117 active sampled seconds;
+background browser compiler threads are not separately sampled.
+
+Compiler work dominates the early chunk: 22.901 of its total 24.448 sampled
+seconds occurs there. The largest named compiler leaf is
+`state_local_cache::finish`, at 5.026 seconds self; `emit_thumb_block` has another
+2.398 seconds self within the same compiler subtree.
+[finish](../../emu/cpu/include/cpu/aot/state_locals.h) constructs register
+transfer code, copies emitted code and source marks, relocates call offsets
+and prunes transfers. This is translator work, not guest runtime register
+writeback. The unprofiled translation counter of 8.645 seconds confirms a
+substantial early compilation phase outside the distorted capture too;
+counters and sample totals overlap and must not be added.
+
+The MMU callback has 8.910 seconds self including inlined memory-view work.
+The containing memory category dominates the final chunk with 5.220 seconds.
+[The callback](../../emu/mem/src/mmu.cpp) supplies mappings to
+[view::enter](../../emu/cpu/src/aot/memory_experiment.cpp), which clears the old
+published pages, enumerates current bindings, publishes them and checks the
+direct arena when generation or address space changes. The profile cannot
+isolate the cost of each operation. Earlier rejected mapping caches remain
+rejected; no new mapping implementation was tested in this repeat.
+
+Mapped guest self samples put EUser.dll at 2.981 seconds, EZLib.dll at 1.007
+and EStor.dll at 0.961. **hash.dll remains negligible at 0.027 seconds**;
+the file-hash bypass still removes bulk hashing. EUser's entire attribution
+is not allocator evidence, and outer-loop samples include actual interpreted
+guest work as well as inlined runtime work.
+
+The independent OS bracket covers first presentation through the final
+screenshot: 64.571 seconds elapsed, 47.132 CPU seconds on the busiest renderer
+thread and 77.180 renderer CPU seconds across threads. This is a different
+window, and OS thread identity is not directly linked to the CDP worker;
+these figures cannot replace or be added to the sampled categories.
+
+The repeat reinforces **compiler preparation first and memory-view maintenance
+second** as the startup targets. Compiler share varies from 26.9% to 41.0% of
+active samples across the two public captures; exact production cost or a
+speedup prediction needs a controlled implementation comparison.
+
+Raw evidence is retained under
+`/home/claude/.scratch/eka-startup-reprofile-20261012/`. The JSON's
+`startup_profile_repeat` section records the runs, provenance, asset checks,
+categories, leaf attribution, counters and evidence checksums. ROM-annotated
+CPU profiles in `hooked-on/annotated/` open directly in Chrome DevTools;
+sample weights, timestamps and node identities are preserved. Labels identify
+region-entry modules and offsets, not individual ARM instructions; RAM entries
+without load-lifetime metadata remain unresolved.
