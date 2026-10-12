@@ -101,6 +101,9 @@ Evidence: `lan-asphalt-3/race-input.png`, `report.json`, `steps.log`, and
 `e91b2682f0a4aca80021850afc699a1c8b1e2922b099b840deae4ff2f3d83c10`.
 This is a gameplay/input check, not an FPS benchmark or complete playthrough.
 
+The later [Asphalt 3 audio check](ASPHALT3_AUDIO.md) enables sound in both Qt and
+WASM and verifies racing with continuous output through their actual audio devices.
+
 ## Pathway to Glory
 
 The recovered retail release is **1.03**, from the

@@ -38,6 +38,10 @@ if (EKA2L1_HAVE_FFMPEG)
             src/video/backend/ffmpeg/video_player_ffmpeg.cpp)
 endif ()
 
+if (NOT EKA2L1_IOS)
+    set(DRIVERS_MP3_SRC src/audio/backend/dsp_mp3.cpp)
+endif()
+
 # The OGL graphics backend was originally written against desktop GL via glad.
 # On iOS we substitute ios_gl_loader.h for <glad/glad.h> in each ogl source
 # and link OpenGLES.framework directly below — glad itself stays
@@ -129,6 +133,7 @@ add_library(drivers
         ${DRIVERS_AUDIOUNIT_IOS_SRC}
         ${DRIVERS_CUBEB_SRC}
         ${DRIVERS_FFMPEG_SRC}
+        ${DRIVERS_MP3_SRC}
         ${DRIVERS_HWRM_IOS_SRC}
         ${DRIVERS_OGL_SRC}
         ${DRIVERS_VULKAN_SRC})
@@ -320,3 +325,4 @@ if (BUILD_WITH_VULKAN)
 endif ()
 
 target_include_directories(drivers PRIVATE ${PROJECT_SOURCE_DIR}/src/external/cubeb/src)
+target_include_directories(drivers PRIVATE ${PROJECT_SOURCE_DIR}/src/external/minimp3)

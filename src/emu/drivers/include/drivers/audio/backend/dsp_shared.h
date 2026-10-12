@@ -44,7 +44,7 @@ namespace eka2l1::drivers {
         common::ring_buffer<std::uint16_t, RING_BUFFER_MAX_SAMPLE_COUNT> buffer_;
         std::size_t avg_frame_count_;
 
-        bool virtual_stop;
+        std::atomic<bool> virtual_stop;
 
         // Written by the guest thread (write()/stop()) and by the host audio
         // render thread (data_callback()), with no lock in common.

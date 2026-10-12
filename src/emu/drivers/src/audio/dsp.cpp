@@ -26,12 +26,16 @@
 #include <common/log.h>
 #include <common/platform.h>
 
+#if EKA2L1_PLATFORM(EMSCRIPTEN)
+#include <drivers/audio/backend/dsp_mp3.h>
+#endif
+
 #if EKA2L1_HAS_FFMPEG
 #include <drivers/audio/backend/ffmpeg/dsp_ffmpeg.h>
 #endif
 
 namespace eka2l1::drivers {
-#if (EKA2L1_PLATFORM(IOS) && !EKA2L1_HAS_FFMPEG) || EKA2L1_PLATFORM(EMSCRIPTEN)
+#if EKA2L1_PLATFORM(IOS) && !EKA2L1_HAS_FFMPEG
     struct dsp_output_stream_pcm final : public dsp_output_stream_shared {
         explicit dsp_output_stream_pcm(drivers::audio_driver *aud)
             : dsp_output_stream_shared(aud) {
@@ -163,7 +167,7 @@ namespace eka2l1::drivers {
     std::unique_ptr<dsp_stream> new_dsp_out_stream(drivers::audio_driver *aud, const dsp_stream_backend dsp_backend) {
         if (common::benchmark::enabled() && !clocked_audio_active()) return new_benchmark_dsp_out_stream();
 #if EKA2L1_PLATFORM(EMSCRIPTEN)
-        if (aud) return std::make_unique<dsp_output_stream_pcm>(aud);
+        if (aud) return std::make_unique<dsp_output_stream_mp3>(aud);
 #endif
 #if !EKA2L1_PLATFORM(EMSCRIPTEN)
         switch (dsp_backend) {

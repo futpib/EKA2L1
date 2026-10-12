@@ -387,4 +387,78 @@ TEST_CASE("8-bit PCM WAV uses unsigned samples with silence at 128", "[audio]") 
     REQUIRE(player.data_supply_callback(output.data(), output.size()) == output.size());
     REQUIRE(output == std::vector<std::int16_t>{-32768, 0, 32512, 0});
 }
+#include <common/platform.h>
+#if !EKA2L1_PLATFORM(IOS)
+#include <drivers/audio/backend/dsp_mp3.h>
+#include <fstream>
+
+TEST_CASE("Stopped DSP streams do not request guest buffers from the running device", "[audio][mp3]") {
+    using namespace eka2l1::drivers;
+    queued_audio_driver driver;
+    dsp_output_stream_mp3 stream(&driver);
+    REQUIRE(stream.set_properties(22050, 1));
+    unsigned requests = 0;
+    stream.register_callback(dsp_stream_notification_more_buffer,
+        [&](void *) { ++requests; return true; }, nullptr);
+    REQUIRE(stream.start());
+    driver.output->queue(256);
+    REQUIRE(requests == 1);
+    REQUIRE(stream.stop());
+    // The host device remains active across a virtual stop. No callback may
+    // recreate the MMF chunk after the client released its buffer descriptor.
+    driver.output->queue(256);
+    REQUIRE(requests == 1);
+    REQUIRE(stream.start());
+    driver.output->queue(256);
+    REQUIRE(requests == 2);
+}
+
+TEST_CASE("MP3 DSP preserves split frames and restarts without stale audio", "[audio][mp3]") {
+    using namespace eka2l1::drivers;
+    // Generated 0.2 s, 440 Hz mono at 22050 Hz, 32 kb/s; no tags or Xing header.
+    std::ifstream file("audioassets/stream-tone.mp3", std::ios::binary);
+    REQUIRE(file.good());
+    const std::vector<std::uint8_t> input((std::istreambuf_iterator<char>(file)), {});
+    queued_audio_driver driver;
+    dsp_output_stream_mp3 stream(&driver);
+    REQUIRE(stream.set_properties(22050, 1));
+    REQUIRE(stream.format(MP3_FOUR_CC_CODE));
+    auto drain = [&] {
+        std::vector<std::uint8_t> result, block;
+        while (stream.decode_data(block)) result.insert(result.end(), block.begin(), block.end());
+        return result;
+    };
+    stream.write(input.data(), input.size());
+    const auto whole = drain();
+    REQUIRE(whole.size() >= 4410 * 2);
+    REQUIRE(std::count_if(whole.begin(), whole.end(), [](auto v) { return v != 0; }) > 4000);
+    std::vector<std::uint8_t> empty;
+    REQUIRE_FALSE(stream.decode_data(empty));
+
+    for (const unsigned chunk : {1, 3, 97, 512}) {
+        REQUIRE(stream.stop());
+        std::vector<std::uint8_t> fragmented;
+        for (std::size_t i = 0; i < input.size(); i += chunk) {
+            stream.write(input.data() + i, std::min<std::size_t>(chunk, input.size() - i));
+            const auto block = drain();
+            fragmented.insert(fragmented.end(), block.begin(), block.end());
+        }
+        REQUIRE(fragmented == whole);
+    }
+
+    // Resampling and mono-to-stereo conversion must preserve duration and channels.
+    REQUIRE(stream.stop());
+    REQUIRE(stream.set_properties(44100, 2));
+    stream.write(input.data(), input.size());
+    const auto stereo = drain();
+    REQUIRE(stereo.size() == whole.size() * 4);
+    for (std::size_t i = 0; i < stereo.size(); i += 4) {
+        REQUIRE(stereo[i] == stereo[i + 2]);
+        REQUIRE(stereo[i + 1] == stereo[i + 3]);
+    }
+    REQUIRE(stream.format(PCM16_FOUR_CC_CODE));
+    REQUIRE_FALSE(stream.decode_data(empty));
+    REQUIRE_FALSE(stream.format(AMR_FOUR_CC_CODE));
+}
+#endif
 #endif

@@ -256,6 +256,9 @@ namespace eka2l1 {
                     {
                         // Keep the established kernel -> session lock order.
                         const std::lock_guard<std::mutex> guard(dev_access_lock_);
+                        if (stream_state_ == epoc::mmf_state_idle) {
+                            return true;
+                        }
                         if (last_buffer_) {
                             complete_play(epoc::error_underflow);
                         } else {
@@ -664,8 +667,8 @@ namespace eka2l1 {
     }
 
     void mmf_dev_server_session::stop() {
-        stream_->stop();
         stream_state_ = epoc::mmf_state_idle;
+        stream_->stop();
 
         mmf_dev_server *serv = server<mmf_dev_server>();
 
@@ -701,6 +704,9 @@ namespace eka2l1 {
             return;
         }
 
+        // LastBuffer belongs to the previous playback. Until the first write
+        // arrives, callbacks in this playback must request data, not stop it.
+        last_buffer_ = 0;
         stream_state_ = desired_state_;
 
         // Launch the first buffer ready to be filled

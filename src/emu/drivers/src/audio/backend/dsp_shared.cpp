@@ -190,6 +190,13 @@ namespace eka2l1::drivers {
     }
 
     std::size_t dsp_output_stream_shared::data_callback(std::int16_t *buffer, const std::size_t frame_count) {
+        // A virtual stop keeps the hardware device open. It must not consume
+        // queued samples or ask a stopped guest stream to fill another buffer.
+        if (virtual_stop.load(std::memory_order_acquire)) {
+            std::memset(buffer, 0, frame_count * channels_ * sizeof(std::int16_t));
+            return frame_count;
+        }
+
         std::size_t frame_wrote = 0;
 
         if (avg_frame_count_ == 0) {

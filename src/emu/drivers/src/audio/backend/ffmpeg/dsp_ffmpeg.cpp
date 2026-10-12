@@ -196,6 +196,9 @@ namespace eka2l1::drivers {
     }
 
     bool dsp_output_stream_ffmpeg::decode_data(std::vector<std::uint8_t> &dest) {
+        // The native device decodes on its render thread while the guest may
+        // append (and reallocate) queued_data_ in queue_data_decode().
+        const std::lock_guard<std::mutex> guard(decode_lock_);
         dest.clear();
 
         if (queued_data_.empty()) {
@@ -319,7 +322,9 @@ namespace eka2l1::drivers {
     }
 
     bool dsp_output_stream_ffmpeg::internal_decode_running_out() {
-        return ((format_ != drivers::PCM16_FOUR_CC_CODE && format_ != drivers::PCM8_FOUR_CC_CODE) && (queued_data_.size() <= CUSTOM_IO_BUFFER_SIZE * 2)) ||
-            dsp_output_stream_shared::internal_decode_running_out();
+        if (format_ == drivers::PCM16_FOUR_CC_CODE || format_ == drivers::PCM8_FOUR_CC_CODE)
+            return dsp_output_stream_shared::internal_decode_running_out();
+        const std::lock_guard<std::mutex> guard(decode_lock_);
+        return queued_data_.size() <= CUSTOM_IO_BUFFER_SIZE * 2;
     }
 }
