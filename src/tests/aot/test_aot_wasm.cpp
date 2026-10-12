@@ -5810,6 +5810,58 @@ static bool test_direct_memory_translation() {
     return true;
 }
 
+static bool test_memory_table_walk() {
+#ifdef __EMSCRIPTEN__
+    using namespace memory_experiment;
+    namespace mem=eka2l1::mem;
+    const std::uint32_t bases[]={0,0x00400000,0x10000000,0x5ff00000,0x60000000,
+        0x70000000,0x78000000,0x80000000,0xfff00000};
+    for(auto model:{mem::mem_model_type::multiple,mem::mem_model_type::flexible})for(bool old:{false,true}) {
+        eka2l1::config::state conf;
+        r12l1::exclusive_monitor monitor(1);
+        mem::basic_page_table_allocator allocator;
+        auto cpu=std::make_unique<dyncom_core>(&monitor,12);
+        auto control=mem::make_new_control(&monitor,&allocator,&conf,12,old,model);
+        mem::asid spaces[]={control->rollover_fresh_addr_space(),control->rollover_fresh_addr_space()};
+        test_mem backing;
+        for(auto base:bases)for(unsigned owner=0;owner<3;++owner) {
+            auto *table=control->create_new_page_table();
+            if(!table)return false;
+            control->assign_page_table(table,base,mem::MMU_ASSIGN_GLOBAL,
+                owner?&spaces[owner-1]:nullptr,owner?1:0);
+            // Uncommitted first pages still have a table. Include aliases and
+            // differing permissions, and distinct local/global directories.
+            for(unsigned page=1;page<256;++page) {
+                table->get_page_info(page)->assign(backing.data.data()+4096*(owner*16+page%16),
+                    static_cast<prot>(1+page%3));
+            }
+        }
+        auto *mmu=control->get_or_create_mmu(cpu.get());
+        for(auto space:{spaces[0],spaces[1],spaces[0]}) {
+            if(!mmu->set_current_addr_space(space))return false;
+            const auto pointer=cpu->experimental_memory(true);
+            const auto *descriptor=reinterpret_cast<const direct_view*>(pointer);
+            const auto *pages=reinterpret_cast<const page*>(descriptor->pages);
+            for(auto base:bases)for(unsigned index=0;index<256;++index) {
+                const auto address=base+(index<<12);
+                const auto *expected=control->get_page_info(space,address);
+                const auto host=expected&&address?reinterpret_cast<std::uintptr_t>(expected->host_addr):0;
+                const auto &actual=pages[address>>12];
+                if(actual.read!=((expected&&expected->perm&prot_read)?host:0)
+                    || actual.write!=((expected&&expected->perm&prot_write)?host:0)) {
+                    printf("FAIL table walk model=%u old=%u space=%u address=%x\n",unsigned(model),old,space,address);return false;
+                }
+            }
+            cpu->experimental_memory(false);
+            // A later rebuild must discard an entry that was just removed.
+            control->get_page_info(space,0x0047f000)->clear();
+        }
+    }
+    printf("PASS table walks: both memory models, old/new layouts, local/global boundary, aliases, permissions and removal\n");
+#endif
+    return true;
+}
+
 static bool test_memory_implementations() {
 #ifdef __EMSCRIPTEN__
     using namespace memory_experiment;
@@ -5819,6 +5871,7 @@ static bool test_memory_implementations() {
     } saved;
     if (!test_direct_memory_translation()) return false;
     mode=2;
+    if (!test_memory_table_walk()) return false;
     namespace mem=eka2l1::mem;
     eka2l1::config::state conf;
     r12l1::exclusive_monitor monitor(1);

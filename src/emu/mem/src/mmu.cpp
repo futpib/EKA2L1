@@ -54,10 +54,15 @@ namespace eka2l1::mem {
                         // A missing table returns null even when its first page
                         // would be uncommitted. Resolve through the manager to
                         // preserve the multiple model's global-directory rules.
-                        if (!manager_->get_page_info(current_addr_space(),table<<20)) continue;
+                        const auto *first=manager_->get_page_info(current_addr_space(),table<<20);
+                        if (!first) continue;
+                        // Page-table storage is contiguous. Check the far end
+                        // before walking it: the old multiple model switches
+                        // directories just after 0x60000000, within one table.
+                        const bool contiguous=manager_->get_page_info(current_addr_space(),(table<<20)|0xff000)==first+255;
                         for (std::uint32_t page=0;page<256;++page) {
                             const auto guest=(table<<20)|(page<<12);
-                            const auto *info=manager_->get_page_info(current_addr_space(),guest);
+                            const auto *info=contiguous?first+page:manager_->get_page_info(current_addr_space(),guest);
                             if(guest && info && info->host_addr) pages.push_back({guest,
                                 static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(info->host_addr)),
                                 static_cast<std::uint32_t>(info->perm)});
