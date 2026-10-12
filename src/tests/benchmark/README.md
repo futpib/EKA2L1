@@ -60,6 +60,9 @@ memory-view rebuilding, and check gameplay throughput after reducing that work.
 The [startup follow-up](STARTUP_FOLLOWUP_RESULTS.md) covers source-provenance
 copying, page-table walks and ROM candidate admission, including rejected
 mapping caches and options for shipping prepared images.
+The [current Hooked On startup profile](HOOKED_STARTUP_PROFILE.md) separates
+filesystem handoff waits, guest hashing, compilation and mapping work on the
+deployed build, with a focused repeat to reduce profiler disturbance.
 
 - The native benchmark clock advances from executed instructions (one synthetic cycle per instruction, 484 MHz at the default clock), with at most 4,840 instructions per dispatch. This is a reproducible clock model, not a hardware cycle-accuracy claim.
 - When no guest thread is runnable, execution jumps to the next scheduled event. There is no real-time timer thread or host vsync pacing.
