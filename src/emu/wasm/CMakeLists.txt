@@ -69,6 +69,9 @@ target_link_options(eka2l1_wasm PRIVATE
     "SHELL:-s EXPORTED_FUNCTIONS=['_main','_eka2l1_init','_eka2l1_install_device','_eka2l1_install_sis','_eka2l1_run','_eka2l1_shutdown','_eka2l1_press_key','_eka2l1_get_distinct_colors','_eka2l1_start_frame_dump','_eka2l1_frame_dump_done','_eka2l1_frame_dump_captured','_aot_tlb_read32','_aot_tlb_write32','_aot_tlb_read8','_malloc','_free']"
     "SHELL:-s ALLOW_TABLE_GROWTH=1"
     "SHELL:-s FORCE_FILESYSTEM=1"
+    # Keep libc file operations on their calling worker instead of proxying
+    # every seek, metadata lookup and directory read to the browser thread.
+    "SHELL:-s WASMFS=1"
     "SHELL:-s PROXY_TO_PTHREAD"
     "SHELL:--shell-file ${CMAKE_CURRENT_SOURCE_DIR}/shell.html"
     "SHELL:--preload-file ${PROJECT_SOURCE_DIR}/src/emu/drivers/resources/gles/@resources/"

@@ -130,6 +130,56 @@ async function runTests(): Promise<void> {
     }
     console.log("  PASS");
 
+    console.log("TEST filesystem: staging, shared handles and case-preserving mutations...");
+    await page.evaluate(() => {
+      const fs = (window as any).FS;
+      const root = '/tmp/filesystem-contract';
+      const original = root + '/Game/Save.Dat', renamed = root + '/Game/Renamed.Dat';
+      const check = (condition: boolean, message: string) => {
+        if (!condition) throw Error(message);
+      };
+      const equals = (actual: Uint8Array, expected: number[]) =>
+        actual.length === expected.length && expected.every((v, i) => actual[i] === v);
+      fs.mkdirTree(root + '/Game');
+      const bytes = new Uint8Array([99, 0, 128, 255, 7, 99]);
+      const stage = (window as any).writeGuestFile;
+      stage(original, new Uint8Array(1024 * 1024 + 17).fill(23));
+      check(fs.stat(original).size === 1024 * 1024 + 17
+        && fs.readFile(original)[1024 * 1024 + 16] === 23, 'Large staging lost the tail');
+      stage(original, new Uint8Array());
+      check(fs.stat(original).size === 0, 'Empty staging did not truncate the file');
+      stage(original, bytes.subarray(1, 5));
+      let reader, writer;
+      try {
+        check(equals(fs.readFile(original), [0, 128, 255, 7]), 'Staging corrupted a binary subarray');
+        reader = fs.open(original, 'r');
+        writer = fs.open(original, 'r+');
+        check(fs.write(writer, new Uint8Array([42]), 0, 1, 1) === 1, 'Write failed');
+        const read = new Uint8Array(4);
+        check(fs.read(reader, read, 0, 4, 0) === 4 && equals(read, [0, 42, 255, 7]),
+          'An existing handle did not observe a write');
+        fs.rename(original, renamed);
+        check(fs.readdir(root + '/Game').includes('Renamed.Dat')
+          && !fs.readdir(root + '/Game').includes('Save.Dat'), 'Rename lost filename spelling');
+        fs.truncate(renamed, 2);
+        fs.truncate(renamed, 6);
+        check(fs.stat(renamed).size === 6 && equals(fs.readFile(renamed), [0, 42, 0, 0, 0, 0]),
+          'Truncate/grow did not preserve the prefix and zero the new bytes');
+        fs.unlink(renamed);
+        check(!fs.readdir(root + '/Game').includes('Renamed.Dat'), 'Unlink left a directory entry');
+        check(fs.read(reader, read, 0, 4, 0) === 4 && equals(read, [0, 42, 0, 0]),
+          'An open handle lost its contents after rename/unlink');
+      } finally {
+        if (reader) fs.close(reader);
+        if (writer) fs.close(writer);
+        for (const name of fs.readdir(root + '/Game'))
+          if (name !== '.' && name !== '..') fs.unlink(root + '/Game/' + name);
+        fs.rmdir(root + '/Game');
+        fs.rmdir(root);
+      }
+    });
+    console.log("  PASS");
+
     console.log("TEST compiler: fixed policy, retained compatibility modes...");
     await page.evaluate(() => {
       const m = (window as any).Module;

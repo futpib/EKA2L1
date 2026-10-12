@@ -129,6 +129,14 @@
             document.getElementById('status').textContent = text || 'Ready';
         };
 
+        function writeGuestFile(path, data) {
+            // WasmFS in our SDK appends in FS.writeFile. Truncate explicitly,
+            // then use its bulk copy rather than FS.write's per-byte JS loop.
+            var stream = FS.open(path, 'w');
+            FS.close(stream);
+            if (data.length) FS.writeFile(path, data);
+        }
+
         function uploadFile(file, path) {
             return new Promise(function(resolve, reject) {
                 var reader = new FileReader();
@@ -142,7 +150,7 @@
                             dir += '/' + parts[i];
                             try { FS.mkdir(dir); } catch(e) {async: true}
                         }
-                        FS.writeFile(path, data);
+                        writeGuestFile(path, data);
                         resolve(path);
                     } catch(e) {
                         reject(e);
@@ -340,7 +348,7 @@
                     var packageResponse = await window.ekaDownload(ngagePackage);
                     if (!packageResponse.ok) throw new Error('N-Gage download failed: HTTP ' + packageResponse.status);
                     FS.mkdirTree('/data/drives/e/n-gage');
-                    FS.writeFile('/data/drives/e/n-gage/game.n-gage', new Uint8Array(await packageResponse.arrayBuffer()));
+                    writeGuestFile('/data/drives/e/n-gage/game.n-gage', new Uint8Array(await packageResponse.arrayBuffer()));
                 }
 
                 // Card games keep their original System directory on drive E.
@@ -348,7 +356,7 @@
                     Module.setStatus('Mounting game card...');
                     var cardResponse = await window.ekaDownload(cardPackage);
                     if (!cardResponse.ok) throw new Error('Game card download failed: HTTP ' + cardResponse.status);
-                    FS.writeFile('/tmp/game-card.zip', new Uint8Array(await cardResponse.arrayBuffer()));
+                    writeGuestFile('/tmp/game-card.zip', new Uint8Array(await cardResponse.arrayBuffer()));
                     try {
                         var cardRet = Module.ccall('eka2l1_mount_game_card', 'number', ['string'], ['/tmp/game-card.zip']);
                         if (cardRet !== 0) throw new Error('Game card mount failed: ' + cardRet);

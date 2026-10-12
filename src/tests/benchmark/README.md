@@ -54,6 +54,10 @@ The [Asphalt 3 audio follow-up](ASPHALT3_AUDIO.md) verifies Qt and browser racin
 with sound enabled, adds browser MP3 decoding, and fixes stopped-stream callbacks
 and concurrent native compressed-buffer access.
 
+The [WasmFS results](WASMFS_RESULTS.md) measure removal of synchronous filesystem
+handoffs to the main browser thread, fresh installation time, and unpaced
+gameplay checks. The report includes the WASM heap tradeoff and failed runs.
+
 The [startup bookkeeping results](STARTUP_BOOKKEEPING_RESULTS.md) identify Hooked On's
 fresh N-Gage installation as the longest loading stage, profile invalidation and
 memory-view rebuilding, and check gameplay throughput after reducing that work.

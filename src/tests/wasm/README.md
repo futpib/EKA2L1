@@ -4,6 +4,13 @@ Build `eka2l1_wasm` following the [browser build instructions](../benchmark/READ
 then run `npm ci --ignore-scripts` and `npm run serve -- 8188` in this directory.
 Choose **Snakes**, **Sky Force**, **K-Rally**, **Asphalt: Urban GT 2** or **Hooked On (trial)**
 and press **Play**.
+
+The browser uses WasmFS: C/C++ file operations run on their calling worker,
+so file metadata, seeks and directory reads do not synchronously visit the
+browser main thread. File contents occupy the WASM heap within the existing
+2 GiB limit. Uploads explicitly truncate before the SDK's bulk write, including
+empty replacements. See the [filesystem measurements](../benchmark/WASMFS_RESULTS.md).
+
 Each launch starts a fresh session; saves are not persisted. **Load my own files** opens the
 ROM/RPKG/SIS upload controls. Changing the dropdown alone does not stop play.
 
