@@ -63,6 +63,12 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
+    if (eka2l1::common::benchmark::enabled() && qEnvironmentVariable("EKA2L1_QT_UNPACED") == "1") {
+        // Interactive throughput testing uses the virtual clock without replay
+        // input or frame/audio retention. Normal desktop launches stay paced.
+        eka2l1::common::benchmark::interactive = true;
+        eka2l1::common::benchmark::retain_audio = false;
+    }
     if (eka2l1::common::benchmark::enabled() && std::getenv("EKA2L1_QT_PROFILE_OUTPUT")) {
         namespace common = eka2l1::common;
         common::performance::enabled = true;

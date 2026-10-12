@@ -157,7 +157,8 @@ namespace eka2l1::desktop {
             // Create audio driver
             if (common::benchmark::enabled() && std::getenv("EKA2L1_SHARED_AUDIO") &&
                 std::string(std::getenv("EKA2L1_SHARED_AUDIO")) == "1")
-                audio_driver = drivers::make_clocked_audio_driver(true, false);
+                audio_driver = drivers::make_clocked_audio_driver(
+                    common::benchmark::retain_audio, common::benchmark::interactive);
             if (!common::benchmark::enabled())
                 audio_driver = drivers::make_audio_driver(drivers::audio_driver_backend::cubeb, conf.audio_master_volume,
                     player_be);

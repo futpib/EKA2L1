@@ -44,6 +44,11 @@ backedges inside compiled code. Its adjacent paced comparison improves Asphalt
 from 15.43 to 16.14 FPS, with 14.2% less CPU-worker time per frame. Separate native
 captures show dispatcher sample share falling from 25.5% to 17.5%.
 
+The [ten-game unpaced Qt/WASM comparison](QT_VS_WASM_UNPACED_FPS.md) records fresh
+presentation rates, scene and clock limits, the native Asphalt 3 launch failure,
+and the opt-in interactive Qt benchmark command. It does not replace paced FPS
+or deterministic replay checks.
+
 - The native benchmark clock advances from executed instructions (one synthetic cycle per instruction, 484 MHz at the default clock), with at most 4,840 instructions per dispatch. This is a reproducible clock model, not a hardware cycle-accuracy claim.
 - When no guest thread is runnable, execution jumps to the next scheduled event. There is no real-time timer thread or host vsync pacing.
 - Guest UTC starts at 2024-01-01 00:00:00, timezone UTC. Guest `Math::Random` and host-generated kernel object names have fixed seeds.

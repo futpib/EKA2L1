@@ -713,7 +713,8 @@ namespace eka2l1 {
             // Explicit throughput experiment only. JIT tick exits are not the
             // exact-budget DynCom reference used by the parity benchmark.
             const char *backend = std::getenv("EKA2L1_QT_PROFILE_CPU");
-            if (std::getenv("EKA2L1_QT_PROFILE_OUTPUT") && backend && std::strcmp(backend, "dynarmic") == 0)
+            if ((std::getenv("EKA2L1_QT_PROFILE_OUTPUT") || common::benchmark::interactive)
+                && backend && std::strcmp(backend, "dynarmic") == 0)
                 cpu_type = arm_emulator_type::dynarmic;
 #endif
         }

@@ -1,0 +1,1293 @@
+{
+  "date": "2026-10-12",
+  "source": "fdbd53c9f plus native interactive unpaced harness change",
+  "raw_root": "/home/claude/.scratch/eka-unpaced-ten-20261012",
+  "metric": "screen presentations per host wall-clock second; includes duplicate images",
+  "cpu": "Intel Core i7-10875H",
+  "gpu_both": "NVIDIA Quadro T1000 Max-Q",
+  "wasm_sha256": "72458db489c3d5502c8372fb341e5bf8a313ca9ccf00434fdb75c947f84c2c9b",
+  "qt_sha256": "e0d56a07dab199dce46630898bcdca0da027763605216c8924e66b07797a6215",
+  "limitations": [
+    "Native instruction-driven virtual clock versus count-free browser yield clock; no equal-work or cycle-accuracy claim.",
+    "Single short gameplay window per frontend/game; shared host; no statistical confidence estimate.",
+    "Same scene category but not exact replay; Pathway selected soldier and viewport differ.",
+    "Asphalt 3 browser sound disabled; no native comparison.",
+    "Startup/navigation excluded; residual translation and browser/native JIT work included."
+  ],
+  "assets": {
+    "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+    "SkyForce.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+    "K-Rally-1.01-Team-SyMBiAN.sis": "e93abd790e7c5b05427e5e141f34532b329982e89f1a0112c856b59eb03db9e4",
+    "Asphalt-Urban-GT-2-N95-8GB-1.0.1.sis": "d55bb082f53deb40b3b4d9f7440b7eb7b7087a648eabc8c8c9cdf1b8aa756b40",
+    "Hooked-On-0.74-BiNPDA.sis": "ce8eeb53432f735ac2b2343290fb31ce37646f6231edc35610c0b07596d043f6",
+    "Hooked-On-0.74-BiNPDA.n-gage": "a52da7a5d3d9f7ebd3eb81e49e3294d8998060f7cc2539fe955b8bfe14e1745c",
+    "N-Gage-1.40.1557-inner.sisx": "e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+    "Asphalt-3-1.2.7-BodyZ.sis": "53e38bf8770d9b98e49b263ee4d376cb6c49aea8ef646da8ae8e00a41cde9b6e",
+    "Asphalt-3-1.2.7-BodyZ.n-gage": "afe7964b0968acc8c45908ac6abd48b25e1b171dd1abea1d07a098209c250093",
+    "Tetris-4.21.41-Nokia.sis": "71a6218eb6e6ace77fb2b85e850d5ac7f18fb1f7eaaa2c89df7b54412a8ba052",
+    "Tetris-4.21.41-Nokia.n-gage": "37222257e26cfc1b1bbc1f0dbb684b04fd569e3638c2fbb58f44fe7fe7446569",
+    "Super-Miners-1.07b-DeFconX.sisx": "3c48a19cbc061e40778a05b03002768d9014481c7ac290a69b12cf004bdc8e7c",
+    "Explode-Arena-1.1-oWnPDA.sis": "2d47263342b3adc72fa9d8c1206bcb00c487adde40e282e6b29c6c813ffa8587",
+    "N70.ROM": "cb062dc84820b728a60b525115049b250e3f4912638a777d49edef79972c4e0e",
+    "N70.RPKG": "c40beb14d3ca4a530b7d59133b52ed28b650d1a12dd07a982df14a22d6ee1aa4",
+    "Pathway-to-Glory-1.03-retail-card.zip": "a67248caad9d78dee3dbe5f63ada1236eb068caea6b4341c3caf772c5b48947d",
+    "N-Gage-QD-Developer.ROM": "582a049f9e573c0245441ddb01bb5b3db76ede7677ec05cafc16f314a02ef6ef"
+  },
+  "rejected": [
+    {
+      "path": "qt-snakes/opening-level-a.json",
+      "reason": "Starts in level introduction and overlaps browser startup stepping; excluded"
+    },
+    {
+      "path": "wasm-snakes/opening-level.json",
+      "reason": "Instruction/menu screen instead of gameplay; excluded"
+    },
+    {
+      "path": "qt-snakes-retaining-audio",
+      "reason": "Initial native harness wrongly retained replay PCM; corrected and rerun. Asphalt hit its 120 guest second limit."
+    },
+    {
+      "path": "qt-sky-force-retaining-audio",
+      "reason": "Initial native harness wrongly retained replay PCM; corrected and rerun. Asphalt hit its 120 guest second limit."
+    },
+    {
+      "path": "qt-k-rally-retaining-audio",
+      "reason": "Initial native harness wrongly retained replay PCM; corrected and rerun. Asphalt hit its 120 guest second limit."
+    },
+    {
+      "path": "qt-asphalt-2-retaining-audio",
+      "reason": "Initial native harness wrongly retained replay PCM; corrected and rerun. Asphalt hit its 120 guest second limit."
+    },
+    {
+      "path": "qt-asphalt-3-failed-audio-on",
+      "reason": "Guest null read at 0x8, PC 0x74a09eac, KERN-EXEC 3 after enabling sound; no timing recorded."
+    },
+    {
+      "path": "qt-asphalt-3-failed-startup",
+      "reason": "N-Gage startup error -1000002; no gameplay or FPS"
+    },
+    {
+      "path": "qt-asphalt-3-failed-clean",
+      "reason": "Fresh installed-state copy; guest USER 44 panic while loading carsb.bar; no FPS"
+    },
+    {
+      "path": "qt-asphalt-3",
+      "reason": "Final fresh installed-state copy with guest-time input stepping; startup error -1000002; no FPS"
+    },
+    {
+      "path": "qt-explode-arena-rejected-menu/arcade-level-1.json",
+      "reason": "3 s sample ended at main menu; excluded and repeated with shorter gameplay window"
+    },
+    {
+      "path": "qt-pathway-to-glory-rejected-startup",
+      "reason": "Intro navigation did not reach accepted scene; no FPS"
+    }
+  ],
+  "rows": [
+    {
+      "number": 1,
+      "game": "snakes",
+      "title": "Snakes",
+      "version": "Launcher Snakes.sis, 0.6.0.19",
+      "scene": "Opening level; new 60 s game",
+      "qt": {
+        "game": "snakes",
+        "scene": "opening-level",
+        "seconds": 5.0042773289605975,
+        "frames": 534,
+        "fps": 106.70871434515666,
+        "drawable_counts": {
+          "2097213": 534
+        },
+        "start": 1084021.721804152,
+        "end": 1084026.726081481,
+        "window": "2097163",
+        "binary_sha256": "e0d56a07dab199dce46630898bcdca0da027763605216c8924e66b07797a6215",
+        "guest_seconds": 25.231695,
+        "guest_speed": 5.042025719474003,
+        "mode": "unpaced interactive benchmark, Dynarmic, instruction-driven virtual clock",
+        "audio": "shared clocked DSP; output discarded",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-snakes/opening-level.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-snakes/opening-level-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-snakes/opening-level-end.png"
+        ],
+        "load_average": {
+          "first": [
+            0.75146484375,
+            0.86083984375,
+            0.88916015625
+          ],
+          "last": [
+            0.771484375,
+            0.86328125,
+            0.89013671875
+          ],
+          "max_one_minute": 0.771484375
+        }
+      },
+      "wasm": {
+        "game": "snakes",
+        "label": "opening-level-valid",
+        "edition": "launcher default",
+        "url": "https://claude-laptop.lan:8188/?game=custom",
+        "browser": "Chrome/153.0.8010.52",
+        "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+        "load": [
+          0.81,
+          1.07,
+          0.88
+        ],
+        "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+        "sound": "browser muted; guest audio remains enabled",
+        "seconds": 5.025039999961853,
+        "frames": 478,
+        "fps": 95.12362090722236,
+        "guestSeconds": 23.01,
+        "guestSpeed": 4.579068027353947,
+        "compiledFunctions": 89,
+        "compilationUs": {
+          "aot_translation_us": 8485,
+          "aot_emission_us": 738,
+          "aot_installation_us": 2197
+        },
+        "errors": [],
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-retry/opening-level-valid.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-retry/opening-level-valid-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-retry/opening-level-valid-end.png"
+        ],
+        "sample_checks": {
+          "count": 11,
+          "route_phases": [
+            0
+          ],
+          "instruction_totals": [
+            0
+          ]
+        },
+        "first_sample": {
+          "ms": 138255.63000011444,
+          "guest": 54240000,
+          "frames": 706,
+          "phase": 0,
+          "inputs": 6,
+          "monitor": {
+            "guest_us": 54250000,
+            "instructions": 0,
+            "compiled_functions": 44302,
+            "aot_translation_us": 6191302,
+            "aot_emission_us": 264612,
+            "aot_installation_us": 578643,
+            "aot_eager_functions": 35481,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 879174008,
+            "free_bytes": 86948872
+          }
+        },
+        "last_sample": {
+          "ms": 143280.6700000763,
+          "guest": 77250000,
+          "frames": 1184,
+          "phase": 0,
+          "inputs": 6,
+          "monitor": {
+            "guest_us": 77250000,
+            "instructions": 0,
+            "compiled_functions": 44391,
+            "aot_translation_us": 6199787,
+            "aot_emission_us": 265350,
+            "aot_installation_us": 580840,
+            "aot_eager_functions": 35481,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 877899960,
+            "free_bytes": 88222920
+          }
+        }
+      },
+      "wasm_relative_to_qt": 0.8914325459825003,
+      "qt_failure": null
+    },
+    {
+      "number": 2,
+      "game": "sky-force",
+      "title": "Sky Force",
+      "version": "1.22, S60 3rd Edition, 240x320",
+      "scene": "Stage 1; red ship, auto-fire",
+      "qt": {
+        "game": "sky-force",
+        "scene": "stage-1",
+        "seconds": 2.001923237927258,
+        "frames": 584,
+        "fps": 291.71947701883875,
+        "drawable_counts": {
+          "2097213": 584
+        },
+        "start": 1084083.280597931,
+        "end": 1084085.282521169,
+        "window": "2097163",
+        "binary_sha256": "e0d56a07dab199dce46630898bcdca0da027763605216c8924e66b07797a6215",
+        "guest_seconds": 18.278063,
+        "guest_speed": 9.130251676844841,
+        "mode": "unpaced interactive benchmark, Dynarmic, instruction-driven virtual clock",
+        "audio": "shared clocked DSP; output discarded",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-sky-force/stage-1.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-sky-force/stage-1-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-sky-force/stage-1-end.png"
+        ],
+        "load_average": {
+          "first": [
+            0.9755859375,
+            0.90478515625,
+            0.90625
+          ],
+          "last": [
+            0.9755859375,
+            0.90478515625,
+            0.90625
+          ],
+          "max_one_minute": 0.9755859375
+        }
+      },
+      "wasm": {
+        "game": "sky-force",
+        "label": "stage-1",
+        "edition": "1.22, S60 3rd Edition, 240x320",
+        "url": "https://claude-laptop.lan:8188/?game=custom",
+        "browser": "Chrome/153.0.8010.52",
+        "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+        "load": [
+          0.87,
+          1.03,
+          0.89
+        ],
+        "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+        "sound": "browser muted; guest audio remains enabled",
+        "seconds": 2.0080650000572207,
+        "frames": 624,
+        "fps": 310.7469130641781,
+        "guestSeconds": 19.51,
+        "guestSpeed": 9.71582095173416,
+        "compiledFunctions": 33,
+        "compilationUs": {
+          "aot_translation_us": 3533,
+          "aot_emission_us": 334,
+          "aot_installation_us": 909
+        },
+        "errors": [],
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-sky-force/stage-1.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-sky-force/stage-1-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-sky-force/stage-1-end.png"
+        ],
+        "sample_checks": {
+          "count": 5,
+          "route_phases": [
+            0
+          ],
+          "instruction_totals": [
+            0
+          ]
+        },
+        "first_sample": {
+          "ms": 79128.4200000763,
+          "guest": 59410000,
+          "frames": 1382,
+          "phase": 0,
+          "inputs": 8,
+          "monitor": {
+            "guest_us": 59410000,
+            "instructions": 0,
+            "compiled_functions": 41667,
+            "aot_translation_us": 5462992,
+            "aot_emission_us": 241468,
+            "aot_installation_us": 514709,
+            "aot_eager_functions": 34207,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 879954720,
+            "free_bytes": 86168160
+          }
+        },
+        "last_sample": {
+          "ms": 81136.48500013351,
+          "guest": 78920000,
+          "frames": 2006,
+          "phase": 0,
+          "inputs": 8,
+          "monitor": {
+            "guest_us": 78930000,
+            "instructions": 0,
+            "compiled_functions": 41700,
+            "aot_translation_us": 5466525,
+            "aot_emission_us": 241802,
+            "aot_installation_us": 515618,
+            "aot_eager_functions": 34207,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878103784,
+            "free_bytes": 88019096
+          }
+        }
+      },
+      "wasm_relative_to_qt": 1.065225113659828,
+      "qt_failure": null
+    },
+    {
+      "number": 3,
+      "game": "k-rally",
+      "title": "K-Rally",
+      "version": "1.01, S60 3rd Edition, Team SyMBiAN preservation copy",
+      "scene": "Tutorial driving; accelerate and right",
+      "qt": {
+        "game": "k-rally",
+        "scene": "tutorial-driving",
+        "seconds": 3.0028385911136866,
+        "frames": 599,
+        "fps": 199.47792124845583,
+        "drawable_counts": {
+          "2097213": 599
+        },
+        "start": 1084188.718711335,
+        "end": 1084191.721549926,
+        "window": "2097163",
+        "binary_sha256": "e0d56a07dab199dce46630898bcdca0da027763605216c8924e66b07797a6215",
+        "guest_seconds": 18.745765,
+        "guest_speed": 6.242681526564373,
+        "mode": "unpaced interactive benchmark, Dynarmic, instruction-driven virtual clock",
+        "audio": "shared clocked DSP; output discarded",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-k-rally/tutorial-driving.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-k-rally/tutorial-driving-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-k-rally/tutorial-driving-end.png"
+        ],
+        "load_average": {
+          "first": [
+            0.55517578125,
+            0.7783203125,
+            0.861328125
+          ],
+          "last": [
+            0.55517578125,
+            0.7783203125,
+            0.861328125
+          ],
+          "max_one_minute": 0.55517578125
+        }
+      },
+      "wasm": {
+        "game": "k-rally",
+        "label": "tutorial-driving",
+        "edition": "1.01, S60 3rd Edition, Team SyMBiAN preservation copy",
+        "url": "https://claude-laptop.lan:8188/?game=custom",
+        "browser": "Chrome/153.0.8010.52",
+        "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+        "load": [
+          0.75,
+          0.94,
+          0.89
+        ],
+        "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+        "sound": "browser muted; guest audio remains enabled",
+        "seconds": 3.0171449999809266,
+        "frames": 525,
+        "fps": 174.00555823578875,
+        "guestSeconds": 16.68,
+        "guestSpeed": 5.528405164519917,
+        "compiledFunctions": 109,
+        "compilationUs": {
+          "aot_translation_us": 24461,
+          "aot_emission_us": 1002,
+          "aot_installation_us": 2956
+        },
+        "errors": [],
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-k-rally/tutorial-driving.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-k-rally/tutorial-driving-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-k-rally/tutorial-driving-end.png"
+        ],
+        "sample_checks": {
+          "count": 7,
+          "route_phases": [
+            0
+          ],
+          "instruction_totals": [
+            0
+          ]
+        },
+        "first_sample": {
+          "ms": 156594.17500019073,
+          "guest": 166030000,
+          "frames": 4269,
+          "phase": 0,
+          "inputs": 24,
+          "monitor": {
+            "guest_us": 166040000,
+            "instructions": 0,
+            "compiled_functions": 54050,
+            "aot_translation_us": 6621866,
+            "aot_emission_us": 336421,
+            "aot_installation_us": 712593,
+            "aot_eager_functions": 46362,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 880340424,
+            "free_bytes": 85782456
+          }
+        },
+        "last_sample": {
+          "ms": 159611.32000017166,
+          "guest": 182710000,
+          "frames": 4794,
+          "phase": 0,
+          "inputs": 24,
+          "monitor": {
+            "guest_us": 182720000,
+            "instructions": 0,
+            "compiled_functions": 54159,
+            "aot_translation_us": 6646327,
+            "aot_emission_us": 337423,
+            "aot_installation_us": 715549,
+            "aot_eager_functions": 46362,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 880468736,
+            "free_bytes": 85654144
+          }
+        }
+      },
+      "wasm_relative_to_qt": 0.8723048503150358,
+      "qt_failure": null
+    },
+    {
+      "number": 4,
+      "game": "asphalt-2",
+      "title": "Asphalt: Urban GT 2",
+      "version": "1.0.1, N95 8GB, original Gameloft-signed S60v3 release",
+      "scene": "Golf GTI MkV, San Francisco, first outside barrier",
+      "qt": {
+        "game": "asphalt-2",
+        "scene": "golf-san-francisco-barrier",
+        "seconds": 10.009205977898091,
+        "frames": 1759,
+        "fps": 175.73821578696152,
+        "drawable_counts": {
+          "2097213": 1759
+        },
+        "start": 1083563.432808575,
+        "end": 1083573.442014553,
+        "window": "2097163",
+        "binary_sha256": "e0d56a07dab199dce46630898bcdca0da027763605216c8924e66b07797a6215",
+        "guest_seconds": 110.000117,
+        "guest_speed": 10.989894427479827,
+        "mode": "unpaced interactive benchmark, Dynarmic, instruction-driven virtual clock",
+        "audio": "shared clocked DSP; output discarded",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-asphalt-2/golf-san-francisco-barrier.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-asphalt-2/golf-san-francisco-barrier-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-asphalt-2/golf-san-francisco-barrier-end.png"
+        ],
+        "load_average": {
+          "first": [
+            0.5263671875,
+            0.7763671875,
+            0.84228515625
+          ],
+          "last": [
+            0.525390625,
+            0.767578125,
+            0.83837890625
+          ],
+          "max_one_minute": 0.5263671875
+        }
+      },
+      "wasm": {
+        "game": "asphalt-2",
+        "label": "golf-san-francisco-barrier",
+        "edition": "1.0.1, N95 8GB, original Gameloft-signed S60v3 release",
+        "url": "https://claude-laptop.lan:8188/?game=custom",
+        "browser": "Chrome/153.0.8010.52",
+        "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+        "load": [
+          0.59,
+          0.84,
+          0.87
+        ],
+        "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+        "sound": "browser muted; guest audio remains enabled",
+        "seconds": 10.049049999952317,
+        "frames": 1409,
+        "fps": 140.2122588709068,
+        "guestSeconds": 102.38,
+        "guestSpeed": 10.188027724062055,
+        "compiledFunctions": 91,
+        "compilationUs": {
+          "aot_translation_us": 41372,
+          "aot_emission_us": 1598,
+          "aot_installation_us": 2882
+        },
+        "errors": [],
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-asphalt-2/golf-san-francisco-barrier.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-asphalt-2/golf-san-francisco-barrier-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-asphalt-2/golf-san-francisco-barrier-end.png"
+        ],
+        "sample_checks": {
+          "count": 21,
+          "route_phases": [
+            0
+          ],
+          "instruction_totals": [
+            0
+          ]
+        },
+        "first_sample": {
+          "ms": 174469.2650001049,
+          "guest": 96820000,
+          "frames": 1020,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 96820000,
+            "instructions": 0,
+            "compiled_functions": 41927,
+            "aot_translation_us": 7063791,
+            "aot_emission_us": 279823,
+            "aot_installation_us": 582444,
+            "aot_eager_functions": 31057,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878546520,
+            "free_bytes": 87576360
+          }
+        },
+        "last_sample": {
+          "ms": 184518.31500005722,
+          "guest": 199200000,
+          "frames": 2429,
+          "phase": 0,
+          "inputs": 14,
+          "monitor": {
+            "guest_us": 199200000,
+            "instructions": 0,
+            "compiled_functions": 42018,
+            "aot_translation_us": 7105163,
+            "aot_emission_us": 281421,
+            "aot_installation_us": 585326,
+            "aot_eager_functions": 31057,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878545560,
+            "free_bytes": 87577320
+          }
+        }
+      },
+      "wasm_relative_to_qt": 0.7978472880416572,
+      "qt_failure": null
+    },
+    {
+      "number": 5,
+      "game": "hooked-on",
+      "title": "Hooked On: Creatures of the Deep",
+      "version": "0.74, N-Gage 2.0, full BiNPDA preservation copy",
+      "scene": "Costa Rica boat map; hold Up; help transitions",
+      "qt": {
+        "game": "hooked-on",
+        "scene": "costa-rica-boat",
+        "seconds": 5.003946776036173,
+        "frames": 1716,
+        "fps": 342.9293069658332,
+        "drawable_counts": {
+          "2097213": 1716
+        },
+        "start": 1083801.075520884,
+        "end": 1083806.07946766,
+        "window": "2097163",
+        "binary_sha256": "e0d56a07dab199dce46630898bcdca0da027763605216c8924e66b07797a6215",
+        "guest_seconds": 53.653136,
+        "guest_speed": 10.722163604326104,
+        "mode": "unpaced interactive benchmark, Dynarmic, instruction-driven virtual clock",
+        "audio": "shared clocked DSP; output discarded",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-hooked-on/costa-rica-boat.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-hooked-on/costa-rica-boat-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-hooked-on/costa-rica-boat-end.png"
+        ],
+        "load_average": {
+          "first": [
+            0.84326171875,
+            0.994140625,
+            0.9296875
+          ],
+          "last": [
+            0.85595703125,
+            0.99462890625,
+            0.93017578125
+          ],
+          "max_one_minute": 0.85595703125
+        }
+      },
+      "wasm": {
+        "game": "hooked-on",
+        "label": "costa-rica-boat",
+        "edition": "0.74, N-Gage 2.0, full BiNPDA preservation copy",
+        "url": "https://claude-laptop.lan:8188/?game=custom",
+        "browser": "Chrome/153.0.8010.52",
+        "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+        "load": [
+          0.84,
+          0.88,
+          0.9
+        ],
+        "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+        "sound": "browser muted; guest audio remains enabled",
+        "seconds": 5.050205000162125,
+        "frames": 1359,
+        "fps": 269.09798710277556,
+        "guestSeconds": 43.398,
+        "guestSpeed": 8.59331452854029,
+        "compiledFunctions": 124,
+        "compilationUs": {
+          "aot_translation_us": 24231,
+          "aot_emission_us": 1640,
+          "aot_installation_us": 13001
+        },
+        "errors": [],
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-hooked-on/costa-rica-boat.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-hooked-on/costa-rica-boat-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-hooked-on/costa-rica-boat-end.png"
+        ],
+        "sample_checks": {
+          "count": 11,
+          "route_phases": [
+            0
+          ],
+          "instruction_totals": [
+            0
+          ]
+        },
+        "first_sample": {
+          "ms": 570573.7049999237,
+          "guest": 1067744000,
+          "frames": 8076,
+          "phase": 0,
+          "inputs": 33,
+          "monitor": {
+            "guest_us": 1067744000,
+            "instructions": 0,
+            "compiled_functions": 194475,
+            "aot_translation_us": 29291867,
+            "aot_emission_us": 1247141,
+            "aot_installation_us": 2871708,
+            "aot_eager_functions": 182424,
+            "aot_eager_passes": 161,
+            "allocated_bytes": 1600088352,
+            "free_bytes": 52245600
+          }
+        },
+        "last_sample": {
+          "ms": 575623.9100000858,
+          "guest": 1111142000,
+          "frames": 9435,
+          "phase": 0,
+          "inputs": 33,
+          "monitor": {
+            "guest_us": 1111142000,
+            "instructions": 0,
+            "compiled_functions": 194599,
+            "aot_translation_us": 29316098,
+            "aot_emission_us": 1248781,
+            "aot_installation_us": 2884709,
+            "aot_eager_functions": 182424,
+            "aot_eager_passes": 161,
+            "allocated_bytes": 1598379928,
+            "free_bytes": 53954024
+          }
+        }
+      },
+      "wasm_relative_to_qt": 0.784703965618157,
+      "qt_failure": null
+    },
+    {
+      "number": 6,
+      "game": "asphalt-3",
+      "title": "Asphalt 3: Street Rules",
+      "version": "1.2.7, N-Gage 2.0, modified BodyZ preservation copy; original fails registration",
+      "scene": "Instant Play, red car, coastal track; sound OFF",
+      "qt": null,
+      "wasm": {
+        "game": "asphalt-3",
+        "label": "instant-play-driving-sound-off",
+        "edition": "1.2.7, N-Gage 2.0, modified BodyZ preservation copy; original fails registration",
+        "url": "https://claude-laptop.lan:8188/?game=custom",
+        "browser": "Chrome/153.0.8010.52",
+        "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+        "load": [
+          1,
+          0.74,
+          0.82
+        ],
+        "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+        "sound": "Disabled at in-game sound prompt (raw harness default label corrected here)",
+        "seconds": 5.039579999923706,
+        "frames": 348,
+        "fps": 69.05337349645572,
+        "guestSeconds": 19.70625,
+        "guestSpeed": 3.9102960961624444,
+        "compiledFunctions": 68,
+        "compilationUs": {
+          "aot_translation_us": 11475,
+          "aot_emission_us": 1171,
+          "aot_installation_us": 12703
+        },
+        "errors": [],
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-asphalt-3/instant-play-driving-sound-off.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-asphalt-3/instant-play-driving-sound-off-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-asphalt-3/instant-play-driving-sound-off-end.png"
+        ],
+        "sample_checks": {
+          "count": 11,
+          "route_phases": [
+            0
+          ],
+          "instruction_totals": [
+            0
+          ]
+        },
+        "first_sample": {
+          "ms": 577583.625,
+          "guest": 842450000,
+          "frames": 2945,
+          "phase": 0,
+          "inputs": 13,
+          "monitor": {
+            "guest_us": 842450000,
+            "instructions": 0,
+            "compiled_functions": 137157,
+            "aot_translation_us": 24790312,
+            "aot_emission_us": 905976,
+            "aot_installation_us": 2034083,
+            "aot_eager_functions": 125380,
+            "aot_eager_passes": 123,
+            "allocated_bytes": 1579932616,
+            "free_bytes": 72401336
+          }
+        },
+        "last_sample": {
+          "ms": 582623.2049999237,
+          "guest": 862156250,
+          "frames": 3293,
+          "phase": 0,
+          "inputs": 13,
+          "monitor": {
+            "guest_us": 862160000,
+            "instructions": 0,
+            "compiled_functions": 137225,
+            "aot_translation_us": 24801787,
+            "aot_emission_us": 907147,
+            "aot_installation_us": 2046786,
+            "aot_eager_functions": 125380,
+            "aot_eager_passes": 123,
+            "allocated_bytes": 1581205992,
+            "free_bytes": 71127960
+          }
+        }
+      },
+      "wasm_relative_to_qt": null,
+      "qt_failure": "Unpaced native startup failed in four attempts: KERN-EXEC 3/null read, USER 44, or -1000002 launcher error. No gameplay FPS."
+    },
+    {
+      "number": 7,
+      "game": "tetris",
+      "title": "Tetris",
+      "version": "4.21.41, original Nokia-signed N-Gage 2.0 release",
+      "scene": "Marathon level 1",
+      "qt": {
+        "game": "tetris",
+        "scene": "marathon-level-1",
+        "seconds": 5.004547894001007,
+        "frames": 797,
+        "fps": 159.25514489637925,
+        "drawable_counts": {
+          "2097213": 797
+        },
+        "start": 1085034.180215166,
+        "end": 1085039.18476306,
+        "window": "2097163",
+        "binary_sha256": "e0d56a07dab199dce46630898bcdca0da027763605216c8924e66b07797a6215",
+        "guest_seconds": 25.542097,
+        "guest_speed": 5.1037771125374825,
+        "mode": "unpaced interactive benchmark, Dynarmic, instruction-driven virtual clock",
+        "audio": "shared clocked DSP; output discarded",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-tetris/marathon-level-1.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-tetris/marathon-level-1-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-tetris/marathon-level-1-end.png"
+        ],
+        "load_average": {
+          "first": [
+            0.79296875,
+            1.07177734375,
+            0.9677734375
+          ],
+          "last": [
+            0.8896484375,
+            1.08740234375,
+            0.9736328125
+          ],
+          "max_one_minute": 0.8896484375
+        }
+      },
+      "wasm": {
+        "game": "tetris",
+        "label": "marathon-level-1",
+        "edition": "4.21.41, original Nokia-signed N-Gage 2.0 release",
+        "url": "https://claude-laptop.lan:8188/?game=custom",
+        "browser": "Chrome/153.0.8010.52",
+        "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+        "load": [
+          1.39,
+          1.16,
+          0.98
+        ],
+        "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+        "sound": "browser muted; guest audio remains enabled",
+        "seconds": 5.038329999923706,
+        "frames": 851,
+        "fps": 168.90517294676738,
+        "guestSeconds": 26.96375,
+        "guestSpeed": 5.351723686302467,
+        "compiledFunctions": 27,
+        "compilationUs": {
+          "aot_translation_us": 2227,
+          "aot_emission_us": 268,
+          "aot_installation_us": 2798
+        },
+        "errors": [],
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-tetris/marathon-level-1.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-tetris/marathon-level-1-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-tetris/marathon-level-1-end.png"
+        ],
+        "sample_checks": {
+          "count": 11,
+          "route_phases": [
+            0
+          ],
+          "instruction_totals": [
+            0
+          ]
+        },
+        "first_sample": {
+          "ms": 204042.33000016212,
+          "guest": 746130000,
+          "frames": 1907,
+          "phase": 0,
+          "inputs": 26,
+          "monitor": {
+            "guest_us": 746140000,
+            "instructions": 0,
+            "compiled_functions": 152961,
+            "aot_translation_us": 24988269,
+            "aot_emission_us": 889217,
+            "aot_installation_us": 2052038,
+            "aot_eager_functions": 141406,
+            "aot_eager_passes": 142,
+            "allocated_bytes": 1595873944,
+            "free_bytes": 106889960
+          }
+        },
+        "last_sample": {
+          "ms": 209080.66000008583,
+          "guest": 773093750,
+          "frames": 2758,
+          "phase": 0,
+          "inputs": 26,
+          "monitor": {
+            "guest_us": 773100000,
+            "instructions": 0,
+            "compiled_functions": 152988,
+            "aot_translation_us": 24990496,
+            "aot_emission_us": 889485,
+            "aot_installation_us": 2054836,
+            "aot_eager_functions": 141406,
+            "aot_eager_passes": 142,
+            "allocated_bytes": 1595881744,
+            "free_bytes": 106882160
+          }
+        }
+      },
+      "wasm_relative_to_qt": 1.0605947648138276,
+      "qt_failure": null
+    },
+    {
+      "number": 8,
+      "game": "super-miners",
+      "title": "Super Miners",
+      "version": "1.07b, S60v3 240x320, modified DeFconX preservation copy",
+      "scene": "Challenge level 1; mostly stationary",
+      "qt": {
+        "game": "super-miners",
+        "scene": "challenge-level-1",
+        "seconds": 5.0039428560994565,
+        "frames": 1638,
+        "fps": 327.34186762412617,
+        "drawable_counts": {
+          "2097213": 1638
+        },
+        "start": 1085098.810261821,
+        "end": 1085103.814204677,
+        "window": "2097163",
+        "binary_sha256": "e0d56a07dab199dce46630898bcdca0da027763605216c8924e66b07797a6215",
+        "guest_seconds": 51.186167,
+        "guest_speed": 10.229166973321375,
+        "mode": "unpaced interactive benchmark, Dynarmic, instruction-driven virtual clock",
+        "audio": "shared clocked DSP; output discarded",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-super-miners/challenge-level-1.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-super-miners/challenge-level-1-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-super-miners/challenge-level-1-end.png"
+        ],
+        "load_average": {
+          "first": [
+            0.646484375,
+            0.97900390625,
+            0.943359375
+          ],
+          "last": [
+            0.6748046875,
+            0.9794921875,
+            0.94384765625
+          ],
+          "max_one_minute": 0.6748046875
+        }
+      },
+      "wasm": {
+        "game": "super-miners",
+        "label": "challenge-level-1",
+        "edition": "1.07b, S60v3 240x320, modified DeFconX preservation copy",
+        "url": "https://claude-laptop.lan:8188/?game=custom",
+        "browser": "Chrome/153.0.8010.52",
+        "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+        "load": [
+          0.75,
+          0.98,
+          0.94
+        ],
+        "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+        "sound": "browser muted; guest audio remains enabled",
+        "seconds": 5.0216349999904635,
+        "frames": 1774,
+        "fps": 353.27139467591115,
+        "guestSeconds": 55.41,
+        "guestSpeed": 11.03425477958976,
+        "compiledFunctions": 12,
+        "compilationUs": {
+          "aot_translation_us": 467,
+          "aot_emission_us": 110,
+          "aot_installation_us": 400
+        },
+        "errors": [],
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-super-miners/challenge-level-1.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-super-miners/challenge-level-1-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-super-miners/challenge-level-1-end.png"
+        ],
+        "sample_checks": {
+          "count": 11,
+          "route_phases": [
+            0
+          ],
+          "instruction_totals": [
+            0
+          ]
+        },
+        "first_sample": {
+          "ms": 122143.50500011444,
+          "guest": 60850000,
+          "frames": 1399,
+          "phase": 0,
+          "inputs": 10,
+          "monitor": {
+            "guest_us": 60859375,
+            "instructions": 0,
+            "compiled_functions": 46303,
+            "aot_translation_us": 5791522,
+            "aot_emission_us": 263833,
+            "aot_installation_us": 589773,
+            "aot_eager_functions": 38708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 879380520,
+            "free_bytes": 86742360
+          }
+        },
+        "last_sample": {
+          "ms": 127165.1400001049,
+          "guest": 116260000,
+          "frames": 3173,
+          "phase": 0,
+          "inputs": 10,
+          "monitor": {
+            "guest_us": 116265625,
+            "instructions": 0,
+            "compiled_functions": 46315,
+            "aot_translation_us": 5791989,
+            "aot_emission_us": 263943,
+            "aot_installation_us": 590173,
+            "aot_eager_functions": 38708,
+            "aot_eager_passes": 12,
+            "allocated_bytes": 878202760,
+            "free_bytes": 87920120
+          }
+        }
+      },
+      "wasm_relative_to_qt": 1.0792123758564207,
+      "qt_failure": null
+    },
+    {
+      "number": 9,
+      "game": "explode-arena",
+      "title": "Explode Arena",
+      "version": "1.1, S60v1/v2, unsigned oWnPDA preservation copy",
+      "scene": "First arcade level; enemies active",
+      "qt": {
+        "game": "explode-arena",
+        "scene": "arcade-level-1",
+        "seconds": 2.001382935093716,
+        "frames": 860,
+        "fps": 429.7028744075556,
+        "drawable_counts": {
+          "2097213": 860
+        },
+        "start": 1085253.299240565,
+        "end": 1085255.3006235,
+        "window": "2097163",
+        "binary_sha256": "e0d56a07dab199dce46630898bcdca0da027763605216c8924e66b07797a6215",
+        "guest_seconds": 24.885412,
+        "guest_speed": 12.434108217693346,
+        "mode": "unpaced interactive benchmark, Dynarmic, instruction-driven virtual clock",
+        "audio": "shared clocked DSP; output discarded",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-explode-arena/arcade-level-1.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-explode-arena/arcade-level-1-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-explode-arena/arcade-level-1-end.png"
+        ],
+        "load_average": {
+          "first": [
+            0.5361328125,
+            0.83203125,
+            0.89453125
+          ],
+          "last": [
+            0.5361328125,
+            0.83203125,
+            0.89453125
+          ],
+          "max_one_minute": 0.5361328125
+        }
+      },
+      "wasm": {
+        "game": "explode-arena",
+        "label": "arcade-level-1",
+        "edition": "1.1, S60v1/v2, unsigned oWnPDA preservation copy",
+        "url": "https://claude-laptop.lan:8188/?game=custom",
+        "browser": "Chrome/153.0.8010.52",
+        "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+        "load": [
+          0.71,
+          0.91,
+          0.92
+        ],
+        "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+        "sound": "browser muted; guest audio remains enabled",
+        "seconds": 3.012625,
+        "frames": 826,
+        "fps": 274.179494626779,
+        "guestSeconds": 19.845,
+        "guestSpeed": 6.587278536160325,
+        "compiledFunctions": 40,
+        "compilationUs": {
+          "aot_translation_us": 7480,
+          "aot_emission_us": 1043,
+          "aot_installation_us": 1803
+        },
+        "errors": [],
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-explode-arena/arcade-level-1.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-explode-arena/arcade-level-1-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-explode-arena/arcade-level-1-end.png"
+        ],
+        "sample_checks": {
+          "count": 7,
+          "route_phases": [
+            0
+          ],
+          "instruction_totals": [
+            0
+          ]
+        },
+        "first_sample": {
+          "ms": 66029.17499995232,
+          "guest": 37625000,
+          "frames": 878,
+          "phase": 0,
+          "inputs": 12,
+          "monitor": {
+            "guest_us": 37625000,
+            "instructions": 0,
+            "compiled_functions": 31455,
+            "aot_translation_us": 3220588,
+            "aot_emission_us": 164764,
+            "aot_installation_us": 374307,
+            "aot_eager_functions": 22582,
+            "aot_eager_passes": 25,
+            "allocated_bytes": 941535312,
+            "free_bytes": 11496752
+          }
+        },
+        "last_sample": {
+          "ms": 69041.79999995232,
+          "guest": 57470000,
+          "frames": 1704,
+          "phase": 0,
+          "inputs": 12,
+          "monitor": {
+            "guest_us": 57470000,
+            "instructions": 0,
+            "compiled_functions": 31495,
+            "aot_translation_us": 3228068,
+            "aot_emission_us": 165807,
+            "aot_installation_us": 376110,
+            "aot_eager_functions": 22582,
+            "aot_eager_passes": 25,
+            "allocated_bytes": 940596472,
+            "free_bytes": 12435592
+          }
+        }
+      },
+      "wasm_relative_to_qt": 0.6380676298821565,
+      "qt_failure": null
+    },
+    {
+      "number": 10,
+      "game": "pathway-to-glory",
+      "title": "Pathway to Glory",
+      "version": "1.03, original N-Gage retail card preservation image; no official SIS release",
+      "scene": "Pantelleria; after movement, awaiting next action",
+      "qt": {
+        "game": "pathway-to-glory",
+        "scene": "pantelleria-battlefield",
+        "seconds": 5.004360501188785,
+        "frames": 1222,
+        "fps": 244.1870444205037,
+        "drawable_counts": {
+          "2097213": 1222
+        },
+        "start": 1085718.95537142,
+        "end": 1085723.959731921,
+        "window": "2097163",
+        "binary_sha256": "e0d56a07dab199dce46630898bcdca0da027763605216c8924e66b07797a6215",
+        "guest_seconds": 30.944901,
+        "guest_speed": 6.183587491878142,
+        "mode": "unpaced interactive benchmark, Dynarmic, instruction-driven virtual clock",
+        "audio": "shared clocked DSP; output discarded",
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-pathway-to-glory/pantelleria-battlefield.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-pathway-to-glory/pantelleria-battlefield-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/qt-pathway-to-glory/pantelleria-battlefield-end.png"
+        ],
+        "load_average": {
+          "first": [
+            0.255859375,
+            0.5849609375,
+            0.7705078125
+          ],
+          "last": [
+            0.31591796875,
+            0.59228515625,
+            0.77197265625
+          ],
+          "max_one_minute": 0.31591796875
+        }
+      },
+      "wasm": {
+        "game": "pathway-to-glory",
+        "label": "pantelleria-battlefield",
+        "edition": "1.03, original N-Gage retail card preservation image; no official SIS release",
+        "url": "https://claude-laptop.lan:8188/?game=custom",
+        "browser": "Chrome/153.0.8010.52",
+        "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+        "load": [
+          0.66,
+          0.77,
+          0.86
+        ],
+        "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+        "sound": "browser muted; guest audio remains enabled",
+        "seconds": 5.023954999923706,
+        "frames": 719,
+        "fps": 143.1143392030619,
+        "guestSeconds": 16.74,
+        "guestSpeed": 3.3320362145469478,
+        "compiledFunctions": 116,
+        "compilationUs": {
+          "aot_translation_us": 11242,
+          "aot_emission_us": 1042,
+          "aot_installation_us": 2604
+        },
+        "errors": [],
+        "raw_path": "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-pathway-to-glory/pantelleria-battlefield.json",
+        "screenshots": [
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-pathway-to-glory/pantelleria-battlefield-start.png",
+          "/home/claude/.scratch/eka-unpaced-ten-20261012/wasm-pathway-to-glory/pantelleria-battlefield-end.png"
+        ],
+        "sample_checks": {
+          "count": 11,
+          "route_phases": [
+            0
+          ],
+          "instruction_totals": [
+            0
+          ]
+        },
+        "first_sample": {
+          "ms": 167270.1700000763,
+          "guest": 86090000,
+          "frames": 1913,
+          "phase": 0,
+          "inputs": 28,
+          "monitor": {
+            "guest_us": 86090000,
+            "instructions": 0,
+            "compiled_functions": 31997,
+            "aot_translation_us": 2206550,
+            "aot_emission_us": 172763,
+            "aot_installation_us": 357826,
+            "aot_eager_functions": 22906,
+            "aot_eager_passes": 8,
+            "allocated_bytes": 590587240,
+            "free_bytes": 26621976
+          }
+        },
+        "last_sample": {
+          "ms": 172294.125,
+          "guest": 102830000,
+          "frames": 2632,
+          "phase": 0,
+          "inputs": 28,
+          "monitor": {
+            "guest_us": 102830000,
+            "instructions": 0,
+            "compiled_functions": 32113,
+            "aot_translation_us": 2217792,
+            "aot_emission_us": 173805,
+            "aot_installation_us": 360430,
+            "aot_eager_functions": 22906,
+            "aot_eager_passes": 8,
+            "allocated_bytes": 590384992,
+            "free_bytes": 26824224
+          }
+        }
+      },
+      "wasm_relative_to_qt": 0.5860848987410283,
+      "qt_failure": null
+    }
+  ]
+}

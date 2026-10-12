@@ -89,7 +89,7 @@ static eka2l1::drivers::input_event make_mouse_event_driver(const float x, const
  * \param action       0: press, 1: repeat(move), 2: release      
  */
 static void on_ui_window_mouse_evt(void *userdata, eka2l1::vec3 mouse_pos, int button, int action, int mouse_id) {
-    if (eka2l1::common::benchmark::enabled()) return;
+    if (eka2l1::common::benchmark::enabled() && !eka2l1::common::benchmark::interactive) return;
     float mouse_pos_x = static_cast<float>(mouse_pos.x), mouse_pos_y = static_cast<float>(mouse_pos.y),
         mouse_pos_z = static_cast<float>(mouse_pos.z);
 
@@ -141,7 +141,7 @@ static eka2l1::drivers::input_event make_key_event_driver(const int key, const e
 }
 
 static void on_ui_window_key_release(void *userdata, const int key) {
-    if (eka2l1::common::benchmark::enabled()) return;
+    if (eka2l1::common::benchmark::enabled() && !eka2l1::common::benchmark::interactive) return;
     eka2l1::desktop::emulator *emu = reinterpret_cast<eka2l1::desktop::emulator *>(userdata);
     auto key_evt = make_key_event_driver(key, eka2l1::drivers::key_state::released);
 
@@ -154,7 +154,7 @@ static void on_ui_window_key_release(void *userdata, const int key) {
 }
 
 static void on_ui_window_key_press(void *userdata, const int key) {
-    if (eka2l1::common::benchmark::enabled()) return;
+    if (eka2l1::common::benchmark::enabled() && !eka2l1::common::benchmark::interactive) return;
     eka2l1::desktop::emulator *emu = reinterpret_cast<eka2l1::desktop::emulator *>(userdata);
     auto key_evt = make_key_event_driver(key, eka2l1::drivers::key_state::pressed);
 
