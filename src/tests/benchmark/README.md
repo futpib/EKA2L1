@@ -80,6 +80,9 @@ installation wall time, with byte-equivalence and gameplay checks.
 The [preinstalled-image pilot](PREINSTALLED_IMAGE_RESULTS.md) skips repeated
 Hooked On installation: 102.31 to 66.80 seconds through actual paced gameplay,
 with the same runtime WASM binary and matched unpaced gameplay checks.
+The [Thumb startup results](THUMB_STARTUP_RESULTS.md) remove unused compiler
+passes and tree allocations while preserving emitted instructions and entry
+discovery. They separate fresh installation from installed-image gameplay.
 
 - The native benchmark clock advances from executed instructions (one synthetic cycle per instruction, 484 MHz at the default clock), with at most 4,840 instructions per dispatch. This is a reproducible clock model, not a hardware cycle-accuracy claim.
 - When no guest thread is runnable, execution jumps to the next scheduled event. There is no real-time timer thread or host vsync pacing.

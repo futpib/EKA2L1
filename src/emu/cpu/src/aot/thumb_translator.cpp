@@ -30,7 +30,6 @@
 
 #include <cstring>
 #include <algorithm>
-#include <map>
 #include <set>
 
 // VFP instruction field extraction (from ARM encoding).
@@ -624,8 +623,8 @@ namespace eka2l1::arm::aot {
     // stopping at unconditional terminators (POP {PC}, BX LR, BX Rm, B imm
     // that falls outside the slice, or the end of the slice).
     //
-    // Returns the set of byte offsets where an instruction actually begins
-    // along a reachable control-flow path. Anything outside this set is
+    // Marks halfword offsets where an instruction actually begins
+    // along a reachable control-flow path. Anything outside this bitmap is
     // either a middle halfword of a 32-bit Thumb insn or trailing literal
     // pool data that the translator's internal forward-target scanner must
     // ignore (to avoid opening nested blocks for phantom targets).
@@ -634,10 +633,10 @@ namespace eka2l1::arm::aot {
     // target that stays inside the slice, recurse on it, and stop each
     // path at the first unconditional terminator. The result is the
     // transitive closure of all reachable instruction-start offsets.
-    static std::set<std::size_t> find_reachable_offsets(
+    static std::vector<std::uint8_t> find_reachable_offsets(
         const std::uint8_t *code, std::size_t code_size)
     {
-        std::set<std::size_t> reachable;
+        std::vector<std::uint8_t> reachable(code_size / 2);
         if (code_size < 2) return reachable;
         std::vector<std::size_t> worklist;
         worklist.push_back(0);
@@ -645,8 +644,8 @@ namespace eka2l1::arm::aot {
             std::size_t i = worklist.back();
             worklist.pop_back();
             while (i + 1 < code_size) {
-                if (reachable.count(i)) break; // already walked from here
-                reachable.insert(i);
+                if (reachable[i / 2]) break; // already walked from here
+                reachable[i / 2] = 1;
                 std::uint16_t insn = code[i] | (code[i+1] << 8);
                 // 32-bit Thumb: 0xE800-0xFFFF first halfword.
                 // Note: 0xE000-0xE7FF is the unconditional 16-bit B, not wide.
@@ -803,10 +802,10 @@ namespace eka2l1::arm::aot {
     //   - Return addresses right after BL/BLX imm (T1/T2 wide): when the
     //     callee returns via BX LR, control lands at `next_pc`, which may
     //     be a useful re-entry point into AOT.
-    static std::set<std::uint32_t> find_branch_targets_broad(
+    static std::vector<std::uint32_t> find_branch_targets_broad(
         const std::uint8_t *code, std::size_t code_size, std::uint32_t start)
     {
-        std::set<std::uint32_t> targets;
+        std::vector<std::uint32_t> targets;
         for (std::size_t i = 0; i + 1 < code_size; i += 2) {
             std::uint16_t insn = code[i] | (code[i+1] << 8);
             std::uint32_t pc = start + static_cast<std::uint32_t>(i);
@@ -818,7 +817,7 @@ namespace eka2l1::arm::aot {
                     std::int8_t offset = static_cast<std::int8_t>(insn & 0xFF);
                     std::uint32_t target = pc + 4 + offset * 2;
                     if (target >= start && target < start + code_size) {
-                        targets.insert(target);
+                        targets.push_back(target);
                     }
                 }
             }
@@ -827,7 +826,7 @@ namespace eka2l1::arm::aot {
                 std::int16_t offset = static_cast<std::int16_t>((insn & 0x7FF) << 5) >> 5;
                 std::uint32_t target = pc + 4 + offset * 2;
                 if (target >= start && target < start + code_size) {
-                    targets.insert(target);
+                    targets.push_back(target);
                 }
             }
             // BL/BLX imm (wide): record the return address (next_pc = pc+4)
@@ -841,11 +840,13 @@ namespace eka2l1::arm::aot {
                 if (is_bl_or_blx) {
                     std::uint32_t next_pc = pc + 4;
                     if (next_pc >= start && next_pc < start + code_size) {
-                        targets.insert(next_pc);
+                        targets.push_back(next_pc);
                     }
                 }
             }
         }
+        std::sort(targets.begin(), targets.end());
+        targets.erase(std::unique(targets.begin(), targets.end()), targets.end());
         return targets;
     }
 
@@ -971,22 +972,6 @@ namespace eka2l1::arm::aot {
             w.cache.active_scope = scope;
         };
 
-        // Build instruction address → index map
-        std::map<std::uint32_t, std::uint32_t> addr_to_idx;
-        std::uint32_t num_insns = 0;
-        for (std::size_t i = 0; i + 1 < code_size; i += 2) {
-            std::uint16_t insn = code[i] | (code[i+1] << 8);
-            std::uint32_t addr = start_address + static_cast<std::uint32_t>(i);
-            addr_to_idx[addr] = num_insns;
-
-            // Check for 32-bit Thumb (any wide instruction: 0xE800-0xFFFF)
-            bool is_wide = ((insn & 0xF800) == 0xE800) || ((insn & 0xF000) == 0xF000);
-            if (is_wide) {
-                if (i + 3 < code_size) i += 2; // skip second halfword
-            }
-            num_insns++;
-        }
-
         // Compute reachable offsets via a simple CFG walk. This lets the
         // internal forward-target scanner ignore trailing literal pools and
         // other non-code data that happens to match a branch encoding.
@@ -1007,31 +992,32 @@ namespace eka2l1::arm::aot {
         // We use these to open nested WASM blocks so forward branches can
         // stay inside the AOT function instead of bailing to the interpreter.
         std::set<std::uint32_t> forward_targets_set;
-        for (std::size_t i : reachable) {
-            if (i + 1 >= code_size) continue;
-            std::uint16_t insn = code[i] | (code[i+1] << 8);
-            std::uint32_t src = start_address + static_cast<std::uint32_t>(i);
-            std::uint32_t target = 0;
-            bool is_branch = false;
-            if ((insn & 0xF000) == 0xD000) {
-                std::uint8_t cond = (insn >> 8) & 0xF;
-                if (cond < 0xE) { // not SVC
-                    std::int8_t off = static_cast<std::int8_t>(insn & 0xFF);
+        if (!bounded) {
+            for (std::size_t i = 0; i + 1 < code_size; i += 2) {
+                if (!reachable[i / 2]) continue;
+                std::uint16_t insn = code[i] | (code[i+1] << 8);
+                std::uint32_t src = start_address + static_cast<std::uint32_t>(i);
+                std::uint32_t target = 0;
+                bool is_branch = false;
+                if ((insn & 0xF000) == 0xD000) {
+                    std::uint8_t cond = (insn >> 8) & 0xF;
+                    if (cond < 0xE) { // not SVC
+                        std::int8_t off = static_cast<std::int8_t>(insn & 0xFF);
+                        target = src + 4 + off * 2;
+                        is_branch = true;
+                    }
+                } else if ((insn & 0xF800) == 0xE000) {
+                    std::int16_t off = static_cast<std::int16_t>((insn & 0x7FF) << 5) >> 5;
                     target = src + 4 + off * 2;
                     is_branch = true;
                 }
-            } else if ((insn & 0xF800) == 0xE000) {
-                std::int16_t off = static_cast<std::int16_t>((insn & 0x7FF) << 5) >> 5;
-                target = src + 4 + off * 2;
-                is_branch = true;
-            }
-            if (is_branch && target > src &&
-                target >= start_address && target < start_address + code_size) {
-                forward_targets_set.insert(target);
+                if (is_branch && target > src &&
+                    target >= start_address && target < start_address + code_size) {
+                    forward_targets_set.insert(target);
+                }
             }
         }
         // Sorted ascending: earliest target first.
-        if (bounded) forward_targets_set.clear();
         std::vector<std::uint32_t> fwd_sorted(
             forward_targets_set.begin(), forward_targets_set.end());
 
@@ -1106,7 +1092,7 @@ namespace eka2l1::arm::aot {
             // a literal-pool word (e.g. `F004 E51F` ARM veneer pattern,
             // `FFFF FFFF` sentinel, or function pointers matching wide
             // insn patterns) between a forward branch and its target.
-            if (!reachable.count(i)) {
+            if (!reachable[i / 2]) {
                 continue;
             }
             std::uint16_t insn = code[i] | (code[i+1] << 8);

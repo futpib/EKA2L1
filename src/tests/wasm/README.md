@@ -21,6 +21,8 @@ after a nontrivial guest screen; this can still be the N-Gage client.
 Inspect the screenshots: a logo or client frame is not a
 playable game. See the [startup results](../benchmark/STARTUP_BOOKKEEPING_RESULTS.md)
 and [compiler/admission follow-up](../benchmark/STARTUP_FOLLOWUP_RESULTS.md).
+The [Thumb compiler follow-up](../benchmark/THUMB_STARTUP_RESULTS.md) measures
+faster fresh installation without reducing precompilation coverage.
 
 Direct links use `?game=sky-force`, `?game=snakes`, `?game=k-rally`, `?game=asphalt-2`,
 `?game=hooked-on` or `?game=custom`.

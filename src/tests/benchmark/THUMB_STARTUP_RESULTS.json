@@ -1,0 +1,369 @@
+{
+  "base_commit": "2ac23b0ea",
+  "raw_evidence": "/home/claude/.scratch/eka-install-opt-20261013",
+  "startup": [
+    {
+      "run": "prescan-hooked-a",
+      "started": "2026-10-13T12:47:09.423Z",
+      "installation_seconds": 49.104402166,
+      "monitor": {
+        "guest_us": 40910160,
+        "instructions": 0,
+        "compiled_functions": 98940,
+        "aot_translation_us": 6290591,
+        "aot_emission_us": 565227,
+        "aot_installation_us": 1357265,
+        "aot_eager_functions": 87743,
+        "aot_eager_passes": 91,
+        "allocated_bytes": 1816030616,
+        "free_bytes": 207960488
+      },
+      "errors": [],
+      "endpoint": "successful guest installer thread exit; Installation complete screenshot reviewed",
+      "last_screenshot": "screen-21.png"
+    },
+    {
+      "run": "baseline-hooked-a",
+      "started": "2026-10-13T12:50:42.001Z",
+      "installation_seconds": 50.721567992999994,
+      "monitor": {
+        "guest_us": 41777762,
+        "instructions": 0,
+        "compiled_functions": 98920,
+        "aot_translation_us": 8207086,
+        "aot_emission_us": 568171,
+        "aot_installation_us": 1346139,
+        "aot_eager_functions": 87768,
+        "aot_eager_passes": 91,
+        "allocated_bytes": 1816360824,
+        "free_bytes": 211494216
+      },
+      "errors": [],
+      "endpoint": "successful guest installer thread exit; Installation complete screenshot reviewed",
+      "last_screenshot": "screen-22.png"
+    },
+    {
+      "run": "vector-hooked-a",
+      "started": "2026-10-13T12:57:37.936Z",
+      "installation_seconds": 48.044516671000004,
+      "monitor": {
+        "guest_us": 41540085,
+        "instructions": 0,
+        "compiled_functions": 98948,
+        "aot_translation_us": 5474951,
+        "aot_emission_us": 562959,
+        "aot_installation_us": 1344683,
+        "aot_eager_functions": 87760,
+        "aot_eager_passes": 90,
+        "allocated_bytes": 1815993272,
+        "free_bytes": 210946952
+      },
+      "errors": [],
+      "endpoint": "successful guest installer thread exit; Installation complete screenshot reviewed",
+      "last_screenshot": "screen-21.png"
+    },
+    {
+      "run": "baseline-hooked-b",
+      "started": "2026-10-13T12:58:55.771Z",
+      "installation_seconds": 51.088252864999994,
+      "monitor": {
+        "guest_us": 41949353,
+        "instructions": 0,
+        "compiled_functions": 98910,
+        "aot_translation_us": 8260378,
+        "aot_emission_us": 573528,
+        "aot_installation_us": 1353590,
+        "aot_eager_functions": 87754,
+        "aot_eager_passes": 92,
+        "allocated_bytes": 1816317072,
+        "free_bytes": 211734576
+      },
+      "errors": [],
+      "endpoint": "successful guest installer thread exit; Installation complete screenshot reviewed",
+      "last_screenshot": "screen-22.png"
+    },
+    {
+      "run": "vector-hooked-b",
+      "started": "2026-10-13T13:00:12.081Z",
+      "installation_seconds": 48.717786511,
+      "monitor": {
+        "guest_us": 41405770,
+        "instructions": 0,
+        "compiled_functions": 98938,
+        "aot_translation_us": 5530852,
+        "aot_emission_us": 562649,
+        "aot_installation_us": 1359080,
+        "aot_eager_functions": 87765,
+        "aot_eager_passes": 91,
+        "allocated_bytes": 1816014920,
+        "free_bytes": 210269944
+      },
+      "errors": [],
+      "endpoint": "successful guest installer thread exit; Installation complete screenshot reviewed",
+      "last_screenshot": "screen-21.png"
+    }
+  ],
+  "startup_statistics": {
+    "baseline_mean_seconds": 50.904910429,
+    "candidate_mean_seconds": 48.381151591,
+    "baseline_translation_mean_seconds": 8.233732,
+    "candidate_translation_mean_seconds": 5.5029015,
+    "wall_reduction_percent": 4.957790548556273,
+    "translation_reduction_percent": 33.166375830546826
+  },
+  "correctness": {
+    "wasm_tests_passed": 188,
+    "wasm_tests_failed": 0,
+    "native_suites_passed": 3,
+    "native_suites_failed": 0,
+    "emitted_code_oracle_trials": 5000,
+    "emitted_code_equivalence": "function bytes and locals; provenance; outlined bodies/call sites; discovery metadata; dependencies; stock ROM sampled windows",
+    "source_maps": "pass"
+  },
+  "builds": {
+    "baseline": "176bef9bbb8f0899f8538b60978a0674a30e95b9cec32ddb015dc1cd10cd39ca",
+    "prescan": "e6c0ff49160b7cc394a81ade7777e3e02ebc1a58361324d27e0ae8c2ba1424bb",
+    "candidate": "6c29da65efd23d393f3981c4ab50123ffd78115f88f09ae56eb814d5c7e88437"
+  },
+  "profile": {
+    "run": "profile-install-b",
+    "worker": "worker-13",
+    "total_weighted_seconds": 51.39,
+    "active_weighted_seconds": 35.62,
+    "categories": {
+      "ARM translation/module preparation": 9.246,
+      "memory view": 7.38,
+      "other active": 6.208,
+      "execute_chain self including inline work": 4.761,
+      "generated guest self": 5.012,
+      "interpreter outer self including inline work": 3.014,
+      "parked": 12.635,
+      "idle": 3.06
+    },
+    "limits": "sampled elapsed weights include inlined work and profile disturbance; not additive recoverable wall time",
+    "filesystem_proxy_syscall_waits": "none observed in selected worker profile; WasmFS in both builds"
+  },
+  "runtime": [
+    {
+      "run": "runtime-baseline-a",
+      "game": "hooked-on",
+      "label": "costa-rica-stationary-tutorial-dismissed",
+      "edition": "0.74, N-Gage 2.0, full BiNPDA preservation copy",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.89,
+        1.87,
+        1.88
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 10.100265000104905,
+      "frames": 2400,
+      "fps": 237.6175278544744,
+      "guestSeconds": 75.54,
+      "guestSpeed": 7.479011689219582,
+      "compiledFunctions": 0,
+      "compilationUs": {
+        "aot_translation_us": 104,
+        "aot_emission_us": 0,
+        "aot_installation_us": 0
+      },
+      "errors": []
+    },
+    {
+      "run": "runtime-vector-a",
+      "game": "hooked-on",
+      "label": "costa-rica-stationary-tutorial-dismissed",
+      "edition": "0.74, N-Gage 2.0, full BiNPDA preservation copy",
+      "url": "https://claude-laptop.lan:8245/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.88,
+        1.83,
+        1.87
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 10.10797000002861,
+      "frames": 2416,
+      "fps": 239.01930852516992,
+      "guestSeconds": 75.953,
+      "guestSpeed": 7.514169511760029,
+      "compiledFunctions": 0,
+      "compilationUs": {
+        "aot_translation_us": 512,
+        "aot_emission_us": 0,
+        "aot_installation_us": 0
+      },
+      "errors": []
+    },
+    {
+      "run": "runtime-vector-snakes-a",
+      "game": "snakes",
+      "label": "opening-level-valid",
+      "edition": "launcher default",
+      "url": "https://claude-laptop.lan:8244/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.72,
+        1.77,
+        1.84
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.034890000104904,
+      "frames": 496,
+      "fps": 98.51257922013502,
+      "guestSeconds": 23.59,
+      "guestSpeed": 4.685305935086664,
+      "compiledFunctions": 88,
+      "compilationUs": {
+        "aot_translation_us": 5852,
+        "aot_emission_us": 749,
+        "aot_installation_us": 1498
+      },
+      "errors": []
+    },
+    {
+      "run": "runtime-baseline-snakes-a",
+      "game": "snakes",
+      "label": "opening-level-valid",
+      "edition": "launcher default",
+      "url": "https://claude-laptop.lan:8242/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.1,
+        1.58,
+        1.77
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 5.0297149999141695,
+      "frames": 494,
+      "fps": 98.21630052765016,
+      "guestSeconds": 23.44,
+      "guestSpeed": 4.660303814510365,
+      "compiledFunctions": 90,
+      "compilationUs": {
+        "aot_translation_us": 6039,
+        "aot_emission_us": 1003,
+        "aot_installation_us": 1918
+      },
+      "errors": []
+    }
+  ],
+  "paced_launch": [
+    {
+      "run": "paced-image-baseline-a",
+      "endpoint": "actual Costa Rica boat after welcome dismissed; movement and subsequent animation verified",
+      "gameplay_seconds": 68.033464126,
+      "client_ready_seconds": 17.317922375000002,
+      "paced": {
+        "seconds": 10.009444999933242,
+        "fps": 31.670087602470886,
+        "guestSpeed": 0.9998062829724069,
+        "newFunctions": 5,
+        "instructions": 0
+      },
+      "errors": [],
+      "policy": "normal live paced launcher, installed-files image, same stock assets, no instruction accounting",
+      "url": "https://claude-laptop.lan:8188/?game=hooked-on",
+      "browser": "Chrome/153.0.8010.52",
+      "load": [
+        0.81,
+        1.47,
+        1.73
+      ]
+    },
+    {
+      "run": "paced-image-candidate-a",
+      "endpoint": "actual Costa Rica boat after welcome dismissed; movement and subsequent animation verified",
+      "gameplay_seconds": 63.923061569000005,
+      "client_ready_seconds": 14.85511502,
+      "paced": {
+        "seconds": 10.006099999904633,
+        "fps": 31.780613825869303,
+        "guestSpeed": 1.0000744545922362,
+        "newFunctions": 11,
+        "instructions": 0
+      },
+      "errors": [],
+      "policy": "normal live paced launcher, installed-files image, same stock assets, no instruction accounting",
+      "url": "https://claude-laptop.lan:8188/?game=hooked-on",
+      "browser": "Chrome/153.0.8010.52",
+      "load": [
+        0.73,
+        1.3,
+        1.63
+      ]
+    }
+  ],
+  "deployment": {
+    "url": "https://claude-laptop.lan:8188/",
+    "unit": "eka2l1-lan.service",
+    "build_directory": "/home/claude/.scratch/eka-install-opt-20261013/vector-build",
+    "preinstalled_directory": "/home/claude/.local/share/eka2l1/preinstalled",
+    "wasm_sha256": "6c29da65efd23d393f3981c4ab50123ffd78115f88f09ae56eb814d5c7e88437",
+    "public_snakes": {
+      "first": {
+        "runtime": 293.15499997138977,
+        "running": 2915.5099999904633,
+        "first": {
+          "ms": 4935.6900000572205,
+          "frames": 1,
+          "monitor": {
+            "guest_us": 968085,
+            "instructions": 0,
+            "compiled_functions": 19978,
+            "aot_translation_us": 1268554,
+            "aot_emission_us": 149866,
+            "aot_installation_us": 247468,
+            "aot_eager_functions": 13650,
+            "aot_eager_passes": 7,
+            "allocated_bytes": 961060448,
+            "free_bytes": 57153760
+          }
+        }
+      },
+      "last": {
+        "ms": 15673.774999856949,
+        "guest": 10208500,
+        "frames": 136,
+        "monitor": {
+          "guest_us": 10210094,
+          "instructions": 0,
+          "compiled_functions": 43424,
+          "aot_translation_us": 2598804,
+          "aot_emission_us": 275673,
+          "aot_installation_us": 569246,
+          "aot_eager_functions": 35476,
+          "aot_eager_passes": 11,
+          "allocated_bytes": 1106215648,
+          "free_bytes": 46281824
+        },
+        "status": "Running: Snakes \u00b7 Arrows/WASD to move, Enter to select \u00b7 Use Enable sound for audio",
+        "screenshot": "screen-5.png",
+        "colors": 26
+      },
+      "errors": [],
+      "policy": {
+        "requested": {
+          "watchdogUs": 2000,
+          "unsafeCode": 3,
+          "memoryImpl": 2
+        },
+        "applied": true,
+        "observed": {
+          "unsafeCode": 3,
+          "memoryImpl": 2
+        }
+      }
+    },
+    "downloaded_wasm_sha256": "6c29da65efd23d393f3981c4ab50123ffd78115f88f09ae56eb814d5c7e88437"
+  }
+}
