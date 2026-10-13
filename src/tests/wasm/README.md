@@ -12,6 +12,13 @@ Pathway to Glory have been retired from the launcher because their recovered
 releases require earlier Symbian generations.
 See the [catalogue cleanup checks](../benchmark/S60V3_CATALOGUE_RESULTS.md).
 
+The **N-Gage** application is also available directly as `?game=n-gage`. It
+installs the original Nokia-signed 1.40.1557 client already used by the N-Gage
+games, and opens its local **My Games** library on the same saved phone. Existing
+installations are reused. The served SISX is the unchanged signed client
+component extracted from Nokia's wrapper, not a patched or re-signed package.
+See the [client and persistent-library checks](../benchmark/NGAGE_CLIENT_RESULTS.md).
+
 The browser uses WasmFS: C/C++ file operations run on their calling worker,
 so file metadata, seeks and directory reads do not synchronously visit the
 browser main thread. File contents occupy the WASM heap within the existing
@@ -108,8 +115,9 @@ node installed-image.test.ts
 
 The capture tool requires local source assets in `/tmp/eka2l1-serve` (or its
 optional final argument). It checks their hashes, completes a clean installation,
-parks the CPU, shuts down to close file handles and captures `/data` before
-the game is launched. Review `installation-complete.png`. The directory contains
+waits for client registration, dismisses the completed installation dialogue,
+then shuts down to close file handles and captures `/data` before the game is
+launched. Review `installation-complete.png`. The directory contains
 `hooked-on.img.gz`, `hooked-on.json` and raw capture evidence. Only the first two
 are needed by the server. The server checks the image hash and exact ROM,
 RPKG, game-container and runtime-package identities; mismatches fail startup.

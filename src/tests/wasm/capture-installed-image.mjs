@@ -31,6 +31,7 @@ try {
   const page = await browser.newPage();
   await page.setViewport({width:900,height:800});
   page.setDefaultTimeout(180000);
+  await page.evaluateOnNewDocument(() => { window.ekaTransientSession = true; });
   let complete = false;
   const errors = [];
   page.on('console', message => {
@@ -44,9 +45,6 @@ try {
   const target = new URL(url); target.searchParams.set('game','custom');
   await page.goto(target.href, {waitUntil:'domcontentloaded'});
   await page.waitForFunction(() => Module.calledRun);
-  await page.evaluate(() => {
-    if (Module._eka2l1_route_configure(1000000000) !== 0) throw Error('Route configuration failed');
-  });
   for (const [selector, file, expected] of [
     ['#rom-file','SYM.ROM',sources.rom], ['#rpkg-file','SYM.RPKG',sources.rpkg],
     ['#sis-file',entry.ngage.runtime.file,sources.runtime],
@@ -64,8 +62,18 @@ try {
   await page.evaluate(id => {
     window.captureLaunch = startEmulator('/preload/games/' + id + '/ngage');
   }, game);
-  await page.waitForFunction(() => window._gameRunning && Module._eka2l1_route_phase() === 1);
+  await page.waitForFunction(() => window._gameRunning);
+  const deadline = Date.now() + 180000;
+  while (!complete && !errors.length && Date.now() < deadline)
+    await new Promise(resolve => setTimeout(resolve, 250));
   if (!complete || errors.length) throw Error('Clean installation not completed: ' + JSON.stringify(errors));
+  // Importer exit precedes the client's catalogue update. Dismiss the completed
+  // installation dialogue and let its remaining guest callbacks finish.
+  await new Promise(resolve => setTimeout(resolve, 5000));
+  await page.screenshot({path:path.join(output,'importer-complete.png')});
+  await page.keyboard.press('F2', {delay:150});
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  if (errors.length) throw Error('Client registration failed: ' + JSON.stringify(errors));
   await page.screenshot({path:path.join(output,'installation-complete.png')});
   // Close guest file handles and save registries before reading the files.
   await page.evaluate(() => Module.ccall('eka2l1_shutdown', null, [], []));
@@ -120,7 +128,7 @@ try {
     files:entries.filter(entry => entry.type==='file').length,
     unpackedBytes:entries.reduce((total,entry)=>total+entry.size,0),
     compressedBytes:fs.statSync(archive).size, browser:await browser.version(),
-    capture:'Fresh installation; installer completed; CPU parked; shutdown closed file handles; game not launched'};
+    capture:'Fresh installation; importer completed; completed dialogue dismissed; client catalogue settled; shutdown closed file handles; game not launched'};
   fs.writeFileSync(path.join(output,game+'.json'),JSON.stringify(metadata,null,2));
   fs.writeFileSync(path.join(output,'entries.json'),JSON.stringify(entries,null,2));
   console.log(JSON.stringify(metadata));
