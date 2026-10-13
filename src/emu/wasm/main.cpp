@@ -545,13 +545,6 @@ int eka2l1_install_sis(const char *sis_path) {
 }
 
 EMSCRIPTEN_KEEPALIVE
-int eka2l1_mount_game_card(const char *card_path) {
-    if (!ensure_system_started() || g_state->running) return -1;
-    g_state->symsys->get_io_system()->unmount(drive_e);
-    return static_cast<int>(g_state->symsys->mount_game_zip(drive_e, drive_media::physical, card_path));
-}
-
-EMSCRIPTEN_KEEPALIVE
 int eka2l1_prepare_graphics() {
     if (!ensure_system_started()) {
         return -1;
@@ -692,11 +685,6 @@ int eka2l1_run(const char *app_name) {
     if (app_name_str.length() > 2 && app_name_str.substr(0, 2) == "0x") {
         const std::uint32_t uid = common::pystr(app_name_str).as_int<std::uint32_t>();
         apa_app_registry *registry = svr->get_registration(uid);
-        apa_app_registry card_registry;
-        if (!registry && g_state->symsys->get_ngage_game_info_mounted(card_registry)
-            && card_registry.mandatory_info.uid == uid) {
-            registry = &card_registry;
-        }
         if (!registry) {
             LOG_ERROR(FRONTEND_CMDLINE, "No app found with UID: {}", app_name_str);
             return -2;

@@ -184,8 +184,8 @@
         }
         async function prepareDeviceStorage(game) {
             if (window.ekaTransientSession || Module._eka2l1_route_phase() !== -1) return null;
-            var rom = assetHash(game?.device?.rom || '/preload/rom');
-            var rpkg = assetHash(game?.device ? game.device.rpkg : '/preload/rpkg');
+            var rom = assetHash('/preload/rom');
+            var rpkg = assetHash('/preload/rpkg');
             if (!game) {
                 var romFile = document.getElementById('rom-file').files[0];
                 var rpkgFile = document.getElementById('rpkg-file').files[0];
@@ -297,8 +297,8 @@
                 var needsSis = !disk?.installed[assetHash(selected.sis)];
                 var needsNgage = selected.ngage && !disk?.installed[assetHash(selected.ngage)];
                 for (var [endpoint, selector, name] of (useImage ? [] : [
-                    [selected.device ? selected.device.rom : '/preload/rom', 'rom-file', 'SYM.ROM'],
-                    [selected.device ? selected.device.rpkg : '/preload/rpkg', 'rpkg-file', 'SYM.RPKG'],
+                    ['/preload/rom', 'rom-file', 'SYM.ROM'],
+                    ['/preload/rpkg', 'rpkg-file', 'SYM.RPKG'],
                     [selected.sis, 'sis-file', selected.id + '.sis']])) {
                     if (!endpoint) continue;
                     if (disk?.manifest && selector !== 'sis-file') continue;
@@ -311,7 +311,6 @@
                 }
                 document.getElementById('app-name').value = selected.uid;
                 await startEmulator(useImage ? undefined : needsNgage ? selected.ngage : undefined,
-                    useImage || disk?.installed[assetHash(selected.card)] ? undefined : selected.card,
                     useImage ? selected.image : undefined);
                 if (_gameRunning) setRunningStatus(selected.title);
             } catch (error) {
@@ -327,7 +326,7 @@
                 + ' · Use Enable sound for audio');
         }
 
-        async function startEmulator(ngagePackage, cardPackage, installedImage) {
+        async function startEmulator(ngagePackage, installedImage) {
             var btn = document.getElementById('btn-start');
             btn.disabled = true;
             Module.setStatus('Initializing...');
@@ -436,21 +435,6 @@
                     if (!packageResponse.ok) throw new Error('N-Gage download failed: HTTP ' + packageResponse.status);
                     FS.mkdirTree('/data/drives/e/n-gage');
                     writeGuestFile('/data/drives/e/n-gage/game.n-gage', new Uint8Array(await packageResponse.arrayBuffer()));
-                }
-
-                // Card games keep their original System directory on drive E.
-                if (cardPackage) {
-                    Module.setStatus('Mounting game card...');
-                    var cardResponse = await window.ekaDownload(cardPackage);
-                    if (!cardResponse.ok) throw new Error('Game card download failed: HTTP ' + cardResponse.status);
-                    writeGuestFile('/tmp/game-card.zip', new Uint8Array(await cardResponse.arrayBuffer()));
-                    try {
-                        var cardRet = Module.ccall('eka2l1_mount_game_card', 'number', ['string'], ['/tmp/game-card.zip']);
-                        if (cardRet !== 0) throw new Error('Game card mount failed: ' + cardRet);
-                        if (disk) disk.installed[assetHash(cardPackage)] = true;
-                    } finally {
-                        FS.unlink('/tmp/game-card.zip');
-                    }
                 }
 
                 // Transfer/initialize WebGL without blocking the browser event loop.

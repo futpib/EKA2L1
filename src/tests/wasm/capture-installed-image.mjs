@@ -12,7 +12,7 @@ import puppeteer from 'puppeteer';
 const [url, game, output, assetDir = '/tmp/eka2l1-serve'] = process.argv.slice(2);
 const entry = JSON.parse(fs.readFileSync(new URL('./games.json', import.meta.url)))
   .find(entry => entry.id === game);
-if (!url || !output || !entry?.ngage || entry.device)
+if (!url || !output || !entry?.ngage)
   throw Error('Usage: node capture-installed-image.mjs URL STOCK_DEVICE_NGAGE_GAME NEW_OUTPUT [ASSET_DIR]');
 fs.mkdirSync(output);
 const tree = path.join(output, 'files');

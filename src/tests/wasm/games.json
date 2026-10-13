@@ -116,47 +116,5 @@
     "version": "1.07b, S60v3 240x320, modified DeFconX preservation copy",
     "source": "https://archive.org/details/dertz-part-5-s-z",
     "download": "https://ia800403.us.archive.org/view_archive.php?archive=/15/items/dertz-part-5-s-z/dertz%20%28part%203%2C%20F-L%29.rar&file=Infinite%20Dreams%20Superminers%20OS9.1-3.sisx"
-  },
-  {
-    "id": "explode-arena",
-    "title": "Explode Arena",
-    "uid": "0x10015b92",
-    "file": "Explode-Arena-1.1-oWnPDA.sis",
-    "cid": "bafybeicdfujcina333t36b3ot4q4m7pvem4yjdffcboytucmmctlk6ikle",
-    "sha256": "2d47263342b3adc72fa9d8c1206bcb00c487adde40e282e6b29c6c813ffa8587",
-    "version": "1.1, S60v1/v2, unsigned oWnPDA preservation copy",
-    "source": "https://archive.org/details/limowski",
-    "device": {
-      "rom": {
-        "file": "N70.ROM",
-        "cid": "bafybeie4bkv2vyvt3nldv25b6poku4q6jnaguvwt4prumy44nmihylvi3i",
-        "sha256": "cb062dc84820b728a60b525115049b250e3f4912638a777d49edef79972c4e0e"
-      },
-      "rpkg": {
-        "file": "N70.RPKG",
-        "cid": "bafybeidlab4gggap6x6mej75uzqe5tf2yt23n6puv5tbs66ypmepml4r6y",
-        "sha256": "c40beb14d3ca4a530b7d59133b52ed28b650d1a12dd07a982df14a22d6ee1aa4"
-      }
-    },
-    "download": "https://ia800707.us.archive.org/view_archive.php?archive=/3/items/limowski/limowski.rar&file=limowski%2FInfiniteDreams.Explode.Arena.v1.1.S60.SymbianOS.Retail-oWnPDA.sis"
-  },
-  {
-    "id": "pathway-to-glory",
-    "title": "Pathway to Glory",
-    "uid": "0x101fd3fd",
-    "file": "Pathway-to-Glory-1.03-retail-card.zip",
-    "cid": "bafybeie5n2bpyk6phozd6ykteu5qx74sgkpdwtvxdpgxdygicxfx6kp4sy",
-    "sha256": "a67248caad9d78dee3dbe5f63ada1236eb068caea6b4341c3caf772c5b48947d",
-    "card": true,
-    "version": "1.03, original N-Gage retail card preservation image; no official SIS release",
-    "source": "https://archive.org/details/NokiaN-Gage201808",
-    "device": {
-      "rom": {
-        "file": "N-Gage-QD-Developer.ROM",
-        "cid": "bafybeigzfc23six3zlv7necokdtffmad6djubsh2zencyg2bbtl5m47vxy",
-        "sha256": "582a049f9e573c0245441ddb01bb5b3db76ede7677ec05cafc16f314a02ef6ef"
-      }
-    },
-    "download": "https://ia802807.us.archive.org/view_archive.php?archive=/13/items/NokiaN-Gage201808/ROMS.zip&file=Pathway%20to%20Glory%20%28USA%2C%20Europe%29%20%28En%2CFr%2CDe%2CEs%2CIt%29%20%28v1.03%29.zip"
   }
 ]

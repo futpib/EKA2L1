@@ -17,12 +17,9 @@ type GameAsset = { file: string; cid: string; sha256: string };
 const games = JSON.parse(fs.readFileSync(new URL('./games.json', import.meta.url), 'utf8')) as (GameAsset & {
   id: string; title: string; uid: string;
   ngage?: GameAsset & { runtime: GameAsset };
-  card?: boolean;
-  device?: { rom: GameAsset; rpkg?: GameAsset };
 })[];
 const gameAssets = new Map(games.flatMap(game => [game, ...(game.ngage
-  ? [game.ngage.runtime, game.ngage] : []), ...(game.device
-  ? [game.device.rom, ...(game.device.rpkg ? [game.device.rpkg] : [])] : [])]).map(asset => [asset.file, asset]));
+  ? [game.ngage.runtime, game.ngage] : [])]).map(asset => [asset.file, asset]));
 
 async function fetchCidToFile(cid: string, label: string, destPath: string, digest: string): Promise<void> {
   const valid = (data: Buffer) => crypto.createHash('sha256').update(data).digest('hex') === digest;
@@ -73,7 +70,7 @@ const preloadFiles: Record<string, string> = {
 const installedImages = new Map();
 if (process.env.EKA2L1_PREINSTALLED_DIR) {
   for (const game of games) {
-    if (!game.ngage || game.device) continue;
+    if (!game.ngage) continue;
     const prepared = await loadInstalledImage(process.env.EKA2L1_PREINSTALLED_DIR,game.id,{
       rom:'89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490',
       rpkg:'58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531',
@@ -86,10 +83,6 @@ if (process.env.EKA2L1_PREINSTALLED_DIR) {
   }
 }
 for (const game of games) {
-  if (game.device) {
-    preloadFiles['/preload/games/' + game.id + '/rom'] = path.join(cacheDir, game.device.rom.file);
-    if (game.device.rpkg) preloadFiles['/preload/games/' + game.id + '/rpkg'] = path.join(cacheDir, game.device.rpkg.file);
-  }
   if (!game.ngage) continue;
   preloadFiles['/preload/games/' + game.id + '/ngage'] = path.join(cacheDir, game.ngage.file);
   preloadFiles['/preload/games/' + game.id + '/runtime'] = path.join(cacheDir, game.ngage.runtime.file);
@@ -106,12 +99,10 @@ const tls = certPath && keyPath
   : undefined;
 const { port: resolvedPort } = await startServer(port, preloadFiles, undefined, {
   host, tls, compilerPolicy: compilerPolicyFromEnv(), defaultGame,
-  games: games.map(({id, title, uid, ngage, device, card}) => ({id, title, uid,
+  games: games.map(({id, title, uid, ngage}) => ({id, title, uid,
     ...(installedImages.has(id) ? {image:installedImages.get(id)} : {}),
-    ...(card ? {card: '/preload/games/' + id} : {sis: '/preload/games/' + id + (ngage ? '/runtime' : '')}),
+    sis: '/preload/games/' + id + (ngage ? '/runtime' : ''),
     ...(ngage ? {ngage: '/preload/games/' + id + '/ngage'} : {}),
-    ...(device ? {device: {rom: '/preload/games/' + id + '/rom',
-      ...(device.rpkg ? {rpkg: '/preload/games/' + id + '/rpkg'} : {})}} : {}),
   })),
 });
 const displayHost = process.env.EKA2L1_SERVE_NAME ?? host;

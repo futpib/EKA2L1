@@ -4,6 +4,14 @@ Build `eka2l1_wasm` following the [browser build instructions](../benchmark/READ
 then run `npm ci --ignore-scripts` and `npm run serve -- 8188` in this directory.
 Choose a game from the catalogue and press **Play**.
 
+The supported catalogue contains eight S60 3rd Edition games: Snakes, Sky Force,
+K-Rally, Asphalt: Urban GT 2, Hooked On: Creatures of the Deep, Asphalt 3: Street
+Rules, Tetris and Super Miners. All use the stock Nokia 5320 XpressMusic
+RM-409 firmware 04.13 (Symbian 9.3, S60 3rd Edition FP2). Explode Arena and
+Pathway to Glory have been retired from the launcher because their recovered
+releases require earlier Symbian generations.
+See the [catalogue cleanup checks](../benchmark/S60V3_CATALOGUE_RESULTS.md).
+
 The browser uses WasmFS: C/C++ file operations run on their calling worker,
 so file metadata, seeks and directory reads do not synchronously visit the
 browser main thread. File contents occupy the WASM heap within the existing
@@ -45,7 +53,8 @@ The [Thumb compiler follow-up](../benchmark/THUMB_STARTUP_RESULTS.md) measures
 faster fresh installation without reducing precompilation coverage.
 
 Direct links use `?game=sky-force`, `?game=snakes`, `?game=k-rally`, `?game=asphalt-2`,
-`?game=hooked-on` or `?game=custom`.
+`?game=hooked-on`, `?game=asphalt-3`, `?game=tetris`, `?game=super-miners` or
+`?game=custom`.
 All browser execution uses the watchdog without instruction accounting.
 Legacy `counting` URL parameters are ignored and removed on Play.
 An optional
@@ -85,8 +94,9 @@ client imports the package on every fresh launch.
 
 The Hooked On prepared-image pilot restores installed device/game files before
 emulator initialization. It skips device/SIS installation and N-Gage import;
-game logos, initial setup and ARM-to-WASM compilation still run. Every session
-gets fresh writable files. This is not a running-emulator checkpoint.
+game logos, initial setup and ARM-to-WASM compilation still run. Normal launches
+seed an empty saved device; subsequent launches restore its writable files.
+Cold-launch tests use fresh temporary files. This is not a running-emulator checkpoint.
 
 Create an image using a launcher with the normal installer path:
 
@@ -106,7 +116,7 @@ RPKG, game-container and runtime-package identities; mismatches fail startup.
 Games with no image keep their installer path. Keep generated firmware/game
 images outside Git. See the [pilot measurements](../benchmark/PREINSTALLED_IMAGE_RESULTS.md).
 
-Most bundled choices share the stock Nokia 5320 ROM/RPKG. Games are installed and
+All bundled choices share the stock Nokia 5320 ROM/RPKG. Games are installed and
 launched by UID, avoiding ambiguous captions. Sky Force is the original game's
 S60 3rd Edition release, version 1.22 at 240×320, UID `0xa020d913`.
 The launcher applies no game or firmware patch. The preserved Sky Force 1.22

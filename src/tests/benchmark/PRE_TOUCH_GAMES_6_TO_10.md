@@ -1,5 +1,10 @@
 # Keypad Symbian: games six through ten
 
+Historical recovery and test results: the current browser catalogue retains
+only S60 3rd Edition games. Explode Arena, Pathway to Glory and their alternate
+firmware assets were retired on 2026-10-13; the results below describe the
+earlier ten-game catalogue.
+
 Recovery and browser checks started on 2026-10-11. The Buzz gallery order is
 Asphalt 3: Street Rules, Tetris, Super Miners, Explode Arena, and Pathway to
 Glory. This is the gallery's approximate popularity order, not sales data.

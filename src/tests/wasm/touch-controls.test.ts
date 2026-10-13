@@ -121,11 +121,6 @@ try {
     }
     const select=await rect('#menu-select');await touch('touchStart',[point(select)]);
     assert.deepEqual(await down(),[167]);await touch('touchEnd',[]);
-    await configure('0x101fd3fd');assert.equal((await prefs()).action,53);
-    await page.focus('#canvas');await page.keyboard.down('Space');assert.deepEqual(await down(),[53]);
-    await page.keyboard.up('Space');action=await rect('#primary-action');
-    await touch('touchStart',[point(action)]);assert.deepEqual(await down(),[53]);
-    await touch('touchEnd',[]);assert.deepEqual(await down(),[]);
     await page.evaluate(()=>localStorage.setItem('eka-touch-v1:sky-force','{"action":141}'));
     await configure('sky-force');assert.equal((await prefs()).action,53);
     // Malformed persisted values and unavailable storage must not break input.
