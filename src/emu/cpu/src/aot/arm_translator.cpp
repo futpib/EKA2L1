@@ -1536,7 +1536,7 @@ namespace eka2l1::arm::aot {
                     for (auto barrier : context.cache.barriers) {
                         barrier.position += begin; w.cache.barriers.push_back(barrier);
                     }
-                    w.cache.written.insert(context.cache.written.begin(), context.cache.written.end());
+                    w.cache.written.merge(context.cache.written);
                     w.direct_memory_used |= context.direct_memory;
                     if (child.func.outlined_callee)
                         result.outlined_calls.push_back({std::move(child.func.outlined_callee),

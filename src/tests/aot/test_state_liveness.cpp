@@ -134,6 +134,27 @@ int main(int argc, char **) {
         {"mask64_last_field", [](auto &f) {
             for (unsigned i = 0; i < 64; ++i) f.cache.local(i * 4);
             f.write(63 * 4, 7); f.fixed_result();
+        }},
+        {"architectural_high_fields", [](auto &f) {
+            f.write(state_offsets::AOT_EXIT, 7);
+            f.write(0, 9);
+            f.write(state_offsets::NFLAG, 1);
+            f.helper(); f.load(state_offsets::AOT_EXIT); f.store(4); f.result();
+        }},
+        {"scoped_entry", [](auto &f) {
+            auto root = std::make_shared<state_local_cache::entry_fields>();
+            auto child = std::make_shared<state_local_cache::entry_fields>();
+            auto nested = std::make_shared<state_local_cache::entry_fields>();
+            child->parent = root; nested->parent = child;
+            f.cache.entry_scope = root; f.cache.active_scope = root;
+            f.load(0); f.store(4);
+            f.cache.barriers.push_back({f.function.body.size(), true, child});
+            f.cache.active_scope = child;
+            f.load(4); f.store(state_offsets::NFLAG);
+            f.cache.barriers.push_back({f.function.body.size(), true, nested});
+            f.cache.active_scope = nested;
+            f.load(state_offsets::NFLAG); f.store(state_offsets::AOT_EXIT);
+            f.fixed_result();
         }}
     };
     unsigned changed = 0;
@@ -174,5 +195,42 @@ int main(int argc, char **) {
     assert(current.outlined_calls[0].call_offset < old.outlined_calls[0].call_offset);
     assert(current.outlined_call_offset == current.outlined_calls[0].call_offset);
     assert(current.body[current.outlined_call_offset - 1] == op_call);
+
+    // Calls need not be recorded in byte order. All barriers at a call's
+    // position contribute, including scoped reloads of different lengths.
+    fixture calls;
+    calls.cache.local(state_offsets::NFLAG);
+    calls.cache.local(0);
+    calls.cache.written.insert(state_offsets::NFLAG);
+    const auto child = std::make_shared<state_local_cache::entry_fields>();
+    child->used.insert(0);
+    calls.cache.barriers.push_back({0, true, child});
+    std::vector<unsigned> original;
+    for (unsigned i = 0; i < 3; ++i) {
+        calls.get(0);
+        calls.cache.barrier_at(calls.function.body.size());
+        calls.cache.barrier_at(calls.function.body.size(), true);
+        calls.op(op_call);
+        original.push_back(calls.function.body.size());
+        calls.function.body.insert(calls.function.body.end(), {0x80, 0x80, 0x80, 0x80, 0});
+        calls.op(op_drop);
+    }
+    for (auto it = original.rbegin(); it != original.rend(); ++it)
+        calls.function.outlined_calls.push_back({std::make_shared<wasm_func_def>(), *it});
+    calls.fixed_result();
+    std::vector<std::uint8_t> entry, scoped, reload, flush;
+    calls.cache.transfer(entry, true);
+    calls.cache.transfer(scoped, true, nullptr, child.get());
+    calls.cache.transfer(reload, true); calls.cache.transfer(flush, false);
+    auto relocated = calls.function;
+    calls.cache.finish(relocated, false);
+    for (unsigned i = 0; i < 3; ++i) {
+        const auto index = 2 - i;
+        const auto expected = original[index] + entry.size() + scoped.size()
+            + (index + 1) * (reload.size() + flush.size());
+        assert(relocated.outlined_calls[i].call_offset == expected);
+        assert(relocated.body[expected - 1] == op_call);
+        assert(relocated.body[expected] == 0x80 && relocated.body[expected + 4] == 0);
+    }
     std::printf("PASS state liveness: %zu CFG fixtures, %u shrink; fallbacks and both call relocations\n", tests.size(), changed);
 }

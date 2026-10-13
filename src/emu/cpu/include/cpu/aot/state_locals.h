@@ -2,25 +2,46 @@
 
 #include <cpu/aot/thumb_translator.h>
 #include <cpu/aot/state_liveness.h>
+#include <algorithm>
+#include <array>
+#include <cassert>
 #include <map>
-#include <set>
 
 namespace eka2l1::arm::aot {
+    // Architectural fields are aligned words in a small, fixed state layout.
+    struct state_field_set {
+        static constexpr std::size_t fields = state_offsets::AOT_EXIT / 4 + 1;
+        std::array<std::uint64_t, (fields + 63) / 64> words{};
+
+        void insert(std::uint32_t offset) {
+            assert(offset % 4 == 0 && offset / 4 < fields);
+            words[offset / 256] |= std::uint64_t{1} << (offset / 4 % 64);
+        }
+        bool count(std::uint32_t offset) const {
+            assert(offset % 4 == 0 && offset / 4 < fields);
+            return words[offset / 256] & (std::uint64_t{1} << (offset / 4 % 64));
+        }
+        void clear() { words.fill(0); }
+        void merge(const state_field_set &other) {
+            for (std::size_t i = 0; i < words.size(); ++i) words[i] |= other.words[i];
+        }
+    };
+
     // Deferred barriers use the final register set, including registers whose
     // first textual use is after a callback or a conditional early return.
     struct state_local_cache {
         bool enabled = false;
         bool runtime_fields = false;
         bool program_counter = false;
-        // A result block carries the instruction count to one final writeback.
+        // A result block carries the return value to one final writeback.
         // Helper barriers still flush/reload at their original positions.
         bool shared_return = false;
         std::uint32_t first_local = 0;
-        std::map<std::uint32_t, std::uint32_t> locals;
-        std::set<std::uint32_t> written;
+        std::vector<std::pair<std::uint32_t, std::uint32_t>> locals;
+        state_field_set written;
         struct entry_fields {
             std::shared_ptr<entry_fields> parent;
-            std::set<std::uint32_t> used;
+            state_field_set used;
             bool needs(std::uint32_t field) const {
                 if (!used.count(field)) return false;
                 for (auto outer = parent; outer; outer = outer->parent)
@@ -49,10 +70,11 @@ namespace eka2l1::arm::aot {
         }
         std::uint32_t local(std::uint32_t offset) {
             if (active_scope) active_scope->used.insert(offset);
-            auto it = locals.find(offset);
-            if (it != locals.end()) return it->second;
+            auto it = std::lower_bound(locals.begin(), locals.end(), offset,
+                [](const auto &entry, auto field) { return entry.first < field; });
+            if (it != locals.end() && it->first == offset) return it->second;
             const auto slot = first_local + static_cast<std::uint32_t>(locals.size());
-            locals.emplace(offset, slot);
+            locals.insert(it, {offset, slot});
             return slot;
         }
         void barrier_at(std::size_t position, bool reload = false) {
@@ -91,8 +113,21 @@ namespace eka2l1::arm::aot {
             std::vector<std::uint8_t> body;
             source_marks sources;
             std::vector<state_transfer> transfers;
-            std::vector<std::uint8_t> reload, flush;
-            std::vector<state_transfer> reload_transfers, flush_transfers;
+            // No callback or recursive finish occurs here. Reuse the small
+            // encoding buffers per compiler thread across compiled regions.
+            struct transfer_buffer {
+                std::vector<std::uint8_t> code;
+                std::vector<state_transfer> tags;
+                void reset(std::size_t fields, std::size_t suffix = 0) {
+                    code.clear(); tags.clear();
+                    code.reserve(fields * 12 + suffix); tags.reserve(fields);
+                }
+            };
+            thread_local transfer_buffer reload_buffer, flush_buffer;
+            reload_buffer.reset(locals.size(), reload_suffix.size());
+            flush_buffer.reset(locals.size());
+            auto &reload = reload_buffer.code, &flush = flush_buffer.code;
+            auto &reload_transfers = reload_buffer.tags, &flush_transfers = flush_buffer.tags;
             transfer(reload, true, &reload_transfers);
             transfer(flush, false, &flush_transfers);
             struct scoped_transfer { std::vector<std::uint8_t> code; std::vector<state_transfer> tags; };
@@ -108,10 +143,18 @@ namespace eka2l1::arm::aot {
             const auto &initial = entry_scope ? scoped[entry_scope.get()].code : reload;
             auto bytes = function.body.size() + initial.size();
             auto records = reload_transfers.size();
+            std::vector<std::uint32_t> barrier_bytes;
+            if (!function.outlined_calls.empty() && !barriers.empty()) {
+                barrier_bytes.reserve(barriers.size() + 1);
+                barrier_bytes.push_back(0);
+            }
             for (const auto &point : barriers) {
-                bytes += point.scope ? scoped[point.scope.get()].code.size()
+                const auto added = point.scope ? scoped[point.scope.get()].code.size()
                     : point.reload ? reload.size() : flush.size();
+                bytes += added;
                 records += point.reload ? reload_transfers.size() : flush_transfers.size();
+                if (!barrier_bytes.empty())
+                    barrier_bytes.push_back(barrier_bytes.back() + static_cast<std::uint32_t>(added));
             }
             if (shared_return) { bytes += flush.size() + 4; records += flush_transfers.size(); }
             body.reserve(bytes); transfers.reserve(records);
@@ -138,9 +181,11 @@ namespace eka2l1::arm::aot {
             for (auto &call : function.outlined_calls) {
                 const auto original = call.call_offset;
                 call.call_offset += static_cast<std::uint32_t>(body.size());
-                for (const auto &point : barriers) if (point.position <= original)
-                    call.call_offset += static_cast<std::uint32_t>(point.scope ? scoped[point.scope.get()].code.size()
-                        : point.reload ? reload.size() : flush.size());
+                if (!barrier_bytes.empty()) {
+                    const auto after = std::upper_bound(barriers.begin(), barriers.end(), original,
+                        [](auto position, const auto &point) { return position < point.position; });
+                    call.call_offset += barrier_bytes[after - barriers.begin()];
+                }
             }
             std::size_t previous = 0;
             for (const auto &point : barriers) {

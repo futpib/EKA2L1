@@ -1,0 +1,348 @@
+{
+  "baseline_revision": "ba711d287",
+  "source_change": "Compact field bookkeeping, sorted local storage, prefix barrier relocation and reusable thread-local encoding buffers",
+  "mode": "normal paced launcher, fresh Chromium/cache/device installation, no profiler",
+  "endpoint": "successful N-Gage Installer thread exit, visually checked Installation complete; excludes manual game launch and gameplay",
+  "browser": "Chrome/153.0.8010.52",
+  "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+  "raw_evidence": "/home/claude/.scratch/eka-compiler-startup-20261012",
+  "wasm_sha256": {
+    "baseline": "e715734a51b115f529727070a56147124b7544ac1f2ef1245aa98eb1e8ccfa67",
+    "intermediate": "9886fe97077f6d1773d83319c4a799816e5c07b5ff08fa2b41196f670d369d8e",
+    "candidate": "176bef9bbb8f0899f8538b60978a0674a30e95b9cec32ddb015dc1cd10cd39ca"
+  },
+  "runs": [
+    {
+      "run": "baseline-hooked-a",
+      "variant": "baseline",
+      "startup_s": 53.410881550000006,
+      "translation_s": 9.259979,
+      "emission_s": 0.611297,
+      "installation_s": 1.492003,
+      "compiled_functions": 98930,
+      "eager_functions": 87749,
+      "load_before": [
+        1.21,
+        1.22,
+        1.59
+      ],
+      "errors": [],
+      "completion_image": "/home/claude/.scratch/eka-compiler-startup-20261012/baseline-hooked-a/screen-23.png"
+    },
+    {
+      "run": "candidate-hooked-a",
+      "variant": "intermediate",
+      "startup_s": 51.605591618,
+      "translation_s": 8.361791,
+      "emission_s": 0.579521,
+      "installation_s": 1.382373,
+      "compiled_functions": 98907,
+      "eager_functions": 87737,
+      "load_before": [
+        1.86,
+        1.82,
+        1.74
+      ],
+      "errors": [],
+      "completion_image": "/home/claude/.scratch/eka-compiler-startup-20261012/candidate-hooked-a/screen-22.png"
+    },
+    {
+      "run": "final-hooked-a",
+      "variant": "candidate",
+      "startup_s": 51.642452021000004,
+      "translation_s": 8.280238,
+      "emission_s": 0.581266,
+      "installation_s": 1.368339,
+      "compiled_functions": 98915,
+      "eager_functions": 87754,
+      "load_before": [
+        2.13,
+        2.08,
+        1.86
+      ],
+      "errors": [],
+      "completion_image": "/home/claude/.scratch/eka-compiler-startup-20261012/final-hooked-a/screen-22.png"
+    },
+    {
+      "run": "final-hooked-b",
+      "variant": "candidate",
+      "startup_s": 54.407946775000006,
+      "translation_s": 9.567419,
+      "emission_s": 0.661235,
+      "installation_s": 1.56485,
+      "compiled_functions": 98965,
+      "eager_functions": 87751,
+      "load_before": [
+        2.46,
+        2.2,
+        1.91
+      ],
+      "errors": [],
+      "completion_image": "/home/claude/.scratch/eka-compiler-startup-20261012/final-hooked-b/screen-24.png"
+    },
+    {
+      "run": "baseline-hooked-b",
+      "variant": "baseline",
+      "startup_s": 58.207498869999995,
+      "translation_s": 10.419322,
+      "emission_s": 0.697462,
+      "installation_s": 1.58938,
+      "compiled_functions": 98938,
+      "eager_functions": 87770,
+      "load_before": [
+        2.22,
+        2.2,
+        1.93
+      ],
+      "errors": [],
+      "completion_image": "/home/claude/.scratch/eka-compiler-startup-20261012/baseline-hooked-b/screen-25.png"
+    }
+  ],
+  "means": {
+    "baseline": {
+      "startup_s": 55.80919021,
+      "translation_s": 9.8396505,
+      "emission_s": 0.6543795,
+      "installation_s": 1.5406914999999999
+    },
+    "candidate": {
+      "startup_s": 53.025199398000005,
+      "translation_s": 8.923828499999999,
+      "emission_s": 0.6212504999999999,
+      "installation_s": 1.4665945
+    }
+  },
+  "reduction_percent": {
+    "startup_s": 4.988409259343007,
+    "translation_s": 9.307464731597936,
+    "emission_s": 5.062658594897929,
+    "installation_s": 4.8093339906139505
+  },
+  "validation": {
+    "oracle_comparisons": 4000,
+    "state_cfg_fixtures": 26,
+    "aot_correctness_passed": 188,
+    "aot_correctness_failed": 0,
+    "native_ctest_suites": 3
+  },
+  "limits": [
+    "Two runs per final variant; startup ranges overlap, no significance claim",
+    "Translation counters are elapsed phase time, not isolated compiler CPU time",
+    "Intermediate candidate is exploratory and excluded from final means",
+    "No isolated gain claimed for individual changes",
+    "Completion is installation, not first game frame",
+    "No all-ten-game or different-hardware performance claim",
+    "Tetris short window showed a loss that reversed in the longer window; no stable runtime FPS gain or loss established"
+  ],
+  "runtime_checks": [
+    {
+      "folder": "runtime-baseline-hooked",
+      "variant": "baseline",
+      "scene": "costa-rica-stationary-tutorial-dismissed",
+      "game": "hooked-on",
+      "fps": 176.22725825654464,
+      "seconds": 10.145990000009537,
+      "frames": 1788,
+      "guest_speed": 5.793421834630702,
+      "compiled_functions_during_window": 7,
+      "compilation_us": {
+        "aot_translation_us": 895,
+        "aot_emission_us": 173,
+        "aot_installation_us": 1641
+      },
+      "load": [
+        2.26,
+        2.13,
+        1.96
+      ],
+      "errors": []
+    },
+    {
+      "folder": "runtime-final-hooked",
+      "variant": "candidate",
+      "scene": "costa-rica-stationary-tutorial-dismissed",
+      "game": "hooked-on",
+      "fps": 181.34251609648058,
+      "seconds": 10.146545000076294,
+      "frames": 1840,
+      "guest_speed": 5.891660658830222,
+      "compiled_functions_during_window": 5,
+      "compilation_us": {
+        "aot_translation_us": 704,
+        "aot_emission_us": 154,
+        "aot_installation_us": 1428
+      },
+      "load": [
+        1.57,
+        1.95,
+        1.92
+      ],
+      "errors": []
+    },
+    {
+      "folder": "runtime-final-tetris",
+      "variant": "candidate",
+      "scene": "marathon-level-1",
+      "game": "tetris",
+      "fps": 127.69460825885234,
+      "seconds": 5.058945000171661,
+      "frames": 646,
+      "guest_speed": 4.286961016430124,
+      "compiled_functions_during_window": 28,
+      "compilation_us": {
+        "aot_translation_us": 2194,
+        "aot_emission_us": 331,
+        "aot_installation_us": 2720
+      },
+      "load": [
+        1.62,
+        1.91,
+        1.91
+      ],
+      "errors": []
+    },
+    {
+      "folder": "runtime-baseline-tetris",
+      "variant": "baseline",
+      "scene": "marathon-level-1",
+      "game": "tetris",
+      "fps": 161.42769425640313,
+      "seconds": 5.048700000047684,
+      "frames": 815,
+      "guest_speed": 5.148726404768453,
+      "compiled_functions_during_window": 12,
+      "compilation_us": {
+        "aot_translation_us": 793,
+        "aot_emission_us": 152,
+        "aot_installation_us": 1407
+      },
+      "load": [
+        2.41,
+        1.79,
+        1.77
+      ],
+      "errors": []
+    },
+    {
+      "folder": "runtime-final-tetris-long",
+      "variant": "candidate",
+      "scene": "marathon-level-1-long",
+      "game": "tetris",
+      "fps": 152.06159286383644,
+      "seconds": 15.151755000114441,
+      "frames": 2304,
+      "guest_speed": 4.898401208271875,
+      "compiled_functions_during_window": 32,
+      "compilation_us": {
+        "aot_translation_us": 2261,
+        "aot_emission_us": 338,
+        "aot_installation_us": 3175
+      },
+      "load": [
+        1.63,
+        1.3,
+        1.49
+      ],
+      "errors": []
+    },
+    {
+      "folder": "runtime-baseline-tetris-long",
+      "variant": "baseline",
+      "scene": "marathon-level-1-long",
+      "game": "tetris",
+      "fps": 134.76209712347125,
+      "seconds": 15.174889999866485,
+      "frames": 2045,
+      "guest_speed": 4.4623717206909435,
+      "compiled_functions_during_window": 19,
+      "compilation_us": {
+        "aot_translation_us": 1505,
+        "aot_emission_us": 239,
+        "aot_installation_us": 2471
+      },
+      "load": [
+        1.84,
+        1.44,
+        1.52
+      ],
+      "errors": []
+    },
+    {
+      "folder": "runtime-final-asphalt3-guided",
+      "variant": "candidate",
+      "scene": "instant-play-driving-sound-on",
+      "game": "asphalt-3",
+      "fps": 104.25733955942299,
+      "seconds": 5.0547999999523165,
+      "frames": 527,
+      "guest_speed": 5.014540634691603,
+      "compiled_functions_during_window": 99,
+      "compilation_us": {
+        "aot_translation_us": 14441,
+        "aot_emission_us": 981,
+        "aot_installation_us": 7776
+      },
+      "load": [
+        0.8,
+        1.28,
+        1.64
+      ],
+      "errors": []
+    },
+    {
+      "folder": "runtime-baseline-asphalt3-guided",
+      "variant": "baseline",
+      "scene": "instant-play-driving-sound-on",
+      "game": "asphalt-3",
+      "fps": 102.99587522432402,
+      "seconds": 5.058454999923706,
+      "frames": 521,
+      "guest_speed": 5.005851589147658,
+      "compiled_functions_during_window": 95,
+      "compilation_us": {
+        "aot_translation_us": 13896,
+        "aot_emission_us": 939,
+        "aot_installation_us": 7333
+      },
+      "load": [
+        3.69,
+        3.38,
+        2.61
+      ],
+      "errors": []
+    }
+  ],
+  "invalid_runtime_attempts": [
+    {
+      "folder": "runtime-final-asphalt3",
+      "reason": "SyntaxError: await is only valid in async functions and the top level bodies of modules"
+    },
+    {
+      "folder": "runtime-final-asphalt3-retry",
+      "reason": "AssertionError [ERR_ASSERTION]: Asphalt 3 is not showing the racing HUD; reject this route"
+    },
+    {
+      "folder": "runtime-final-asphalt3-valid",
+      "reason": "AssertionError [ERR_ASSERTION]: Asphalt 3 is not showing the racing HUD; reject this route"
+    },
+    {
+      "folder": "runtime-baseline-asphalt3-guided-route",
+      "reason": "AssertionError [ERR_ASSERTION]: Asphalt 3 is not showing the racing HUD; reject this route",
+      "scene_review": "Baseline launch showed Close some applications and retry starting the game (Error -100002); subsequent automated inputs stayed in menus. Rejected and retried with reviewed installation and launch stages."
+    }
+  ],
+  "adoption": "Retain combined compiler optimization; startup improvement observed, byte-equivalence and correctness checks pass; no repeatable runtime throughput loss found in three checked games.",
+  "deployment": {
+    "url": "https://claude-laptop.lan:8188/",
+    "build": "/home/claude/.scratch/eka-compiler-startup-20261012/final-build",
+    "wasm_sha256": "176bef9bbb8f0899f8538b60978a0674a30e95b9cec32ddb015dc1cd10cd39ca",
+    "status": "verified",
+    "observed_wasm_sha256": "176bef9bbb8f0899f8538b60978a0674a30e95b9cec32ddb015dc1cd10cd39ca",
+    "snakes_smoke": {
+      "frames": 151,
+      "instructions": 0,
+      "errors": [],
+      "image": "/home/claude/.scratch/eka-compiler-startup-20261012/deployed-snakes/screen-6.png"
+    }
+  }
+}
