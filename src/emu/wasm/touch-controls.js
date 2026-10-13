@@ -25,11 +25,11 @@ class EkaTouchControls {
             <dialog id="touch-settings" aria-labelledby="touch-settings-title">
                 <button class="dialog-close" data-close aria-label="Close controls">×</button>
                 <h2 id="touch-settings-title">Touch controls</h2><p id="touch-profile"></p>
-                <label>Movement <select data-pref="mode"><option value="pad">Fixed directional pad</option><option value="stick">Floating stick</option></select></label>
                 <label>Directions <select data-pref="directions"><option value="4">Four directions</option><option value="8">Eight directions</option></select></label>
                 <label>Control size <input aria-label="Control size" data-pref="size" type="range" min="120" max="190" step="2"></label>
                 <label>Spacing <input aria-label="Spacing" data-pref="gap" type="range" min="4" max="40" step="2"></label>
                 <label>Opacity <input aria-label="Opacity" data-pref="opacity" type="range" min="0.35" max="1" step="0.05"></label>
+                <label data-haptics>Haptic feedback <input data-pref="haptics" type="checkbox"></label>
                 <label>Left-handed layout <input data-pref="leftHanded" type="checkbox"></label>
                 <label>Action button <select data-pref="action"><option value="167">Select / joystick press</option><option value="52">4 / accelerate</option><option value="53">5</option><option value="55">7 / turbo</option><option value="48">0</option><option value="133">*</option><option value="127">#</option></select></label>
                 <label>Tap action to hold / release <input data-pref="latch" type="checkbox"></label>
@@ -81,7 +81,7 @@ class EkaTouchControls {
         this.settings.querySelectorAll('[data-pref]').forEach(input => input.addEventListener('input', () => {
             this.releaseAll();
             this.prefs[input.dataset.pref] = input.type === 'checkbox' ? input.checked
-                : input.dataset.pref === 'mode' ? input.value : Number(input.value);
+                : Number(input.value);
             this.save(); this.layout();
         }));
         document.getElementById('reset-touch-layout').onclick = () => {
@@ -119,11 +119,12 @@ class EkaTouchControls {
     }
     clamp(value,min,max) { return Math.min(max,Math.max(min,value)); }
     defaults() {
-        return {mode:this.profile==='snakes'?'pad':'stick', directions:this.profile==='snakes'?4:8,
-            size:132,gap:12,opacity:.55,leftHanded:false,action:this.profile==='k-rally'?52:167,latch:false,move:{x:.25,y:.75},buttons:{x:.75,y:.75}};
+        return {directions:this.profile==='snakes'?4:8,
+            size:132,gap:12,opacity:.55,leftHanded:false,haptics:true,action:this.profile==='k-rally'?52:167,latch:false,move:{x:.25,y:.75},buttons:{x:.75,y:.75}};
     }
     configure(app) {
         this.releaseAll();
+        this.settings.querySelector('[data-haptics]').hidden=typeof navigator.vibrate!=='function';
         const name=String(app).trim().toLowerCase();
         this.profile=['0x2000730f','snakes'].includes(name)?'snakes':['0xa020d913','sky force','sky-force'].includes(name)?'sky-force':['0xa0000bf6','k-rally'].includes(name)?'k-rally':'generic';
         this.storageKey='eka-touch-v1:'+(this.profile==='generic'?(name||'generic'):this.profile);
@@ -131,14 +132,13 @@ class EkaTouchControls {
         try {
             const saved=JSON.parse(localStorage.getItem(this.storageKey));
             if (saved && typeof saved==='object') {
-                if (['pad','stick'].includes(saved.mode)) this.prefs.mode=saved.mode;
                 if ([4,8].includes(saved.directions)) this.prefs.directions=saved.directions;
                 // Migrate saved numeric actions from the old PC keypad scan codes.
                 const action=({141:53,146:48})[saved.action] ?? saved.action;
                 if ([167,52,53,55,48,133,127].includes(action)) this.prefs.action=action;
                 for (const [key,min,max] of [['size',120,190],['gap',4,40],['opacity',.35,1]])
                     if (Number.isFinite(saved[key])) this.prefs[key]=this.clamp(saved[key],min,max);
-                for (const key of ['leftHanded','latch']) if (typeof saved[key]==='boolean') this.prefs[key]=saved[key];
+                for (const key of ['leftHanded','latch','haptics']) if (typeof saved[key]==='boolean') this.prefs[key]=saved[key];
                 for (const key of ['move','buttons']) if (Number.isFinite(saved[key]?.x)&&Number.isFinite(saved[key]?.y))
                     this.prefs[key]={x:this.clamp(saved[key].x,0,1),y:this.clamp(saved[key].y,0,1)};
             }
@@ -174,11 +174,10 @@ class EkaTouchControls {
     layout() {
         if (!this.prefs) return;
         const p=this.prefs, root=document.documentElement;
-        this.deck.dataset.profile=this.profile; this.deck.dataset.mode=p.mode;
+        this.deck.dataset.profile=this.profile;
         this.deck.classList.toggle('left-handed',p.leftHanded);
         root.style.setProperty('--control-size',p.size+'px'); root.style.setProperty('--control-gap',p.gap+'px'); root.style.setProperty('--control-opacity',p.opacity);
-        this.moveZone.style.order=p.leftHanded?2:0; this.moveZone.dataset.mode=p.mode;
-        this.moveZone.style.overflow=p.mode==='stick'?'hidden':'visible';
+        this.moveZone.style.order=p.leftHanded?2:0;
         for (const [group,zone,key] of [[this.pad,this.moveZone,'move'],[this.actions,this.actionZone,'buttons']]) {
             const w=zone.clientWidth,h=zone.clientHeight, size=Math.max(1,Math.min(p.size,w,h));
             group.style.setProperty('--actual-size',size+'px');
@@ -207,10 +206,18 @@ class EkaTouchControls {
     pulse(scan) {
         const source='touch:accessible:'+scan;this.set(source,[scan]);setTimeout(()=>this.set(source,[]),100);
     }
+    haptic(event) {
+        if (event.pointerType!=='touch'||!this.prefs.haptics||document.hidden||typeof navigator.vibrate!=='function') return;
+        const now=performance.now();
+        if (now-(this.lastHaptic ?? -Infinity)<40) return;
+        this.lastHaptic=now;
+        try {navigator.vibrate(8);} catch (_) {}
+    }
     bindButton(button) {
         button.addEventListener('pointerdown',event=>{
             if (this.editing||event.button!==0) return;
             event.preventDefault(); button.setPointerCapture(event.pointerId);
+            this.haptic(event);
             if (button===this.primary&&this.prefs.latch) this.toggleLatch();
             else this.set('touch:button:'+event.pointerId,[Number(button.dataset.scan)]);
         });
@@ -233,19 +240,17 @@ class EkaTouchControls {
         if (this.editing||event.button!==0||this.pointers.size) return;
         event.preventDefault();this.moveZone.setPointerCapture(event.pointerId);
         const rect=this.pad.getBoundingClientRect();
-        const origin=this.prefs.mode==='stick'?{x:event.clientX,y:event.clientY}:{x:rect.left+rect.width/2,y:rect.top+rect.height/2};
-        if (this.prefs.mode==='stick') {
-            const zone=this.moveZone.getBoundingClientRect();
-            this.pad.style.left=(origin.x-zone.left-rect.width/2)+'px';
-            this.pad.style.top=(origin.y-zone.top-rect.height/2)+'px';
-        }
+        const origin={x:event.clientX,y:event.clientY},zone=this.moveZone.getBoundingClientRect();
+        this.pad.style.left=(origin.x-zone.left-rect.width/2)+'px';
+        this.pad.style.top=(origin.y-zone.top-rect.height/2)+'px';
+        this.haptic(event);
         this.pointers.set(event.pointerId,{...origin,sector:null,active:false,radius:rect.width/2});
         this.moveZone.classList.add('active');this.move(event);
     }
     move(event) {
         const p=this.pointers.get(event.pointerId);if (!p) return;
         event.preventDefault();const dx=event.clientX-p.x,dy=event.clientY-p.y,d=Math.hypot(dx,dy);
-        const active=d>(p.active?7:12);p.active=active;
+        const active=d>(p.active?7:12),previousSector=p.sector;p.active=active;
         let scans=[];
         if (active) {
             const n=this.prefs.directions,step=2*Math.PI/n,angle=Math.atan2(dy,dx);
@@ -258,6 +263,7 @@ class EkaTouchControls {
             const directions=n===4?[[15],[17],[14],[16]]:[[15],[15,17],[17],[14,17],[14],[14,16],[16],[15,16]];
             scans=directions[sector];
         } else p.sector=null;
+        if (p.sector!==null&&p.sector!==previousSector) this.haptic(event);
         this.set('touch:move',scans);
         const scale=Math.min(1,p.radius*.5/Math.max(1,d));this.knob.style.transform=`translate(${dx*scale}px,${dy*scale}px)`;
     }

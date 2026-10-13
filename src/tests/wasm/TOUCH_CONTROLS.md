@@ -6,12 +6,12 @@ space; the layout does not reserve a control deck or persistent toolbars.
 **☰** opens the launcher, sound, full screen, controls, phone keypad and diagnostics.
 The game keeps running while this menu is open.
 
-Snakes starts with a fixed four-way pad. Other apps get a floating eight-way stick
-and a Select action. Sky Force also uses eight directions, but its movement area
-covers the play surface and the stick only appears while touching it. Its action
+Every game uses a floating stick that appears at the initial movement touch.
+Snakes keeps four directions; other apps use eight and a Select action.
+Saved fixed-pad layouts now use the floating stick while retaining other settings.
+The movement area covers the play surface. Sky Force's action
 button maps to Fire / OK. K-Rally gets a Gas action (phone key 4) and a separate
 OK button for menu selection. Any numeric action keeps that separate OK button.
-Both movement styles remain available in every profile.
 The floating stick starts at the initial touch and has a neutral zone; direction
 hysteresis prevents small finger movements from rapidly switching sectors.
 These controls send the original guest keys. In particular, Sky Force steering
@@ -21,7 +21,7 @@ The input layer supports simultaneous movement/action, sliding between direction
 without lifting, keyboard/touch ownership of the same key, and visible pressed
 states. The small L/R buttons send the original left/right softkeys.
 
-**☰ → Touch controls** opens settings for movement style, four/eight directions, size,
+**☰ → Touch controls** opens settings for four/eight directions, size,
 spacing, opacity, handedness and action-key mapping. **Move controls** lets the
 player drag each group within its area; the onscreen **✓** returns to play. **Reset**
 restores the current game's preset. Settings are stored locally per app, including
@@ -37,6 +37,13 @@ Enter remains Select; Space uses the configured action key. Keyboard numbers
 48–57, matching the native frontend. Old saved numeric action settings migrate
 to these codes.
 
+On browsers with the Vibration API, movement touches, changes of direction and
+action/keypad presses request short 8 ms haptic pulses, at most once every 40 ms.
+Mouse and keyboard input do not request vibration. **Haptic feedback** can be
+disabled in the control settings. Unsupported browsers omit that setting and
+continue to handle input normally; physical feedback depends on the device and
+browser allowing vibration.
+
 The game keeps running while settings are open. Use the game's pause controls
 before editing during play.
 
@@ -45,6 +52,26 @@ JavaScript and CSS are versioned through the existing asset cache. Normal WASM
 builds copy both files alongside the HTML, audio assets and runtime.
 
 ## Verification
+
+### Dynamic controls and haptics, 2026-10-13
+
+The input-contract fixture passes with floating controls for every profile,
+including saved fixed-pad preferences. It checks touch-origin placement,
+four/eight directions, simultaneous movement/action, release ownership, layouts
+and saved settings. Haptic API requests, disabling, mouse/keyboard exclusion,
+unsupported APIs and thrown vibration errors are checked with an intercepted
+browser API; this does not establish physical vibration on a phone.
+
+The actual HTTPS launcher on `.lan` was checked in hardware-rendered Chromium
+with trusted touch events. Snakes gameplay and Sky Force's Stage 1 introduction
+received movement/action input; all eight catalogue profiles spawned the stick
+at the touch location and hid it on release despite saved fixed-pad preferences.
+No captured page errors or guest panics occurred. Evidence is outside Git under
+`/home/claude/.scratch/eka-dynamic-controls-20261013/`.
+
+The deployed touch script matches source SHA-256
+`23f0ae61c1ddb13d90b314a29634c776738aed28cc1ac309b8c11496ff029aba`.
+The WASM runtime is unchanged; only the JS/CSS input assets were replaced.
 
 Run `node src/tests/wasm/touch-controls.test.ts` for real browser pointer routing:
 sliding, multiple fingers, keyboard ownership, cancellation, neutral zones,

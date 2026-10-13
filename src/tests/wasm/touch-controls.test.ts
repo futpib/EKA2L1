@@ -42,27 +42,30 @@ try {
         if(el.type==='checkbox')el.checked=value;else el.value=String(value);
         el.dispatchEvent(new Event('input',{bubbles:true}));
     },{key,value});
-    assert.equal((await prefs()).mode,'stick');assert.equal((await prefs()).directions,8);
+    assert.equal((await prefs()).directions,8);
     assert.equal(await page.$eval('#session-panel',e=>(e as HTMLDialogElement).open),false);
     assert.deepEqual(await rect('#canvas'),{x:0,y:0,width:390,height:844});
-    await settings('mode','pad');
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
     const css=await page.$eval('link[rel=stylesheet]',e=>(e as HTMLLinkElement).href);
     assert.match(css,/touch-controls.css\?v=[a-f0-9]{64}/);
     assert.equal((await fetch(css)).headers.get('content-type'),'text/css');
     let pad=await rect('#movement-pad'), action=await rect('#primary-action');
-    await touch('touchStart',[point(pad,.85,.5)]);assert.deepEqual(await down(),[15]);
+    await touch('touchStart',[point(pad)]);assert.deepEqual(await down(),[]);
+    await touch('touchMove',[point(pad,.85,.5)]);assert.deepEqual(await down(),[15]);
     await touch('touchMove',[point(pad,.15,.5)]);assert.deepEqual(await down(),[14]);
     // Sliding retains contact; adding/releasing an action finger preserves movement.
     await touch('touchStart',[point(pad,.15,.5),point(action,.5,.5,2)]);assert.deepEqual(await down(),[14,167]);
     await touch('touchEnd',[point(action,.5,.5,2)]);assert.deepEqual(await down(),[14]);
     await touch('touchCancel',[]);assert.deepEqual(await down(),[]);
     await page.focus('#canvas');await page.keyboard.down('ArrowLeft');
-    await touch('touchStart',[point(pad,.15,.5)]);await touch('touchEnd',[]);
+    await touch('touchStart',[point(pad)]);await touch('touchMove',[point(pad,.15,.5)]);await touch('touchEnd',[]);
     assert.deepEqual(await down(),[14]);await page.keyboard.up('ArrowLeft');assert.deepEqual(await down(),[]);
     await configure('snakes');assert.equal((await prefs()).directions,4);
-    await touch('touchStart',[point(pad,.9,.1)]);assert.equal((await down()).length,1);await touch('touchEnd',[]);
-    await configure('sky-force');assert.equal((await prefs()).mode,'stick');
+    pad=await rect('#movement-pad');
+    await touch('touchStart',[point(pad)]);await touch('touchMove',[point(pad,.9,.1)]);assert.equal((await down()).length,1);await touch('touchEnd',[]);
+    // Saved fixed-pad settings must not override the new floating controls.
+    await page.evaluate(()=>localStorage.setItem('eka-touch-v1:sky-force','{"mode":"pad","size":164,"opacity":0.4}'));
+    await configure('sky-force');assert.equal((await prefs()).size,164);assert.equal((await prefs()).opacity,.4);
     pad=await rect('#movement-pad');let origin=point(pad);
     await touch('touchStart',[origin]);assert.deepEqual(await down(),[]);
     await touch('touchMove',[{...origin,x:origin.x+40,y:origin.y-40}]);assert.deepEqual(await down(),[15,16]);
@@ -70,11 +73,13 @@ try {
     await touch('touchEnd',[]);
     // Sky Force accepts a movement gesture away from the old thumb-pad area.
     origin={x:320,y:200,id:1};
-    await touch('touchStart',[origin]);await touch('touchMove',[{...origin,x:280,y:160}]);
+    await touch('touchStart',[origin]);
+    let spawned=await rect('#movement-pad');assert.equal(spawned.x+spawned.width/2,origin.x);assert.equal(spawned.y+spawned.height/2,origin.y);
+    await touch('touchMove',[{...origin,x:280,y:160}]);
     assert.deepEqual(await down(),[14,16]);await touch('touchEnd',[]);
     const actionX=(await rect('#primary-action')).x;
     await settings('leftHanded',true);assert.ok((await rect('#primary-action')).x<actionX);
-    await settings('size',180);await settings('opacity',.55);await settings('mode','pad');
+    await settings('size',180);await settings('opacity',.55);
     await settings('latch',true);await settings('action',53);
     action=await rect('#primary-action');await touch('touchStart',[point(action)]);await touch('touchEnd',[]);
     assert.deepEqual(await down(),[53]);
@@ -96,7 +101,7 @@ try {
     await touch('touchCancel',[]);assert.deepEqual(await down(),[]);
     await page.click('#phone-keypad [data-close]');
     await controls();await page.click('#reset-touch-layout');await page.click('#touch-settings [data-close]');
-    assert.equal((await prefs()).size,132);assert.equal((await prefs()).mode,'stick');
+    assert.equal((await prefs()).size,132);
     await configure('');await controls();await settings('size',190);await settings('gap',40);await page.click('#touch-settings [data-close]');
     for (const [width,height] of [[320,568],[390,844],[568,320],[667,375],[844,390],[1024,768]]) {
         await page.setViewport({width,height,hasTouch:true});
@@ -108,7 +113,7 @@ try {
     }
     await page.setViewport({width:390,height:844,hasTouch:true});
     await new Promise(resolve=>setTimeout(resolve,100));pad=await rect('#movement-pad');
-    await touch('touchStart',[point(pad,.15,.5)]);await page.evaluate(()=>window.dispatchEvent(new Event('blur')));
+    await touch('touchStart',[point(pad)]);await touch('touchMove',[point(pad,.15,.5)]);await page.evaluate(()=>window.dispatchEvent(new Event('blur')));
     assert.deepEqual(await down(),[]);await touch('touchEnd',[]);
     await configure('0xa0000bf6');assert.equal((await prefs()).action,52);
     assert.equal(await page.$eval('#menu-select',e=>(e as HTMLButtonElement).hidden),false);
@@ -125,7 +130,30 @@ try {
     await configure('sky-force');assert.equal((await prefs()).action,53);
     // Malformed persisted values and unavailable storage must not break input.
     await page.evaluate(()=>localStorage.setItem('eka-touch-v1:generic','{"size":1e99,"mode":"bad","move":{"x":-9,"y":9}}'));
-    await configure('');assert.equal((await prefs()).size,190);assert.equal((await prefs()).mode,'stick');
+    await configure('');assert.equal((await prefs()).size,190);
+    await page.evaluate(()=>{
+        (window as any).vibrations=[];
+        Object.defineProperty(navigator,'vibrate',{configurable:true,value:(ms:number)=>{(window as any).vibrations.push(ms);return true;}});
+    });
+    const vibrations=()=>page.evaluate(()=>(window as any).vibrations.slice());
+    const pause=()=>new Promise(resolve=>setTimeout(resolve,60));
+    origin={x:160,y:240,id:1};
+    await pause();await touch('touchStart',[origin]);assert.deepEqual(await vibrations(),[8]);
+    await pause();await touch('touchMove',[{...origin,x:120}]);assert.deepEqual(await vibrations(),[8,8]);
+    await pause();await touch('touchMove',[{...origin,x:118}]);assert.deepEqual(await vibrations(),[8,8]);
+    await touch('touchEnd',[]);
+    action=await rect('#primary-action');await pause();await touch('touchStart',[point(action)]);
+    assert.deepEqual(await vibrations(),[8,8,8]);await touch('touchEnd',[]);
+    await page.mouse.click(action.x+action.width/2,action.y+action.height/2);
+    await page.focus('#canvas');await page.keyboard.press('Enter');assert.deepEqual(await vibrations(),[8,8,8]);
+    await settings('haptics',false);await pause();await touch('touchStart',[origin]);await touch('touchEnd',[]);
+    assert.deepEqual(await vibrations(),[8,8,8]);
+    await settings('haptics',true);
+    await page.evaluate(()=>Object.defineProperty(navigator,'vibrate',{configurable:true,value:undefined}));
+    await configure('');assert.equal(await page.$eval('[data-haptics]',el=>(el as HTMLElement).hidden),true);
+    await touch('touchStart',[origin]);await touch('touchMove',[{...origin,x:120}]);assert.deepEqual(await down(),[14]);await touch('touchEnd',[]);
+    await page.evaluate(()=>Object.defineProperty(navigator,'vibrate',{configurable:true,value:()=>{throw Error('blocked vibration');}}));
+    await pause();await touch('touchStart',[origin]);await touch('touchMove',[{...origin,x:120}]);assert.deepEqual(await down(),[14]);await touch('touchEnd',[]);
     await page.evaluate(()=>{Storage.prototype.setItem=()=>{throw Error('storage blocked');};});await settings('size',150);
     assert.equal((await prefs()).size,150);assert.deepEqual(errors,[]);
     console.log('PASS generic and game presets, sliding, multi-touch, keyboard ownership, cancellation, hold release, per-game persistence, editing, keypad, CSS caching and responsive bounds');

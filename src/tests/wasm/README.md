@@ -69,7 +69,7 @@ second, includes stalls, and resets its sampling window after a background tab.
 Open **☰** for game selection, sound, full screen and control settings.
 Touch controls overlay the game without a permanent toolbar or control deck.
 Touch uses independent movement/action areas,
-with fixed or floating movement, saved per-game layouts, handedness and an
+with floating movement for every game, optional haptics, saved per-game layouts, handedness and an
 expandable phone keypad. See the [touch control guide](TOUCH_CONTROLS.md).
 Sky Force first shows a splash screen and language selection, followed by
 **Start game**, difficulty and ship selection.
