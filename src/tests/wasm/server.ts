@@ -67,6 +67,7 @@ export type CompilerPolicy = { watchdogUs?: number; unsafeCode?: number; memoryI
 export type LauncherGame = {
   id: string; title: string; uid: string; sis?: string; ngage?: string; card?: string;
   device?: { rom: string; rpkg?: string };
+  image?: { url: string; game: string; sources: Record<string, string> };
 };
 
 function makeGameLauncherScript(games: LauncherGame[], defaultGame?: string): string {

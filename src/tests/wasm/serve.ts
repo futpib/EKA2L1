@@ -4,6 +4,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { buildDir, startServer, compilerPolicyFromEnv } from "./server.ts";
 import { fetchCid } from "@futpib/fetch-cid";
+import { loadInstalledImage } from './installed-image.ts';
 
 if (!fs.existsSync(path.join(buildDir, "eka2l1.html"))) {
   console.error("build-wasm output not found. Run the WASM build first.");
@@ -67,6 +68,23 @@ const preloadFiles: Record<string, string> = {
   "/preload/sis": path.join(cacheDir, 'Snakes.sis'),
   ...Object.fromEntries(games.map(game => ['/preload/games/' + game.id, path.join(cacheDir, game.file)])),
 };
+// Optional prepared files are local deployment artifacts, never game blobs in
+// Git. Missing images keep the existing installer path for that game.
+const installedImages = new Map();
+if (process.env.EKA2L1_PREINSTALLED_DIR) {
+  for (const game of games) {
+    if (!game.ngage || game.device) continue;
+    const prepared = await loadInstalledImage(process.env.EKA2L1_PREINSTALLED_DIR,game.id,{
+      rom:'89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490',
+      rpkg:'58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531',
+      game:game.ngage.sha256,runtime:game.ngage.runtime.sha256,
+    });
+    if (!prepared) continue;
+    installedImages.set(game.id,prepared.image);
+    preloadFiles[prepared.image.url] = prepared.file;
+    console.log(game.title + ': prepared installation (' + prepared.file + ')');
+  }
+}
 for (const game of games) {
   if (game.device) {
     preloadFiles['/preload/games/' + game.id + '/rom'] = path.join(cacheDir, game.device.rom.file);
@@ -89,6 +107,7 @@ const tls = certPath && keyPath
 const { port: resolvedPort } = await startServer(port, preloadFiles, undefined, {
   host, tls, compilerPolicy: compilerPolicyFromEnv(), defaultGame,
   games: games.map(({id, title, uid, ngage, device, card}) => ({id, title, uid,
+    ...(installedImages.has(id) ? {image:installedImages.get(id)} : {}),
     ...(card ? {card: '/preload/games/' + id} : {sis: '/preload/games/' + id + (ngage ? '/runtime' : '')}),
     ...(ngage ? {ngage: '/preload/games/' + id + '/ngage'} : {}),
     ...(device ? {device: {rom: '/preload/games/' + id + '/rom',

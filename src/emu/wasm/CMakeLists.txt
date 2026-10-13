@@ -90,5 +90,6 @@ endif()
 
 configure_file(audio.js audio.js COPYONLY)
 configure_file(audio-worklet.js audio-worklet.js COPYONLY)
+configure_file(preinstalled-image.js preinstalled-image.js COPYONLY)
 configure_file(touch-controls.js touch-controls.js COPYONLY)
 configure_file(touch-controls.css touch-controls.css COPYONLY)

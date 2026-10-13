@@ -1,0 +1,173 @@
+{
+  "game": "hooked-on",
+  "scope": "One accepted fresh normal-paced browser run per path; same runtime WASM binary; actual Costa Rica boat scene, not installer completion",
+  "startup": [
+    {
+      "variant": "installer",
+      "gameplay_seconds": 102.31378740299999,
+      "client_ready_seconds": 52.404074871,
+      "paced": {
+        "seconds": 10.00768499994278,
+        "fps": 31.975426884622134,
+        "guestSpeed": 1.000009992326619,
+        "newFunctions": 13,
+        "instructions": 0
+      },
+      "errors": [],
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "mode": "Normal paced auto launcher; fresh browser HTTP/CacheStorage and guest filesystem; warm LAN server assets; OCR-guided input",
+      "raw_report": "/home/claude/.scratch/eka-preinstalled-hooked-20261013/paced-baseline-b/report.json",
+      "gameplay_monitor": {
+        "guest_us": 85750012,
+        "instructions": 0,
+        "compiled_functions": 151605,
+        "aot_translation_us": 12410009,
+        "aot_emission_us": 983289,
+        "aot_installation_us": 2241486,
+        "aot_eager_functions": 139982,
+        "aot_eager_passes": 125,
+        "allocated_bytes": 1936559608,
+        "free_bytes": 91492040
+      }
+    },
+    {
+      "variant": "prepared_files",
+      "gameplay_seconds": 66.79922164,
+      "client_ready_seconds": 17.203058505999998,
+      "paced": {
+        "seconds": 10.006179999828339,
+        "fps": 31.88029797639785,
+        "guestSpeed": 1.0000069956938276,
+        "newFunctions": 9,
+        "instructions": 0
+      },
+      "errors": [],
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "mode": "Normal paced auto launcher; fresh browser HTTP/CacheStorage and guest filesystem; warm LAN server assets; OCR-guided input",
+      "raw_report": "/home/claude/.scratch/eka-preinstalled-hooked-20261013/paced-candidate-b/report.json",
+      "gameplay_monitor": {
+        "guest_us": 50366550,
+        "instructions": 0,
+        "compiled_functions": 144744,
+        "aot_translation_us": 12195243,
+        "aot_emission_us": 986593,
+        "aot_installation_us": 2059577,
+        "aot_eager_functions": 134049,
+        "aot_eager_passes": 110,
+        "allocated_bytes": 1823344032,
+        "free_bytes": 25634592
+      }
+    }
+  ],
+  "saved_seconds": 35.51456576299999,
+  "wall_reduction_percent": 34.71141736070524,
+  "image": {
+    "version": 1,
+    "game": "hooked-on",
+    "file": "hooked-on.img.gz",
+    "sources": {
+      "rom": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+      "rpkg": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+      "game": "a52da7a5d3d9f7ebd3eb81e49e3294d8998060f7cc2539fe955b8bfe14e1745c",
+      "runtime": "e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4"
+    },
+    "sha256": "f8120773f69d7337c2f56a7fbcb947b33b4b60db0b20348444a514f41c75f719",
+    "files": 9828,
+    "unpackedBytes": 230406209,
+    "compressedBytes": 133970683,
+    "browser": "Chrome/153.0.8010.52",
+    "capture": "Fresh installation; installer completed; CPU parked; shutdown closed file handles; game not launched"
+  },
+  "source_download_bytes": 231575582,
+  "wasm_sha256": "176bef9bbb8f0899f8538b60978a0674a30e95b9cec32ddb015dc1cd10cd39ca",
+  "rejected_runs": {
+    "paced-candidate-a": "OCR did not recognize language chooser",
+    "paced-baseline-a": "Incorrectly awaited N-Gage home after the completion button launched the game"
+  },
+  "evidence_directory": "/home/claude/.scratch/eka-preinstalled-hooked-20261013",
+  "unpaced": [
+    {
+      "game": "hooked-on",
+      "label": "costa-rica-stationary-tutorial-dismissed",
+      "edition": "0.74, N-Gage 2.0, full BiNPDA preservation copy",
+      "url": "https://claude-laptop.lan:8188/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.63,
+        1.72,
+        1.43
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 10.125599999904633,
+      "frames": 2391,
+      "fps": 236.13415501526026,
+      "guestSeconds": 76.05,
+      "guestSpeed": 7.5106660346760945,
+      "compiledFunctions": 6,
+      "compilationUs": {
+        "aot_translation_us": 841,
+        "aot_emission_us": 171,
+        "aot_installation_us": 1513
+      },
+      "errors": []
+    },
+    {
+      "game": "hooked-on",
+      "label": "costa-rica-stationary-tutorial-dismissed",
+      "edition": "0.74, N-Gage 2.0, full BiNPDA preservation copy",
+      "url": "https://claude-laptop.lan:8242/?game=custom",
+      "browser": "Chrome/153.0.8010.52",
+      "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+      "load": [
+        1.64,
+        1.31,
+        0.98
+      ],
+      "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+      "sound": "browser muted; guest audio remains enabled",
+      "seconds": 10.115404999971389,
+      "frames": 2381,
+      "fps": 235.38355607182655,
+      "guestSeconds": 74.8975,
+      "guestSpeed": 7.40430066816028,
+      "compiledFunctions": 0,
+      "compilationUs": {
+        "aot_translation_us": 383,
+        "aot_emission_us": 0,
+        "aot_installation_us": 0
+      },
+      "errors": []
+    }
+  ],
+  "deployed": {
+    "url": "https://claude-laptop.lan:8188/?game=hooked-on",
+    "gameplaySeconds": 65.676565175,
+    "paced": {
+      "seconds": 10.017105000019074,
+      "fps": 31.546040497668567,
+      "guestSpeed": 1.0000607960065233,
+      "newFunctions": 9,
+      "instructions": 0
+    },
+    "errors": []
+  },
+  "deployed_wasm_sha256": "176bef9bbb8f0899f8538b60978a0674a30e95b9cec32ddb015dc1cd10cd39ca",
+  "verification": {
+    "image_suite": "passed",
+    "compiler_policy_suite": "passed",
+    "asset_cache_suite": "passed",
+    "cmake_loader_copy_matches_source": true,
+    "public_image_count": 1,
+    "private_preview_removed": true,
+    "snakes": {
+      "presentations": 191,
+      "instructions": 0,
+      "errors": []
+    },
+    "restoration_probe": "passed; earlier N-Gage client endpoint, not gameplay"
+  }
+}

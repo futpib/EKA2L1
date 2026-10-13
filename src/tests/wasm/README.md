@@ -2,8 +2,7 @@
 
 Build `eka2l1_wasm` following the [browser build instructions](../benchmark/README.md),
 then run `npm ci --ignore-scripts` and `npm run serve -- 8188` in this directory.
-Choose **Snakes**, **Sky Force**, **K-Rally**, **Asphalt: Urban GT 2** or **Hooked On (trial)**
-and press **Play**.
+Choose a game from the catalogue and press **Play**.
 
 The browser uses WasmFS: C/C++ file operations run on their calling worker,
 so file metadata, seeks and directory reads do not synchronously visit the
@@ -16,8 +15,10 @@ ROM/RPKG/SIS upload controls. Changing the dropdown alone does not stop play.
 
 Measure a cold browser launch through this same UI with
 `node startup.mjs https://claude-laptop.lan:8188/ NEW_OUTPUT hooked-on 240`.
-The output includes first-presentation timing, N-Gage installation completion,
-logs and screenshots. Inspect the screenshots: a logo or client frame is not a
+The output includes first-presentation timing, N-Gage installation completion
+or prepared-image restoration, logs and screenshots. Prepared-image runs stop
+after a nontrivial guest screen; this can still be the N-Gage client.
+Inspect the screenshots: a logo or client frame is not a
 playable game. See the [startup results](../benchmark/STARTUP_BOOKKEEPING_RESULTS.md)
 and [compiler/admission follow-up](../benchmark/STARTUP_FOLLOWUP_RESULTS.md).
 
@@ -54,15 +55,36 @@ steer during the race. Its original N95 8GB 1.0.1 installer runs on the stock
 5320. The browser build includes the MIDI instrument banks used by the Qt
 frontend; without them, Asphalt failed during audio setup before the title.
 
-Hooked On automatically installs the original N-Gage 1.40 client and supplies
-the original game package to its importer. Wait for the installation bar to
-finish, then choose **Start Game**. If the client remains visible, choose
-**Back to Game** (F2). Choose **Try Game**, select English, acknowledge
-the trial notice with the left softkey (F1), then choose **Instant Play**.
-The client imports the package on every fresh launch; allow several minutes.
-This is Nokia's original limited trial. Full-game activation is not provided.
+Hooked On installs the N-Gage 1.40 client and imports the recovered 0.74 BiNPDA
+package listed in `games.json`. Wait for installation to finish, then choose
+**Start Game**. Select English and create a save slot/name on the first launch.
+Choose **Instant Play** to reach Costa Rica. Without a prepared image, the
+client imports the package on every fresh launch.
 
-The bundled choices share the stock Nokia 5320 ROM/RPKG. Games are installed and
+The Hooked On prepared-image pilot restores installed device/game files before
+emulator initialization. It skips device/SIS installation and N-Gage import;
+game logos, initial setup and ARM-to-WASM compilation still run. Every session
+gets fresh writable files. This is not a running-emulator checkpoint.
+
+Create an image using a launcher with the normal installer path:
+
+```sh
+node capture-installed-image.mjs https://claude-laptop.lan:8188/ hooked-on /absolute/path/to/new-image-directory
+EKA2L1_PREINSTALLED_DIR=/absolute/path/to/new-image-directory node serve.ts 8188
+node installed-image.test.ts
+```
+
+The capture tool requires local source assets in `/tmp/eka2l1-serve` (or its
+optional final argument). It checks their hashes, completes a clean installation,
+parks the CPU, shuts down to close file handles and captures `/data` before
+the game is launched. Review `installation-complete.png`. The directory contains
+`hooked-on.img.gz`, `hooked-on.json` and raw capture evidence. Only the first two
+are needed by the server. The server checks the image hash and exact ROM,
+RPKG, game-container and runtime-package identities; mismatches fail startup.
+Games with no image keep their installer path. Keep generated firmware/game
+images outside Git. See the [pilot measurements](../benchmark/PREINSTALLED_IMAGE_RESULTS.md).
+
+Most bundled choices share the stock Nokia 5320 ROM/RPKG. Games are installed and
 launched by UID, avoiding ambiguous captions. Sky Force is the original game's
 S60 3rd Edition release, version 1.22 at 240×320, UID `0xa020d913`.
 The launcher applies no game or firmware patch. The preserved Sky Force 1.22
@@ -76,11 +98,11 @@ stay outside Git, following the existing
 [individual-file IPFS convention](../benchmark/README.md#assets).
 The archive member is used unchanged; only its local filename is normalized to
 `SkyForce.sis`. The downloaded SISX header identifies the same package UID.
-For Hooked On, the server reconstructs Nokia's multipart `.n-gage` container
-from the unchanged signed game and metadata SIS files. It verifies the result
-against the original promotional-CD package's SHA-256 before serving it. The
-game SIS remains the same individual file supplied for pinning. The runtime
-and metadata are separate CID-addressed dependencies fetched automatically.
+For Hooked On, the server fetches the recovered `.n-gage` container and the
+N-Gage runtime directly from their recorded CIDs and checks their SHA-256
+digests. The current manifest identifies the full BiNPDA preservation package;
+it is not the earlier promotional trial. Prepared images are separate generated
+deployment artifacts and do not replace the original installer CIDs.
 
 The launcher checks cached and downloaded asset hashes before serving. Its asset
 directory defaults to `/tmp/eka2l1-serve` (the system temporary directory on other

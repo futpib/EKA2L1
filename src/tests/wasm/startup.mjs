@@ -1,4 +1,4 @@
-// Fresh browser/cache and guest installation through the normal paced launcher.
+// Fresh browser/cache and guest filesystem through the normal paced launcher.
 // First presentation can be a logo or the N-Gage client, not a playable game.
 import fs from 'node:fs';
 import os from 'node:os';
@@ -15,7 +15,7 @@ if (!baseUrl || !output || !entry || !/^\d+$/.test(limit) || Number(limit) < 15)
 fs.mkdirSync(output);
 const file = name => path.join(output, name);
 const report = {game, url:baseUrl, started:new Date().toISOString(),
-  mode:'normal paced launcher; fresh browser, asset cache and guest installation',
+  mode:'normal paced launcher; fresh browser, asset cache and guest filesystem',
   cpuModel:os.cpus()[0]?.model, loadBefore:os.loadavg(),
   requiresSceneReview:true, milestones:[], samples:[], errors:[]};
 const save = () => fs.writeFileSync(file('report.json'), JSON.stringify(report, null, 2));
@@ -56,6 +56,7 @@ try {
     // Package deletion precedes extraction completion and is not a ready signal.
     if (text.includes('Thread N-Gage Installer forcefully killed with category: None and exit code: 0'))
       report.installationComplete = {ms, text};
+    if (text.startsWith('[installed-image]')) report.preinstalled = {ms, text};
     if (/Access violation|KERN-EXEC|ABORT:|panicked with category:/.test(text)) report.errors.push(text);
   });
   page.on('pageerror', e => report.errors.push(String(e)));
@@ -96,7 +97,7 @@ try {
     if (colors.size > 64) report.nontrivial ??= sample;
     save();
     console.log(game, (sample.ms / 1000).toFixed(2), sample.frames, sample.colors);
-    if (entry.ngage ? report.installationComplete && performance.now() - begin - report.installationComplete.ms > 1500
+    if (entry.ngage && !report.preinstalled ? report.installationComplete && performance.now() - begin - report.installationComplete.ms > 1500
       : report.nontrivial && sample.ms - report.nontrivial.ms > 6000) break;
     await new Promise(resolve => setTimeout(resolve, 2000));
   }
@@ -105,8 +106,8 @@ try {
     resources:performance.getEntriesByType('resource').map(x => ({
       name:x.name, start:x.startTime, end:x.responseEnd, transfer:x.transferSize})),
     assets:window.ekaAssetUrls, policy:window.ekaCompilerPolicy}));
-  if (entry.ngage && !report.installationComplete) throw Error('Installer did not complete before timeout');
-  if (!entry.ngage && !report.nontrivial) throw Error('No nontrivial guest image before timeout');
+  if (entry.ngage && !report.preinstalled && !report.installationComplete) throw Error('Installer did not complete before timeout');
+  if ((!entry.ngage || report.preinstalled) && !report.nontrivial) throw Error('No nontrivial guest image before timeout');
   if (report.errors.length) throw Error('Browser or guest error; inspect report.json');
 } catch (e) {
   report.failure = String(e);
