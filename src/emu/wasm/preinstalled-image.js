@@ -1,5 +1,5 @@
 // Installed files, not a running-emulator checkpoint. Each launch restores a
-// fresh writable filesystem before C++ creates the device/package managers.
+// new device's writable filesystem before C++ creates the device/package managers.
 globalThis.EkaInstalledImage = {
     async restore(response, expected, filesystem) {
         if (!response.ok) throw new Error('Installed image download failed: HTTP ' + response.status);

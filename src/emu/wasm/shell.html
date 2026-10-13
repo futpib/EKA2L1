@@ -34,7 +34,7 @@
     <form id="game-picker" hidden>
         <label>Game: <select id="game-select" aria-label="Game"></select></label>
         <button type="submit" id="btn-play">Play</button>
-        <span>Play applies settings and starts a new session.</span>
+        <span>Installed games and saves stay on this device.</span>
     </form>
     <div id="controls">
         <label>ROM: <input type="file" id="rom-file"></label>
@@ -48,6 +48,8 @@
         <button id="btn-touch-settings" type="button">Touch controls</button>
         <button id="btn-keypad" type="button">Phone keypad</button>
         <button id="btn-fullscreen" type="button">Full screen</button>
+        <button id="btn-save-device" type="button" disabled>Save device</button>
+        <span id="device-status" role="status"></span>
     </div>
     <div id="status" role="status">Ready</div>
     <details id="log-panel"><summary>Diagnostics</summary><div id="log" role="log"></div></details>
@@ -162,6 +164,43 @@
         }
 
         var _gameRunning = false;
+        var _selectedGame = null;
+        function deviceStatus(text) { document.getElementById('device-status').textContent = text; }
+        function enableDeviceSaving() {
+            if (!window.ekaDeviceDisk) return;
+            document.getElementById('btn-save-device').disabled = false;
+            window.ekaDeviceDisk.start().catch(error => Module.printErr(String(error)));
+        }
+        document.getElementById('btn-save-device').addEventListener('click', function() {
+            window.ekaDeviceDisk?.save(true).catch(error => Module.printErr(String(error)));
+        });
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden && window.ekaDeviceDisk?.canSave)
+                window.ekaDeviceDisk.save(true).catch(error => console.warn('[device-disk]', error.message));
+        });
+        function assetHash(endpoint) {
+            var url = window.ekaAssetUrls?.[endpoint] || endpoint;
+            return url ? new URL(url, location.href).searchParams.get('v') : '';
+        }
+        async function prepareDeviceStorage(game) {
+            if (window.ekaTransientSession || Module._eka2l1_route_phase() !== -1) return null;
+            var rom = assetHash(game?.device?.rom || '/preload/rom');
+            var rpkg = assetHash(game?.device ? game.device.rpkg : '/preload/rpkg');
+            if (!game) {
+                var romFile = document.getElementById('rom-file').files[0];
+                var rpkgFile = document.getElementById('rpkg-file').files[0];
+                if (romFile) {
+                    rom = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', await romFile.arrayBuffer())))
+                        .map(byte => byte.toString(16).padStart(2, '0')).join('');
+                    rpkg = rpkgFile ? Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', await rpkgFile.arrayBuffer())))
+                        .map(byte => byte.toString(16).padStart(2, '0')).join('') : '';
+                }
+            }
+            if (!rom) throw new Error('Choose a ROM for this device');
+            Module.setStatus('Opening saved device...');
+            window.ekaDeviceDisk = await EkaDeviceDisk.open(rom + ':' + (rpkg || ''), FS, Module, deviceStatus);
+            return window.ekaDeviceDisk;
+        }
         var _fpsSamples = [];
         document.addEventListener('visibilitychange', function() { _fpsSamples = []; });
         // Use guest presentations and actual elapsed host time. A delayed timer
@@ -232,14 +271,17 @@
             select.value = requested === 'custom' ? 'custom' : (selected || games[0]).id;
             picker.hidden = false;
             document.getElementById('controls').hidden = requested !== 'custom';
-            picker.addEventListener('submit', function(event) {
+            picker.addEventListener('submit', async function(event) {
                 event.preventDefault();
                 _releaseInputs();
                 var url = new URL(location.href);
                 url.searchParams.set('game', select.value);
                 url.searchParams.delete('counting');
                 // Reload releases the previous workers, audio and guest memory.
-                location.assign(url.href);
+                try {
+                    if (window.ekaDeviceDisk) await window.ekaDeviceDisk.stop();
+                    location.assign(url.href);
+                } catch (error) { deviceStatus('Device not saved: ' + error.message); }
             });
             if (requested === 'custom') return;
             if (!selected) {
@@ -249,11 +291,18 @@
             try {
                 while (!Module.calledRun) await new Promise(resolve => setTimeout(resolve, 100));
                 Module.setStatus('Loading ' + selected.title + '...');
-                for (var [endpoint, selector, name] of (selected.image ? [] : [
+                _selectedGame = selected;
+                var disk = await prepareDeviceStorage(selected);
+                var useImage = selected.image && !disk?.manifest;
+                var needsSis = !disk?.installed[assetHash(selected.sis)];
+                var needsNgage = selected.ngage && !disk?.installed[assetHash(selected.ngage)];
+                for (var [endpoint, selector, name] of (useImage ? [] : [
                     [selected.device ? selected.device.rom : '/preload/rom', 'rom-file', 'SYM.ROM'],
                     [selected.device ? selected.device.rpkg : '/preload/rpkg', 'rpkg-file', 'SYM.RPKG'],
                     [selected.sis, 'sis-file', selected.id + '.sis']])) {
                     if (!endpoint) continue;
+                    if (disk?.manifest && selector !== 'sis-file') continue;
+                    if (selector === 'sis-file' && !needsSis) continue;
                     var response = await window.ekaDownload(endpoint);
                     if (!response.ok) throw new Error('Download failed: HTTP ' + response.status);
                     var transfer = new DataTransfer();
@@ -261,8 +310,9 @@
                     document.getElementById(selector).files = transfer.files;
                 }
                 document.getElementById('app-name').value = selected.uid;
-                await startEmulator(selected.image ? undefined : selected.ngage,
-                    selected.image ? undefined : selected.card, selected.image);
+                await startEmulator(useImage ? undefined : needsNgage ? selected.ngage : undefined,
+                    useImage || disk?.installed[assetHash(selected.card)] ? undefined : selected.card,
+                    useImage ? selected.image : undefined);
                 if (_gameRunning) setRunningStatus(selected.title);
             } catch (error) {
                 Module.setStatus('Error: ' + error.message);
@@ -287,6 +337,16 @@
                 var rpkgInput = document.getElementById('rpkg-file');
                 var sisInput = document.getElementById('sis-file');
                 var appName = document.getElementById('app-name').value;
+                var disk = window.ekaDeviceDisk || await prepareDeviceStorage(_selectedGame);
+                var sisHash = _selectedGame ? assetHash(_selectedGame.sis) : '';
+                if (disk && !_selectedGame) {
+                    if (disk.manifest) { romInput.value = ''; rpkgInput.value = ''; }
+                    if (sisInput.files[0]) {
+                        sisHash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', await sisInput.files[0].arrayBuffer())))
+                            .map(byte => byte.toString(16).padStart(2, '0')).join('');
+                        if (disk.installed[sisHash]) sisInput.value = '';
+                    }
+                }
 
                 // The runtime defaults to immutable executable bytes (mode 3).
                 // A launcher can select compatibility mode 0 before initialization.
@@ -301,6 +361,10 @@
                     var restored = await EkaInstalledImage.restore(
                         await window.ekaDownload(installedImage.url), installedImage, FS);
                     console.log('[installed-image] Restored ' + restored.files + ' files (' + restored.bytes + ' bytes)');
+                    if (disk) {
+                        disk.installed[installedImage.sources.game] = true;
+                        disk.installed[installedImage.sources.runtime] = true;
+                    }
                 }
                 // Initialize after restoring devices.yml and installed registries.
                 var initResult = await Module.ccall('eka2l1_init', 'number', ['string'], ['/data'], {async: true});
@@ -346,11 +410,27 @@
                     if (ret !== 0) {
                         if (ngagePackage) throw new Error('N-Gage runtime installation failed: ' + ret);
                         Module.printErr('SIS install returned ' + ret + ' (may already be in ROM)');
+                    } else if (disk && sisHash) {
+                        disk.installed[sisHash] = true;
                     }
                 }
 
                 // N-Gage registers and licenses games through its own importer.
                 if (ngagePackage) {
+                    if (disk) {
+                        window.ekaPendingNgage = assetHash(ngagePackage);
+                        if (Module.ccall('eka2l1_watch_ngage_installer', 'number', [], []) !== 0)
+                            throw new Error('Could not track game installation');
+                        disk.installTimer = setInterval(function() {
+                            var result = Module._eka2l1_ngage_installation_status();
+                            if (result === -1) return;
+                            clearInterval(disk.installTimer); disk.installTimer = null;
+                            if (result !== 1) { deviceStatus('Game installation failed; device has not been saved'); return; }
+                            disk.installed[window.ekaPendingNgage] = true;
+                            window.ekaPendingNgage = null;
+                            enableDeviceSaving();
+                        }, 250);
+                    }
                     Module.setStatus('Preparing N-Gage game...');
                     var packageResponse = await window.ekaDownload(ngagePackage);
                     if (!packageResponse.ok) throw new Error('N-Gage download failed: HTTP ' + packageResponse.status);
@@ -367,6 +447,7 @@
                     try {
                         var cardRet = Module.ccall('eka2l1_mount_game_card', 'number', ['string'], ['/tmp/game-card.zip']);
                         if (cardRet !== 0) throw new Error('Game card mount failed: ' + cardRet);
+                        if (disk) disk.installed[assetHash(cardPackage)] = true;
                     } finally {
                         FS.unlink('/tmp/game-card.zip');
                     }
@@ -396,6 +477,7 @@
                     Module.canvas.focus();
                     setRunningStatus(appName);
                 }
+                if (!window.ekaPendingNgage) enableDeviceSaving();
             } catch(e) {
                 Module.setStatus('Error: ' + e.message);
                 Module.printErr(e.toString());
@@ -404,6 +486,7 @@
         }
     </script>
     <script src="preinstalled-image.js"></script>
+    <script src="persistent-disk.js"></script>
     <script src="touch-controls.js"></script>
     <script>
         window.ekaTouchControls = new EkaTouchControls({press: _pressSource, release: _releaseSource,

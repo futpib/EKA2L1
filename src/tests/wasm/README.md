@@ -10,11 +10,31 @@ browser main thread. File contents occupy the WASM heap within the existing
 2 GiB limit. Uploads explicitly truncate before the SDK's bulk write, including
 empty replacements. See the [filesystem measurements](../benchmark/WASMFS_RESULTS.md).
 
-Each launch starts a fresh session; saves are not persisted. **Load my own files** opens the
-ROM/RPKG/SIS upload controls. Changing the dropdown alone does not stop play.
+The launcher keeps a virtual device in this browser using IndexedDB. Games
+using the same ROM/RPKG share installed applications, C/E drives, saves,
+registries and OS files. Reloading restores that device before initialization;
+already installed packages are skipped. Different firmware has separate data.
+The prepared image seeds an empty device once and never replaces an existing
+phone's files.
+
+Changes are saved asynchronously every ten seconds. **Save device** flushes
+file buffers and commits a fresh disk save; **Play** closes the current emulator
+and saves before switching games. The status in the game menu reports save
+completion or an actual storage error. A second tab cannot write the same
+device concurrently. Data belongs to this browser and site; clearing site data
+removes it. Guest RAM and running processes restart on reload. Requesting the
+browser's persistent-storage protection does not guarantee it is granted.
+
+**Load my own files** opens the ROM/RPKG/SIS upload controls and reuses the
+matching saved device. Changing the dropdown alone does not stop play.
+The [persistent-device results](../benchmark/PERSISTENT_DEVICE_RESULTS.md)
+describe the storage protocol, verification and limits.
 
 Measure a cold browser launch through this same UI with
 `node startup.mjs https://claude-laptop.lan:8188/ NEW_OUTPUT hooked-on 240`.
+This harness selects a temporary disk so prior installations cannot contaminate
+cold-launch results. Scripted routes are temporary too; tests can explicitly
+mount a disk to measure saving overhead. Normal play uses persistence.
 The output includes first-presentation timing, N-Gage installation completion
 or prepared-image restoration, logs and screenshots. Prepared-image runs stop
 after a nontrivial guest screen; this can still be the N-Gage client.

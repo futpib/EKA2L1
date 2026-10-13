@@ -5,6 +5,7 @@
   "scripts": {
     "test": "node --experimental-strip-types test.ts",
     "test:e2e": "node --experimental-strip-types test-e2e.ts",
+    "test:persistent-disk": "node persistent-disk.test.mjs",
     "serve": "node --experimental-strip-types serve.ts"
   },
   "devDependencies": {

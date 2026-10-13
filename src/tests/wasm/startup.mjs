@@ -15,7 +15,7 @@ if (!baseUrl || !output || !entry || !/^\d+$/.test(limit) || Number(limit) < 15)
 fs.mkdirSync(output);
 const file = name => path.join(output, name);
 const report = {game, url:baseUrl, started:new Date().toISOString(),
-  mode:'normal paced launcher; fresh browser, asset cache and guest filesystem',
+  mode:'normal paced launcher; fresh browser, asset cache and temporary guest filesystem',
   cpuModel:os.cpus()[0]?.model, loadBefore:os.loadavg(),
   requiresSceneReview:true, milestones:[], samples:[], errors:[]};
 const save = () => fs.writeFileSync(file('report.json'), JSON.stringify(report, null, 2));
@@ -32,6 +32,7 @@ try {
   await page.setViewport({width:900, height:800});
   page.setDefaultTimeout(Number(limit) * 1000);
   await page.evaluateOnNewDocument(() => {
+    window.ekaTransientSession = true;
     window.startupProbe = {runtime:null, running:null, first:null};
     const tick = () => {
       const p = window.startupProbe, m = window.Module;

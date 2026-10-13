@@ -52,6 +52,7 @@
 #include <drivers/itc.h>
 
 #include <kernel/kernel.h>
+#include <kernel/thread.h>
 #include <package/manager.h>
 #include <services/applist/applist.h>
 #include <services/init.h>
@@ -92,6 +93,7 @@ namespace {
         config::state conf;
         window_server *winserv = nullptr;
         std::atomic<bool> running{false};
+        std::atomic<int> ngage_installation{0};
         std::atomic<bool> benchmark_done{false};
         std::atomic<int> benchmark_captured{0};
         bool system_started = false;
@@ -501,6 +503,24 @@ int eka2l1_install_device(const char *rom_path, const char *rpkg_path) {
 
     LOG_INFO(FRONTEND_CMDLINE, "Device installed successfully");
     return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_watch_ngage_installer() {
+    if (!ensure_system_started() || g_state->running) return -1;
+    auto *state = g_state;
+    state->ngage_installation = -1;
+    state->symsys->get_kernel_system()->register_thread_kill_callback(
+        [state](kernel::thread *target, const std::string &, std::int32_t reason) {
+            if (state->running && target->name() == "N-Gage Installer")
+                state->ngage_installation = reason == 0 && target->get_exit_type() != kernel::entity_exit_type::panic ? 1 : -2;
+        });
+    return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_ngage_installation_status() {
+    return g_state ? g_state->ngage_installation.load() : 0;
 }
 
 EMSCRIPTEN_KEEPALIVE

@@ -10,6 +10,21 @@ target_include_directories(test_source_maps PRIVATE ../../emu/cpu/include ../../
 target_compile_definitions(test_source_maps PRIVATE EKA2L1_AOT_SOURCE_MAPS=1)
 
 if(EMSCRIPTEN)
+    add_executable(test_device_disk ../wasm/persistent-disk-fixture.cpp ../../emu/wasm/persistent_disk.cpp)
+    target_include_directories(test_device_disk PRIVATE ${PROJECT_SOURCE_DIR}/src/external/rapidjson/include)
+    target_compile_options(test_device_disk PRIVATE -pthread)
+    target_link_options(test_device_disk PRIVATE -pthread
+        "SHELL:-Wl,--wrap=__wasi_fd_write,--wrap=__wasi_fd_pwrite"
+        "SHELL:--profiling-funcs"
+        "SHELL:-s STACK_SIZE=1048576" "SHELL:-s STACK_OVERFLOW_CHECK=1"
+        "SHELL:-s WASMFS=1" "SHELL:-s FORCE_FILESYSTEM=1"
+        "SHELL:-s PTHREAD_POOL_SIZE=3" "SHELL:-s PROXY_TO_PTHREAD=1"
+        "SHELL:-s ALLOW_MEMORY_GROWTH=1"
+        "SHELL:-s EXPORTED_RUNTIME_METHODS=['ccall']")
+    set_target_properties(test_device_disk PROPERTIES SUFFIX ".js")
+    configure_file(../wasm/persistent-disk-fixture.html test_device_disk.html COPYONLY)
+    configure_file(../../emu/wasm/persistent-disk.js persistent-disk.js COPYONLY)
+
     add_executable(test_aot_wasm test_aot_wasm.cpp)
     target_link_libraries(test_aot_wasm PRIVATE cpu epocmem config)
     target_link_options(test_aot_wasm PRIVATE

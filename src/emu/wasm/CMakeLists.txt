@@ -1,4 +1,4 @@
-add_executable(eka2l1_wasm main.cpp)
+add_executable(eka2l1_wasm main.cpp persistent_disk.cpp)
 
 # Package the patches staged by this build, including newly added upstream
 # patches. Depending on a separate native build can silently embed stale DLLs.
@@ -27,7 +27,8 @@ endif()
 
 # graphics_driver_shared.h needs glm (used for reading screen_texture FBO)
 target_include_directories(eka2l1_wasm PRIVATE
-    ${PROJECT_SOURCE_DIR}/src/external/glm)
+    ${PROJECT_SOURCE_DIR}/src/external/glm
+    ${PROJECT_SOURCE_DIR}/src/external/rapidjson/include)
 
 target_link_libraries(eka2l1_wasm PRIVATE
     common
@@ -47,6 +48,7 @@ target_link_libraries(eka2l1_wasm PRIVATE
     j2me)
 
 target_link_options(eka2l1_wasm PRIVATE
+    "SHELL:-Wl,--wrap=__wasi_fd_write,--wrap=__wasi_fd_pwrite"
     "SHELL:-s ERROR_ON_UNDEFINED_SYMBOLS=0"
     "SHELL:-Wl,--unresolved-symbols=ignore-all"
     "SHELL:-s ASSERTIONS=1"
@@ -91,5 +93,6 @@ endif()
 configure_file(audio.js audio.js COPYONLY)
 configure_file(audio-worklet.js audio-worklet.js COPYONLY)
 configure_file(preinstalled-image.js preinstalled-image.js COPYONLY)
+configure_file(persistent-disk.js persistent-disk.js COPYONLY)
 configure_file(touch-controls.js touch-controls.js COPYONLY)
 configure_file(touch-controls.css touch-controls.css COPYONLY)
