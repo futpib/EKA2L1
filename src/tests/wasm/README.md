@@ -296,3 +296,23 @@ See [early compilation results](../benchmark/PRECOMPILATION_RESULTS.md).
 
 Current compatibility, performance limits and screenshots are recorded in
 [Sky Force results](../benchmark/SKY_FORCE_RESULTS.md).
+
+For C++ memory attribution, build with
+`-DEKA2L1_WASM_ALLOCATION_PROFILE=ON -DEKA2L1_WASM_CPP_SOURCE_MAPS=ON` and serve
+that frozen artifact on a private port. This option defaults off and adds no
+normal-launch controls. After sourcing the Emscripten SDK environment:
+
+```sh
+python3 src/tests/benchmark/allocation_layout.py --build build-wasm --output /absolute/path/layout.json
+EKA2L1_ALLOCATION_LAYOUT=/absolute/path/layout.json node src/tests/wasm/arena-growth-benchmark.mjs asphalt-3 /absolute/path/new-capture https://claude-laptop.lan:PRIVATE_PORT/ allocator-memory
+python3 src/tests/benchmark/summarize_allocations.py /absolute/path/new-capture --wasm /absolute/path/frozen-build/eka2l1.wasm --map /absolute/path/frozen-build/eka2l1.wasm.map
+```
+
+`allocator-memory` collects allocator lifetimes, stacks for blocks at least
+64 KiB, source-map attribution, browser PSS/smaps and Chrome allocation samples.
+On Linux, a live marker and pagemap also attribute resident whole pages to large
+allocations. The optional layout file identifies the interpreter object and
+reads actual decoded-buffer occupancy. `EKA2L1_BENCHMARK_PREPARED=1` selects the
+server's prepared installation for games that have one; this matters for Hooked
+On. Diagnostic FPS is not a performance result. Turn the allocation build option
+off afterward. See [the measurements and coverage limits](../benchmark/ALLOCATION_MEMORY_PROFILE_RESULTS.md).

@@ -1,0 +1,3082 @@
+{
+  "date": "2026-10-14",
+  "source_commit": "706a75762",
+  "production_build_sha256": "a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+  "diagnostic_wasm_sha256": "baa1e0ef75a59c62d76ccb70d657f280bbe246b5a3ed8156814ecb08fd1853b9",
+  "diagnostic_map_sha256": "a0d95c353dc6c1d2cdeda815f0c2b8d461e175d20a118b7f5e024f1e1aaf4938",
+  "evidence_directory": "/home/claude/.scratch/eka-allocation-profile-20261014",
+  "baseline_ranking": [
+    {
+      "game": "asphalt-3",
+      "capture": "/home/claude/.scratch/eka-allocation-profile-20261014/asphalt-3-baseline-retry/instant-play-stationary-sound-on.json",
+      "launch": "Fresh installation",
+      "browserPssKiB": 3377984,
+      "allocated_bytes": 1911373968,
+      "wasmCapacity": 2046230528,
+      "memory": {
+        "mode": 2,
+        "rebuilds": 20659,
+        "mapped_pages": 21133,
+        "arena_bytes": 872415232,
+        "direct_pages": 2004,
+        "direct_rebuilds": 20528,
+        "arena_growths": 35,
+        "arena_initialized_bytes": 201326592
+      },
+      "errors": []
+    },
+    {
+      "game": "tetris",
+      "capture": "/home/claude/.scratch/eka-allocation-profile-20261014/tetris-baseline/marathon-level-1-long.json",
+      "launch": "Fresh installation",
+      "browserPssKiB": 3310848,
+      "allocated_bytes": 1909689184,
+      "wasmCapacity": 2110390272,
+      "memory": {
+        "mode": 2,
+        "rebuilds": 16097,
+        "mapped_pages": 19942,
+        "arena_bytes": 872415232,
+        "direct_pages": 912,
+        "direct_rebuilds": 15939,
+        "arena_growths": 37,
+        "arena_initialized_bytes": 234881024
+      },
+      "errors": []
+    },
+    {
+      "game": "hooked-on",
+      "capture": "/home/claude/.scratch/eka-allocation-profile-20261014/hooked-on-live-baseline/costa-rica-stationary-tutorial-dismissed-window-2.json",
+      "launch": "Prepared installation",
+      "browserPssKiB": 3295249,
+      "allocated_bytes": 1825303536,
+      "wasmCapacity": 1918894080,
+      "memory": {
+        "mode": 2,
+        "rebuilds": 7004,
+        "mapped_pages": 20728,
+        "arena_bytes": 872415232,
+        "direct_pages": 1696,
+        "direct_rebuilds": 6858,
+        "arena_growths": 25,
+        "arena_initialized_bytes": 201326592
+      },
+      "errors": []
+    },
+    {
+      "game": "k-rally",
+      "capture": "/home/claude/.scratch/eka-arena-graduation-20261014/k-rally-retry/tutorial-driving.json",
+      "launch": "Earlier capture of the same production artifact",
+      "browserPssKiB": 2277343,
+      "allocated_bytes": 1182647416,
+      "wasmCapacity": 1260388352,
+      "memory": {
+        "mode": 2,
+        "rebuilds": 1124,
+        "mapped_pages": 18970,
+        "arena_bytes": 335544320,
+        "direct_pages": 1067,
+        "direct_rebuilds": 1039,
+        "arena_growths": 8,
+        "arena_initialized_bytes": 83886080
+      },
+      "errors": []
+    },
+    {
+      "game": "asphalt-2",
+      "capture": "/home/claude/.scratch/eka-arena-graduation-20261014/asphalt-2/golf-san-francisco-barrier.json",
+      "launch": "Earlier capture of the same production artifact",
+      "browserPssKiB": 2230846,
+      "allocated_bytes": 1178952760,
+      "wasmCapacity": 1251999744,
+      "memory": {
+        "mode": 2,
+        "rebuilds": 438,
+        "mapped_pages": 20014,
+        "arena_bytes": 335544320,
+        "direct_pages": 1972,
+        "direct_rebuilds": 355,
+        "arena_growths": 9,
+        "arena_initialized_bytes": 83886080
+      },
+      "errors": []
+    },
+    {
+      "game": "super-miners",
+      "capture": "/home/claude/.scratch/eka-arena-graduation-20261014/super-miners/challenge-level-1.json",
+      "launch": "Earlier capture of the same production artifact",
+      "browserPssKiB": 2172680,
+      "allocated_bytes": 1176842264,
+      "wasmCapacity": 1260388352,
+      "memory": {
+        "mode": 2,
+        "rebuilds": 422,
+        "mapped_pages": 18646,
+        "arena_bytes": 335544320,
+        "direct_pages": 787,
+        "direct_rebuilds": 336,
+        "arena_growths": 8,
+        "arena_initialized_bytes": 83886080
+      },
+      "errors": []
+    },
+    {
+      "game": "snakes",
+      "capture": "/home/claude/.scratch/eka-arena-graduation-20261014/snakes-retry/opening-level-valid.json",
+      "launch": "Earlier capture of the same production artifact",
+      "browserPssKiB": 2162534,
+      "allocated_bytes": 1175862032,
+      "wasmCapacity": 1251999744,
+      "memory": {
+        "mode": 2,
+        "rebuilds": 1158,
+        "mapped_pages": 19517,
+        "arena_bytes": 335544320,
+        "direct_pages": 1431,
+        "direct_rebuilds": 1072,
+        "arena_growths": 8,
+        "arena_initialized_bytes": 67108864
+      },
+      "errors": []
+    },
+    {
+      "game": "sky-force",
+      "capture": "/home/claude/.scratch/eka-arena-graduation-20261014/sky-force-retry/stage-1.json",
+      "launch": "Earlier capture of the same production artifact",
+      "browserPssKiB": 2118954,
+      "allocated_bytes": 1173740736,
+      "wasmCapacity": 1260388352,
+      "memory": {
+        "mode": 2,
+        "rebuilds": 413,
+        "mapped_pages": 18610,
+        "arena_bytes": 335544320,
+        "direct_pages": 787,
+        "direct_rebuilds": 326,
+        "arena_growths": 8,
+        "arena_initialized_bytes": 83886080
+      },
+      "errors": []
+    }
+  ],
+  "profile": {
+    "name": "instant-play-stationary-sound-on-end",
+    "guest_us": 795740000,
+    "host_ms": 74752.3599998951,
+    "browserPssKiB": 3431262,
+    "wasmCapacity": 2147483648,
+    "memory": {
+      "mode": 2,
+      "rebuilds": 22364,
+      "mapped_pages": 21132,
+      "arena_bytes": 872415232,
+      "direct_pages": 2003,
+      "direct_rebuilds": 22189,
+      "arena_growths": 35,
+      "arena_initialized_bytes": 201326592
+    },
+    "allocator": {
+      "threshold": 65536,
+      "profiler_static_bytes": 34684928,
+      "live_bytes": 1909295036,
+      "peak_bytes": 1949545792,
+      "live_count": 437633,
+      "allocations": 31028522,
+      "dropped": 0,
+      "unknown_frees": 0,
+      "truncated_stacks": 0,
+      "mallinfo_allocated_bytes": 1911045568
+    },
+    "interpreter": {
+      "state_size": 131105704,
+      "decoded_capacity": 131072000,
+      "decoded_used_offset": 131072896,
+      "pointer": 276735432,
+      "decoded_used": 4754008
+    },
+    "residency": {
+      "renderer_pid": 1751909,
+      "mapping": {
+        "begin": 34982508625920,
+        "end": 34984656109568,
+        "name": "[anon:v8-sandbox]"
+      },
+      "marker_verified": true,
+      "page_bytes": 4096,
+      "scope": "Whole pages wholly inside requested allocations; boundary pages excluded, live guest is not globally frozen"
+    },
+    "allocator_reconciliation_bytes": 0,
+    "subsystem_live_bytes": {
+      "Allocations smaller than 64 KiB (unwound coverage limit)": 97081880,
+      "Other large allocations": 1346484,
+      "WASMFS file storage": 274777720,
+      "Worker stacks and thread storage": 41966372,
+      "ARM interpreter state": 135577876,
+      "ROM and executable loading": 12831228,
+      "ROM and mapped files": 69947396,
+      "Guest chunk backing": 364909904,
+      "ARM compiler and code cache": 11391964,
+      "Emulated OS services": 27048928,
+      "Process arenas": 872415284,
+      "Graphics and audio drivers": 0
+    },
+    "subsystem_whole_page_resident_bytes": {
+      "Allocations smaller than 64 KiB (unwound coverage limit)": null,
+      "Other large allocations": 1314816,
+      "WASMFS file storage": 209317888,
+      "Worker stacks and thread storage": 39788544,
+      "ARM interpreter state": 135516160,
+      "ROM and executable loading": 12681216,
+      "ROM and mapped files": 69947392,
+      "Guest chunk backing": 364904448,
+      "ARM compiler and code cache": 11354112,
+      "Emulated OS services": 26980352,
+      "Process arenas": 209780736,
+      "Graphics and audio drivers": 0
+    }
+  },
+  "peak_tracked_application_allocation_bytes": 1949545792,
+  "maximum_observed_browser_pssKiB": 3431262,
+  "large_allocation_stack_coverage_percent": 94.91530234094213,
+  "largest_allocation_groups": [
+    {
+      "id": 64,
+      "live_bytes": 603979812,
+      "peak_bytes": 603979812,
+      "allocated_bytes": 603979812,
+      "live_count": 9,
+      "allocations": 9,
+      "subsystem": "Process arenas",
+      "frames": [
+        {
+          "function": "(anonymous namespace)::record(void*, unsigned long)",
+          "wasm_offset": 834554,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            57,
+            37
+          ]
+        },
+        {
+          "function": "aligned_alloc",
+          "wasm_offset": 836801,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            150,
+            153
+          ]
+        },
+        {
+          "function": "eka2l1::mem::multiple_mem_model_chunk::do_create(eka2l1::mem::mem_model_chunk_creation_info const&)",
+          "wasm_offset": 2276515,
+          "source": [
+            "../../../../src/emu/mem/src/model/multiple/process.cpp",
+            53,
+            29
+          ]
+        },
+        {
+          "function": "eka2l1::mem::multiple_mem_model_process::create_chunk(eka2l1::mem::mem_model_chunk*&, eka2l1::mem::mem_model_chunk_creation_info const&)",
+          "wasm_offset": 2272625,
+          "source": [
+            "../../../../src/emu/mem/src/model/multiple/process.cpp",
+            132,
+            36
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::chunk::chunk(eka2l1::kernel_system*, eka2l1::memory_system*, eka2l1::kernel::process*, std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>>, unsigned int, unsigned int, unsigned long, prot, eka2l1::kernel::chunk_type, eka2l1::kernel::chunk_access, eka2l1::kernel::chunk_attrib, unsigned char, bool, unsigned int, void*)",
+          "wasm_offset": 1585455,
+          "source": [
+            "../../../../src/emu/kernel/src/chunk.cpp",
+            122,
+            28
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::thread::thread(eka2l1::kernel_system*, eka2l1::memory_system*, eka2l1::ntimer*, eka2l1::kernel::process*, eka2l1::kernel::access_type, std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>> const&, unsigned int, unsigned long, unsigned long, unsigned long, bool, eka2l1::ptr<void>, eka2l1::ptr<void>, eka2l1::kernel::thread_priority)",
+          "wasm_offset": 1681191,
+          "source": [
+            "../../../../../../.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__memory/unique_ptr.h",
+            767,
+            30
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::thread* eka2l1::kernel_system::create<eka2l1::kernel::thread, eka2l1::memory_system*, eka2l1::ntimer*, eka2l1::kernel::process*, eka2l1::kernel::access_type, char const*, unsigned int, unsigned int, unsigned int, unsigned int, bool, int, int, eka2l1::kernel::thread_priority>(eka2l1::memory_system*, eka2l1::ntimer*, eka2l1::kernel::process*, eka2l1::kernel::access_type, char const*, unsigned int, unsigned int, unsigned int, unsigned int, bool, int, int, eka2l1::kernel::thread_priority)",
+          "wasm_offset": 1657920,
+          "source": [
+            "../../../../../../.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__memory/unique_ptr.h",
+            767,
+            30
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::process::construct_with_codeseg(eka2l1::kernel::codeseg*, unsigned int, unsigned int, unsigned int, eka2l1::kernel::process_priority)",
+          "wasm_offset": 1658967,
+          "source": [
+            "../../../../src/emu/kernel/src/process.cpp",
+            63,
+            21
+          ]
+        },
+        {
+          "function": "eka2l1::kernel_system::spawn_new_process(std::__2::basic_string<char16_t, std::__2::char_traits<char16_t>, std::__2::allocator<char16_t>> const&, std::__2::basic_string<char16_t, std::__2::char_traits<char16_t>, std::__2::allocator<char16_t>> const&, unsigned long long, unsigned int)",
+          "wasm_offset": 2030927,
+          "source": [
+            "../../../../src/emu/kernel/src/kernel.cpp",
+            986,
+            13
+          ]
+        }
+      ],
+      "whole_page_resident_bytes": 139657216
+    },
+    {
+      "id": 8,
+      "live_bytes": 268648876,
+      "peak_bytes": 305415304,
+      "allocated_bytes": 513180920,
+      "live_count": 345,
+      "allocations": 988,
+      "subsystem": "WASMFS file storage",
+      "frames": [
+        {
+          "function": "(anonymous namespace)::record(void*, unsigned long)",
+          "wasm_offset": 834554,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            57,
+            37
+          ]
+        },
+        {
+          "function": "malloc",
+          "wasm_offset": 834494,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            131,
+            115
+          ]
+        },
+        {
+          "function": "operator_new_impl(unsigned long)",
+          "wasm_offset": 6932096,
+          "source": [
+            "/emsdk/emscripten/system/lib/libcxx/src/new.cpp",
+            34,
+            15
+          ]
+        },
+        {
+          "function": "operator new(unsigned long)",
+          "wasm_offset": 6932059,
+          "source": [
+            "/emsdk/emscripten/system/lib/libcxx/src/new.cpp",
+            47,
+            13
+          ]
+        },
+        {
+          "function": "std::__2::vector<unsigned char, std::__2::allocator<unsigned char>>::__append(unsigned long)",
+          "wasm_offset": 6993797,
+          "source": [
+            "/emsdk/emscripten/cache/sysroot/include/c++/v1/__new/allocate.h",
+            37,
+            10
+          ]
+        },
+        {
+          "function": "wasmfs::MemoryDataFile::write(unsigned char const*, unsigned long, long long)",
+          "wasm_offset": 6993616,
+          "source": [
+            "/emsdk/emscripten/cache/sysroot/include/c++/v1/__vector/vector.h",
+            1355,
+            11
+          ]
+        },
+        {
+          "function": "wasmfs::SpecialFiles::(anonymous namespace)::StdoutFile::write(unsigned char const*, unsigned long, long long)",
+          "wasm_offset": 6947865,
+          "source": [
+            "/emsdk/emscripten/system/lib/wasmfs/special_files.cpp",
+            123,
+            5
+          ]
+        },
+        {
+          "function": "wasmfs::DataFile::Handle::write(unsigned char const*, unsigned long, long long)",
+          "wasm_offset": 6971010,
+          "source": [
+            "/emsdk/emscripten/system/lib/wasmfs/file.h",
+            363,
+            23
+          ]
+        },
+        {
+          "function": "writeAtOffset(OffsetHandling, unsigned int, __wasi_ciovec_t const*, unsigned long, unsigned long*, unsigned long long)",
+          "wasm_offset": 6970431,
+          "source": [
+            "/emsdk/emscripten/system/lib/wasmfs/syscalls.cpp",
+            149,
+            30
+          ]
+        }
+      ],
+      "whole_page_resident_bytes": 203272192
+    },
+    {
+      "id": 138,
+      "live_bytes": 201326604,
+      "peak_bytes": 201326604,
+      "allocated_bytes": 201326604,
+      "live_count": 3,
+      "allocations": 3,
+      "subsystem": "Process arenas",
+      "frames": [
+        {
+          "function": "(anonymous namespace)::record(void*, unsigned long)",
+          "wasm_offset": 834554,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            57,
+            37
+          ]
+        },
+        {
+          "function": "aligned_alloc",
+          "wasm_offset": 836801,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            150,
+            153
+          ]
+        },
+        {
+          "function": "eka2l1::mem::multiple_mem_model_chunk::do_create(eka2l1::mem::mem_model_chunk_creation_info const&)",
+          "wasm_offset": 2276515,
+          "source": [
+            "../../../../src/emu/mem/src/model/multiple/process.cpp",
+            53,
+            29
+          ]
+        },
+        {
+          "function": "eka2l1::mem::multiple_mem_model_process::create_chunk(eka2l1::mem::mem_model_chunk*&, eka2l1::mem::mem_model_chunk_creation_info const&)",
+          "wasm_offset": 2272625,
+          "source": [
+            "../../../../src/emu/mem/src/model/multiple/process.cpp",
+            132,
+            36
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::chunk::chunk(eka2l1::kernel_system*, eka2l1::memory_system*, eka2l1::kernel::process*, std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>>, unsigned int, unsigned int, unsigned long, prot, eka2l1::kernel::chunk_type, eka2l1::kernel::chunk_access, eka2l1::kernel::chunk_attrib, unsigned char, bool, unsigned int, void*)",
+          "wasm_offset": 1585455,
+          "source": [
+            "../../../../src/emu/kernel/src/chunk.cpp",
+            122,
+            28
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::chunk* eka2l1::kernel_system::create<eka2l1::kernel::chunk, eka2l1::memory_system*, eka2l1::kernel::process*, char const*, int, unsigned int, unsigned int, prot, eka2l1::kernel::chunk_type, eka2l1::kernel::chunk_access, eka2l1::kernel::chunk_attrib>(eka2l1::memory_system*, eka2l1::kernel::process*, char const*, int, unsigned int, unsigned int, prot, eka2l1::kernel::chunk_type, eka2l1::kernel::chunk_access, eka2l1::kernel::chunk_attrib)",
+          "wasm_offset": 1596688,
+          "source": [
+            "../../../../../../.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__memory/unique_ptr.h",
+            767,
+            30
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::codeseg::attach(eka2l1::kernel::process*, bool)",
+          "wasm_offset": 1591818,
+          "source": [
+            "../../../../src/emu/kernel/src/codeseg.cpp",
+            286,
+            34
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::process::construct_with_codeseg(eka2l1::kernel::codeseg*, unsigned int, unsigned int, unsigned int, eka2l1::kernel::process_priority)",
+          "wasm_offset": 1658276,
+          "source": [
+            "../../../../src/emu/kernel/src/process.cpp",
+            89,
+            18
+          ]
+        },
+        {
+          "function": "eka2l1::kernel_system::spawn_new_process(std::__2::basic_string<char16_t, std::__2::char_traits<char16_t>, std::__2::allocator<char16_t>> const&, std::__2::basic_string<char16_t, std::__2::char_traits<char16_t>, std::__2::allocator<char16_t>> const&, unsigned long long, unsigned int)",
+          "wasm_offset": 2030927,
+          "source": [
+            "../../../../src/emu/kernel/src/kernel.cpp",
+            986,
+            13
+          ]
+        }
+      ],
+      "whole_page_resident_bytes": 61734912
+    },
+    {
+      "id": 210,
+      "live_bytes": 136315012,
+      "peak_bytes": 136315012,
+      "allocated_bytes": 136315012,
+      "live_count": 3,
+      "allocations": 3,
+      "subsystem": "Guest chunk backing",
+      "frames": [
+        {
+          "function": "(anonymous namespace)::record(void*, unsigned long)",
+          "wasm_offset": 834554,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            57,
+            37
+          ]
+        },
+        {
+          "function": "aligned_alloc",
+          "wasm_offset": 836801,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            150,
+            153
+          ]
+        },
+        {
+          "function": "__syscall_mmap2",
+          "wasm_offset": 6747381,
+          "source": [
+            "/emsdk/emscripten/system/lib/libc/emscripten_mmap.c",
+            120,
+            17
+          ]
+        },
+        {
+          "function": "__mmap",
+          "wasm_offset": 6748479,
+          "source": [
+            "/emsdk/emscripten/system/lib/libc/musl/src/mman/mmap.c",
+            29,
+            8
+          ]
+        },
+        {
+          "function": "eka2l1::mem::multiple_mem_model_chunk::do_create(eka2l1::mem::mem_model_chunk_creation_info const&)",
+          "wasm_offset": 2276842,
+          "source": [
+            "../../../../src/emu/common/src/virtualmem.cpp",
+            87,
+            16
+          ]
+        },
+        {
+          "function": "eka2l1::mem::multiple_mem_model_process::create_chunk(eka2l1::mem::mem_model_chunk*&, eka2l1::mem::mem_model_chunk_creation_info const&)",
+          "wasm_offset": 2272625,
+          "source": [
+            "../../../../src/emu/mem/src/model/multiple/process.cpp",
+            132,
+            36
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::chunk::chunk(eka2l1::kernel_system*, eka2l1::memory_system*, eka2l1::kernel::process*, std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>>, unsigned int, unsigned int, unsigned long, prot, eka2l1::kernel::chunk_type, eka2l1::kernel::chunk_access, eka2l1::kernel::chunk_attrib, unsigned char, bool, unsigned int, void*)",
+          "wasm_offset": 1585455,
+          "source": [
+            "../../../../src/emu/kernel/src/chunk.cpp",
+            122,
+            28
+          ]
+        },
+        {
+          "function": "eka2l1::epoc::chunk_new(eka2l1::kernel_system*, eka2l1::epoc::owner_type, eka2l1::ptr<eka2l1::epoc::desc<char>>, eka2l1::ptr<eka2l1::epoc::chunk_create>)",
+          "wasm_offset": 2085845,
+          "source": [
+            "../../../../../../.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__memory/unique_ptr.h",
+            767,
+            30
+          ]
+        },
+        {
+          "function": "auto eka2l1::hle::static_bridge_impl<&eka2l1::epoc::chunk_new(eka2l1::kernel_system*, eka2l1::epoc::owner_type, eka2l1::ptr<eka2l1::epoc::desc<char>>, eka2l1::ptr<eka2l1::epoc::chunk_create>), eka2l1::kernel_system, int, eka2l1::epoc::owner_type, eka2l1::ptr<eka2l1::epoc::desc<char>>, eka2l1::ptr<eka2l1::epoc::chunk_create>>(int (*)(eka2l1::kernel_system*, eka2l1::epoc::owner_type, eka2l1::ptr<eka2l1::epoc::desc<char>>, eka2l1::ptr<eka2l1::epoc::chunk_create>))::'lambda'(eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*)::__invoke(eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*)",
+          "wasm_offset": 2158140,
+          "source": [
+            "../../../../src/emu/bridge/include/bridge/bridge.h",
+            41,
+            32
+          ]
+        }
+      ],
+      "whole_page_resident_bytes": 136314880
+    },
+    {
+      "id": 10,
+      "live_bytes": 131105708,
+      "peak_bytes": 131105708,
+      "allocated_bytes": 131105708,
+      "live_count": 1,
+      "allocations": 1,
+      "subsystem": "ARM interpreter state",
+      "frames": [
+        {
+          "function": "(anonymous namespace)::record(void*, unsigned long)",
+          "wasm_offset": 834554,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            57,
+            37
+          ]
+        },
+        {
+          "function": "malloc",
+          "wasm_offset": 834494,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            131,
+            115
+          ]
+        },
+        {
+          "function": "operator_new_impl(unsigned long)",
+          "wasm_offset": 6932096,
+          "source": [
+            "/emsdk/emscripten/system/lib/libcxx/src/new.cpp",
+            34,
+            15
+          ]
+        },
+        {
+          "function": "operator new(unsigned long)",
+          "wasm_offset": 6932059,
+          "source": [
+            "/emsdk/emscripten/system/lib/libcxx/src/new.cpp",
+            47,
+            13
+          ]
+        },
+        {
+          "function": "(anonymous namespace)::ensure_system_started()",
+          "wasm_offset": 692783,
+          "source": [
+            "../../../../../../.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__memory/unique_ptr.h",
+            767,
+            26
+          ]
+        },
+        {
+          "function": "eka2l1_install_sis",
+          "wasm_offset": 737246,
+          "source": [
+            "../../../../src/emu/wasm/main.cpp",
+            542,
+            10
+          ]
+        }
+      ],
+      "whole_page_resident_bytes": 131100672
+    },
+    {
+      "id": 108,
+      "live_bytes": 100663340,
+      "peak_bytes": 100663340,
+      "allocated_bytes": 100663340,
+      "live_count": 1,
+      "allocations": 1,
+      "subsystem": "Guest chunk backing",
+      "frames": [
+        {
+          "function": "(anonymous namespace)::record(void*, unsigned long)",
+          "wasm_offset": 834554,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            57,
+            37
+          ]
+        },
+        {
+          "function": "aligned_alloc",
+          "wasm_offset": 836801,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            150,
+            153
+          ]
+        },
+        {
+          "function": "__syscall_mmap2",
+          "wasm_offset": 6747381,
+          "source": [
+            "/emsdk/emscripten/system/lib/libc/emscripten_mmap.c",
+            120,
+            17
+          ]
+        },
+        {
+          "function": "__mmap",
+          "wasm_offset": 6748479,
+          "source": [
+            "/emsdk/emscripten/system/lib/libc/musl/src/mman/mmap.c",
+            29,
+            8
+          ]
+        },
+        {
+          "function": "eka2l1::mem::multiple_mem_model_chunk::do_create(eka2l1::mem::mem_model_chunk_creation_info const&)",
+          "wasm_offset": 2276842,
+          "source": [
+            "../../../../src/emu/common/src/virtualmem.cpp",
+            87,
+            16
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::chunk::chunk(eka2l1::kernel_system*, eka2l1::memory_system*, eka2l1::kernel::process*, std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>>, unsigned int, unsigned int, unsigned long, prot, eka2l1::kernel::chunk_type, eka2l1::kernel::chunk_access, eka2l1::kernel::chunk_attrib, unsigned char, bool, unsigned int, void*)",
+          "wasm_offset": 1585740,
+          "source": [
+            "../../../../src/emu/kernel/src/chunk.cpp",
+            132,
+            38
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::chunk* eka2l1::kernel_system::create<eka2l1::kernel::chunk, eka2l1::memory_system*, std::nullptr_t, char const*, int, unsigned int, unsigned int, prot, eka2l1::kernel::chunk_type, eka2l1::kernel::chunk_access, eka2l1::kernel::chunk_attrib>(eka2l1::memory_system*, std::nullptr_t, char const*, int, unsigned int, unsigned int, prot, eka2l1::kernel::chunk_type, eka2l1::kernel::chunk_access, eka2l1::kernel::chunk_attrib)",
+          "wasm_offset": 1614604,
+          "source": [
+            "../../../../../../.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__memory/unique_ptr.h",
+            767,
+            30
+          ]
+        },
+        {
+          "function": "eka2l1::fbs_server::initialize_server()",
+          "wasm_offset": 2852917,
+          "source": [
+            "../../../../src/emu/kernel/include/kernel/kernel.h",
+            822,
+            22
+          ]
+        },
+        {
+          "function": "eka2l1::fbs_server::connect(eka2l1::service::ipc_context&)",
+          "wasm_offset": 2871214,
+          "source": [
+            "../../../../src/emu/services/src/fbs/fbs.cpp",
+            476,
+            13
+          ]
+        }
+      ],
+      "whole_page_resident_bytes": 100663296
+    },
+    {
+      "id": 0,
+      "live_bytes": 97081880,
+      "peak_bytes": 115057960,
+      "allocated_bytes": 11593495456,
+      "live_count": 437030,
+      "allocations": 30932170,
+      "subsystem": "Allocations smaller than 64 KiB (unwound coverage limit)",
+      "frames": [],
+      "whole_page_resident_bytes": null
+    },
+    {
+      "id": 17,
+      "live_bytes": 69947396,
+      "peak_bytes": 69947396,
+      "allocated_bytes": 69947396,
+      "live_count": 1,
+      "allocations": 1,
+      "subsystem": "ROM and mapped files",
+      "frames": [
+        {
+          "function": "(anonymous namespace)::record(void*, unsigned long)",
+          "wasm_offset": 834554,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            57,
+            37
+          ]
+        },
+        {
+          "function": "aligned_alloc",
+          "wasm_offset": 836801,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            150,
+            153
+          ]
+        },
+        {
+          "function": "__syscall_mmap2",
+          "wasm_offset": 6747945,
+          "source": [
+            "/emsdk/emscripten/system/lib/wasmfs/syscalls.cpp",
+            1642,
+            28
+          ]
+        },
+        {
+          "function": "__mmap",
+          "wasm_offset": 6748479,
+          "source": [
+            "/emsdk/emscripten/system/lib/libc/musl/src/mman/mmap.c",
+            29,
+            8
+          ]
+        },
+        {
+          "function": "eka2l1::common::map_file(std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>> const&, prot, unsigned long, bool)",
+          "wasm_offset": 1603172,
+          "source": [
+            "../../../../src/emu/common/src/virtualmem.cpp",
+            307,
+            24
+          ]
+        },
+        {
+          "function": "eka2l1::system::set_device(unsigned char)",
+          "wasm_offset": 1501086,
+          "source": [
+            "../../../../src/emu/kernel/src/kernel.cpp",
+            1376,
+            24
+          ]
+        },
+        {
+          "function": "(anonymous namespace)::ensure_system_started()",
+          "wasm_offset": 705565,
+          "source": [
+            "../../../../src/emu/wasm/main.cpp",
+            149,
+            31
+          ]
+        },
+        {
+          "function": "eka2l1_install_sis",
+          "wasm_offset": 737246,
+          "source": [
+            "../../../../src/emu/wasm/main.cpp",
+            542,
+            10
+          ]
+        }
+      ],
+      "whole_page_resident_bytes": 69947392
+    },
+    {
+      "id": 114,
+      "live_bytes": 67108868,
+      "peak_bytes": 134217736,
+      "allocated_bytes": 201326604,
+      "live_count": 1,
+      "allocations": 3,
+      "subsystem": "Process arenas",
+      "frames": [
+        {
+          "function": "(anonymous namespace)::record(void*, unsigned long)",
+          "wasm_offset": 834554,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            57,
+            37
+          ]
+        },
+        {
+          "function": "aligned_alloc",
+          "wasm_offset": 836801,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            150,
+            153
+          ]
+        },
+        {
+          "function": "eka2l1::mem::multiple_mem_model_chunk::do_create(eka2l1::mem::mem_model_chunk_creation_info const&)",
+          "wasm_offset": 2276515,
+          "source": [
+            "../../../../src/emu/mem/src/model/multiple/process.cpp",
+            53,
+            29
+          ]
+        },
+        {
+          "function": "eka2l1::mem::multiple_mem_model_process::create_chunk(eka2l1::mem::mem_model_chunk*&, eka2l1::mem::mem_model_chunk_creation_info const&)",
+          "wasm_offset": 2272625,
+          "source": [
+            "../../../../src/emu/mem/src/model/multiple/process.cpp",
+            132,
+            36
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::chunk::chunk(eka2l1::kernel_system*, eka2l1::memory_system*, eka2l1::kernel::process*, std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>>, unsigned int, unsigned int, unsigned long, prot, eka2l1::kernel::chunk_type, eka2l1::kernel::chunk_access, eka2l1::kernel::chunk_attrib, unsigned char, bool, unsigned int, void*)",
+          "wasm_offset": 1585455,
+          "source": [
+            "../../../../src/emu/kernel/src/chunk.cpp",
+            122,
+            28
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::codeseg::attach(eka2l1::kernel::process*, bool)",
+          "wasm_offset": 1592047,
+          "source": [
+            "../../../../../../.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__memory/unique_ptr.h",
+            767,
+            30
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::process::construct_with_codeseg(eka2l1::kernel::codeseg*, unsigned int, unsigned int, unsigned int, eka2l1::kernel::process_priority)",
+          "wasm_offset": 1658276,
+          "source": [
+            "../../../../src/emu/kernel/src/process.cpp",
+            89,
+            18
+          ]
+        },
+        {
+          "function": "eka2l1::kernel_system::spawn_new_process(std::__2::basic_string<char16_t, std::__2::char_traits<char16_t>, std::__2::allocator<char16_t>> const&, std::__2::basic_string<char16_t, std::__2::char_traits<char16_t>, std::__2::allocator<char16_t>> const&, unsigned long long, unsigned int)",
+          "wasm_offset": 2030927,
+          "source": [
+            "../../../../src/emu/kernel/src/kernel.cpp",
+            986,
+            13
+          ]
+        },
+        {
+          "function": "eka2l1::loader_server::load_process(eka2l1::service::ipc_context&)",
+          "wasm_offset": 3111430,
+          "source": [
+            "../../../../src/emu/services/src/loader/loader.cpp",
+            126,
+            32
+          ]
+        }
+      ],
+      "whole_page_resident_bytes": 8388608
+    },
+    {
+      "id": 62,
+      "live_bytes": 50333760,
+      "peak_bytes": 50333760,
+      "allocated_bytes": 50333760,
+      "live_count": 48,
+      "allocations": 48,
+      "subsystem": "Guest chunk backing",
+      "frames": [
+        {
+          "function": "(anonymous namespace)::record(void*, unsigned long)",
+          "wasm_offset": 834554,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            57,
+            37
+          ]
+        },
+        {
+          "function": "aligned_alloc",
+          "wasm_offset": 836801,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            150,
+            153
+          ]
+        },
+        {
+          "function": "__syscall_mmap2",
+          "wasm_offset": 6747381,
+          "source": [
+            "/emsdk/emscripten/system/lib/libc/emscripten_mmap.c",
+            120,
+            17
+          ]
+        },
+        {
+          "function": "__mmap",
+          "wasm_offset": 6748479,
+          "source": [
+            "/emsdk/emscripten/system/lib/libc/musl/src/mman/mmap.c",
+            29,
+            8
+          ]
+        },
+        {
+          "function": "eka2l1::mem::multiple_mem_model_chunk::do_create(eka2l1::mem::mem_model_chunk_creation_info const&)",
+          "wasm_offset": 2276842,
+          "source": [
+            "../../../../src/emu/common/src/virtualmem.cpp",
+            87,
+            16
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::chunk::chunk(eka2l1::kernel_system*, eka2l1::memory_system*, eka2l1::kernel::process*, std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>>, unsigned int, unsigned int, unsigned long, prot, eka2l1::kernel::chunk_type, eka2l1::kernel::chunk_access, eka2l1::kernel::chunk_attrib, unsigned char, bool, unsigned int, void*)",
+          "wasm_offset": 1585740,
+          "source": [
+            "../../../../src/emu/kernel/src/chunk.cpp",
+            132,
+            38
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::chunk* eka2l1::kernel_system::create<eka2l1::kernel::chunk, eka2l1::memory_system*, eka2l1::kernel::process*, char const*, int, unsigned int, unsigned int, prot, eka2l1::kernel::chunk_type, eka2l1::kernel::chunk_access, eka2l1::kernel::chunk_attrib>(eka2l1::memory_system*, eka2l1::kernel::process*, char const*, int, unsigned int, unsigned int, prot, eka2l1::kernel::chunk_type, eka2l1::kernel::chunk_access, eka2l1::kernel::chunk_attrib)",
+          "wasm_offset": 1596688,
+          "source": [
+            "../../../../../../.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__memory/unique_ptr.h",
+            767,
+            30
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::codeseg::attach(eka2l1::kernel::process*, bool)",
+          "wasm_offset": 1591568,
+          "source": [
+            "../../../../src/emu/kernel/src/codeseg.cpp",
+            260,
+            36
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::codeseg::attach(eka2l1::kernel::process*, bool)",
+          "wasm_offset": 1594583,
+          "source": [
+            "../../../../src/emu/kernel/src/codeseg.cpp",
+            340,
+            30
+          ]
+        }
+      ],
+      "whole_page_resident_bytes": 50331648
+    },
+    {
+      "id": 220,
+      "live_bytes": 35653080,
+      "peak_bytes": 35653080,
+      "allocated_bytes": 35653080,
+      "live_count": 34,
+      "allocations": 34,
+      "subsystem": "Guest chunk backing",
+      "frames": [
+        {
+          "function": "(anonymous namespace)::record(void*, unsigned long)",
+          "wasm_offset": 834554,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            57,
+            37
+          ]
+        },
+        {
+          "function": "aligned_alloc",
+          "wasm_offset": 836801,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            150,
+            153
+          ]
+        },
+        {
+          "function": "__syscall_mmap2",
+          "wasm_offset": 6747381,
+          "source": [
+            "/emsdk/emscripten/system/lib/libc/emscripten_mmap.c",
+            120,
+            17
+          ]
+        },
+        {
+          "function": "__mmap",
+          "wasm_offset": 6748479,
+          "source": [
+            "/emsdk/emscripten/system/lib/libc/musl/src/mman/mmap.c",
+            29,
+            8
+          ]
+        },
+        {
+          "function": "eka2l1::mem::multiple_mem_model_chunk::do_create(eka2l1::mem::mem_model_chunk_creation_info const&)",
+          "wasm_offset": 2276842,
+          "source": [
+            "../../../../src/emu/common/src/virtualmem.cpp",
+            87,
+            16
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::chunk::chunk(eka2l1::kernel_system*, eka2l1::memory_system*, eka2l1::kernel::process*, std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>>, unsigned int, unsigned int, unsigned long, prot, eka2l1::kernel::chunk_type, eka2l1::kernel::chunk_access, eka2l1::kernel::chunk_attrib, unsigned char, bool, unsigned int, void*)",
+          "wasm_offset": 1585740,
+          "source": [
+            "../../../../src/emu/kernel/src/chunk.cpp",
+            132,
+            38
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::chunk* eka2l1::kernel_system::create<eka2l1::kernel::chunk, eka2l1::memory_system*, eka2l1::kernel::process*, char const*, int, unsigned int, unsigned int, prot, eka2l1::kernel::chunk_type, eka2l1::kernel::chunk_access, eka2l1::kernel::chunk_attrib>(eka2l1::memory_system*, eka2l1::kernel::process*, char const*, int, unsigned int, unsigned int, prot, eka2l1::kernel::chunk_type, eka2l1::kernel::chunk_access, eka2l1::kernel::chunk_attrib)",
+          "wasm_offset": 1596688,
+          "source": [
+            "../../../../../../.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__memory/unique_ptr.h",
+            767,
+            30
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::codeseg::attach(eka2l1::kernel::process*, bool)",
+          "wasm_offset": 1591568,
+          "source": [
+            "../../../../src/emu/kernel/src/codeseg.cpp",
+            260,
+            36
+          ]
+        },
+        {
+          "function": "eka2l1::epoc::library_attach(eka2l1::kernel_system*, unsigned int, eka2l1::ptr<int>, eka2l1::ptr<unsigned int>)",
+          "wasm_offset": 2095243,
+          "source": [
+            "../../../../src/emu/kernel/src/library.cpp",
+            64,
+            26
+          ]
+        }
+      ],
+      "whole_page_resident_bytes": 35651584
+    },
+    {
+      "id": 18,
+      "live_bytes": 33574080,
+      "peak_bytes": 33574080,
+      "allocated_bytes": 33574080,
+      "live_count": 16,
+      "allocations": 16,
+      "subsystem": "Worker stacks and thread storage",
+      "frames": [
+        {
+          "function": "(anonymous namespace)::record(void*, unsigned long)",
+          "wasm_offset": 834554,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            57,
+            37
+          ]
+        },
+        {
+          "function": "malloc",
+          "wasm_offset": 834494,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            131,
+            115
+          ]
+        },
+        {
+          "function": "__pthread_create",
+          "wasm_offset": 6759879,
+          "source": [
+            "/emsdk/emscripten/system/lib/pthread/pthread_create.c",
+            165,
+            26
+          ]
+        },
+        {
+          "function": "eka2l1::system::set_device(unsigned char)",
+          "wasm_offset": 1523532,
+          "source": [
+            "../../../../../../.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__thread/support/pthread.h",
+            182,
+            10
+          ]
+        },
+        {
+          "function": "(anonymous namespace)::ensure_system_started()",
+          "wasm_offset": 705565,
+          "source": [
+            "../../../../src/emu/wasm/main.cpp",
+            149,
+            31
+          ]
+        },
+        {
+          "function": "eka2l1_install_sis",
+          "wasm_offset": 737246,
+          "source": [
+            "../../../../src/emu/wasm/main.cpp",
+            542,
+            10
+          ]
+        }
+      ],
+      "whole_page_resident_bytes": 33505280
+    },
+    {
+      "id": 243,
+      "live_bytes": 16777232,
+      "peak_bytes": 16777232,
+      "allocated_bytes": 16777232,
+      "live_count": 4,
+      "allocations": 4,
+      "subsystem": "Emulated OS services",
+      "frames": [
+        {
+          "function": "(anonymous namespace)::record(void*, unsigned long)",
+          "wasm_offset": 834554,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            57,
+            37
+          ]
+        },
+        {
+          "function": "malloc",
+          "wasm_offset": 834494,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            131,
+            115
+          ]
+        },
+        {
+          "function": "operator_new_impl(unsigned long)",
+          "wasm_offset": 6932096,
+          "source": [
+            "/emsdk/emscripten/system/lib/libcxx/src/new.cpp",
+            34,
+            15
+          ]
+        },
+        {
+          "function": "operator new(unsigned long)",
+          "wasm_offset": 6932059,
+          "source": [
+            "/emsdk/emscripten/system/lib/libcxx/src/new.cpp",
+            47,
+            13
+          ]
+        },
+        {
+          "function": "eka2l1::epoc::gdi_command_builder::build_segment(eka2l1::epoc::gdi_store_command_segment const&)",
+          "wasm_offset": 3489070,
+          "source": [
+            "/emsdk/emscripten/cache/sysroot/include/c++/v1/__new/allocate.h",
+            37,
+            10
+          ]
+        },
+        {
+          "function": "eka2l1::epoc::redraw_msg_canvas::draw(eka2l1::drivers::graphics_command_builder&)",
+          "wasm_offset": 3566065,
+          "source": [
+            "../../../../src/emu/services/src/window/classes/winuser.cpp",
+            1562,
+            37
+          ]
+        },
+        {
+          "function": "eka2l1::epoc::window_drawer_walker::do_it(eka2l1::epoc::window*)",
+          "wasm_offset": 3594845,
+          "source": [
+            "../../../../src/emu/services/src/window/screen.cpp",
+            61,
+            21
+          ]
+        },
+        {
+          "function": "eka2l1::epoc::walk_tree_back_to_front(eka2l1::epoc::window*, eka2l1::epoc::window_tree_walker*)",
+          "wasm_offset": 3466664,
+          "source": [
+            "../../../../src/emu/services/src/window/classes/winbase.cpp",
+            221,
+            21
+          ]
+        },
+        {
+          "function": "eka2l1::epoc::walk_tree_back_to_front(eka2l1::epoc::window*, eka2l1::epoc::window_tree_walker*)",
+          "wasm_offset": 3466649,
+          "source": [
+            "../../../../src/emu/services/src/window/classes/winbase.cpp",
+            218,
+            9
+          ]
+        }
+      ],
+      "whole_page_resident_bytes": 16760832
+    },
+    {
+      "id": 139,
+      "live_bytes": 11534820,
+      "peak_bytes": 11534820,
+      "allocated_bytes": 11534820,
+      "live_count": 11,
+      "allocations": 11,
+      "subsystem": "Guest chunk backing",
+      "frames": [
+        {
+          "function": "(anonymous namespace)::record(void*, unsigned long)",
+          "wasm_offset": 834554,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            57,
+            37
+          ]
+        },
+        {
+          "function": "aligned_alloc",
+          "wasm_offset": 836801,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            150,
+            153
+          ]
+        },
+        {
+          "function": "__syscall_mmap2",
+          "wasm_offset": 6747381,
+          "source": [
+            "/emsdk/emscripten/system/lib/libc/emscripten_mmap.c",
+            120,
+            17
+          ]
+        },
+        {
+          "function": "__mmap",
+          "wasm_offset": 6748479,
+          "source": [
+            "/emsdk/emscripten/system/lib/libc/musl/src/mman/mmap.c",
+            29,
+            8
+          ]
+        },
+        {
+          "function": "eka2l1::mem::multiple_mem_model_chunk::do_create(eka2l1::mem::mem_model_chunk_creation_info const&)",
+          "wasm_offset": 2276842,
+          "source": [
+            "../../../../src/emu/common/src/virtualmem.cpp",
+            87,
+            16
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::chunk::chunk(eka2l1::kernel_system*, eka2l1::memory_system*, eka2l1::kernel::process*, std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>>, unsigned int, unsigned int, unsigned long, prot, eka2l1::kernel::chunk_type, eka2l1::kernel::chunk_access, eka2l1::kernel::chunk_attrib, unsigned char, bool, unsigned int, void*)",
+          "wasm_offset": 1585740,
+          "source": [
+            "../../../../src/emu/kernel/src/chunk.cpp",
+            132,
+            38
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::chunk* eka2l1::kernel_system::create<eka2l1::kernel::chunk, eka2l1::memory_system*, eka2l1::kernel::process*, char const*, int, unsigned int, unsigned int, prot, eka2l1::kernel::chunk_type, eka2l1::kernel::chunk_access, eka2l1::kernel::chunk_attrib>(eka2l1::memory_system*, eka2l1::kernel::process*, char const*, int, unsigned int, unsigned int, prot, eka2l1::kernel::chunk_type, eka2l1::kernel::chunk_access, eka2l1::kernel::chunk_attrib)",
+          "wasm_offset": 1596688,
+          "source": [
+            "../../../../../../.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__memory/unique_ptr.h",
+            767,
+            30
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::codeseg::attach(eka2l1::kernel::process*, bool)",
+          "wasm_offset": 1591568,
+          "source": [
+            "../../../../src/emu/kernel/src/codeseg.cpp",
+            260,
+            36
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::codeseg::attach(eka2l1::kernel::process*, bool)",
+          "wasm_offset": 1590896,
+          "source": [
+            "../../../../src/emu/kernel/src/codeseg.cpp",
+            223,
+            35
+          ]
+        }
+      ],
+      "whole_page_resident_bytes": 11534336
+    },
+    {
+      "id": 23,
+      "live_bytes": 8388960,
+      "peak_bytes": 8388960,
+      "allocated_bytes": 8388960,
+      "live_count": 8,
+      "allocations": 8,
+      "subsystem": "Guest chunk backing",
+      "frames": [
+        {
+          "function": "(anonymous namespace)::record(void*, unsigned long)",
+          "wasm_offset": 834554,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            57,
+            37
+          ]
+        },
+        {
+          "function": "aligned_alloc",
+          "wasm_offset": 836801,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            150,
+            153
+          ]
+        },
+        {
+          "function": "__syscall_mmap2",
+          "wasm_offset": 6747381,
+          "source": [
+            "/emsdk/emscripten/system/lib/libc/emscripten_mmap.c",
+            120,
+            17
+          ]
+        },
+        {
+          "function": "__mmap",
+          "wasm_offset": 6748479,
+          "source": [
+            "/emsdk/emscripten/system/lib/libc/musl/src/mman/mmap.c",
+            29,
+            8
+          ]
+        },
+        {
+          "function": "eka2l1::mem::multiple_mem_model_chunk::do_create(eka2l1::mem::mem_model_chunk_creation_info const&)",
+          "wasm_offset": 2276842,
+          "source": [
+            "../../../../src/emu/common/src/virtualmem.cpp",
+            87,
+            16
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::chunk::chunk(eka2l1::kernel_system*, eka2l1::memory_system*, eka2l1::kernel::process*, std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>>, unsigned int, unsigned int, unsigned long, prot, eka2l1::kernel::chunk_type, eka2l1::kernel::chunk_access, eka2l1::kernel::chunk_attrib, unsigned char, bool, unsigned int, void*)",
+          "wasm_offset": 1585740,
+          "source": [
+            "../../../../src/emu/kernel/src/chunk.cpp",
+            132,
+            38
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::chunk* eka2l1::kernel_system::create<eka2l1::kernel::chunk, eka2l1::memory_system*, std::nullptr_t, char const*, int, unsigned int, unsigned int, prot, eka2l1::kernel::chunk_type, eka2l1::kernel::chunk_access, eka2l1::kernel::chunk_attrib>(eka2l1::memory_system*, std::nullptr_t, char const*, int, unsigned int, unsigned int, prot, eka2l1::kernel::chunk_type, eka2l1::kernel::chunk_access, eka2l1::kernel::chunk_attrib)",
+          "wasm_offset": 1614604,
+          "source": [
+            "../../../../../../.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__memory/unique_ptr.h",
+            767,
+            30
+          ]
+        },
+        {
+          "function": "(anonymous namespace)::ensure_system_started()",
+          "wasm_offset": 715326,
+          "source": [
+            "../../../../src/emu/kernel/src/libmanager.cpp",
+            611,
+            52
+          ]
+        },
+        {
+          "function": "eka2l1_install_sis",
+          "wasm_offset": 737246,
+          "source": [
+            "../../../../src/emu/wasm/main.cpp",
+            542,
+            10
+          ]
+        }
+      ],
+      "whole_page_resident_bytes": 8388608
+    },
+    {
+      "id": 103,
+      "live_bytes": 8388612,
+      "peak_bytes": 8388612,
+      "allocated_bytes": 8388612,
+      "live_count": 1,
+      "allocations": 1,
+      "subsystem": "ARM compiler and code cache",
+      "frames": [
+        {
+          "function": "(anonymous namespace)::record(void*, unsigned long)",
+          "wasm_offset": 834554,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            57,
+            37
+          ]
+        },
+        {
+          "function": "malloc",
+          "wasm_offset": 834494,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            131,
+            115
+          ]
+        },
+        {
+          "function": "operator_new_impl(unsigned long)",
+          "wasm_offset": 6932096,
+          "source": [
+            "/emsdk/emscripten/system/lib/libcxx/src/new.cpp",
+            34,
+            15
+          ]
+        },
+        {
+          "function": "operator new(unsigned long)",
+          "wasm_offset": 6932059,
+          "source": [
+            "/emsdk/emscripten/system/lib/libcxx/src/new.cpp",
+            47,
+            13
+          ]
+        },
+        {
+          "function": "std::__2::vector<eka2l1::arm::aot::memory_experiment::page, std::__2::allocator<eka2l1::arm::aot::memory_experiment::page>>::__append(unsigned long)",
+          "wasm_offset": 2294843,
+          "source": [
+            "../../../../../../.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__new/allocate.h",
+            37,
+            10
+          ]
+        },
+        {
+          "function": "std::__2::__function::__func<eka2l1::mem::mmu_base::mmu_base(eka2l1::mem::control_base*, eka2l1::arm::core*, eka2l1::config::state*)::$_0, std::__2::allocator<eka2l1::mem::mmu_base::mmu_base(eka2l1::mem::control_base*, eka2l1::arm::core*, eka2l1::config::state*)::$_0>, unsigned long (bool)>::operator()(bool&&)",
+          "wasm_offset": 2299318,
+          "source": [
+            "../../../../../../.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__vector/vector.h",
+            1355,
+            11
+          ]
+        },
+        {
+          "function": "eka2l1::arm::dyncom_core::run(unsigned int)",
+          "wasm_offset": 1484191,
+          "source": [
+            "../../../../../../.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__functional/function.h",
+            436,
+            12
+          ]
+        },
+        {
+          "function": "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, eka2l1_run::$_1>>(void*)",
+          "wasm_offset": 798841,
+          "source": [
+            "../../../../src/emu/system/src/epoc.cpp",
+            844,
+            22
+          ]
+        }
+      ],
+      "whole_page_resident_bytes": 8384512
+    },
+    {
+      "id": 137,
+      "live_bytes": 7340296,
+      "peak_bytes": 7340296,
+      "allocated_bytes": 9437536,
+      "live_count": 6,
+      "allocations": 8,
+      "subsystem": "Guest chunk backing",
+      "frames": [
+        {
+          "function": "(anonymous namespace)::record(void*, unsigned long)",
+          "wasm_offset": 834554,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            57,
+            37
+          ]
+        },
+        {
+          "function": "aligned_alloc",
+          "wasm_offset": 836801,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            150,
+            153
+          ]
+        },
+        {
+          "function": "__syscall_mmap2",
+          "wasm_offset": 6747381,
+          "source": [
+            "/emsdk/emscripten/system/lib/libc/emscripten_mmap.c",
+            120,
+            17
+          ]
+        },
+        {
+          "function": "__mmap",
+          "wasm_offset": 6748479,
+          "source": [
+            "/emsdk/emscripten/system/lib/libc/musl/src/mman/mmap.c",
+            29,
+            8
+          ]
+        },
+        {
+          "function": "eka2l1::mem::multiple_mem_model_chunk::do_create(eka2l1::mem::mem_model_chunk_creation_info const&)",
+          "wasm_offset": 2276842,
+          "source": [
+            "../../../../src/emu/common/src/virtualmem.cpp",
+            87,
+            16
+          ]
+        },
+        {
+          "function": "eka2l1::mem::multiple_mem_model_process::create_chunk(eka2l1::mem::mem_model_chunk*&, eka2l1::mem::mem_model_chunk_creation_info const&)",
+          "wasm_offset": 2272625,
+          "source": [
+            "../../../../src/emu/mem/src/model/multiple/process.cpp",
+            132,
+            36
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::chunk::chunk(eka2l1::kernel_system*, eka2l1::memory_system*, eka2l1::kernel::process*, std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>>, unsigned int, unsigned int, unsigned long, prot, eka2l1::kernel::chunk_type, eka2l1::kernel::chunk_access, eka2l1::kernel::chunk_attrib, unsigned char, bool, unsigned int, void*)",
+          "wasm_offset": 1585455,
+          "source": [
+            "../../../../src/emu/kernel/src/chunk.cpp",
+            122,
+            28
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::chunk* eka2l1::kernel_system::create<eka2l1::kernel::chunk, eka2l1::memory_system*, eka2l1::kernel::process*, char const*, int, unsigned int, unsigned int, prot, eka2l1::kernel::chunk_type, eka2l1::kernel::chunk_access, eka2l1::kernel::chunk_attrib>(eka2l1::memory_system*, eka2l1::kernel::process*, char const*, int, unsigned int, unsigned int, prot, eka2l1::kernel::chunk_type, eka2l1::kernel::chunk_access, eka2l1::kernel::chunk_attrib)",
+          "wasm_offset": 1596688,
+          "source": [
+            "../../../../../../.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__memory/unique_ptr.h",
+            767,
+            30
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::codeseg::attach(eka2l1::kernel::process*, bool)",
+          "wasm_offset": 1591568,
+          "source": [
+            "../../../../src/emu/kernel/src/codeseg.cpp",
+            260,
+            36
+          ]
+        }
+      ],
+      "whole_page_resident_bytes": 7340032
+    },
+    {
+      "id": 7,
+      "live_bytes": 4980808,
+      "peak_bytes": 6095440,
+      "allocated_bytes": 8980152,
+      "live_count": 18,
+      "allocations": 46,
+      "subsystem": "WASMFS file storage",
+      "frames": [
+        {
+          "function": "(anonymous namespace)::record(void*, unsigned long)",
+          "wasm_offset": 834554,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            57,
+            37
+          ]
+        },
+        {
+          "function": "malloc",
+          "wasm_offset": 834494,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            131,
+            115
+          ]
+        },
+        {
+          "function": "operator_new_impl(unsigned long)",
+          "wasm_offset": 6932096,
+          "source": [
+            "/emsdk/emscripten/system/lib/libcxx/src/new.cpp",
+            34,
+            15
+          ]
+        },
+        {
+          "function": "operator new(unsigned long)",
+          "wasm_offset": 6932059,
+          "source": [
+            "/emsdk/emscripten/system/lib/libcxx/src/new.cpp",
+            47,
+            13
+          ]
+        },
+        {
+          "function": "std::__2::vector<unsigned char, std::__2::allocator<unsigned char>>::__append(unsigned long)",
+          "wasm_offset": 6993797,
+          "source": [
+            "/emsdk/emscripten/cache/sysroot/include/c++/v1/__new/allocate.h",
+            37,
+            10
+          ]
+        },
+        {
+          "function": "wasmfs::MemoryDataFile::write(unsigned char const*, unsigned long, long long)",
+          "wasm_offset": 6993616,
+          "source": [
+            "/emsdk/emscripten/cache/sysroot/include/c++/v1/__vector/vector.h",
+            1355,
+            11
+          ]
+        },
+        {
+          "function": "wasmfs::DataFile::Handle::write(unsigned char const*, unsigned long, long long)",
+          "wasm_offset": 6971010,
+          "source": [
+            "/emsdk/emscripten/system/lib/wasmfs/file.h",
+            363,
+            23
+          ]
+        },
+        {
+          "function": "writeAtOffset(OffsetHandling, unsigned int, __wasi_ciovec_t const*, unsigned long, unsigned long*, unsigned long long)",
+          "wasm_offset": 6970431,
+          "source": [
+            "/emsdk/emscripten/system/lib/wasmfs/syscalls.cpp",
+            149,
+            30
+          ]
+        },
+        {
+          "function": "__wrap___wasi_fd_write",
+          "wasm_offset": 825469,
+          "source": null
+        }
+      ],
+      "whole_page_resident_bytes": 4907008
+    },
+    {
+      "id": 112,
+      "live_bytes": 4727568,
+      "peak_bytes": 5121532,
+      "allocated_bytes": 5909460,
+      "live_count": 12,
+      "allocations": 15,
+      "subsystem": "ROM and executable loading",
+      "frames": [
+        {
+          "function": "(anonymous namespace)::record(void*, unsigned long)",
+          "wasm_offset": 834554,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            57,
+            37
+          ]
+        },
+        {
+          "function": "malloc",
+          "wasm_offset": 834494,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            131,
+            115
+          ]
+        },
+        {
+          "function": "operator_new_impl(unsigned long)",
+          "wasm_offset": 6932096,
+          "source": [
+            "/emsdk/emscripten/system/lib/libcxx/src/new.cpp",
+            34,
+            15
+          ]
+        },
+        {
+          "function": "operator new(unsigned long)",
+          "wasm_offset": 6932059,
+          "source": [
+            "/emsdk/emscripten/system/lib/libcxx/src/new.cpp",
+            47,
+            13
+          ]
+        },
+        {
+          "function": "eka2l1::kernel_system::spawn_new_process(std::__2::basic_string<char16_t, std::__2::char_traits<char16_t>, std::__2::allocator<char16_t>> const&, std::__2::basic_string<char16_t, std::__2::char_traits<char16_t>, std::__2::allocator<char16_t>> const&, unsigned long long, unsigned int)",
+          "wasm_offset": 2029460,
+          "source": [
+            "../../../../../../.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__memory/unique_ptr.h",
+            767,
+            26
+          ]
+        },
+        {
+          "function": "eka2l1::loader_server::load_process(eka2l1::service::ipc_context&)",
+          "wasm_offset": 3111430,
+          "source": [
+            "../../../../src/emu/services/src/loader/loader.cpp",
+            126,
+            32
+          ]
+        },
+        {
+          "function": "std::__2::__function::__func<std::__2::__bind<void (eka2l1::service::server::*)(eka2l1::service::ipc_context&), eka2l1::service::server*, std::__2::placeholders::__ph<1> const&>, std::__2::allocator<std::__2::__bind<void (eka2l1::service::server::*)(eka2l1::service::ipc_context&), eka2l1::service::server*, std::__2::placeholders::__ph<1> const&>>, void (eka2l1::service::ipc_context&)>::operator()(eka2l1::service::ipc_context&)",
+          "wasm_offset": 2052603,
+          "source": [
+            "../../../../../../.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h",
+            147,
+            25
+          ]
+        },
+        {
+          "function": "eka2l1::service::server::process_accepted_msg()",
+          "wasm_offset": 2494625,
+          "source": [
+            "../../../../../../.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__functional/function.h",
+            436,
+            12
+          ]
+        },
+        {
+          "function": "eka2l1::epoc::session_send_general(eka2l1::kernel_system*, unsigned int, int, unsigned int const*, eka2l1::ptr<eka2l1::epoc::request_status>, bool, bool)",
+          "wasm_offset": 2084712,
+          "source": [
+            "../../../../src/emu/kernel/src/svc.cpp",
+            1372,
+            31
+          ]
+        }
+      ],
+      "whole_page_resident_bytes": 4669440
+    },
+    {
+      "id": 113,
+      "live_bytes": 4727184,
+      "peak_bytes": 5121116,
+      "allocated_bytes": 5908980,
+      "live_count": 12,
+      "allocations": 15,
+      "subsystem": "ROM and executable loading",
+      "frames": [
+        {
+          "function": "(anonymous namespace)::record(void*, unsigned long)",
+          "wasm_offset": 834554,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            57,
+            37
+          ]
+        },
+        {
+          "function": "malloc",
+          "wasm_offset": 834494,
+          "source": [
+            "../../../../src/emu/wasm/allocation_profile.cpp",
+            131,
+            115
+          ]
+        },
+        {
+          "function": "operator_new_impl(unsigned long)",
+          "wasm_offset": 6932096,
+          "source": [
+            "/emsdk/emscripten/system/lib/libcxx/src/new.cpp",
+            34,
+            15
+          ]
+        },
+        {
+          "function": "operator new(unsigned long)",
+          "wasm_offset": 6932059,
+          "source": [
+            "/emsdk/emscripten/system/lib/libcxx/src/new.cpp",
+            47,
+            13
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::thread* eka2l1::kernel_system::create<eka2l1::kernel::thread, eka2l1::memory_system*, eka2l1::ntimer*, eka2l1::kernel::process*, eka2l1::kernel::access_type, char const*, unsigned int, unsigned int, unsigned int, unsigned int, bool, int, int, eka2l1::kernel::thread_priority>(eka2l1::memory_system*, eka2l1::ntimer*, eka2l1::kernel::process*, eka2l1::kernel::access_type, char const*, unsigned int, unsigned int, unsigned int, unsigned int, bool, int, int, eka2l1::kernel::thread_priority)",
+          "wasm_offset": 1657763,
+          "source": [
+            "../../../../../../.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__memory/unique_ptr.h",
+            767,
+            26
+          ]
+        },
+        {
+          "function": "eka2l1::kernel::process::construct_with_codeseg(eka2l1::kernel::codeseg*, unsigned int, unsigned int, unsigned int, eka2l1::kernel::process_priority)",
+          "wasm_offset": 1658967,
+          "source": [
+            "../../../../src/emu/kernel/src/process.cpp",
+            63,
+            21
+          ]
+        },
+        {
+          "function": "eka2l1::kernel_system::spawn_new_process(std::__2::basic_string<char16_t, std::__2::char_traits<char16_t>, std::__2::allocator<char16_t>> const&, std::__2::basic_string<char16_t, std::__2::char_traits<char16_t>, std::__2::allocator<char16_t>> const&, unsigned long long, unsigned int)",
+          "wasm_offset": 2030927,
+          "source": [
+            "../../../../src/emu/kernel/src/kernel.cpp",
+            986,
+            13
+          ]
+        },
+        {
+          "function": "eka2l1::loader_server::load_process(eka2l1::service::ipc_context&)",
+          "wasm_offset": 3111430,
+          "source": [
+            "../../../../src/emu/services/src/loader/loader.cpp",
+            126,
+            32
+          ]
+        },
+        {
+          "function": "std::__2::__function::__func<std::__2::__bind<void (eka2l1::service::server::*)(eka2l1::service::ipc_context&), eka2l1::service::server*, std::__2::placeholders::__ph<1> const&>, std::__2::allocator<std::__2::__bind<void (eka2l1::service::server::*)(eka2l1::service::ipc_context&), eka2l1::service::server*, std::__2::placeholders::__ph<1> const&>>, void (eka2l1::service::ipc_context&)>::operator()(eka2l1::service::ipc_context&)",
+          "wasm_offset": 2052603,
+          "source": [
+            "../../../../../../.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h",
+            147,
+            25
+          ]
+        }
+      ],
+      "whole_page_resident_bytes": 4669440
+    }
+  ],
+  "stages": [
+    {
+      "name": "language",
+      "guest_us": 716200000,
+      "host_ms": 56617.78999996185,
+      "browserPssKiB": 3367412,
+      "wasmCapacity": 2147483648,
+      "memory": {
+        "mode": 2,
+        "rebuilds": 21255,
+        "mapped_pages": 19857,
+        "arena_bytes": 872415232,
+        "direct_pages": 730,
+        "direct_rebuilds": 21080,
+        "arena_growths": 35,
+        "arena_initialized_bytes": 201326592
+      },
+      "allocator": {
+        "threshold": 65536,
+        "profiler_static_bytes": 34684928,
+        "live_bytes": 1908078612,
+        "peak_bytes": 1949545792,
+        "live_count": 434699,
+        "allocations": 30854334,
+        "dropped": 0,
+        "unknown_frees": 0,
+        "truncated_stacks": 0,
+        "mallinfo_allocated_bytes": 1909817408
+      },
+      "interpreter": {
+        "state_size": 131105704,
+        "decoded_capacity": 131072000,
+        "decoded_used_offset": 131072896,
+        "pointer": 276735432,
+        "decoded_used": 4454672
+      },
+      "residency": {},
+      "allocator_reconciliation_bytes": 0
+    },
+    {
+      "name": "language-attempt-0",
+      "guest_us": 733200000,
+      "host_ms": 60291.60500001907,
+      "browserPssKiB": 3387727,
+      "wasmCapacity": 2147483648,
+      "memory": {
+        "mode": 2,
+        "rebuilds": 22178,
+        "mapped_pages": 20977,
+        "arena_bytes": 872415232,
+        "direct_pages": 1850,
+        "direct_rebuilds": 22003,
+        "arena_growths": 35,
+        "arena_initialized_bytes": 201326592
+      },
+      "allocator": {
+        "threshold": 65536,
+        "profiler_static_bytes": 34684928,
+        "live_bytes": 1908111696,
+        "peak_bytes": 1949545792,
+        "live_count": 435584,
+        "allocations": 30906325,
+        "dropped": 0,
+        "unknown_frees": 0,
+        "truncated_stacks": 0,
+        "mallinfo_allocated_bytes": 1909854032
+      },
+      "interpreter": {
+        "state_size": 131105704,
+        "decoded_capacity": 131072000,
+        "decoded_used_offset": 131072896,
+        "pointer": 276735432,
+        "decoded_used": 4560336
+      },
+      "residency": {},
+      "allocator_reconciliation_bytes": 0
+    },
+    {
+      "name": "after-language-short",
+      "guest_us": 733200000,
+      "host_ms": 60540.51999998093,
+      "browserPssKiB": 3391339,
+      "wasmCapacity": 2147483648,
+      "memory": {
+        "mode": 2,
+        "rebuilds": 22178,
+        "mapped_pages": 20977,
+        "arena_bytes": 872415232,
+        "direct_pages": 1850,
+        "direct_rebuilds": 22003,
+        "arena_growths": 35,
+        "arena_initialized_bytes": 201326592
+      },
+      "allocator": {
+        "threshold": 65536,
+        "profiler_static_bytes": 34684928,
+        "live_bytes": 1908111696,
+        "peak_bytes": 1949545792,
+        "live_count": 435584,
+        "allocations": 30906332,
+        "dropped": 0,
+        "unknown_frees": 0,
+        "truncated_stacks": 0,
+        "mallinfo_allocated_bytes": 1909854032
+      },
+      "interpreter": {
+        "state_size": 131105704,
+        "decoded_capacity": 131072000,
+        "decoded_used_offset": 131072896,
+        "pointer": 276735432,
+        "decoded_used": 4560336
+      },
+      "residency": {},
+      "allocator_reconciliation_bytes": 0
+    },
+    {
+      "name": "loaded-short",
+      "guest_us": 748200000,
+      "host_ms": 63518.450000047684,
+      "browserPssKiB": 3405139,
+      "wasmCapacity": 2147483648,
+      "memory": {
+        "mode": 2,
+        "rebuilds": 22291,
+        "mapped_pages": 21235,
+        "arena_bytes": 872415232,
+        "direct_pages": 2108,
+        "direct_rebuilds": 22116,
+        "arena_growths": 35,
+        "arena_initialized_bytes": 201326592
+      },
+      "allocator": {
+        "threshold": 65536,
+        "profiler_static_bytes": 34684928,
+        "live_bytes": 1908214608,
+        "peak_bytes": 1949545792,
+        "live_count": 436296,
+        "allocations": 30929479,
+        "dropped": 0,
+        "unknown_frees": 0,
+        "truncated_stacks": 0,
+        "mallinfo_allocated_bytes": 1909959792
+      },
+      "interpreter": {
+        "state_size": 131105704,
+        "decoded_capacity": 131072000,
+        "decoded_used_offset": 131072896,
+        "pointer": 276735432,
+        "decoded_used": 4664472
+      },
+      "residency": {},
+      "allocator_reconciliation_bytes": 0
+    },
+    {
+      "name": "sound-prompt-short",
+      "guest_us": 749400000,
+      "host_ms": 63924.52999997139,
+      "browserPssKiB": 3406254,
+      "wasmCapacity": 2147483648,
+      "memory": {
+        "mode": 2,
+        "rebuilds": 22291,
+        "mapped_pages": 21235,
+        "arena_bytes": 872415232,
+        "direct_pages": 2108,
+        "direct_rebuilds": 22116,
+        "arena_growths": 35,
+        "arena_initialized_bytes": 201326592
+      },
+      "allocator": {
+        "threshold": 65536,
+        "profiler_static_bytes": 34684928,
+        "live_bytes": 1908145880,
+        "peak_bytes": 1949545792,
+        "live_count": 436318,
+        "allocations": 30931352,
+        "dropped": 0,
+        "unknown_frees": 0,
+        "truncated_stacks": 0,
+        "mallinfo_allocated_bytes": 1909891152
+      },
+      "interpreter": {
+        "state_size": 131105704,
+        "decoded_capacity": 131072000,
+        "decoded_used_offset": 131072896,
+        "pointer": 276735432,
+        "decoded_used": 4665472
+      },
+      "residency": {},
+      "allocator_reconciliation_bytes": 0
+    },
+    {
+      "name": "sound-yes-short",
+      "guest_us": 750600000,
+      "host_ms": 64415.85500001907,
+      "browserPssKiB": 3406122,
+      "wasmCapacity": 2147483648,
+      "memory": {
+        "mode": 2,
+        "rebuilds": 22294,
+        "mapped_pages": 21237,
+        "arena_bytes": 872415232,
+        "direct_pages": 2108,
+        "direct_rebuilds": 22119,
+        "arena_growths": 35,
+        "arena_initialized_bytes": 201326592
+      },
+      "allocator": {
+        "threshold": 65536,
+        "profiler_static_bytes": 34684928,
+        "live_bytes": 1909230932,
+        "peak_bytes": 1949545792,
+        "live_count": 436401,
+        "allocations": 30933491,
+        "dropped": 0,
+        "unknown_frees": 0,
+        "truncated_stacks": 0,
+        "mallinfo_allocated_bytes": 1910976536
+      },
+      "interpreter": {
+        "state_size": 131105704,
+        "decoded_capacity": 131072000,
+        "decoded_used_offset": 131072896,
+        "pointer": 276735432,
+        "decoded_used": 4672768
+      },
+      "residency": {},
+      "allocator_reconciliation_bytes": 0
+    },
+    {
+      "name": "race-short",
+      "guest_us": 755800000,
+      "host_ms": 65989.08999991417,
+      "browserPssKiB": 3412394,
+      "wasmCapacity": 2147483648,
+      "memory": {
+        "mode": 2,
+        "rebuilds": 22337,
+        "mapped_pages": 21212,
+        "arena_bytes": 872415232,
+        "direct_pages": 2085,
+        "direct_rebuilds": 22162,
+        "arena_growths": 35,
+        "arena_initialized_bytes": 201326592
+      },
+      "allocator": {
+        "threshold": 65536,
+        "profiler_static_bytes": 34684928,
+        "live_bytes": 1908159672,
+        "peak_bytes": 1949545792,
+        "live_count": 436694,
+        "allocations": 30952366,
+        "dropped": 0,
+        "unknown_frees": 0,
+        "truncated_stacks": 0,
+        "mallinfo_allocated_bytes": 1909906448
+      },
+      "interpreter": {
+        "state_size": 131105704,
+        "decoded_capacity": 131072000,
+        "decoded_used_offset": 131072896,
+        "pointer": 276735432,
+        "decoded_used": 4703552
+      },
+      "residency": {},
+      "allocator_reconciliation_bytes": 0
+    },
+    {
+      "name": "race-ready-0",
+      "guest_us": 760800000,
+      "host_ms": 66663.41499996185,
+      "browserPssKiB": 3414047,
+      "wasmCapacity": 2147483648,
+      "memory": {
+        "mode": 2,
+        "rebuilds": 22339,
+        "mapped_pages": 21212,
+        "arena_bytes": 872415232,
+        "direct_pages": 2085,
+        "direct_rebuilds": 22164,
+        "arena_growths": 35,
+        "arena_initialized_bytes": 201326592
+      },
+      "allocator": {
+        "threshold": 65536,
+        "profiler_static_bytes": 34684928,
+        "live_bytes": 1908172360,
+        "peak_bytes": 1949545792,
+        "live_count": 436740,
+        "allocations": 30959855,
+        "dropped": 0,
+        "unknown_frees": 0,
+        "truncated_stacks": 0,
+        "mallinfo_allocated_bytes": 1909919320
+      },
+      "interpreter": {
+        "state_size": 131105704,
+        "decoded_capacity": 131072000,
+        "decoded_used_offset": 131072896,
+        "pointer": 276735432,
+        "decoded_used": 4705080
+      },
+      "residency": {},
+      "allocator_reconciliation_bytes": 0
+    },
+    {
+      "name": "race-ready-1",
+      "guest_us": 765800000,
+      "host_ms": 67703.18000006676,
+      "browserPssKiB": 3420043,
+      "wasmCapacity": 2147483648,
+      "memory": {
+        "mode": 2,
+        "rebuilds": 22345,
+        "mapped_pages": 21132,
+        "arena_bytes": 872415232,
+        "direct_pages": 2003,
+        "direct_rebuilds": 22170,
+        "arena_growths": 35,
+        "arena_initialized_bytes": 201326592
+      },
+      "allocator": {
+        "threshold": 65536,
+        "profiler_static_bytes": 34684928,
+        "live_bytes": 1909319332,
+        "peak_bytes": 1949545792,
+        "live_count": 436959,
+        "allocations": 30972311,
+        "dropped": 0,
+        "unknown_frees": 0,
+        "truncated_stacks": 0,
+        "mallinfo_allocated_bytes": 1911067168
+      },
+      "interpreter": {
+        "state_size": 131105704,
+        "decoded_capacity": 131072000,
+        "decoded_used_offset": 131072896,
+        "pointer": 276735432,
+        "decoded_used": 4735808
+      },
+      "residency": {},
+      "allocator_reconciliation_bytes": 0
+    },
+    {
+      "name": "race-loaded",
+      "guest_us": 765800000,
+      "host_ms": 67877.20000004768,
+      "browserPssKiB": 3421383,
+      "wasmCapacity": 2147483648,
+      "memory": {
+        "mode": 2,
+        "rebuilds": 22345,
+        "mapped_pages": 21132,
+        "arena_bytes": 872415232,
+        "direct_pages": 2003,
+        "direct_rebuilds": 22170,
+        "arena_growths": 35,
+        "arena_initialized_bytes": 201326592
+      },
+      "allocator": {
+        "threshold": 65536,
+        "profiler_static_bytes": 34684928,
+        "live_bytes": 1909319340,
+        "peak_bytes": 1949545792,
+        "live_count": 436959,
+        "allocations": 30972318,
+        "dropped": 0,
+        "unknown_frees": 0,
+        "truncated_stacks": 0,
+        "mallinfo_allocated_bytes": 1911067176
+      },
+      "interpreter": {
+        "state_size": 131105704,
+        "decoded_capacity": 131072000,
+        "decoded_used_offset": 131072896,
+        "pointer": 276735432,
+        "decoded_used": 4735808
+      },
+      "residency": {},
+      "allocator_reconciliation_bytes": 0
+    },
+    {
+      "name": "race-warm",
+      "guest_us": 770800000,
+      "host_ms": 69276.46000003815,
+      "browserPssKiB": 3424070,
+      "wasmCapacity": 2147483648,
+      "memory": {
+        "mode": 2,
+        "rebuilds": 22350,
+        "mapped_pages": 21132,
+        "arena_bytes": 872415232,
+        "direct_pages": 2003,
+        "direct_rebuilds": 22175,
+        "arena_growths": 35,
+        "arena_initialized_bytes": 201326592
+      },
+      "allocator": {
+        "threshold": 65536,
+        "profiler_static_bytes": 34684928,
+        "live_bytes": 1909266448,
+        "peak_bytes": 1949545792,
+        "live_count": 437094,
+        "allocations": 30981283,
+        "dropped": 0,
+        "unknown_frees": 0,
+        "truncated_stacks": 0,
+        "mallinfo_allocated_bytes": 1911014824
+      },
+      "interpreter": {
+        "state_size": 131105704,
+        "decoded_capacity": 131072000,
+        "decoded_used_offset": 131072896,
+        "pointer": 276735432,
+        "decoded_used": 4738632
+      },
+      "residency": {},
+      "allocator_reconciliation_bytes": 0
+    },
+    {
+      "name": "instant-play-stationary-sound-on-start",
+      "guest_us": 771060000,
+      "host_ms": 69435.55999994278,
+      "browserPssKiB": 3426787,
+      "wasmCapacity": 2147483648,
+      "memory": {
+        "mode": 2,
+        "rebuilds": 22350,
+        "mapped_pages": 21132,
+        "arena_bytes": 872415232,
+        "direct_pages": 2003,
+        "direct_rebuilds": 22175,
+        "arena_growths": 35,
+        "arena_initialized_bytes": 201326592
+      },
+      "allocator": {
+        "threshold": 65536,
+        "profiler_static_bytes": 34684928,
+        "live_bytes": 1909266476,
+        "peak_bytes": 1949545792,
+        "live_count": 437095,
+        "allocations": 30981594,
+        "dropped": 0,
+        "unknown_frees": 0,
+        "truncated_stacks": 0,
+        "mallinfo_allocated_bytes": 1911014856
+      },
+      "interpreter": {
+        "state_size": 131105704,
+        "decoded_capacity": 131072000,
+        "decoded_used_offset": 131072896,
+        "pointer": 276735432,
+        "decoded_used": 4739176
+      },
+      "residency": {},
+      "allocator_reconciliation_bytes": 0
+    },
+    {
+      "name": "instant-play-stationary-sound-on-end",
+      "guest_us": 795740000,
+      "host_ms": 74752.3599998951,
+      "browserPssKiB": 3431262,
+      "wasmCapacity": 2147483648,
+      "memory": {
+        "mode": 2,
+        "rebuilds": 22364,
+        "mapped_pages": 21132,
+        "arena_bytes": 872415232,
+        "direct_pages": 2003,
+        "direct_rebuilds": 22189,
+        "arena_growths": 35,
+        "arena_initialized_bytes": 201326592
+      },
+      "allocator": {
+        "threshold": 65536,
+        "profiler_static_bytes": 34684928,
+        "live_bytes": 1909295036,
+        "peak_bytes": 1949545792,
+        "live_count": 437633,
+        "allocations": 31028522,
+        "dropped": 0,
+        "unknown_frees": 0,
+        "truncated_stacks": 0,
+        "mallinfo_allocated_bytes": 1911045568
+      },
+      "interpreter": {
+        "state_size": 131105704,
+        "decoded_capacity": 131072000,
+        "decoded_used_offset": 131072896,
+        "pointer": 276735432,
+        "decoded_used": 4754008
+      },
+      "residency": {
+        "renderer_pid": 1751909,
+        "mapping": {
+          "begin": 34982508625920,
+          "end": 34984656109568,
+          "name": "[anon:v8-sandbox]"
+        },
+        "marker_verified": true,
+        "page_bytes": 4096,
+        "scope": "Whole pages wholly inside requested allocations; boundary pages excluded, live guest is not globally frozen"
+      },
+      "allocator_reconciliation_bytes": 0
+    }
+  ],
+  "renderer_mappings": [
+    {
+      "file": "/home/claude/.scratch/eka-allocation-profile-20261014/asphalt-3-residency/instant-play-stationary-sound-on-end-renderer-1751909.smaps",
+      "pss_KiB": 2927710,
+      "categories_pss_KiB": {
+        "Inaccessible reservations": 0,
+        "Other anonymous mappings": 1339012,
+        "Anonymous executable mappings (JIT and trampolines)": 285832,
+        "Large writable anonymous mappings (inspect before identifying as WASM)": 1252408,
+        "File-backed mappings": 50458
+      },
+      "largest_mappings": [
+        {
+          "begin": "1fd100000000",
+          "end": "1fd180000000",
+          "permissions": "rw-p",
+          "name": "[anon:v8-sandbox]",
+          "Size_KiB": 2097152,
+          "Rss_KiB": 1252408,
+          "Pss_KiB": 1252408,
+          "Shared_Clean_KiB": 0,
+          "Shared_Dirty_KiB": 0,
+          "Private_Clean_KiB": 0,
+          "Private_Dirty_KiB": 1252408
+        },
+        {
+          "begin": "e95eb026000",
+          "end": "e9608df6000",
+          "permissions": "rwxp",
+          "name": "[anon:v8]",
+          "Size_KiB": 489280,
+          "Rss_KiB": 93108,
+          "Pss_KiB": 93108,
+          "Shared_Clean_KiB": 0,
+          "Shared_Dirty_KiB": 0,
+          "Private_Clean_KiB": 0,
+          "Private_Dirty_KiB": 93108
+        },
+        {
+          "begin": "1fd008680000",
+          "end": "1fd00b5c0000",
+          "permissions": "rw-p",
+          "name": "[anon:v8-sandbox]",
+          "Size_KiB": 48384,
+          "Rss_KiB": 46684,
+          "Pss_KiB": 46684,
+          "Shared_Clean_KiB": 0,
+          "Shared_Dirty_KiB": 0,
+          "Private_Clean_KiB": 0,
+          "Private_Dirty_KiB": 46684
+        },
+        {
+          "begin": "1fd002900000",
+          "end": "1fd005531000",
+          "permissions": "rw-p",
+          "name": "[anon:v8-sandbox]",
+          "Size_KiB": 45252,
+          "Rss_KiB": 37068,
+          "Pss_KiB": 37068,
+          "Shared_Clean_KiB": 0,
+          "Shared_Dirty_KiB": 0,
+          "Private_Clean_KiB": 0,
+          "Private_Dirty_KiB": 37068
+        },
+        {
+          "begin": "13ec1b004000",
+          "end": "13ec1d3d4000",
+          "permissions": "rw-p",
+          "name": "[anon:partition_alloc]",
+          "Size_KiB": 36672,
+          "Rss_KiB": 36672,
+          "Pss_KiB": 36672,
+          "Shared_Clean_KiB": 0,
+          "Shared_Dirty_KiB": 0,
+          "Private_Clean_KiB": 0,
+          "Private_Dirty_KiB": 36672
+        },
+        {
+          "begin": "556100fb2000",
+          "end": "556111ffc000",
+          "permissions": "r-xp",
+          "name": "/usr/lib/chromium/chromium",
+          "Size_KiB": 278824,
+          "Rss_KiB": 97468,
+          "Pss_KiB": 35872,
+          "Shared_Clean_KiB": 86980,
+          "Shared_Dirty_KiB": 0,
+          "Private_Clean_KiB": 10488,
+          "Private_Dirty_KiB": 0
+        },
+        {
+          "begin": "1fd001000000",
+          "end": "1fd002900000",
+          "permissions": "rw-p",
+          "name": "[anon:v8-sandbox]",
+          "Size_KiB": 25600,
+          "Rss_KiB": 25408,
+          "Pss_KiB": 25408,
+          "Shared_Clean_KiB": 0,
+          "Shared_Dirty_KiB": 0,
+          "Private_Clean_KiB": 0,
+          "Private_Dirty_KiB": 25408
+        },
+        {
+          "begin": "211801000000",
+          "end": "2118035c0000",
+          "permissions": "rw-p",
+          "name": "[anon:v8]",
+          "Size_KiB": 38656,
+          "Rss_KiB": 24164,
+          "Pss_KiB": 24164,
+          "Shared_Clean_KiB": 0,
+          "Shared_Dirty_KiB": 0,
+          "Private_Clean_KiB": 0,
+          "Private_Dirty_KiB": 24164
+        },
+        {
+          "begin": "13ec0e404000",
+          "end": "13ec0f36a000",
+          "permissions": "rw-p",
+          "name": "[anon:partition_alloc]",
+          "Size_KiB": 15768,
+          "Rss_KiB": 15768,
+          "Pss_KiB": 15768,
+          "Shared_Clean_KiB": 0,
+          "Shared_Dirty_KiB": 0,
+          "Private_Clean_KiB": 0,
+          "Private_Dirty_KiB": 15768
+        },
+        {
+          "begin": "13ec09e04000",
+          "end": "13ec0ac5b000",
+          "permissions": "rw-p",
+          "name": "[anon:partition_alloc]",
+          "Size_KiB": 14684,
+          "Rss_KiB": 14684,
+          "Pss_KiB": 14684,
+          "Shared_Clean_KiB": 0,
+          "Shared_Dirty_KiB": 0,
+          "Private_Clean_KiB": 0,
+          "Private_Dirty_KiB": 14684
+        },
+        {
+          "begin": "1fd006100000",
+          "end": "1fd006e00000",
+          "permissions": "rw-p",
+          "name": "[anon:v8-sandbox]",
+          "Size_KiB": 13312,
+          "Rss_KiB": 13312,
+          "Pss_KiB": 13312,
+          "Shared_Clean_KiB": 0,
+          "Shared_Dirty_KiB": 0,
+          "Private_Clean_KiB": 0,
+          "Private_Dirty_KiB": 13312
+        },
+        {
+          "begin": "13ec51a04000",
+          "end": "13ec52596000",
+          "permissions": "rw-p",
+          "name": "[anon:partition_alloc]",
+          "Size_KiB": 11848,
+          "Rss_KiB": 11848,
+          "Pss_KiB": 11848,
+          "Shared_Clean_KiB": 0,
+          "Shared_Dirty_KiB": 0,
+          "Private_Clean_KiB": 0,
+          "Private_Dirty_KiB": 11848
+        },
+        {
+          "begin": "151c02000000",
+          "end": "151c042c0000",
+          "permissions": "rw-p",
+          "name": "[anon:v8]",
+          "Size_KiB": 35584,
+          "Rss_KiB": 11328,
+          "Pss_KiB": 11328,
+          "Shared_Clean_KiB": 0,
+          "Shared_Dirty_KiB": 0,
+          "Private_Clean_KiB": 0,
+          "Private_Dirty_KiB": 11328
+        },
+        {
+          "begin": "13ec08204000",
+          "end": "13ec08cc5000",
+          "permissions": "rw-p",
+          "name": "[anon:partition_alloc]",
+          "Size_KiB": 11012,
+          "Rss_KiB": 11012,
+          "Pss_KiB": 11012,
+          "Shared_Clean_KiB": 0,
+          "Shared_Dirty_KiB": 0,
+          "Private_Clean_KiB": 0,
+          "Private_Dirty_KiB": 11012
+        },
+        {
+          "begin": "e95de952000",
+          "end": "e95e3b73000",
+          "permissions": "rwxp",
+          "name": "[anon:v8]",
+          "Size_KiB": 84100,
+          "Rss_KiB": 8824,
+          "Pss_KiB": 8824,
+          "Shared_Clean_KiB": 0,
+          "Shared_Dirty_KiB": 0,
+          "Private_Clean_KiB": 0,
+          "Private_Dirty_KiB": 8824
+        }
+      ]
+    }
+  ],
+  "chrome": {
+    "targets": 34,
+    "errors": [],
+    "v8_sampled_bytes": 88385816,
+    "native_estimated_bytes": 1048576000,
+    "largest_v8_target": {
+      "target": "worker-14",
+      "errors": [],
+      "v8": {
+        "sampled_bytes": 56812628,
+        "nodes": 31,
+        "wasm_frames": [
+          {
+            "callFrame": {
+              "functionName": "js-to-wasm:i:i",
+              "scriptId": "4",
+              "url": "https://claude-laptop.lan:8275/eka2l1.wasm?v=baa1e0ef75a59c62d76ccb70d657f280bbe246b5a3ed8156814ecb08fd1853b9",
+              "lineNumber": 0,
+              "columnNumber": 797016
+            },
+            "selfSize": 1769968,
+            "id": 17,
+            "children": [
+              {
+                "callFrame": {
+                  "functionName": "_clock_time_get",
+                  "scriptId": "3",
+                  "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+                  "lineNumber": 3434,
+                  "columnNumber": 24
+                },
+                "selfSize": 0,
+                "id": 36,
+                "children": [
+                  {
+                    "callFrame": {
+                      "functionName": "_emscripten_get_now",
+                      "scriptId": "3",
+                      "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+                      "lineNumber": 3426,
+                      "columnNumber": 26
+                    },
+                    "selfSize": 16408,
+                    "id": 37,
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "callFrame": {
+                  "functionName": "js_instantiate_aot_module",
+                  "scriptId": "3",
+                  "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+                  "lineNumber": 8422,
+                  "columnNumber": 34
+                },
+                "selfSize": 44982008,
+                "id": 18,
+                "children": [
+                  {
+                    "callFrame": {
+                      "functionName": "",
+                      "scriptId": "3",
+                      "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+                      "lineNumber": 1350,
+                      "columnNumber": 9
+                    },
+                    "selfSize": 0,
+                    "id": 32,
+                    "children": [
+                      {
+                        "callFrame": {
+                          "functionName": "",
+                          "scriptId": "3",
+                          "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+                          "lineNumber": 1368,
+                          "columnNumber": 9
+                        },
+                        "selfSize": 0,
+                        "id": 33,
+                        "children": [
+                          {
+                            "callFrame": {
+                              "functionName": "js-to-wasm:i:i",
+                              "scriptId": "4",
+                              "url": "https://claude-laptop.lan:8275/eka2l1.wasm?v=baa1e0ef75a59c62d76ccb70d657f280bbe246b5a3ed8156814ecb08fd1853b9",
+                              "lineNumber": 0,
+                              "columnNumber": 834458
+                            },
+                            "selfSize": 0,
+                            "id": 34,
+                            "children": [
+                              {
+                                "callFrame": {
+                                  "functionName": "capture_stack",
+                                  "scriptId": "3",
+                                  "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+                                  "lineNumber": 8414,
+                                  "columnNumber": 22
+                                },
+                                "selfSize": 37972,
+                                "id": 35,
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "callFrame": {
+                      "functionName": "addFunction",
+                      "scriptId": "3",
+                      "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+                      "lineNumber": 8262,
+                      "columnNumber": 46
+                    },
+                    "selfSize": 3930804,
+                    "id": 19,
+                    "children": [
+                      {
+                        "callFrame": {
+                          "functionName": "wasmTable.get",
+                          "scriptId": "3",
+                          "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+                          "lineNumber": 1409,
+                          "columnNumber": 18
+                        },
+                        "selfSize": 1444008,
+                        "id": 30,
+                        "children": []
+                      },
+                      {
+                        "callFrame": {
+                          "functionName": "getFunctionAddress",
+                          "scriptId": "3",
+                          "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+                          "lineNumber": 8226,
+                          "columnNumber": 25
+                        },
+                        "selfSize": 0,
+                        "id": 20,
+                        "children": [
+                          {
+                            "callFrame": {
+                              "functionName": "updateTableMap",
+                              "scriptId": "3",
+                              "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+                              "lineNumber": 8212,
+                              "columnNumber": 21
+                            },
+                            "selfSize": 1394612,
+                            "id": 21,
+                            "children": [
+                              {
+                                "callFrame": {
+                                  "functionName": "getWasmTableEntry",
+                                  "scriptId": "3",
+                                  "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+                                  "lineNumber": 2000,
+                                  "columnNumber": 24
+                                },
+                                "selfSize": 0,
+                                "id": 22,
+                                "children": [
+                                  {
+                                    "callFrame": {
+                                      "functionName": "wasmTable.get",
+                                      "scriptId": "3",
+                                      "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+                                      "lineNumber": 1409,
+                                      "columnNumber": 18
+                                    },
+                                    "selfSize": 606820,
+                                    "id": 23,
+                                    "children": [
+                                      {
+                                        "callFrame": {
+                                          "functionName": "makeAbortWrapper",
+                                          "scriptId": "3",
+                                          "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+                                          "lineNumber": 1367,
+                                          "columnNumber": 25
+                                        },
+                                        "selfSize": 16400,
+                                        "id": 24,
+                                        "children": []
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "callFrame": {
+                          "functionName": "setWasmTableEntry",
+                          "scriptId": "3",
+                          "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+                          "lineNumber": 8254,
+                          "columnNumber": 24
+                        },
+                        "selfSize": 0,
+                        "id": 27,
+                        "children": [
+                          {
+                            "callFrame": {
+                              "functionName": "wasmTable.get",
+                              "scriptId": "3",
+                              "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+                              "lineNumber": 1409,
+                              "columnNumber": 18
+                            },
+                            "selfSize": 98384,
+                            "id": 28,
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "callFrame": {
+                      "functionName": "set",
+                      "scriptId": "0",
+                      "url": "",
+                      "lineNumber": -1,
+                      "columnNumber": -1
+                    },
+                    "selfSize": 2097172,
+                    "id": 53,
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "callFrame": {
+              "functionName": "js-to-wasm:i:i",
+              "scriptId": "4",
+              "url": "https://claude-laptop.lan:8275/eka2l1.wasm?v=baa1e0ef75a59c62d76ccb70d657f280bbe246b5a3ed8156814ecb08fd1853b9",
+              "lineNumber": 0,
+              "columnNumber": 834458
+            },
+            "selfSize": 0,
+            "id": 34,
+            "children": [
+              {
+                "callFrame": {
+                  "functionName": "capture_stack",
+                  "scriptId": "3",
+                  "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+                  "lineNumber": 8414,
+                  "columnNumber": 22
+                },
+                "selfSize": 37972,
+                "id": 35,
+                "children": []
+              }
+            ]
+          }
+        ],
+        "top": [
+          {
+            "bytes": 44982008,
+            "frame": {
+              "functionName": "js_instantiate_aot_module",
+              "scriptId": "3",
+              "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+              "lineNumber": 8422,
+              "columnNumber": 34
+            }
+          },
+          {
+            "bytes": 3930804,
+            "frame": {
+              "functionName": "addFunction",
+              "scriptId": "3",
+              "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+              "lineNumber": 8262,
+              "columnNumber": 46
+            }
+          },
+          {
+            "bytes": 2097172,
+            "frame": {
+              "functionName": "set",
+              "scriptId": "0",
+              "url": "",
+              "lineNumber": -1,
+              "columnNumber": -1
+            }
+          },
+          {
+            "bytes": 1769968,
+            "frame": {
+              "functionName": "js-to-wasm:i:i",
+              "scriptId": "4",
+              "url": "https://claude-laptop.lan:8275/eka2l1.wasm?v=baa1e0ef75a59c62d76ccb70d657f280bbe246b5a3ed8156814ecb08fd1853b9",
+              "lineNumber": 0,
+              "columnNumber": 797016
+            }
+          },
+          {
+            "bytes": 1444008,
+            "frame": {
+              "functionName": "wasmTable.get",
+              "scriptId": "3",
+              "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+              "lineNumber": 1409,
+              "columnNumber": 18
+            }
+          },
+          {
+            "bytes": 1394612,
+            "frame": {
+              "functionName": "updateTableMap",
+              "scriptId": "3",
+              "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+              "lineNumber": 8212,
+              "columnNumber": 21
+            }
+          },
+          {
+            "bytes": 606820,
+            "frame": {
+              "functionName": "wasmTable.get",
+              "scriptId": "3",
+              "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+              "lineNumber": 1409,
+              "columnNumber": 18
+            }
+          },
+          {
+            "bytes": 309512,
+            "frame": {
+              "functionName": "wasmModuleReceived",
+              "scriptId": "3",
+              "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+              "lineNumber": 1547,
+              "columnNumber": 27
+            }
+          },
+          {
+            "bytes": 98384,
+            "frame": {
+              "functionName": "wasmTable.get",
+              "scriptId": "3",
+              "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+              "lineNumber": 1409,
+              "columnNumber": 18
+            }
+          },
+          {
+            "bytes": 37972,
+            "frame": {
+              "functionName": "capture_stack",
+              "scriptId": "3",
+              "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+              "lineNumber": 8414,
+              "columnNumber": 22
+            }
+          },
+          {
+            "bytes": 32856,
+            "frame": {
+              "functionName": "(V8 API)",
+              "scriptId": "0",
+              "url": "",
+              "lineNumber": -1,
+              "columnNumber": -1
+            }
+          },
+          {
+            "bytes": 32824,
+            "frame": {
+              "functionName": "hookGlobalSymbolAccess",
+              "scriptId": "3",
+              "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+              "lineNumber": 934,
+              "columnNumber": 35
+            }
+          },
+          {
+            "bytes": 24640,
+            "frame": {
+              "functionName": "assignWasmImports",
+              "scriptId": "3",
+              "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+              "lineNumber": 8855,
+              "columnNumber": 26
+            }
+          },
+          {
+            "bytes": 18240,
+            "frame": {
+              "functionName": "getWasmImports",
+              "scriptId": "3",
+              "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+              "lineNumber": 1484,
+              "columnNumber": 23
+            }
+          },
+          {
+            "bytes": 16408,
+            "frame": {
+              "functionName": "_emscripten_get_now",
+              "scriptId": "3",
+              "url": "https://claude-laptop.lan:8275/eka2l1.js?v=99c5a5fe701d1359d788c0497f1fc974efa09186f78475a3082502f61f69f596",
+              "lineNumber": 3426,
+              "columnNumber": 26
+            }
+          }
+        ]
+      }
+    }
+  }
+}

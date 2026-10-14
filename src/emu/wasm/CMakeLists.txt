@@ -1,5 +1,12 @@
 add_executable(eka2l1_wasm main.cpp persistent_disk.cpp)
 
+option(EKA2L1_WASM_ALLOCATION_PROFILE "Attribute live C++ allocations in a diagnostic browser build" OFF)
+if(EKA2L1_WASM_ALLOCATION_PROFILE)
+    target_sources(eka2l1_wasm PRIVATE allocation_profile.cpp)
+    target_link_options(eka2l1_wasm PRIVATE
+        "SHELL:-Wl,--wrap=emscripten_builtin_malloc,--wrap=emscripten_builtin_calloc,--wrap=emscripten_builtin_realloc,--wrap=emscripten_builtin_free,--wrap=emscripten_builtin_memalign")
+endif()
+
 # Package the patches staged by this build, including newly added upstream
 # patches. Depending on a separate native build can silently embed stale DLLs.
 get_property(EKA2L1_WASM_PATCH_TARGET GLOBAL PROPERTY LAST_SYMBIAN_PROJECT_TARGET)
