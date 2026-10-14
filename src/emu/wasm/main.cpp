@@ -241,11 +241,20 @@ int eka2l1_memory_impl_configure(int mode) {
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_memory_impl_report(){return eka2l1::arm::aot::memory_experiment::mode;}
 EMSCRIPTEN_KEEPALIVE
+int eka2l1_arena_growth_configure(int enabled) {
+    if (g_state || (enabled != 0 && enabled != 1)) return -1;
+    arm::aot::memory_experiment::arena_growth = enabled;
+    return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_arena_growth_report() { return arm::aot::memory_experiment::arena_growth; }
+EMSCRIPTEN_KEEPALIVE
 const char *eka2l1_memory_impl_stats(){
     const auto &s=eka2l1::arm::aot::memory_experiment::stats;
     static std::string text;
-    text=fmt::format("{{\"mode\":{},\"rebuilds\":{},\"mapped_pages\":{},\"arena_bytes\":{},\"direct_pages\":{},\"direct_rebuilds\":{}}}",
-        eka2l1::arm::aot::memory_experiment::mode,s.rebuilds,s.mapped_pages,s.arena_bytes,s.direct_pages,s.direct_rebuilds);
+    text=fmt::format("{{\"mode\":{},\"rebuilds\":{},\"mapped_pages\":{},\"arena_bytes\":{},\"direct_pages\":{},\"direct_rebuilds\":{},\"arena_growth\":{},\"arena_growths\":{},\"arena_segments\":{}}}",
+        eka2l1::arm::aot::memory_experiment::mode,s.rebuilds,s.mapped_pages,s.arena_bytes,s.direct_pages,s.direct_rebuilds,
+        eka2l1::arm::aot::memory_experiment::arena_growth,s.arena_growths,s.arena_segments);
     return text.c_str();
 }
 EMSCRIPTEN_KEEPALIVE
@@ -415,6 +424,7 @@ int eka2l1_benchmark_configure(int frames, int start_us, int unique) {
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_init(const char *data_path) {
+    if (arm::aot::memory_experiment::arena_growth && !arm::aot::memory_experiment::enabled()) return -3;
     // Raw API clients also need a clock independent of executed instructions.
     // Benchmark and route clients have already selected their unpaced clock.
     if (!common::benchmark::enabled()) {

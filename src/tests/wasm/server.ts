@@ -62,7 +62,7 @@ autoStart();
 </script>`;
 }
 
-export type CompilerPolicy = { watchdogUs?: number; unsafeCode?: number; memoryImpl?: number };
+export type CompilerPolicy = { watchdogUs?: number; unsafeCode?: number; memoryImpl?: number; arenaGrowth?: number };
 
 export type LauncherGame = {
   id: string; title: string; uid: string; sis: string; ngage?: string;
@@ -87,16 +87,22 @@ export function compilerPolicyFromEnv(): CompilerPolicy {
   const memory = process.env.EKA2L1_MEMORY_IMPL ?? (unsafe === '0' ? '0' : '2');
   if (!/^[03]$/.test(unsafe)) throw Error('Invalid executable-byte policy');
   if (!/^[02]$/.test(memory)) throw Error('Invalid memory implementation policy');
-  return {watchdogUs: watchdogInterval(), unsafeCode: Number(unsafe), memoryImpl: Number(memory)};
+  const growth = process.env.EKA2L1_ARENA_GROWTH;
+  if (growth !== undefined && (!/^[01]$/.test(growth) || (growth === '1' && (memory !== '2' || unsafe !== '3'))))
+    throw Error('Invalid arena growth policy');
+  return {watchdogUs: watchdogInterval(), unsafeCode: Number(unsafe), memoryImpl: Number(memory),
+    ...(growth === undefined ? {} : {arenaGrowth:Number(growth)})};
 }
 
 function makeCompilerPolicyScript(policy?: CompilerPolicy): string {
   policy ??= {};
-  const allowed = ['watchdogUs', 'unsafeCode', 'memoryImpl'];
+  const allowed = ['watchdogUs', 'unsafeCode', 'memoryImpl', 'arenaGrowth'];
   if (Object.keys(policy).some(key => !allowed.includes(key))) throw Error('Invalid compiler policy');
   if ((policy.watchdogUs !== undefined && (!Number.isSafeInteger(policy.watchdogUs) || policy.watchdogUs < 1 || policy.watchdogUs > 1000000))
       || (policy.memoryImpl !== undefined && ![0,2].includes(policy.memoryImpl))
-      || (policy.unsafeCode !== undefined && ![0,3].includes(policy.unsafeCode)))
+      || (policy.unsafeCode !== undefined && ![0,3].includes(policy.unsafeCode))
+      || (policy.arenaGrowth !== undefined && ![0,1].includes(policy.arenaGrowth))
+      || (policy.arenaGrowth === 1 && (policy.memoryImpl === 0 || policy.unsafeCode === 0)))
     throw Error('Invalid compiler policy');
   return `<script>
 window.ekaCompilerPolicy = {requested:${JSON.stringify(policy)}, applied:false};
@@ -106,14 +112,14 @@ window.ekaCompilerPolicy = {requested:${JSON.stringify(policy)}, applied:false};
     const state = window.ekaCompilerPolicy;
     if (!state.applied) {
       await (${configureWatchdog.toString()})(state.requested.watchdogUs ?? 2000);
-      for (const [key, entry] of [['unsafeCode','eka2l1_unsafe_code_configure'], ['memoryImpl','eka2l1_memory_impl_configure']]) {
+      for (const [key, entry] of [['unsafeCode','eka2l1_unsafe_code_configure'], ['memoryImpl','eka2l1_memory_impl_configure'], ['arenaGrowth','eka2l1_arena_growth_configure']]) {
         if (state.requested[key] === undefined) continue;
         if (typeof Module['_' + entry] !== 'function'
             || Module.ccall(entry, 'number', ['number'], [state.requested[key]]) !== 0)
           throw new Error('Emulator compiler configuration failed: ' + key);
       }
       state.observed = {};
-      for (const [key, entry] of [['unsafeCode','eka2l1_unsafe_code_report'], ['memoryImpl','eka2l1_memory_impl_report']]) {
+      for (const [key, entry] of [['unsafeCode','eka2l1_unsafe_code_report'], ['memoryImpl','eka2l1_memory_impl_report'], ['arenaGrowth','eka2l1_arena_growth_report']]) {
         if (state.requested[key] === undefined) continue;
         if (typeof Module['_' + entry] !== 'function') throw new Error('Emulator compiler readback unavailable: ' + key);
         state.observed[key] = Module.ccall(entry, 'number', [], []);

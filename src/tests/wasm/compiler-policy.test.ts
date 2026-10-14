@@ -14,11 +14,22 @@ const retired = ['AOT_VERIFY','AOT_DIAGNOSTICS','PROFILE_DETAIL','GUEST_PROFILE'
   'SPARSE_ROM_LOOKUP','COMPILED_SVC','HOTPATH','THUMB_MEMORY','AOT_HOT','AOT_REGION',
   'AOT_CHAIN','AOT_RAM','EXECUTION_LIMITS','ENTRY_BUDGET','TLB_HASH','MEMORY_CACHE'];
 try {
-  for (const name of [...retired,'UNSAFE_CODE','MEMORY_IMPL','WATCHDOG_US']) delete process.env['EKA2L1_'+name];
+  for (const name of [...retired,'UNSAFE_CODE','MEMORY_IMPL','WATCHDOG_US','ARENA_GROWTH']) delete process.env['EKA2L1_'+name];
   assert.deepEqual(compilerPolicyFromEnv(), {watchdogUs:2000,unsafeCode:3,memoryImpl:2});
   process.env.EKA2L1_UNSAFE_CODE = '0';
   assert.deepEqual(compilerPolicyFromEnv(), {watchdogUs:2000,unsafeCode:0,memoryImpl:0});
   delete process.env.EKA2L1_UNSAFE_CODE;
+  for (const value of ['0','1']) {
+    process.env.EKA2L1_ARENA_GROWTH=value;
+    assert.equal(compilerPolicyFromEnv().arenaGrowth,Number(value));
+  }
+  for (const value of ['','2','true','-1']) {
+    process.env.EKA2L1_ARENA_GROWTH=value;
+    assert.throws(compilerPolicyFromEnv,/Invalid arena growth policy/);
+  }
+  process.env.EKA2L1_ARENA_GROWTH='1';process.env.EKA2L1_MEMORY_IMPL='0';
+  assert.throws(compilerPolicyFromEnv,/Invalid arena growth policy/);
+  delete process.env.EKA2L1_ARENA_GROWTH;delete process.env.EKA2L1_MEMORY_IMPL;
   for (const name of retired) {
     process.env['EKA2L1_'+name] = '0';
     assert.throws(compilerPolicyFromEnv, /Retired compiler option/);
@@ -36,7 +47,8 @@ try {
     delete process.env['EKA2L1_'+name];
   }
   const etags = [];
-  for (const policy of [{unsafeCode:0,memoryImpl:0},{unsafeCode:3,memoryImpl:0},{unsafeCode:3,memoryImpl:2}]) {
+  for (const policy of [{unsafeCode:0,memoryImpl:0},{unsafeCode:3,memoryImpl:0},{unsafeCode:3,memoryImpl:2},
+      {unsafeCode:3,memoryImpl:2,arenaGrowth:0},{unsafeCode:3,memoryImpl:2,arenaGrowth:1}]) {
     const {server,port} = await startServer(0,{},undefined,{compilerPolicy:policy}); servers.push(server);
     const url = `http://127.0.0.1:${port}/`;
     const response = await fetch(url), html = await response.text(); etags.push(response.headers.get('etag'));
@@ -47,7 +59,7 @@ try {
     for (const failure of ['none','missing','rejected','wrong-readback']) {
       let starts=0;
       const values: Record<string,number>={};
-      const names=['unsafe_code','memory_impl'];
+      const names=['unsafe_code','memory_impl','arena_growth'];
       const context=vm.createContext({ekaWatchdog:{},window:{},startEmulator:async()=>{++starts;},Module:{
         ...Object.fromEntries(names.flatMap(n=>['configure','report'].map(s=>['_eka2l1_'+n+'_'+s,()=>0]))
           .filter(([name])=>failure!=='missing'||name!=='_eka2l1_memory_impl_configure')),
@@ -71,7 +83,8 @@ try {
   assert.equal(new Set(etags).size,etags.length);
   for (const policy of [{irMode:7},{compiledSvc:1},{sparseRom:1},{hotpath:2},{thumbMemory:1},
       {predicatedLeaves:1},{leafFeatures:224},{codeCompare:0},{executionLimits:[512,32,8,0]},
-      {unsafeCode:1},{memoryImpl:1},{watchdogUs:0}])
+      {unsafeCode:1},{memoryImpl:1},{watchdogUs:0},{arenaGrowth:2},
+      {arenaGrowth:1,memoryImpl:0},{arenaGrowth:1,unsafeCode:0}])
     await assert.rejects(startServer(0,{},undefined,{compilerPolicy:policy as any}),/Invalid compiler policy/);
   console.log('PASS compatibility selection, retired controls, startup failure propagation and policy-dependent cache identity');
 } finally {

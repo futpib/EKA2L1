@@ -28,12 +28,19 @@ namespace eka2l1::arm::aot {
         auto load=[&](unsigned off){w.op(op_i32_load);imm(2);imm(off);};
         w.i32_const(0);w.set_local(W::M+1);
         w.i32_const(0);w.set_local(W::M+2);
+        if (memory_experiment::arena_growth) for (unsigned i=3;i<=6;++i) {w.i32_const(0);w.set_local(W::M+i);}
         w.load_i32(state_offsets::AOT_TLB);w.op(op_if);w.op(type_void);
         w.load_i32(state_offsets::CPSR);w.i32_const(0x200);w.op(op_i32_and);w.op(op_i32_eqz);
         w.op(op_if);w.op(type_void);
         w.load_i32(state_offsets::AOT_TLB);w.set_local(W::M+2);
         w.get_local(W::M+2);load(offsetof(memory_experiment::direct_view,bias));w.set_local(W::M);
-        w.get_local(W::M+2);load(offsetof(memory_experiment::direct_view,arena_mask));w.set_local(W::M+1);
+        if (memory_experiment::arena_growth) {
+            for (const auto [slot,offset] : {std::pair<unsigned,unsigned>{1,offsetof(memory_experiment::direct_view,root_limit4)},
+                    {3,offsetof(memory_experiment::direct_view,banks)}, {4,offsetof(memory_experiment::direct_view,root_limit1)},
+                    {5,offsetof(memory_experiment::direct_view,root_limit2)}, {6,offsetof(memory_experiment::direct_view,root_end)}}) {
+                w.get_local(W::M+2);load(offset);w.set_local(W::M+slot);
+            }
+        } else {w.get_local(W::M+2);load(offsetof(memory_experiment::direct_view,arena_mask));w.set_local(W::M+1);}
         w.op(op_end);w.op(op_end);
     }
 
@@ -53,9 +60,58 @@ namespace eka2l1::arm::aot {
         }
     }
 
+    template<class W> void segmented_host(W &w,unsigned address,unsigned bytes,bool write,unsigned alignment,bool root=true) {
+        auto imm=[&](unsigned v){state_local_cache::leb(w.b,v);};
+        auto load=[&](unsigned off){w.op(op_i32_load);imm(2);imm(off);};
+        w.i32_const(0);w.set_local(W::HOST);
+        if (alignment>1) {
+            w.get_local(address);w.i32_const(alignment-1);w.op(op_i32_and);w.op(op_i32_eqz);
+            w.op(op_if);w.op(type_void);
+        }
+        if (root) {
+            w.get_local(address);w.i32_const(memory_experiment::direct_begin);w.op(op_i32_sub);
+            w.i32_const(bytes<=memory_experiment::direct_size ? memory_experiment::direct_size-bytes+1 : 0);w.op(op_i32_lt_u);
+            w.get_local(address);w.i32_const(bytes);w.op(op_i32_add);w.get_local(W::M+6);w.op(op_i32_le_u);w.op(op_i32_and);
+            w.op(op_if);w.op(type_void);
+            w.get_local(address);w.get_local(W::M);w.op(op_i32_add);w.set_local(W::HOST);
+            w.op(op_else);
+        }
+        w.get_local(W::M+3);w.op(op_if);w.op(type_void);
+        w.get_local(address);w.i32_const(memory_experiment::direct_begin);w.op(op_i32_sub);
+        w.i32_const(bytes<=memory_experiment::direct_size ? memory_experiment::direct_size-bytes+1 : 0);
+        w.op(op_i32_lt_u);w.op(op_if);w.op(type_void);
+        w.get_local(W::M+3);
+        w.get_local(address);w.i32_const(memory_experiment::direct_begin);w.op(op_i32_sub);
+        w.i32_const(memory_experiment::bank_shift);w.op(op_i32_shr_u);w.i32_const(3);w.op(op_i32_shl);
+        w.op(op_i32_add);w.set_local(W::ENTRY);
+        w.get_local(address);w.i32_const(bytes);w.op(op_i32_add);
+        w.get_local(W::ENTRY);load(4);w.op(op_i32_le_u);w.op(op_if);w.op(type_void);
+        w.get_local(W::ENTRY);load(0);w.get_local(address);w.op(op_i32_add);w.set_local(W::HOST);
+        w.op(op_end);w.op(op_end);w.op(op_end);
+        if (root) w.op(op_end);
+        w.get_local(W::HOST);w.op(op_i32_eqz);w.op(op_if);w.op(type_void);
+        w.get_local(W::M+2);w.op(op_if);w.op(type_void);
+        if (bytes<=4096) {
+            const bool crossing=bytes>alignment || alignment>4096 || 4096%alignment;
+            if (crossing) {
+                w.get_local(address);w.i32_const(4095);w.op(op_i32_and);w.i32_const(4096-bytes);w.op(op_i32_le_u);
+                w.op(op_if);w.op(type_void);
+            }
+            w.get_local(W::M+2);load(offsetof(memory_experiment::direct_view,pages));
+            w.get_local(address);w.i32_const(12);w.op(op_i32_shr_u);w.i32_const(3);w.op(op_i32_shl);w.op(op_i32_add);
+            load(write?4:0);w.tee_local(W::HOST);w.op(op_if);w.op(type_void);
+            w.get_local(W::HOST);w.get_local(address);w.i32_const(4095);w.op(op_i32_and);w.op(op_i32_add);w.set_local(W::HOST);
+            w.op(op_end);
+            if (crossing) w.op(op_end);
+        }
+        w.op(op_end);w.op(op_end);
+        if (alignment>1) w.op(op_end);
+    }
+
     template<class W> void direct_host(W &w,unsigned address,unsigned bytes,bool write,unsigned alignment) {
         source_scope provenance(w.source, source_kind::memory_check);
         w.direct_memory_used=true;
+        if (memory_experiment::arena_growth) { segmented_host(w,address,bytes,write,alignment);return; }
         auto imm=[&](unsigned v){state_local_cache::leb(w.b,v);};
         auto load=[&](unsigned off){w.op(op_i32_load);imm(2);imm(off);};
         // Return the pointer through the WASM value stack. Successful paths
@@ -104,6 +160,23 @@ namespace eka2l1::arm::aot {
         source_scope provenance(w.source, source_kind::memory_check);
         w.direct_memory_used=true;
         auto imm=[&](unsigned v){state_local_cache::leb(w.b,v);};
+        if (memory_experiment::arena_growth) {
+            w.get_local(W::ADDRESS);w.i32_const(memory_experiment::direct_begin);w.op(op_i32_sub);
+            w.get_local(bytes==1 ? W::M+4 : bytes==2 ? W::M+5 : W::M+1);w.op(op_i32_lt_u);
+            w.op(op_if);w.op(write ? type_void : type_i32);
+            w.get_local(W::ADDRESS);w.get_local(W::M);w.op(op_i32_add);
+            profile_memory_access(w,W::ADDRESS,write);
+            if (write) w.get_local(W::VALUE);
+            guest_memory_op(w,write ? (bytes==4?op_i32_store:bytes==2?op_i32_store16:op_i32_store8)
+                : (bytes==4?op_i32_load:bytes==2?op_i32_load16_u:op_i32_load8_u),bytes==4?2:bytes==2?1:0);
+            w.op(op_else);segmented_host(w,W::ADDRESS,bytes,write,1,false);
+            w.get_local(W::HOST);w.op(op_if);w.op(write ? type_void : type_i32);
+            w.get_local(W::HOST);profile_memory_access(w,W::ADDRESS,write);
+            if (write) w.get_local(W::VALUE);
+            guest_memory_op(w,write ? (bytes==4?op_i32_store:bytes==2?op_i32_store16:op_i32_store8)
+                : (bytes==4?op_i32_load:bytes==2?op_i32_load16_u:op_i32_load8_u),bytes==4?2:bytes==2?1:0);
+            w.op(op_else);slow();w.op(op_end);w.op(op_end);return;
+        }
         auto access=[&] {
             source_scope access_provenance(w.source, source_kind::guest_memory);
             profile_memory_access(w, W::ADDRESS, write);

@@ -984,7 +984,7 @@ namespace eka2l1::arm::aot {
         // A fixed i64 prefix keeps its index independent of lazily allocated i32 register locals.
         // Locals: 0=state_ptr(param), 1=wide result, 2..8=i32 scratch.
         const bool direct_blocks = bounded && cache_registers && !region;
-        result.num_locals = memory_experiment::enabled() ? 15 : region || direct_blocks ? 12 : 7;
+        result.num_locals = memory_experiment::enabled() ? (memory_experiment::arena_growth ? 19 : 15) : region || direct_blocks ? 12 : 7;
         result.num_prefix_i64_locals = 1;
         result.num_f32_locals = 0;
         result.num_f64_locals = 0;

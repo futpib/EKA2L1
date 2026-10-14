@@ -4741,7 +4741,7 @@ namespace eka2l1::arm::aot {
             code_size = loop_size;
             tr.proved_terminating_loops = 1;
         }
-        result.num_locals = memory_experiment::enabled() ? 14 : direct_memory ? 11 : 6;
+        result.num_locals = memory_experiment::enabled() ? (memory_experiment::arena_growth ? 18 : 14) : direct_memory ? 11 : 6;
         result.num_f32_locals = 2;
         result.num_f64_locals = 1;
         const std::uint32_t TMP1 = 1, TMP2 = 2, TMP3 = 3, TMP4 = 4;

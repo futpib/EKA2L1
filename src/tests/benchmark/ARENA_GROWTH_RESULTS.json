@@ -1,0 +1,1593 @@
+{
+  "date": "2026-10-14",
+  "source_parent": "40c0d4962",
+  "runtime_patch_sha256": "edd8e872637f29ac65bb1d9e35618b7f68930be2ad40fceab802964bd546606e",
+  "baseline_wasm_sha256": "1c40e453036b095c10abd59a74e8b4568adb828db7d4a33afedb8eff851dc43f",
+  "candidate_wasm_sha256": "4a9e81247a34681aa81832a6cee828a3602a76a2b68e32261bed61d845e5beed",
+  "browser": "Chromium 153.0.8010.52",
+  "cpu": "i7-10875H",
+  "graphics": "hardware ANGLE/Vulkan",
+  "firmware": "stock Nokia 5320",
+  "access_instrumentation": false,
+  "instruction_accounting": false,
+  "flag": "EKA2L1_ARENA_GROWTH=1",
+  "default": false,
+  "verdict": "Memory savings verified; substantial gameplay throughput regressions. Experimental only, no default adoption.",
+  "artifacts": "/home/claude/.scratch/eka-arena-growth-20261014",
+  "primary_comparisons": [
+    {
+      "game": "snakes",
+      "title": "Snakes",
+      "baseline": {
+        "capture": "snakes-baseline-b",
+        "fps": 98.52588588800259,
+        "arena_mib": 320.0,
+        "browser_pss_mib": 2334.728515625,
+        "wasm_capacity_mib": 1202.0,
+        "windows": [
+          {
+            "file": "snakes-baseline-b/opening-level-valid.json",
+            "label": "opening-level-valid",
+            "frames": 496,
+            "seconds": 5.034210000038147,
+            "fps": 98.52588588800259,
+            "guest_seconds": 23.47,
+            "arena_mib": 320.0,
+            "browser_pss_mib": 2334.728515625,
+            "wasm_capacity_mib": 1202.0,
+            "allocated_bytes": 1174850536,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": null,
+            "live_segments": null,
+            "late_compiled_functions": 96,
+            "late_compilation_us": {
+              "aot_translation_us": 7767,
+              "aot_emission_us": 869,
+              "aot_installation_us": 1890
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 54280000,
+            "end_guest_us": 77750000,
+            "start_scene": "opening-level-valid-start.png",
+            "end_scene": "opening-level-valid-end.png"
+          }
+        ]
+      },
+      "growth": {
+        "capture": "snakes-root-b",
+        "fps": 80.19835196372114,
+        "arena_mib": 65.0,
+        "browser_pss_mib": 2130.4423828125,
+        "wasm_capacity_mib": 939.9375,
+        "windows": [
+          {
+            "file": "snakes-root-b/opening-level-valid.json",
+            "label": "opening-level-valid",
+            "frames": 404,
+            "seconds": 5.037509999990463,
+            "fps": 80.19835196372114,
+            "guest_seconds": 21.53,
+            "arena_mib": 65.0,
+            "browser_pss_mib": 2130.4423828125,
+            "wasm_capacity_mib": 939.9375,
+            "allocated_bytes": 907415136,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": 8,
+            "live_segments": 8,
+            "late_compiled_functions": 93,
+            "late_compilation_us": {
+              "aot_translation_us": 7331,
+              "aot_emission_us": 722,
+              "aot_installation_us": 1813
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 1
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 1
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 54280000,
+            "end_guest_us": 75810000,
+            "start_scene": "opening-level-valid-start.png",
+            "end_scene": "opening-level-valid-end.png"
+          }
+        ]
+      },
+      "fps_change_percent": -18.601744870495175,
+      "arena_saving_mib": 255.0,
+      "browser_pss_saving_mib": 204.2861328125
+    },
+    {
+      "game": "sky-force",
+      "title": "Sky Force",
+      "baseline": {
+        "capture": "sky-force-baseline-b",
+        "fps": 322.4396108910189,
+        "arena_mib": 320.0,
+        "browser_pss_mib": 2262.046875,
+        "wasm_capacity_mib": 1194.0,
+        "windows": [
+          {
+            "file": "sky-force-baseline-b/stage-1.json",
+            "label": "stage-1",
+            "frames": 649,
+            "seconds": 2.01277999997139,
+            "fps": 322.4396108910189,
+            "guest_seconds": 20.28,
+            "arena_mib": 320.0,
+            "browser_pss_mib": 2262.046875,
+            "wasm_capacity_mib": 1194.0,
+            "allocated_bytes": 1176833400,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": null,
+            "live_segments": null,
+            "late_compiled_functions": 13,
+            "late_compilation_us": {
+              "aot_translation_us": 1882,
+              "aot_emission_us": 144,
+              "aot_installation_us": 440
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 59410000,
+            "end_guest_us": 79690000,
+            "start_scene": "stage-1-start.png",
+            "end_scene": "stage-1-end.png"
+          }
+        ]
+      },
+      "growth": {
+        "capture": "sky-force-root-b",
+        "fps": 244.56926976603768,
+        "arena_mib": 81.0,
+        "browser_pss_mib": 2084.427734375,
+        "wasm_capacity_mib": 1015.0625,
+        "windows": [
+          {
+            "file": "sky-force-root-b/stage-1.json",
+            "label": "stage-1",
+            "frames": 492,
+            "seconds": 2.011700000047684,
+            "fps": 244.56926976603768,
+            "guest_seconds": 15.4,
+            "arena_mib": 81.0,
+            "browser_pss_mib": 2084.427734375,
+            "wasm_capacity_mib": 1015.0625,
+            "allocated_bytes": 923177264,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": 8,
+            "live_segments": 8,
+            "late_compiled_functions": 32,
+            "late_compilation_us": {
+              "aot_translation_us": 2584,
+              "aot_emission_us": 315,
+              "aot_installation_us": 1040
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 1
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 1
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 59250000,
+            "end_guest_us": 74650000,
+            "start_scene": "stage-1-start.png",
+            "end_scene": "stage-1-end.png"
+          }
+        ]
+      },
+      "fps_change_percent": -24.15036443872294,
+      "arena_saving_mib": 239.0,
+      "browser_pss_saving_mib": 177.619140625
+    },
+    {
+      "game": "k-rally",
+      "title": "K-Rally",
+      "baseline": {
+        "capture": "k-rally-baseline-b",
+        "fps": 184.17028311634635,
+        "arena_mib": 320.0,
+        "browser_pss_mib": 2413.037109375,
+        "wasm_capacity_mib": 1202.0,
+        "windows": [
+          {
+            "file": "k-rally-baseline-b/tutorial-driving.json",
+            "label": "tutorial-driving",
+            "frames": 557,
+            "seconds": 3.024375,
+            "fps": 184.17028311634635,
+            "guest_seconds": 17.56,
+            "arena_mib": 320.0,
+            "browser_pss_mib": 2413.037109375,
+            "wasm_capacity_mib": 1202.0,
+            "allocated_bytes": 1181489200,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": null,
+            "live_segments": null,
+            "late_compiled_functions": 104,
+            "late_compilation_us": {
+              "aot_translation_us": 12509,
+              "aot_emission_us": 1184,
+              "aot_installation_us": 2852
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 166160000,
+            "end_guest_us": 183720000,
+            "start_scene": "tutorial-driving-start.png",
+            "end_scene": "tutorial-driving-end.png"
+          }
+        ]
+      },
+      "growth": {
+        "capture": "k-rally-root-b",
+        "fps": 137.38196324441665,
+        "arena_mib": 81.0,
+        "browser_pss_mib": 2259.642578125,
+        "wasm_capacity_mib": 1015.0625,
+        "windows": [
+          {
+            "file": "k-rally-root-b/tutorial-driving.json",
+            "label": "tutorial-driving",
+            "frames": 415,
+            "seconds": 3.0207749998569486,
+            "fps": 137.38196324441665,
+            "guest_seconds": 14.58277,
+            "arena_mib": 81.0,
+            "browser_pss_mib": 2259.642578125,
+            "wasm_capacity_mib": 1015.0625,
+            "allocated_bytes": 932260856,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": 8,
+            "live_segments": 8,
+            "late_compiled_functions": 99,
+            "late_compilation_us": {
+              "aot_translation_us": 10964,
+              "aot_emission_us": 911,
+              "aot_installation_us": 2707
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 1
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 1
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 166160000,
+            "end_guest_us": 180742770,
+            "start_scene": "tutorial-driving-start.png",
+            "end_scene": "tutorial-driving-end.png"
+          }
+        ]
+      },
+      "fps_change_percent": -25.404923682705093,
+      "arena_saving_mib": 239.0,
+      "browser_pss_saving_mib": 153.39453125
+    },
+    {
+      "game": "asphalt-2",
+      "title": "Asphalt 2",
+      "baseline": {
+        "capture": "asphalt-2-baseline-b",
+        "fps": 126.56725077557408,
+        "arena_mib": 320.0,
+        "browser_pss_mib": 2397.904296875,
+        "wasm_capacity_mib": 1194.0,
+        "windows": [
+          {
+            "file": "asphalt-2-baseline-b/golf-san-francisco-barrier.json",
+            "label": "golf-san-francisco-barrier",
+            "frames": 1274,
+            "seconds": 10.065794999837875,
+            "fps": 126.56725077557408,
+            "guest_seconds": 95.78125,
+            "arena_mib": 320.0,
+            "browser_pss_mib": 2397.904296875,
+            "wasm_capacity_mib": 1194.0,
+            "allocated_bytes": 1177705808,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": null,
+            "live_segments": null,
+            "late_compiled_functions": 118,
+            "late_compilation_us": {
+              "aot_translation_us": 21689,
+              "aot_emission_us": 2112,
+              "aot_installation_us": 4024
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 96890625,
+            "end_guest_us": 192671875,
+            "start_scene": "golf-san-francisco-barrier-start.png",
+            "end_scene": "golf-san-francisco-barrier-end.png"
+          }
+        ]
+      },
+      "growth": {
+        "capture": "asphalt-2-root-b",
+        "fps": 105.19064687341105,
+        "arena_mib": 81.0,
+        "browser_pss_mib": 2208.3125,
+        "wasm_capacity_mib": 939.9375,
+        "windows": [
+          {
+            "file": "asphalt-2-root-b/golf-san-francisco-barrier.json",
+            "label": "golf-san-francisco-barrier",
+            "frames": 1059,
+            "seconds": 10.06743499994278,
+            "fps": 105.19064687341105,
+            "guest_seconds": 88.27,
+            "arena_mib": 81.0,
+            "browser_pss_mib": 2208.3125,
+            "wasm_capacity_mib": 939.9375,
+            "allocated_bytes": 927355824,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": 9,
+            "live_segments": 9,
+            "late_compiled_functions": 131,
+            "late_compilation_us": {
+              "aot_translation_us": 24322,
+              "aot_emission_us": 1744,
+              "aot_installation_us": 3892
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 1
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 1
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 96700000,
+            "end_guest_us": 184970000,
+            "start_scene": "golf-san-francisco-barrier-start.png",
+            "end_scene": "golf-san-francisco-barrier-end.png"
+          }
+        ]
+      },
+      "fps_change_percent": -16.88952218774783,
+      "arena_saving_mib": 239.0,
+      "browser_pss_saving_mib": 189.591796875
+    },
+    {
+      "game": "hooked-on",
+      "title": "Hooked On",
+      "baseline": {
+        "capture": "hooked-on-baseline-c",
+        "fps": 234.632416347744,
+        "arena_mib": 832.0,
+        "browser_pss_mib": 4645.5283203125,
+        "wasm_capacity_mib": 2048.0,
+        "windows": [
+          {
+            "file": "hooked-on-baseline-c/costa-rica-stationary-tutorial-dismissed-window-0.json",
+            "label": "costa-rica-stationary-tutorial-dismissed-window-0",
+            "frames": 2341,
+            "seconds": 10.119025000095368,
+            "fps": 231.34639947800673,
+            "guest_seconds": 73.885625,
+            "arena_mib": 832.0,
+            "browser_pss_mib": 4633.337890625,
+            "wasm_capacity_mib": 2048.0,
+            "allocated_bytes": 1952107808,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": null,
+            "live_segments": null,
+            "late_compiled_functions": 4,
+            "late_compilation_us": {
+              "aot_translation_us": 569,
+              "aot_emission_us": 162,
+              "aot_installation_us": 1078
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 1244880000,
+            "end_guest_us": 1318765625,
+            "start_scene": "costa-rica-stationary-tutorial-dismissed-window-0-start.png",
+            "end_scene": "costa-rica-stationary-tutorial-dismissed-window-0-end.png"
+          },
+          {
+            "file": "hooked-on-baseline-c/costa-rica-stationary-tutorial-dismissed-window-1.json",
+            "label": "costa-rica-stationary-tutorial-dismissed-window-1",
+            "frames": 2645,
+            "seconds": 10.11375,
+            "fps": 261.52515140279326,
+            "guest_seconds": 83.161,
+            "arena_mib": 832.0,
+            "browser_pss_mib": 4640.341796875,
+            "wasm_capacity_mib": 2048.0,
+            "allocated_bytes": 1950921472,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": null,
+            "live_segments": null,
+            "late_compiled_functions": 5,
+            "late_compilation_us": {
+              "aot_translation_us": 685,
+              "aot_emission_us": 143,
+              "aot_installation_us": 1297
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 1320630000,
+            "end_guest_us": 1403791000,
+            "start_scene": "costa-rica-stationary-tutorial-dismissed-window-1-start.png",
+            "end_scene": "costa-rica-stationary-tutorial-dismissed-window-1-end.png"
+          },
+          {
+            "file": "hooked-on-baseline-c/costa-rica-stationary-tutorial-dismissed-window-2.json",
+            "label": "costa-rica-stationary-tutorial-dismissed-window-2",
+            "frames": 2140,
+            "seconds": 10.138134999990463,
+            "fps": 211.08418856150695,
+            "guest_seconds": 67.61,
+            "arena_mib": 832.0,
+            "browser_pss_mib": 4645.5283203125,
+            "wasm_capacity_mib": 2048.0,
+            "allocated_bytes": 1953957552,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": null,
+            "live_segments": null,
+            "late_compiled_functions": 2,
+            "late_compilation_us": {
+              "aot_translation_us": 268,
+              "aot_emission_us": 83,
+              "aot_installation_us": 700
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 1405580000,
+            "end_guest_us": 1473190000,
+            "start_scene": "costa-rica-stationary-tutorial-dismissed-window-2-start.png",
+            "end_scene": "costa-rica-stationary-tutorial-dismissed-window-2-end.png"
+          }
+        ]
+      },
+      "growth": {
+        "capture": "hooked-on-root-c",
+        "fps": 179.32544371712652,
+        "arena_mib": 196.0,
+        "browser_pss_mib": 4198.8251953125,
+        "wasm_capacity_mib": 1377.25,
+        "windows": [
+          {
+            "file": "hooked-on-root-c/costa-rica-stationary-tutorial-dismissed-window-0.json",
+            "label": "costa-rica-stationary-tutorial-dismissed-window-0",
+            "frames": 1689,
+            "seconds": 10.115625,
+            "fps": 166.96941612604263,
+            "guest_seconds": 55.87,
+            "arena_mib": 196.0,
+            "browser_pss_mib": 4193.5869140625,
+            "wasm_capacity_mib": 1377.25,
+            "allocated_bytes": 1284021616,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": 36,
+            "live_segments": 25,
+            "late_compiled_functions": 4,
+            "late_compilation_us": {
+              "aot_translation_us": 373,
+              "aot_emission_us": 87,
+              "aot_installation_us": 948
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 1
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 1
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 1244610000,
+            "end_guest_us": 1300480000,
+            "start_scene": "costa-rica-stationary-tutorial-dismissed-window-0-start.png",
+            "end_scene": "costa-rica-stationary-tutorial-dismissed-window-0-end.png"
+          },
+          {
+            "file": "hooked-on-root-c/costa-rica-stationary-tutorial-dismissed-window-1.json",
+            "label": "costa-rica-stationary-tutorial-dismissed-window-1",
+            "frames": 1865,
+            "seconds": 10.116590000152588,
+            "fps": 184.3506557023533,
+            "guest_seconds": 58.876875,
+            "arena_mib": 196.0,
+            "browser_pss_mib": 4198.8251953125,
+            "wasm_capacity_mib": 1377.25,
+            "allocated_bytes": 1285251296,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": 36,
+            "live_segments": 25,
+            "late_compiled_functions": 4,
+            "late_compilation_us": {
+              "aot_translation_us": 360,
+              "aot_emission_us": 102,
+              "aot_installation_us": 1058
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 1
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 1
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 1301920000,
+            "end_guest_us": 1360796875,
+            "start_scene": "costa-rica-stationary-tutorial-dismissed-window-1-start.png",
+            "end_scene": "costa-rica-stationary-tutorial-dismissed-window-1-end.png"
+          },
+          {
+            "file": "hooked-on-root-c/costa-rica-stationary-tutorial-dismissed-window-2.json",
+            "label": "costa-rica-stationary-tutorial-dismissed-window-2",
+            "frames": 1888,
+            "seconds": 10.114844999790192,
+            "fps": 186.65634520738203,
+            "guest_seconds": 59.452375,
+            "arena_mib": 196.0,
+            "browser_pss_mib": 4194.7119140625,
+            "wasm_capacity_mib": 1377.25,
+            "allocated_bytes": 1285251400,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": 36,
+            "live_segments": 25,
+            "late_compiled_functions": 0,
+            "late_compilation_us": {
+              "aot_translation_us": 0,
+              "aot_emission_us": 0,
+              "aot_installation_us": 0
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 1
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 1
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 1362157000,
+            "end_guest_us": 1421609375,
+            "start_scene": "costa-rica-stationary-tutorial-dismissed-window-2-start.png",
+            "end_scene": "costa-rica-stationary-tutorial-dismissed-window-2-end.png"
+          }
+        ]
+      },
+      "fps_change_percent": -23.571752570049032,
+      "arena_saving_mib": 636.0,
+      "browser_pss_saving_mib": 446.703125
+    },
+    {
+      "game": "asphalt-3",
+      "title": "Asphalt 3",
+      "baseline": {
+        "capture": "asphalt-3-baseline-c",
+        "fps": 113.38732258709372,
+        "arena_mib": 832.0,
+        "browser_pss_mib": 4040.2763671875,
+        "wasm_capacity_mib": 1953.25,
+        "windows": [
+          {
+            "file": "asphalt-3-baseline-c/instant-play-driving-sound-on.json",
+            "label": "instant-play-driving-sound-on",
+            "frames": 573,
+            "seconds": 5.0534749999046324,
+            "fps": 113.38732258709372,
+            "guest_seconds": 26.91,
+            "arena_mib": 832.0,
+            "browser_pss_mib": 4040.2763671875,
+            "wasm_capacity_mib": 1953.25,
+            "allocated_bytes": 1911351696,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": null,
+            "live_segments": null,
+            "late_compiled_functions": 112,
+            "late_compilation_us": {
+              "aot_translation_us": 12733,
+              "aot_emission_us": 1006,
+              "aot_installation_us": 7579
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 776300000,
+            "end_guest_us": 803210000,
+            "start_scene": "instant-play-driving-sound-on-start.png",
+            "end_scene": "instant-play-driving-sound-on-end.png"
+          }
+        ]
+      },
+      "growth": {
+        "capture": "asphalt-3-root-c",
+        "fps": 67.88107156881365,
+        "arena_mib": 199.0,
+        "browser_pss_mib": 3563.4541015625,
+        "wasm_capacity_mib": 1313.0625,
+        "windows": [
+          {
+            "file": "asphalt-3-root-c/instant-play-driving-sound-on.json",
+            "label": "instant-play-driving-sound-on",
+            "frames": 343,
+            "seconds": 5.052955000162124,
+            "fps": 67.88107156881365,
+            "guest_seconds": 21.05,
+            "arena_mib": 199.0,
+            "browser_pss_mib": 3563.4541015625,
+            "wasm_capacity_mib": 1313.0625,
+            "allocated_bytes": 1248236888,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": 35,
+            "live_segments": 26,
+            "late_compiled_functions": 86,
+            "late_compilation_us": {
+              "aot_translation_us": 8885,
+              "aot_emission_us": 838,
+              "aot_installation_us": 6627
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 1
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 1
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 776290000,
+            "end_guest_us": 797340000,
+            "start_scene": "instant-play-driving-sound-on-start.png",
+            "end_scene": "instant-play-driving-sound-on-end.png"
+          }
+        ]
+      },
+      "fps_change_percent": -40.13345582203544,
+      "arena_saving_mib": 633.0,
+      "browser_pss_saving_mib": 476.822265625
+    },
+    {
+      "game": "tetris",
+      "title": "Tetris",
+      "baseline": {
+        "capture": "tetris-baseline-b",
+        "fps": 147.4542057730737,
+        "arena_mib": 832.0,
+        "browser_pss_mib": 4008.6142578125,
+        "wasm_capacity_mib": 2012.5625,
+        "windows": [
+          {
+            "file": "tetris-baseline-b/marathon-level-1-long.json",
+            "label": "marathon-level-1-long",
+            "frames": 2236,
+            "seconds": 15.164030000209808,
+            "fps": 147.4542057730737,
+            "guest_seconds": 72.218,
+            "arena_mib": 832.0,
+            "browser_pss_mib": 4008.6142578125,
+            "wasm_capacity_mib": 2012.5625,
+            "allocated_bytes": 1912816208,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": null,
+            "live_segments": null,
+            "late_compiled_functions": 21,
+            "late_compilation_us": {
+              "aot_translation_us": 1606,
+              "aot_emission_us": 250,
+              "aot_installation_us": 2412
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 749125000,
+            "end_guest_us": 821343000,
+            "start_scene": "marathon-level-1-long-start.png",
+            "end_scene": "marathon-level-1-long-end.png"
+          }
+        ]
+      },
+      "growth": {
+        "capture": "tetris-root-b",
+        "fps": 116.87313924950591,
+        "arena_mib": 230.0,
+        "browser_pss_mib": 3600.7724609375,
+        "wasm_capacity_mib": 1328.3125,
+        "windows": [
+          {
+            "file": "tetris-root-b/marathon-level-1-long.json",
+            "label": "marathon-level-1-long",
+            "frames": 1773,
+            "seconds": 15.170295000076294,
+            "fps": 116.87313924950591,
+            "guest_seconds": 62.234375,
+            "arena_mib": 230.0,
+            "browser_pss_mib": 3600.7724609375,
+            "wasm_capacity_mib": 1328.3125,
+            "allocated_bytes": 1279510544,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": 37,
+            "live_segments": 26,
+            "late_compiled_functions": 27,
+            "late_compilation_us": {
+              "aot_translation_us": 2031,
+              "aot_emission_us": 288,
+              "aot_installation_us": 2521
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 1
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 1
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 749093750,
+            "end_guest_us": 811328125,
+            "start_scene": "marathon-level-1-long-start.png",
+            "end_scene": "marathon-level-1-long-end.png"
+          }
+        ]
+      },
+      "fps_change_percent": -20.739365393640163,
+      "arena_saving_mib": 602.0,
+      "browser_pss_saving_mib": 407.841796875
+    },
+    {
+      "game": "super-miners",
+      "title": "Super Miners",
+      "baseline": {
+        "capture": "super-miners-baseline-b",
+        "fps": 308.6312413128427,
+        "arena_mib": 320.0,
+        "browser_pss_mib": 2340.0322265625,
+        "wasm_capacity_mib": 1202.0,
+        "windows": [
+          {
+            "file": "super-miners-baseline-b/challenge-level-1.json",
+            "label": "challenge-level-1",
+            "frames": 1553,
+            "seconds": 5.031894999980927,
+            "fps": 308.6312413128427,
+            "guest_seconds": 48.5275,
+            "arena_mib": 320.0,
+            "browser_pss_mib": 2340.0322265625,
+            "wasm_capacity_mib": 1202.0,
+            "allocated_bytes": 1175731904,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": null,
+            "live_segments": null,
+            "late_compiled_functions": 0,
+            "late_compilation_us": {
+              "aot_translation_us": 527,
+              "aot_emission_us": 0,
+              "aot_installation_us": 0
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 60812500,
+            "end_guest_us": 109340000,
+            "start_scene": "challenge-level-1-start.png",
+            "end_scene": "challenge-level-1-end.png"
+          }
+        ]
+      },
+      "growth": {
+        "capture": "super-miners-root-b",
+        "fps": 234.30839277516856,
+        "arena_mib": 81.0,
+        "browser_pss_mib": 2145.755859375,
+        "wasm_capacity_mib": 1015.0625,
+        "windows": [
+          {
+            "file": "super-miners-root-b/challenge-level-1.json",
+            "label": "challenge-level-1",
+            "frames": 1179,
+            "seconds": 5.031829999923706,
+            "fps": 234.30839277516856,
+            "guest_seconds": 36.84,
+            "arena_mib": 81.0,
+            "browser_pss_mib": 2145.755859375,
+            "wasm_capacity_mib": 1015.0625,
+            "allocated_bytes": 925287392,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": 8,
+            "live_segments": 8,
+            "late_compiled_functions": 0,
+            "late_compilation_us": {
+              "aot_translation_us": 615,
+              "aot_emission_us": 0,
+              "aot_installation_us": 0
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 1
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 1
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 60690000,
+            "end_guest_us": 97530000,
+            "start_scene": "challenge-level-1-start.png",
+            "end_scene": "challenge-level-1-end.png"
+          }
+        ]
+      },
+      "fps_change_percent": -24.081440434067115,
+      "arena_saving_mib": 239.0,
+      "browser_pss_saving_mib": 194.2763671875
+    },
+    {
+      "game": "n-gage",
+      "title": "N-Gage client",
+      "baseline": {
+        "capture": "n-gage-baseline-c",
+        "fps": null,
+        "arena_mib": 768.0,
+        "browser_pss_mib": 3248.568359375,
+        "wasm_capacity_mib": 1745.5625,
+        "windows": [
+          {
+            "file": "n-gage-baseline-c/client-idle.json",
+            "label": "client-idle",
+            "frames": 18,
+            "seconds": 0.2850849997997284,
+            "fps": null,
+            "guest_seconds": 10,
+            "arena_mib": 768.0,
+            "browser_pss_mib": 3248.568359375,
+            "wasm_capacity_mib": 1745.5625,
+            "allocated_bytes": 1777077112,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": null,
+            "live_segments": null,
+            "late_compiled_functions": 70,
+            "late_compilation_us": {
+              "aot_translation_us": 18806,
+              "aot_emission_us": 1247,
+              "aot_installation_us": 3023
+            },
+            "mode": "bounded guest-time client route; not an FPS benchmark",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 59800000,
+            "end_guest_us": 69800000,
+            "start_scene": "client-idle-start.png",
+            "end_scene": "client-idle-end.png"
+          }
+        ]
+      },
+      "growth": {
+        "capture": "n-gage-root-c",
+        "fps": null,
+        "arena_mib": 164.0,
+        "browser_pss_mib": 2751.9736328125,
+        "wasm_capacity_mib": 1207.9375,
+        "windows": [
+          {
+            "file": "n-gage-root-c/client-idle.json",
+            "label": "client-idle",
+            "frames": 18,
+            "seconds": 0.3181500000953674,
+            "fps": null,
+            "guest_seconds": 10,
+            "arena_mib": 164.0,
+            "browser_pss_mib": 2751.9736328125,
+            "wasm_capacity_mib": 1207.9375,
+            "allocated_bytes": 1143807976,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": 23,
+            "live_segments": 23,
+            "late_compiled_functions": 78,
+            "late_compilation_us": {
+              "aot_translation_us": 12508,
+              "aot_emission_us": 845,
+              "aot_installation_us": 2709
+            },
+            "mode": "bounded guest-time client route; not an FPS benchmark",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 1
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 1
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 59800000,
+            "end_guest_us": 69800000,
+            "start_scene": "client-idle-start.png",
+            "end_scene": "client-idle-end.png"
+          }
+        ]
+      },
+      "fps_change_percent": null,
+      "arena_saving_mib": 604.0,
+      "browser_pss_saving_mib": 496.5947265625
+    }
+  ],
+  "default_off_checks": [
+    {
+      "game": "snakes",
+      "baseline": {
+        "capture": "snakes-baseline-c",
+        "fps": 99.35459256631025,
+        "arena_mib": 320.0,
+        "browser_pss_mib": 2331.982421875,
+        "wasm_capacity_mib": 1202.0,
+        "windows": [
+          {
+            "file": "snakes-baseline-c/opening-level-valid.json",
+            "label": "opening-level-valid",
+            "frames": 500,
+            "seconds": 5.032480000019073,
+            "fps": 99.35459256631025,
+            "guest_seconds": 23.63,
+            "arena_mib": 320.0,
+            "browser_pss_mib": 2331.982421875,
+            "wasm_capacity_mib": 1202.0,
+            "allocated_bytes": 1174818856,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": null,
+            "live_segments": null,
+            "late_compiled_functions": 67,
+            "late_compilation_us": {
+              "aot_translation_us": 7043,
+              "aot_emission_us": 664,
+              "aot_installation_us": 1304
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 54260000,
+            "end_guest_us": 77890000,
+            "start_scene": "opening-level-valid-start.png",
+            "end_scene": "opening-level-valid-end.png"
+          }
+        ]
+      },
+      "new_build_growth_off": {
+        "capture": "snakes-off-c",
+        "fps": 74.3927321267976,
+        "arena_mib": 320.0,
+        "browser_pss_mib": 2333.701171875,
+        "wasm_capacity_mib": 1202.0,
+        "windows": [
+          {
+            "file": "snakes-off-c/opening-level-valid.json",
+            "label": "opening-level-valid",
+            "frames": 375,
+            "seconds": 5.04081500005722,
+            "fps": 74.3927321267976,
+            "guest_seconds": 21.14,
+            "arena_mib": 320.0,
+            "browser_pss_mib": 2333.701171875,
+            "wasm_capacity_mib": 1202.0,
+            "allocated_bytes": 1174544904,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": 0,
+            "live_segments": 0,
+            "late_compiled_functions": 87,
+            "late_compilation_us": {
+              "aot_translation_us": 8867,
+              "aot_emission_us": 980,
+              "aot_installation_us": 2480
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 0
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 0
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 54350000,
+            "end_guest_us": 75490000,
+            "start_scene": "opening-level-valid-start.png",
+            "end_scene": "opening-level-valid-end.png"
+          }
+        ]
+      },
+      "fps_change_percent": -25.124012685022944
+    },
+    {
+      "game": "snakes",
+      "baseline": {
+        "capture": "snakes-baseline-d",
+        "fps": 98.31933524193256,
+        "arena_mib": 320.0,
+        "browser_pss_mib": 2339.8125,
+        "wasm_capacity_mib": 1202.0,
+        "windows": [
+          {
+            "file": "snakes-baseline-d/opening-level-valid.json",
+            "label": "opening-level-valid",
+            "frames": 495,
+            "seconds": 5.034615000009537,
+            "fps": 98.31933524193256,
+            "guest_seconds": 23.44,
+            "arena_mib": 320.0,
+            "browser_pss_mib": 2339.8125,
+            "wasm_capacity_mib": 1202.0,
+            "allocated_bytes": 1174764088,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": null,
+            "live_segments": null,
+            "late_compiled_functions": 70,
+            "late_compilation_us": {
+              "aot_translation_us": 7285,
+              "aot_emission_us": 723,
+              "aot_installation_us": 1463
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 54370000,
+            "end_guest_us": 77810000,
+            "start_scene": "opening-level-valid-start.png",
+            "end_scene": "opening-level-valid-end.png"
+          }
+        ]
+      },
+      "new_build_growth_off": {
+        "capture": "snakes-off-d",
+        "fps": 97.29432426407138,
+        "arena_mib": 320.0,
+        "browser_pss_mib": 2336.05078125,
+        "wasm_capacity_mib": 1202.0,
+        "windows": [
+          {
+            "file": "snakes-off-d/opening-level-valid.json",
+            "label": "opening-level-valid",
+            "frames": 490,
+            "seconds": 5.036265000104904,
+            "fps": 97.29432426407138,
+            "guest_seconds": 23.260625,
+            "arena_mib": 320.0,
+            "browser_pss_mib": 2336.05078125,
+            "wasm_capacity_mib": 1202.0,
+            "allocated_bytes": 1175904160,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": 0,
+            "live_segments": 0,
+            "late_compiled_functions": 91,
+            "late_compilation_us": {
+              "aot_translation_us": 6239,
+              "aot_emission_us": 917,
+              "aot_installation_us": 1793
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 0
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 0
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 54380000,
+            "end_guest_us": 77640625,
+            "start_scene": "opening-level-valid-start.png",
+            "end_scene": "opening-level-valid-end.png"
+          }
+        ]
+      },
+      "fps_change_percent": -1.0425324533968383
+    },
+    {
+      "game": "sky-force",
+      "baseline": {
+        "capture": "sky-force-baseline-d",
+        "fps": 314.5779288502251,
+        "arena_mib": 320.0,
+        "browser_pss_mib": 2267.515625,
+        "wasm_capacity_mib": 1194.0,
+        "windows": [
+          {
+            "file": "sky-force-baseline-d/stage-1.json",
+            "label": "stage-1",
+            "frames": 633,
+            "seconds": 2.01222000002861,
+            "fps": 314.5779288502251,
+            "guest_seconds": 19.78125,
+            "arena_mib": 320.0,
+            "browser_pss_mib": 2267.515625,
+            "wasm_capacity_mib": 1194.0,
+            "allocated_bytes": 1173725776,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": null,
+            "live_segments": null,
+            "late_compiled_functions": 33,
+            "late_compilation_us": {
+              "aot_translation_us": 2582,
+              "aot_emission_us": 329,
+              "aot_installation_us": 949
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 59531250,
+            "end_guest_us": 79312500,
+            "start_scene": "stage-1-start.png",
+            "end_scene": "stage-1-end.png"
+          }
+        ]
+      },
+      "new_build_growth_off": {
+        "capture": "sky-force-off-d",
+        "fps": 318.9903607425327,
+        "arena_mib": 320.0,
+        "browser_pss_mib": 2276.162109375,
+        "wasm_capacity_mib": 1194.0,
+        "windows": [
+          {
+            "file": "sky-force-off-d/stage-1.json",
+            "label": "stage-1",
+            "frames": 642,
+            "seconds": 2.0125999999046327,
+            "fps": 318.9903607425327,
+            "guest_seconds": 20.07,
+            "arena_mib": 320.0,
+            "browser_pss_mib": 2276.162109375,
+            "wasm_capacity_mib": 1194.0,
+            "allocated_bytes": 1173754528,
+            "arena_growths_in_window": 0,
+            "arena_growths_total": 0,
+            "live_segments": 0,
+            "late_compiled_functions": 31,
+            "late_compilation_us": {
+              "aot_translation_us": 2681,
+              "aot_emission_us": 334,
+              "aot_installation_us": 864
+            },
+            "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+            "policy": {
+              "requested": {
+                "watchdogUs": 2000,
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 0
+              },
+              "applied": true,
+              "observed": {
+                "unsafeCode": 3,
+                "memoryImpl": 2,
+                "arenaGrowth": 0
+              }
+            },
+            "instructions": 0,
+            "start_guest_us": 59360000,
+            "end_guest_us": 79430000,
+            "start_scene": "stage-1-start.png",
+            "end_scene": "stage-1-end.png"
+          }
+        ]
+      },
+      "fps_change_percent": 1.402651453786019
+    }
+  ],
+  "snakes_reverse_order_repeat": {
+    "baseline": {
+      "capture": "snakes-baseline-c",
+      "fps": 99.35459256631025,
+      "arena_mib": 320.0,
+      "browser_pss_mib": 2331.982421875,
+      "wasm_capacity_mib": 1202.0,
+      "windows": [
+        {
+          "file": "snakes-baseline-c/opening-level-valid.json",
+          "label": "opening-level-valid",
+          "frames": 500,
+          "seconds": 5.032480000019073,
+          "fps": 99.35459256631025,
+          "guest_seconds": 23.63,
+          "arena_mib": 320.0,
+          "browser_pss_mib": 2331.982421875,
+          "wasm_capacity_mib": 1202.0,
+          "allocated_bytes": 1174818856,
+          "arena_growths_in_window": 0,
+          "arena_growths_total": null,
+          "live_segments": null,
+          "late_compiled_functions": 67,
+          "late_compilation_us": {
+            "aot_translation_us": 7043,
+            "aot_emission_us": 664,
+            "aot_installation_us": 1304
+          },
+          "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+          "policy": {
+            "requested": {
+              "watchdogUs": 2000,
+              "unsafeCode": 3,
+              "memoryImpl": 2
+            },
+            "applied": true,
+            "observed": {
+              "unsafeCode": 3,
+              "memoryImpl": 2
+            }
+          },
+          "instructions": 0,
+          "start_guest_us": 54260000,
+          "end_guest_us": 77890000,
+          "start_scene": "opening-level-valid-start.png",
+          "end_scene": "opening-level-valid-end.png"
+        }
+      ]
+    },
+    "growth": {
+      "capture": "snakes-root-c",
+      "fps": 72.69130623880221,
+      "arena_mib": 65.0,
+      "browser_pss_mib": 2102.38671875,
+      "wasm_capacity_mib": 939.9375,
+      "windows": [
+        {
+          "file": "snakes-root-c/opening-level-valid.json",
+          "label": "opening-level-valid",
+          "frames": 366,
+          "seconds": 5.034990000009537,
+          "fps": 72.69130623880221,
+          "guest_seconds": 21.48,
+          "arena_mib": 65.0,
+          "browser_pss_mib": 2102.38671875,
+          "wasm_capacity_mib": 939.9375,
+          "allocated_bytes": 907467840,
+          "arena_growths_in_window": 0,
+          "arena_growths_total": 8,
+          "live_segments": 8,
+          "late_compiled_functions": 115,
+          "late_compilation_us": {
+            "aot_translation_us": 11650,
+            "aot_emission_us": 1218,
+            "aot_installation_us": 2946
+          },
+          "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+          "policy": {
+            "requested": {
+              "watchdogUs": 2000,
+              "unsafeCode": 3,
+              "memoryImpl": 2,
+              "arenaGrowth": 1
+            },
+            "applied": true,
+            "observed": {
+              "unsafeCode": 3,
+              "memoryImpl": 2,
+              "arenaGrowth": 1
+            }
+          },
+          "instructions": 0,
+          "start_guest_us": 54340000,
+          "end_guest_us": 75820000,
+          "start_scene": "opening-level-valid-start.png",
+          "end_scene": "opening-level-valid-end.png"
+        }
+      ]
+    }
+  },
+  "invalid_attempts": [
+    {
+      "capture": "asphalt-3-baseline-a",
+      "error": "AssertionError [ERR_ASSERTION]: Asphalt 3 is not showing the racing HUD; reject this route",
+      "guest_errors": []
+    },
+    {
+      "capture": "asphalt-3-baseline-b",
+      "error": "AssertionError [ERR_ASSERTION]: Asphalt 3 is not showing the racing HUD; reject this route",
+      "guest_errors": [
+        "[11:49:49.608] I /home/claude/code/EKA2L1/src/emu/services/src/fs/fs.cpp:835 [Service.EFsrv]: Get entry of: c:\\Private\\2000AFE3\\A3\\tracksh.bar\n[11:49:49.611] T /home/claude/code/EKA2L1/src/emu/services/src/loader/loader.cpp:231 [Service.Loader]: Loaded library: OmaDrmAgent.dll\n[11:49:49.612] T /home/claude/code/EKA2L1/src/emu/services/src/loader/loader.cpp:231 [Service.Loader]: Loaded library: wmdrmagent.dll\n[11:49:49.616] T /home/claude/code/EKA2L1/src/emu/services/src/loader/loader.cpp:231 [Service.Loader]: Loaded library: f32agent.dll\n[11:49:49.616] I /home/claude/code/EKA2L1/src/emu/services/src/fs/files.cpp:923 [Service.EFsrv]: Opening file: c:\\Private\\2000AFE3\\A3\\tracksh.bar, raw mode 1\n[11:49:49.616] T /home/claude/code/EKA2L1/src/emu/services/src/fs/files.cpp:932 [Service.EFsrv]: Handle opened: 65537\n[11:49:49.616] I /home/claude/code/EKA2L1/src/emu/services/src/fs/files.cpp:923 [Service.EFsrv]: Opening file: c:\\Private\\2000AFE3\\A3\\tracksh.bar, raw mode 3\n[11:49:49.616] T /home/claude/code/EKA2L1/src/emu/services/src/fs/files.cpp:932 [Service.EFsrv]: Handle opened: 4063233\n[11:49:49.616] T /home/claude/code/EKA2L1/src/emu/services/src/applist/applist.cpp:945 [Service.Applist]: AppList::GetPreferredBufSize stubbed to 0\n[11:49:49.616] T /home/claude/code/EKA2L1/src/emu/services/src/applist/applist.cpp:1023 [Service.Applist]: AppList::AppForDocument datatype stubbed with file extension\n[11:49:49.619] I /home/claude/code/EKA2L1/src/emu/services/src/fs/files.cpp:923 [Service.EFsrv]: Opening file: C:\\Private\\2000AFE3\\A3\\tracksh.bar, raw mode 3\n[11:49:49.619] T /home/claude/code/EKA2L1/src/emu/services/src/fs/files.cpp:932 [Service.EFsrv]: Handle opened: 2424833\n[11:49:49.619] I /home/claude/code/EKA2L1/src/emu/services/src/fs/fs.cpp:835 [Service.EFsrv]: Get entry of: C:\\Private\\2000AFE3\\A3\\tracksh.bar\n[11:49:49.620] I /home/claude/code/EKA2L1/src/emu/services/src/fs/files.cpp:923 [Service.EFsrv]: Opening file: C:\\Private\\2000AFE3\\A3\\tracksh.bar, raw mode 2\n[11:49:49.620] T /home/claude/code/EKA2L1/src/emu/services/src/fs/files.cpp:932 [Service.EFsrv]: Handle opened: 2490369\n[11:49:49.624] T /home/claude/code/EKA2L1/src/emu/services/src/loader/loader.cpp:231 [Service.Loader]: Loaded library: OmaDrmAgent.dll\n[11:49:49.627] T /home/claude/code/EKA2L1/src/emu/services/src/loader/loader.cpp:231 [Service.Loader]: Loaded library: wmdrmagent.dll\n[11:49:49.630] T /home/claude/code/EKA2L1/src/emu/services/src/loader/loader.cpp:231 [Service.Loader]: Loaded library: f32agent.dll\n[11:49:49.630] I /home/claude/code/EKA2L1/src/emu/services/src/fs/files.cpp:923 [Service.EFsrv]: Opening file: c:\\Private\\2000AFE3\\A3\\tracksh.bar, raw mode 1\n[11:49:49.630] T /home/claude/code/EKA2L1/src/emu/services/src/fs/files.cpp:932 [Service.EFsrv]: Handle opened: 65537\n[11:49:49.631] I /home/claude/code/EKA2L1/src/emu/services/src/fs/files.cpp:923 [Service.EFsrv]: Opening file: c:\\Private\\2000AFE3\\A3\\tracksh.bar, raw mode 3\n[11:49:49.631] T /home/claude/code/EKA2L1/src/emu/services/src/fs/files.cpp:932 [Service.EFsrv]: Handle opened: 4128769\n[11:49:49.631] T /home/claude/code/EKA2L1/src/emu/services/src/applist/applist.cpp:945 [Service.Applist]: AppList::GetPreferredBufSize stubbed to 0\n[11:49:49.631] T /home/claude/code/EKA2L1/src/emu/services/src/applist/applist.cpp:1023 [Service.Applist]: AppList::AppForDocument datatype stubbed with file extension\n[11:49:49.643] E /home/claude/code/EKA2L1/src/emu/kernel/src/kernel.cpp:386 [Kernel]: Access violation reading address 0x8 in thread Main",
+        "[11:49:49.647] T /home/claude/code/EKA2L1/src/emu/kernel/src/kernel.cpp:231 [Kernel]: Last instruction: ldr r1, [r3, #8] (0xe5931008)\n[11:49:49.647] T /home/claude/code/EKA2L1/src/emu/kernel/src/kernel.cpp:241 [Kernel]: LR instruction: mov r0, r4 (0xe1a00004)\n[11:49:49.647] T /home/claude/code/EKA2L1/src/emu/cpu/src/arm_utils.cpp:35 [CPU]: CPU context: \n[11:49:49.647] T /home/claude/code/EKA2L1/src/emu/cpu/src/arm_utils.cpp:36 [CPU]: pc: 0x74e09eb8\n[11:49:49.647] T /home/claude/code/EKA2L1/src/emu/cpu/src/arm_utils.cpp:37 [CPU]: lr: 0x74ec51c0\n[11:49:49.647] T /home/claude/code/EKA2L1/src/emu/cpu/src/arm_utils.cpp:38 [CPU]: sp: 0x6072a8\n[11:49:49.647] T /home/claude/code/EKA2L1/src/emu/cpu/src/arm_utils.cpp:39 [CPU]: cpsr: 0x40000000\n[11:49:49.647] T /home/claude/code/EKA2L1/src/emu/cpu/src/arm_utils.cpp:42 [CPU]: r0: 0x9b54e8\n[11:49:49.647] T /home/claude/code/EKA2L1/src/emu/cpu/src/arm_utils.cpp:42 [CPU]: r1: 0x40000000\n[11:49:49.647] T /home/claude/code/EKA2L1/src/emu/cpu/src/arm_utils.cpp:42 [CPU]: r2: 0xa47e0\n[11:49:49.647] T /home/claude/code/EKA2L1/src/emu/cpu/src/arm_utils.cpp:42 [CPU]: r3: 0x0\n[11:49:49.647] T /home/claude/code/EKA2L1/src/emu/cpu/src/arm_utils.cpp:42 [CPU]: r4: 0x0\n[11:49:49.647] T /home/claude/code/EKA2L1/src/emu/cpu/src/arm_utils.cpp:42 [CPU]: r5: 0x9b5428\n[11:49:49.647] T /home/claude/code/EKA2L1/src/emu/cpu/src/arm_utils.cpp:42 [CPU]: r6: 0x9b54e8\n[11:49:49.647] T /home/claude/code/EKA2L1/src/emu/cpu/src/arm_utils.cpp:42 [CPU]: r7: 0x958170\n[11:49:49.647] T /home/claude/code/EKA2L1/src/emu/cpu/src/arm_utils.cpp:42 [CPU]: r8: 0x1\n[11:49:49.647] T /home/claude/code/EKA2L1/src/emu/cpu/src/arm_utils.cpp:42 [CPU]: r9: 0x0\n[11:49:49.647] T /home/claude/code/EKA2L1/src/emu/cpu/src/arm_utils.cpp:42 [CPU]: r10: 0x9ae448\n[11:49:49.648] T /home/claude/code/EKA2L1/src/emu/cpu/src/arm_utils.cpp:42 [CPU]: r11: 0x6072dc\n[11:49:49.648] T /home/claude/code/EKA2L1/src/emu/cpu/src/arm_utils.cpp:42 [CPU]: r12: 0x75000000\n[11:49:49.648] T /home/claude/code/EKA2L1/src/emu/cpu/src/arm_utils.cpp:42 [CPU]: r13: 0x6072a8\n[11:49:49.648] T /home/claude/code/EKA2L1/src/emu/cpu/src/arm_utils.cpp:42 [CPU]: r14: 0x74ec51c0\n[11:49:49.648] T /home/claude/code/EKA2L1/src/emu/cpu/src/arm_utils.cpp:42 [CPU]: r15: 0x74e09eb8\n[11:49:49.648] T /home/claude/code/EKA2L1/src/emu/kernel/src/thread.cpp:561 [Kernel]: Thread Main terminated peacefully with category: KERN-EXEC and exit code: 3\n[11:49:49.648] T /home/claude/code/EKA2L1/src/emu/services/src/window/screen.cpp:811 [Service.Window]: Screen mode changed to 0\n[11:49:49.648] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x101F877C: changes saved\n[11:49:49.648] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x101F876D: changes saved\n[11:49:49.648] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x1020503B: changes saved\n[11:49:49.648] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x10272618: changes saved\n[11:49:49.648] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x10009793: changes saved\n[11:49:49.648] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x20001079: changes saved\n[11:49:49.648] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x10200C8B: changes saved\n[11:49:49.649] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x101F8798: changes saved\n[11:49:49.649] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x101F8798: changes saved\n[11:49:49.649] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x101F8798: changes saved\n[11:49:49.651] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x10200C8B: changes saved\n[11:49:49.656] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x101F8798: changes saved\n[11:49:49.656] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x20001079: changes saved\n[11:49:49.656] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x20001079: changes saved\n[11:49:49.656] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x20001079: changes saved\n[11:49:49.656] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x20001079: changes saved\n[11:49:49.657] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x20001079: changes saved\n[11:49:49.657] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x1020503B: changes saved\n[11:49:49.657] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x101F876D: changes saved\n[11:49:49.657] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x20001079: changes saved\n[11:49:49.657] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x101F8798: changes saved\n[11:49:49.657] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x102818E8: changes saved\n[11:49:49.659] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x20001079: changes saved\n[11:49:49.659] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x101F876D: changes saved\n[11:49:49.659] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x2000107A: changes saved\n[11:49:49.659] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x20001079: changes saved\n[11:49:49.659] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x20001079: changes saved\n[11:49:49.659] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x101F8780: changes saved\n[11:49:49.659] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x10272618: changes saved\n[11:49:49.660] T /home/claude/code/EKA2L1/src/emu/kernel/src/thread.cpp:561 [Kernel]: Thread AnonymousThread terminated peacefully with category: Domino and exit code: 3\n[11:49:49.660] T /home/claude/code/EKA2L1/src/emu/kernel/src/thread.cpp:561 [Kernel]: Thread 01900a0887985aa5 terminated peacefully with category: Domino and exit code: 3\n[11:49:49.660] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x2000107A: changes saved\n[11:49:49.671] E /home/claude/code/EKA2L1/src/emu/cpu/src/dyncom/armstate.cpp:264 [CPU.DynCom]: Failure reading 32bit value at 0x8\n[11:49:49.696] W /home/claude/code/EKA2L1/src/emu/services/src/ui/cap/oom_app.cpp:151 [Service.UI]: Unimplemented opcode for OOM AKNCAP server: 0x3F, fake return with epoc::error_none\n[11:49:49.705] T /home/claude/code/EKA2L1/src/emu/kernel/src/svc.cpp:1394 [Kernel]: Leave started! Guess leave code: -36\n[11:49:49.707] T /home/claude/code/EKA2L1/src/emu/kernel/src/svc.cpp:1409 [Kernel]: Leave trapped by trap handler.\n[11:49:49.736] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x20008BB7: changes saved\n[11:49:49.736] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x20008BB7: changes saved\n[11:49:49.740] W /home/claude/code/EKA2L1/src/emu/kernel/src/ipc.cpp:96 [Kernel]: Unreferencing an already-released IPC message (id 490, function 0x400000)\n[11:49:49.747] T /home/claude/code/EKA2L1/src/emu/services/src/fbs/impls/bitmap.cpp:652 [Service.Fbs]: Loading bitmap from: E:\\resource\\apps\\playcommon.mbm, id: 32\n[11:49:49.748] T /home/claude/code/EKA2L1/src/emu/services/src/fbs/impls/bitmap.cpp:652 [Service.Fbs]: Loading bitmap from: E:\\resource\\apps\\playcommon.mbm, id: 33\n[11:49:49.748] T /home/claude/code/EKA2L1/src/emu/services/src/fbs/impls/bitmap.cpp:652 [Service.Fbs]: Loading bitmap from: E:\\resource\\apps\\playcommon.mbm, id: 342\n[11:49:49.748] T /home/claude/code/EKA2L1/src/emu/services/src/fbs/impls/bitmap.cpp:652 [Service.Fbs]: Loading bitmap from: E:\\resource\\apps\\playcommon.mbm, id: 343\n[11:49:49.748] T /home/claude/code/EKA2L1/src/emu/services/src/fbs/impls/bitmap.cpp:652 [Service.Fbs]: Loading bitmap from: E:\\resource\\apps\\playcommon.mbm, id: 340\n[11:49:49.748] T /home/claude/code/EKA2L1/src/emu/services/src/fbs/impls/bitmap.cpp:652 [Service.Fbs]: Loading bitmap from: E:\\resource\\apps\\playcommon.mbm, id: 341\n[11:49:49.750] T /home/claude/code/EKA2L1/src/emu/services/src/fbs/impls/bitmap.cpp:652 [Service.Fbs]: Loading bitmap from: E:\\resource\\apps\\playcommon.mbm, id: 338\n[11:49:49.750] T /home/claude/code/EKA2L1/src/emu/services/src/fbs/impls/bitmap.cpp:652 [Service.Fbs]: Loading bitmap from: E:\\resource\\apps\\playcommon.mbm, id: 339\n[11:49:49.756] T /home/claude/code/EKA2L1/src/emu/kernel/src/svc.cpp:1394 [Kernel]: Leave started! Guess leave code: -5\n[11:49:49.756] T /home/claude/code/EKA2L1/src/emu/kernel/src/svc.cpp:1409 [Kernel]: Leave trapped by trap handler.\n[11:49:49.756] T /home/claude/code/EKA2L1/src/emu/kernel/src/svc.cpp:1394 [Kernel]: Leave started! Guess leave code: -5\n[11:49:49.756] T /home/claude/code/EKA2L1/src/emu/kernel/src/svc.cpp:1409 [Kernel]: Leave trapped by trap handler.\n[11:49:49.758] W /home/claude/code/EKA2L1/src/emu/services/src/window/classes/winuser.cpp:1048 [Service.Window]: SetCornerType stubbed\n[11:49:49.759] T /home/claude/code/EKA2L1/src/emu/services/src/fbs/impls/bitmap.cpp:652 [Service.Fbs]: Loading bitmap from: E:\\resource\\apps\\playcommon.mbm, id: 288\n[11:49:49.759] T /home/claude/code/EKA2L1/src/emu/services/src/fbs/impls/bitmap.cpp:652 [Service.Fbs]: Loading bitmap from: E:\\resource\\apps\\playcommon.mbm, id: 289\n[11:49:49.760] W /home/claude/code/EKA2L1/src/emu/services/src/window/classes/winuser.cpp:1652 [Service.Window]: Unimplemented redraw canvas opcode 0x1D!\n[11:49:49.760] T /home/claude/code/EKA2L1/src/emu/services/src/fbs/impls/bitmap.cpp:652 [Service.Fbs]: Loading bitmap from: E:\\resource\\apps\\playcommon.mbm, id: 288\n[11:49:49.760] T /home/claude/code/EKA2L1/src/emu/services/src/fbs/impls/bitmap.cpp:652 [Service.Fbs]: Loading bitmap from: E:\\resource\\apps\\playcommon.mbm, id: 289\n[11:49:49.760] W /home/claude/code/EKA2L1/src/emu/services/src/window/classes/winuser.cpp:1652 [Service.Window]: Unimplemented redraw canvas opcode 0x1D!\n[11:49:49.761] T /home/claude/code/EKA2L1/src/emu/services/src/fbs/impls/bitmap.cpp:652 [Service.Fbs]: Loading bitmap from: E:\\resource\\apps\\playcommon.mbm, id: 288\n[11:49:49.761] T /home/claude/code/EKA2L1/src/emu/services/src/fbs/impls/bitmap.cpp:652 [Service.Fbs]: Loading bitmap from: E:\\resource\\apps\\playcommon.mbm, id: 289\n[11:49:49.763] W /home/claude/code/EKA2L1/src/emu/services/src/window/classes/winuser.cpp:1652 [Service.Window]: Unimplemented redraw canvas opcode 0x1D!\n[11:49:49.763] T /home/claude/code/EKA2L1/src/emu/services/src/fbs/impls/bitmap.cpp:652 [Service.Fbs]: Loading bitmap from: E:\\resource\\apps\\playcommon.mbm, id: 288\n[11:49:49.764] T /home/claude/code/EKA2L1/src/emu/services/src/fbs/impls/bitmap.cpp:652 [Service.Fbs]: Loading bitmap from: E:\\resource\\apps\\playcommon.mbm, id: 289\n[11:49:49.766] W /home/claude/code/EKA2L1/src/emu/services/src/window/classes/winuser.cpp:1652 [Service.Window]: Unimplemented redraw canvas opcode 0x1D!\n[11:49:49.768] T /home/claude/code/EKA2L1/src/emu/services/src/fbs/impls/bitmap.cpp:652 [Service.Fbs]: Loading bitmap from: E:\\resource\\apps\\playcommon.mbm, id: 288\n[11:49:49.768] T /home/claude/code/EKA2L1/src/emu/services/src/fbs/impls/bitmap.cpp:652 [Service.Fbs]: Loading bitmap from: E:\\resource\\apps\\playcommon.mbm, id: 289\n[11:49:49.771] T /home/claude/code/EKA2L1/src/emu/kernel/src/svc.cpp:1394 [Kernel]: Leave started! Guess leave code: -5\n[11:49:49.771] T /home/claude/code/EKA2L1/src/emu/kernel/src/svc.cpp:1409 [Kernel]: Leave trapped by trap handler.\n[11:49:49.772] T /home/claude/code/EKA2L1/src/emu/kernel/src/svc.cpp:1394 [Kernel]: Leave started! Guess leave code: -5\n[11:49:49.772] T /home/claude/code/EKA2L1/src/emu/kernel/src/svc.cpp:1409 [Kernel]: Leave trapped by trap handler.\n[11:49:49.772] T /home/claude/code/EKA2L1/src/emu/kernel/src/svc.cpp:1394 [Kernel]: Leave started! Guess leave code: -5\n[11:49:49.772] T /home/claude/code/EKA2L1/src/emu/kernel/src/svc.cpp:1409 [Kernel]: Leave trapped by trap handler.\n[11:49:49.772] T /home/claude/code/EKA2L1/src/emu/kernel/src/svc.cpp:1394 [Kernel]: Leave started! Guess leave code: -5\n[11:49:49.772] T /home/claude/code/EKA2L1/src/emu/kernel/src/svc.cpp:1409 [Kernel]: Leave trapped by trap handler.\n[11:49:49.776] T /home/claude/code/EKA2L1/src/emu/kernel/src/svc.cpp:1394 [Kernel]: Leave started! Guess leave code: -1\n[11:49:49.776] T /home/claude/code/EKA2L1/src/emu/kernel/src/svc.cpp:1409 [Kernel]: Leave trapped by trap handler.\n[11:49:49.776] W /home/claude/code/EKA2L1/src/emu/services/src/window/classes/winuser.cpp:1652 [Service.Window]: Unimplemented redraw canvas opcode 0x1D!\n[11:49:49.777] T /home/claude/code/EKA2L1/src/emu/kernel/src/svc.cpp:3208 [Emulated.Stdout]: CPlayNavigationBar::Draw::0,24\n[11:49:49.792] W /home/claude/code/EKA2L1/src/emu/services/src/window/classes/gctx.cpp:1465 [Service.Window]: Unimplemented graphics context opcode 25\n[11:49:49.823] T /home/claude/code/EKA2L1/src/emu/services/src/centralrepo/centralrepo.cpp:1193 [Service.CenRep]: Repo 0x20008BB7: changes saved\n[11:49:49.824] T /home/claude/code/EKA2L1/src/emu/kernel/src/svc.cpp:2657 [Kernel]: Attach to property with category: 0x20007b39, key: 0x892d2f"
+      ]
+    },
+    {
+      "capture": "hooked-on-root-b",
+      "error": "AssertionError [ERR_ASSERTION]: Hooked On tutorial obscures the measured boat scene",
+      "guest_errors": []
+    },
+    {
+      "capture": "n-gage-baseline-a",
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(samples.every(s=>s.phase===0))\n",
+      "guest_errors": []
+    },
+    {
+      "capture": "n-gage-baseline-b",
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(samples.every(s=>s.phase===0))\n",
+      "guest_errors": []
+    },
+    {
+      "capture": "n-gage-growth-a",
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(samples.every(s=>s.phase===0))\n",
+      "guest_errors": []
+    },
+    {
+      "capture": "n-gage-root-b",
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(samples.every(s=>s.phase===0))\n",
+      "guest_errors": []
+    }
+  ],
+  "verification": {
+    "wasm_tests_passed": 190,
+    "wasm_tests_failed": 0,
+    "native_assertions": 915,
+    "native_cases": 37,
+    "launcher_policy_test": "passed",
+    "valid_gameplay_routes": 8,
+    "valid_client_routes": 1
+  },
+  "public_lan": {
+    "url": "https://claude-laptop.lan:8188/",
+    "unchanged": true,
+    "growth_enabled": false
+  },
+  "notes": [
+    "Primary comparisons use the original frozen build as control; separate new-build flag-off checks are retained.",
+    "Hooked On FPS is total presentations / total elapsed time across three 10-second windows; PSS is maximum post-window sample.",
+    "N-Gage client uses a bounded guest-time navigation/idle route, not an FPS benchmark.",
+    "Asphalt 3 race view is stationary at 0 km/h with Up held. Screenshots prove the race HUD; this is not a moving-car benchmark.",
+    "One early default-off Snakes run was slow; repeat matched its original-build control. No statistical zero-regression guarantee is claimed."
+  ]
+}

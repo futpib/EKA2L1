@@ -177,6 +177,14 @@ Memory translation defaults to direct memory (mode 2) in WASM play. Set
 and must be removed from launch environments. See the
 [cache comparison and adoption](../benchmark/MEMORY_CACHE_RESULTS.md).
 
+`EKA2L1_ARENA_GROWTH=1` enables experimental process arena growth; it is off
+by default. It requires direct memory (mode 2) and unsafe code mode 3, and is
+frozen before guest initialization. Logical capacity starts at 4 MiB and grows
+up to the existing 64 MiB window. New stable buffers extend the window without
+moving existing native pointers. Other addresses and conflicting aliases use
+the canonical page table. This adds lookup work outside the first segment;
+see [measurements and limitations](../benchmark/ARENA_GROWTH_RESULTS.md).
+
 Eligible ARM short blocks always use inline memory access. `EKA2L1_ARM_MEMORY`
 is retired and must be removed from launch environments. The TLB/direct backend
 selection below remains independent of this fixed compiler behavior. See the

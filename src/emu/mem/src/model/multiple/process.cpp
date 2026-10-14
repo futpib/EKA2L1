@@ -39,11 +39,56 @@ namespace eka2l1::mem {
 
     static constexpr std::size_t MAX_CHUNK_ALLOW_PER_PROCESS = 1024;
 
+    void *multiple_mem_model_process::grow_direct_local_backing(vm_address address, std::size_t size) {
+#ifdef __EMSCRIPTEN__
+        using namespace arm::aot::memory_experiment;
+        const auto end = std::uint64_t(address) + size;
+        for (const auto &segment : direct_segments_) {
+            if (address < segment.begin || end > std::uint64_t(segment.begin) + segment.size) continue;
+            const auto bias = static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(segment.host)) - segment.begin;
+            bool current = true;
+            for (auto bank = (address - direct_begin) >> bank_shift; bank <= ((end - direct_begin - 1) >> bank_shift); ++bank)
+                current &= direct_banks_[bank].bias == bias;
+            if (current) return static_cast<std::uint8_t *>(segment.host) + address - segment.begin;
+        }
+        auto capacity = std::max(direct_capacity_, 4u * 1024 * 1024);
+        while (end - direct_begin > capacity) capacity *= 2;
+        auto segment_end = std::uint64_t(direct_begin) + capacity;
+        // Grow into unreserved guest space only. Existing chunks and every host
+        // pointer into them keep their original backing, including native TLS.
+        for (const auto &chunk : chunks_) {
+            if (!chunk || !chunk->is_direct_host || !chunk->host_base_) continue;
+            const auto chunk_end = std::uint64_t(chunk->base_) + chunk->max_size_;
+            if (chunk->base_ < end && chunk_end > address) return nullptr;
+            if (chunk->base_ >= end) segment_end = std::min(segment_end, std::uint64_t(chunk->base_));
+        }
+        const auto bytes = static_cast<std::size_t>(segment_end - address);
+        auto *allocation = common::map_memory(bytes);
+        if (!allocation || allocation == reinterpret_cast<void *>(-1)) return nullptr;
+        direct_segments_.push_back({address, bytes, allocation});
+        const auto bias = static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(allocation)) - address;
+        for (auto bank = (address - direct_begin) >> bank_shift; bank < ((segment_end - direct_begin) >> bank_shift); ++bank)
+            direct_banks_[bank] = {bias, static_cast<std::uint32_t>(segment_end)};
+        if (!direct_local_) direct_local_ = allocation;
+        direct_capacity_ = capacity;
+        auto *control = static_cast<control_multiple *>(control_);
+        control->direct_growing_[addr_space_id_] = {direct_begin, capacity, 0, 3, direct_banks_.data()};
+        control->direct_local_[addr_space_id_] = direct_local_;
+        stats.arena_bytes += bytes;
+        ++stats.arena_growths; ++stats.arena_segments;
+        mapping_changed();
+        return allocation;
+#else
+        return nullptr;
+#endif
+    }
+
     void *multiple_mem_model_process::direct_local_backing(vm_address address, std::size_t size) {
 #ifdef __EMSCRIPTEN__
         using namespace arm::aot::memory_experiment;
-        if (mode != 2 || addr_space_id_ <= 0 || addr_space_id_ > 255 || address < direct_begin || std::uint64_t(address) + size > direct_begin + direct_size)
+        if (!size || mode != 2 || addr_space_id_ <= 0 || addr_space_id_ > 255 || address < direct_begin || std::uint64_t(address) + size > direct_begin + direct_size)
             return nullptr;
+        if (arena_growth) return grow_direct_local_backing(address, size);
         if (!direct_local_) {
             auto *allocation = common::map_memory(direct_size);
             if (!allocation || allocation == reinterpret_cast<void *>(-1)) return nullptr;
@@ -66,7 +111,16 @@ namespace eka2l1::mem {
 #endif
         // Chunks release their mappings before the shared arena is released.
         chunks_.clear();
-        if (direct_local_) {
+        if (!direct_segments_.empty()) {
+            auto *control = static_cast<control_multiple *>(control_);
+            control->direct_local_[addr_space_id_] = nullptr;
+            control->direct_growing_[addr_space_id_] = {};
+            for (const auto &segment : direct_segments_) {
+                common::unmap_memory(segment.host, segment.size);
+                arm::aot::memory_experiment::stats.arena_bytes -= segment.size;
+                --arm::aot::memory_experiment::stats.arena_segments;
+            }
+        } else if (direct_local_) {
             static_cast<control_multiple *>(control_)->direct_local_[addr_space_id_] = nullptr;
             common::unmap_memory(direct_local_, arm::aot::memory_experiment::direct_size);
             arm::aot::memory_experiment::stats.arena_bytes -= arm::aot::memory_experiment::direct_size;
