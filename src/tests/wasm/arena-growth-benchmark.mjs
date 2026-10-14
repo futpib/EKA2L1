@@ -36,6 +36,7 @@ const requireBoatWithoutHelp=name=>{
  let pale=0;for(let y=600;y<750;y++)for(let x=100;x<800;x++){const i=(y*png.width+x)*4;if(png.data[i]>190&&png.data[i+1]>210&&png.data[i+2]>210)pale++;}
  assert(pale<30000,'Hooked On tutorial obscures the measured boat scene');
 };
+const cpuFrequencies=()=>os.cpus().map((_,i)=>{try{return Number(fs.readFileSync('/sys/devices/system/cpu/cpu'+i+'/cpufreq/scaling_cur_freq','utf8'));}catch{return null;}});
 const measure=async(label,seconds=30)=>{
  await shot(label+'-start');
  if(label.startsWith('costa-rica-stationary-tutorial-dismissed'))requireBoatWithoutHelp(label+'-start');
@@ -47,11 +48,12 @@ const measure=async(label,seconds=30)=>{
   assert(hud.position>400&&hud.lap>400,'Asphalt 3 is not showing the racing HUD; reject this route');
  }
 
+ const clocksBefore=cpuFrequencies();
  const samples=[await status()],start=performance.now();
  if(game==='n-gage') {await step(seconds*1000000);samples.push(await status());}
  else while(performance.now()-start<seconds*1000){await wait(500);samples.push(await status())}
  const a=samples[0],b=samples.at(-1),wall=(b.ms-a.ms)/1000;
- const report={game,label,edition:entry.version??'launcher default',url:page.url(),browser:await browser.version(),wasm:await page.evaluate(()=>performance.getEntriesByType('resource').find(x=>x.name.includes('.wasm'))?.name),cpu:os.cpus()[0].model,load:os.loadavg(),mode:game==='n-gage'?'bounded guest-time client route; not an FPS benchmark':'unpaced, continuous route with 1800s guest deadline, no pauses',sound:'browser muted; guest audio remains enabled',seconds:wall,frames:b.frames-a.frames,fps:game==='n-gage'?null:(b.frames-a.frames)/wall,guestSeconds:(b.guest-a.guest)/1e6,guestSpeed:(b.guest-a.guest)/1e6/wall,compiledFunctions:b.monitor.compiled_functions-a.monitor.compiled_functions,diskScans:b.diskScans-a.diskScans,compilationUs:Object.fromEntries(['aot_translation_us','aot_emission_us','aot_installation_us'].map(k=>[k,b.monitor[k]-a.monitor[k]])),errors:[...errors],samples};
+ const report={game,label,hostFrequencyKHz:{before:clocksBefore,after:cpuFrequencies()},edition:entry.version??'launcher default',url:page.url(),browser:await browser.version(),wasm:await page.evaluate(()=>performance.getEntriesByType('resource').find(x=>x.name.includes('.wasm'))?.name),cpu:os.cpus()[0].model,load:os.loadavg(),mode:game==='n-gage'?'bounded guest-time client route; not an FPS benchmark':'unpaced, continuous route with 1800s guest deadline, no pauses',sound:'browser muted; guest audio remains enabled',seconds:wall,frames:b.frames-a.frames,fps:game==='n-gage'?null:(b.frames-a.frames)/wall,guestSeconds:(b.guest-a.guest)/1e6,guestSpeed:(b.guest-a.guest)/1e6/wall,compiledFunctions:b.monitor.compiled_functions-a.monitor.compiled_functions,diskScans:b.diskScans-a.diskScans,compilationUs:Object.fromEntries(['aot_translation_us','aot_emission_us','aot_installation_us'].map(k=>[k,b.monitor[k]-a.monitor[k]])),errors:[...errors],samples};
  assert.ok(samples.every(s=>s.phase===(game==='n-gage'?1:0))); if(game!=='n-gage')assert.ok(report.frames>0);assert.equal(errors.length,0);assert.equal(b.monitor.instructions,0);
  report.browserMemory=[];for(const proc of (await system.send('SystemInfo.getProcessInfo')).processInfo){try{const text=fs.readFileSync(`/proc/${proc.id}/smaps_rollup`,'utf8');report.browserMemory.push({type:proc.type,id:proc.id,pssKiB:Number(text.match(/^Pss:\s+(\d+)/m)?.[1]??0),rssKiB:Number(text.match(/^Rss:\s+(\d+)/m)?.[1]??0)});}catch{}}report.browserPssKiB=report.browserMemory.reduce((n,p)=>n+p.pssKiB,0);report.wasmCapacity=await page.evaluate(()=>HEAPU8.buffer.byteLength);
  fs.writeFileSync(out+'/'+label+'.json',JSON.stringify(report,null,2));await shot(label+'-end');
@@ -85,6 +87,22 @@ const pauseFishing=async()=>{
   if(pale>60000)return shot('fishing-pause');
  }
  throw Error('Hooked On fishing pause menu did not open');
+};
+const ensureRace=async()=>{
+ for(let i=0;i<24;i++){
+  await step(5000000);await shot('race-ready-'+i);
+  assert.equal(errors.length,0,'Reject a crashed Asphalt process');
+  const png=PNG.sync.read(fs.readFileSync(out+'/race-ready-'+i+'.png'));
+  const count=(x0,x1,y0,y1,test)=>{let n=0;for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){const j=(y*png.width+x)*4;if(test(...png.data.subarray(j,j+3)))n++;}return n;};
+  const yellow=(r,g,b)=>r>180&&g>100&&b<80;
+  if(count(20,175,75,160,yellow)>400&&count(770,890,75,160,yellow)>400)return shot('race-loaded');
+  const prompt=count(300,600,370,450,yellow);
+  const pink=count(200,750,225,740,(r,g,b)=>r>180&&b>140&&g<190);
+  if(prompt>1500)await press(164,3000000,1000000);
+  else if(pink>13000)await press(167,8000000,1000000);
+  // Loading and splash screens advance without speculative button presses.
+ }
+ throw Error('Asphalt 3 did not reach its racing HUD');
 };
 console.log('READY',game,JSON.stringify(await status()));
  const commands=JSON.parse(fs.readFileSync(new URL('./arena-growth-routes.json',import.meta.url)))[game];

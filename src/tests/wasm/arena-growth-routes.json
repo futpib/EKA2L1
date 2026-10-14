@@ -41,7 +41,7 @@
     "(async()=>{await press(167,1000000); return shot('sound-prompt-short')})()",
     "(async()=>{await press(164,1000000); return shot('sound-yes-short')})()",
     "(async()=>{await press(167,5000000); return shot('race-short')})()",
-    "(async()=>{await step(15000000); return shot('race-loaded')})()",
+    "ensureRace()",
     "(async()=>{await page.evaluate(()=>Module._eka2l1_key_state(16,1)); await step(5000000); await shot('race-warm'); await go(); const r=await measure('instant-play-stationary-sound-on',5);  return {fps:r.fps,frames:r.frames,compiled:r.compiledFunctions,errors:r.errors}})()"
   ],
   "tetris": [

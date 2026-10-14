@@ -6146,16 +6146,18 @@ static bool test_growing_arenas() {
     auto first = std::make_unique<mem::multiple_mem_model_process>(&control);
     auto second = std::make_unique<mem::multiple_mem_model_process>(&control);
     const auto bytes_before = stats.arena_bytes;
+    const auto initialized_before = stats.arena_initialized_bytes;
     mem::mem_model_chunk_creation_info info{};
     info.size = 0x100000; info.flags = mem::MEM_MODEL_CHUNK_REGION_USER_LOCAL | mem::MEM_MODEL_CHUNK_TYPE_NORMAL;
     info.perm = prot_read_write;
     mem::mem_model_chunk *small{}, *large{}, *isolated{};
     if (first->create_chunk(small, info) || small->commit(0,4096) != 4096) return false;
     auto *held = static_cast<std::uint32_t *>(small->host_base());
+    if (control.direct_growing_memory(first->address_space_id()).size != 4 * 1024 * 1024) return false;
     held[64] = 0x12345678;
     using native_map = std::unordered_map<unsigned,unsigned>;
     auto *object = new (held + 128) native_map;
-    struct destroy_object { native_map *object; ~destroy_object() { object->~native_map(); } } owned{object};
+    struct destroy_object { native_map *object; ~destroy_object() { if (object) object->~native_map(); } } owned{object};
     object->emplace(7,91);
     info.size = 0x800000;
     if (first->create_chunk(large, info) || large->commit(0,4096) != 4096) return false;
@@ -6163,10 +6165,13 @@ static bool test_growing_arenas() {
     info.size = 0x100000;
     if (second->create_chunk(isolated, info) || isolated->commit(0,4096) != 4096) return false;
     static_cast<std::uint32_t *>(isolated->host_base())[64] = 0x87654321;
-    if (held[64] != 0x12345678 || stats.arena_bytes - bytes_before >= 2 * direct_size) return false;
+    if (held[64] != 0x12345678 || stats.arena_bytes - bytes_before != 2 * direct_size
+        || stats.arena_initialized_bytes - initialized_before != 20 * 1024 * 1024) return false;
     auto direct = control.direct_growing_memory(first->address_space_id());
-    if (!direct.banks || direct.size != 16 * 1024 * 1024) return false;
+    if (direct.host != reinterpret_cast<std::uintptr_t>(held) || direct.size != 16 * 1024 * 1024) return false;
     const auto guest = small->base(first.get()), target = large->base(first.get());
+    if (reinterpret_cast<std::uintptr_t>(large->host_base()) != direct.host + target - guest
+        || *(static_cast<std::uint8_t *>(small->host_base()) + direct.size - 1) != 0) return false;
     auto resolve = [&] {
         return std::vector<binding>{{guest, static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(small->host_base())), 3},
             {target, static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(large->host_base())), 3}};
@@ -6190,13 +6195,12 @@ static bool test_growing_arenas() {
         mapping.leave();
         if (count!=1 || state[3]!=0x12345678 || g_all_memory_helper_calls) return false;
     }
-    // A conflicting physical alias clears only its bank; other segments stay direct.
+    // A conflicting physical alias disables the affine shortcut, as in the default.
     static_cast<std::uint32_t *>(large->host_base())[64] = 0x90abcdef;
     auto aliases = resolve(); aliases[0].host = aliases[1].host;
     const auto pointer = mapping.enter(2,first->address_space_id(),[&]{return aliases;},direct);
     const auto *published = reinterpret_cast<const direct_view *>(pointer);
-    const auto *banks = reinterpret_cast<const bank *>(published->banks);
-    if (banks[0].end || !banks[(target-direct_begin)>>bank_shift].end) return false;
+    if (published->size || published->arena_mask) return false;
     const std::uint32_t alias_code[]={0xe5910000};
     auto alias_tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(alias_code),sizeof(alias_code),0x1000,nullptr,nullptr,true,true,true,true);
     auto alias_module=build_wasm_module({alias_tr.func},imports);
@@ -6207,7 +6211,7 @@ static bool test_growing_arenas() {
     js_run_aot_wasm(alias_module.data(),alias_module.size(),reinterpret_cast<std::uint8_t*>(alias_state),sizeof(alias_state));
     if(alias_state[0]!=0x90abcdef)return false;
     mapping.leave();
-    // A block transfer across different segment backings uses scalar access.
+    // A block transfer crossing chunk boundaries keeps one contiguous host span.
     const auto boundary = guest + 0x100000;
     if(small->commit(0xff000,4096)!=4096)return false;
     held[0xffffc/4]=0x11223344;static_cast<std::uint32_t*>(large->host_base())[0]=0x55667788;
@@ -6227,9 +6231,40 @@ static bool test_growing_arenas() {
         mapping.leave();
         if(state[0]!=0x11223344 || state[1]!=0x55667788 || g_all_memory_helper_calls)return false;
     }
-    // Native objects remain valid after every segment allocation and alias refresh.
+    // Narrow scalar accesses at a conservative prefix limit use canonical pages.
+    auto narrow = direct; narrow.size = 0x100000;
+    for (bool thumb : {false,true}) for (unsigned width : {1u,2u,4u}) {
+        const std::uint32_t arm_code[]={width==1?0xe5d10000u:width==2?0xe1d100b0u:0xe5910000u};
+        const std::uint16_t thumb_code[]={std::uint16_t(width==1?0x7808:width==2?0x8808:0x6808)};
+        auto tr=thumb?translate_thumb_block(reinterpret_cast<const std::uint8_t*>(thumb_code),sizeof(thumb_code),0x1000,nullptr,nullptr,true,true,true)
+            :translate_arm_block(reinterpret_cast<const std::uint8_t*>(arm_code),sizeof(arm_code),0x1000,nullptr,nullptr,true,true,true,true);
+        auto module=build_wasm_module({tr.func},imports);
+        alignas(8)std::uint32_t state[256]{};state[1]=boundary-width;state[15]=0x1000;
+        state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=16|(thumb?32:0);
+        state[state_offsets::TFLAG/4]=thumb;state[state_offsets::NIRQ/4]=1;
+        state[state_offsets::AOT_TLB/4]=mapping.enter(4,first->address_space_id(),[&]{return crossing;},narrow);
+        g_all_memory_helper_calls=0;
+        js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+        mapping.leave();
+        const auto expected=width==1?0x11u:width==2?0x1122u:0x11223344u;
+        if(state[0]!=expected || g_all_memory_helper_calls)return false;
+    }
+    // Native objects remain valid after prefix growth and alias refresh.
     if (object->at(7)!=91 || held[64]!=0x12345678) return false;
-    printf("PASS growing arenas: stable native objects/pointers, process isolation, ARM/Thumb accesses and alias conflicts\n");
+    info.addr = direct_begin + 60 * 1024 * 1024;
+    mem::mem_model_chunk *upper{}, *outside{};
+    if (first->create_chunk(upper, info) || upper->commit(0,4096) != 4096) return false;
+    direct = control.direct_growing_memory(first->address_space_id());
+    if (direct.size != direct_size || direct.host != reinterpret_cast<std::uintptr_t>(held)
+        || object->at(7)!=91 || held[64]!=0x12345678) return false;
+    info.addr = direct_begin + direct_size;
+    if (first->create_chunk(outside, info) || outside->commit(0,4096) != 4096) return false;
+    if (control.direct_growing_memory(first->address_space_id()).size != direct_size
+        || stats.arena_bytes - bytes_before != 2 * direct_size) return false;
+    object->~native_map(); owned.object = nullptr;
+    first.reset(); second.reset();
+    if (stats.arena_bytes != bytes_before || stats.arena_initialized_bytes != initialized_before) return false;
+    printf("PASS contiguous arenas: stable native objects/pointers, prefix growth, process isolation, ARM/Thumb accesses and alias conflicts\n");
 #endif
     return true;
 }

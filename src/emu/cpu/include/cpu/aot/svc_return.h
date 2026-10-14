@@ -29,13 +29,8 @@ namespace eka2l1::arm::aot {
         const unsigned bytes = reg < 8 ? 8 : 4;
         const auto sp = cpu->Reg[13];
         std::uint32_t host = 0;
-        if (sp - memory_experiment::direct_begin
-                < (memory->arena_mask & (memory_experiment::direct_size - bytes + 1))) {
-            if (memory_experiment::arena_growth) {
-                const auto *banks = reinterpret_cast<const memory_experiment::bank *>(memory->banks);
-                const auto &bank = banks[(sp - memory_experiment::direct_begin) >> memory_experiment::bank_shift];
-                if (sp + bytes <= bank.end) host = sp + bank.bias;
-            } else host = sp + memory->bias;
+        if (sp - memory_experiment::direct_begin < (reg < 8 ? memory->return_limit8 : memory->return_limit4)) {
+            host = sp + memory->bias;
         }
         if (!host && (sp & 4095) <= 4096 - bytes) {
             const auto *pages = reinterpret_cast<const memory_experiment::page *>(memory->pages);

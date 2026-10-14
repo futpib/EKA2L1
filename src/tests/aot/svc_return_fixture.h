@@ -72,6 +72,8 @@ static bool test_svc_return_state() {
                 mapping==11?memory::direct_begin+memory::direct_size-4:mapping==12?memory::direct_begin+17:0x8010;
             pages[sp>>12]={};
             view.arena_mask=affine?~0u:0;
+            view.return_limit4=affine?memory::direct_size-3:0;
+            view.return_limit8=affine?memory::direct_size-7:0;
             auto *page=backing.data.data()+(mapping==6?0x9000:0x8000);
             if(!affine && mapping!=4)pages[sp>>12].read=static_cast<unsigned>(reinterpret_cast<std::uintptr_t>(page));
             const unsigned bytes=reg<8?8:4;

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <array>
 #include <functional>
 #include <vector>
 
@@ -14,27 +13,25 @@ namespace eka2l1::arm::aot::memory_experiment {
     inline unsigned mode = 0;
 #endif
     inline bool enabled() { return mode == 2; }
-    // Experimental stable segment growth, frozen before guest initialization.
+    // Experimental contiguous prefix growth, frozen before guest initialization.
     inline bool arena_growth = false;
     struct statistics {
         std::uint64_t rebuilds = 0, mapped_pages = 0;
         std::uint64_t arena_bytes = 0, direct_pages = 0, direct_rebuilds = 0;
-        std::uint64_t arena_growths = 0, arena_segments = 0;
+        std::uint64_t arena_growths = 0, arena_initialized_bytes = 0;
     };
     inline statistics stats;
     struct binding { std::uint32_t guest, host, permissions; };
-    struct bank { std::uint32_t bias = 0, end = 0; };
-    struct range { std::uint32_t begin, size, host, permissions; const bank *banks = nullptr; };
+    struct range { std::uint32_t begin, size, host, permissions; };
     struct page { std::uint32_t read, write; };
     // A bounded local-address arena shares the runtime's primary WASM memory.
     // Other addresses use the page table, including physical aliases.
     inline constexpr std::uint32_t direct_begin = 0x00400000, direct_size = 64 * 1024 * 1024;
-    inline constexpr unsigned bank_shift = 20, bank_count = direct_size >> bank_shift;
     struct direct_view {
         std::uint32_t begin, size, host, pages;
         std::uint32_t bias = 0, arena_mask = 0;
-        std::uint32_t banks = 0;
-        std::uint32_t root_end = 0, root_limit1 = 0, root_limit2 = 0, root_limit4 = 0;
+        std::uint32_t arena_start_limit = 0;
+        std::uint32_t return_limit4 = 0, return_limit8 = 0;
     };
 
     class view {
@@ -43,7 +40,6 @@ namespace eka2l1::arm::aot::memory_experiment {
         std::vector<binding> bindings_;
         std::vector<page> pages_;
         direct_view direct_{};
-        std::array<bank, bank_count> banks_{};
         bool active_ = false;
     public:
         std::uintptr_t enter(std::uint64_t generation, std::uint32_t space,

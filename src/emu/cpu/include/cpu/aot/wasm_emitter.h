@@ -85,6 +85,7 @@ namespace eka2l1::arm::aot {
         op_i32_rotr = 0x78,
         op_i32_clz = 0x67,
 
+        op_i64_lt_u = 0x54,
         op_i64_const = 0x42,
         op_i64_add = 0x7C,
         op_i64_mul = 0x7E,

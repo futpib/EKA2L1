@@ -252,9 +252,9 @@ EMSCRIPTEN_KEEPALIVE
 const char *eka2l1_memory_impl_stats(){
     const auto &s=eka2l1::arm::aot::memory_experiment::stats;
     static std::string text;
-    text=fmt::format("{{\"mode\":{},\"rebuilds\":{},\"mapped_pages\":{},\"arena_bytes\":{},\"direct_pages\":{},\"direct_rebuilds\":{},\"arena_growth\":{},\"arena_growths\":{},\"arena_segments\":{}}}",
+    text=fmt::format("{{\"mode\":{},\"rebuilds\":{},\"mapped_pages\":{},\"arena_bytes\":{},\"direct_pages\":{},\"direct_rebuilds\":{},\"arena_growth\":{},\"arena_growths\":{},\"arena_initialized_bytes\":{}}}",
         eka2l1::arm::aot::memory_experiment::mode,s.rebuilds,s.mapped_pages,s.arena_bytes,s.direct_pages,s.direct_rebuilds,
-        eka2l1::arm::aot::memory_experiment::arena_growth,s.arena_growths,s.arena_segments);
+        eka2l1::arm::aot::memory_experiment::arena_growth,s.arena_growths,s.arena_initialized_bytes);
     return text.c_str();
 }
 EMSCRIPTEN_KEEPALIVE

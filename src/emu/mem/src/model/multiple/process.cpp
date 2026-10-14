@@ -23,6 +23,8 @@
 
 #include <common/algorithm.h>
 #include <common/virtualmem.h>
+#include <cstdlib>
+#include <cstring>
 #include <mem/mmu.h>
 
 #include <cpu/arm_interface.h>
@@ -42,42 +44,27 @@ namespace eka2l1::mem {
     void *multiple_mem_model_process::grow_direct_local_backing(vm_address address, std::size_t size) {
 #ifdef __EMSCRIPTEN__
         using namespace arm::aot::memory_experiment;
-        const auto end = std::uint64_t(address) + size;
-        for (const auto &segment : direct_segments_) {
-            if (address < segment.begin || end > std::uint64_t(segment.begin) + segment.size) continue;
-            const auto bias = static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(segment.host)) - segment.begin;
-            bool current = true;
-            for (auto bank = (address - direct_begin) >> bank_shift; bank <= ((end - direct_begin - 1) >> bank_shift); ++bank)
-                current &= direct_banks_[bank].bias == bias;
-            if (current) return static_cast<std::uint8_t *>(segment.host) + address - segment.begin;
+        const auto required = std::uint64_t(address) + size - direct_begin;
+        if (!direct_local_) {
+            // Reserve the maximum contiguous range without touching its tail.
+            // Native objects and retained pointers keep this base for life.
+            direct_local_ = std::aligned_alloc(65536, direct_size);
+            if (!direct_local_) return nullptr;
+            static_cast<control_multiple *>(control_)->direct_local_[addr_space_id_] = direct_local_;
+            stats.arena_bytes += direct_size;
         }
-        auto capacity = std::max(direct_capacity_, 4u * 1024 * 1024);
-        while (end - direct_begin > capacity) capacity *= 2;
-        auto segment_end = std::uint64_t(direct_begin) + capacity;
-        // Grow into unreserved guest space only. Existing chunks and every host
-        // pointer into them keep their original backing, including native TLS.
-        for (const auto &chunk : chunks_) {
-            if (!chunk || !chunk->is_direct_host || !chunk->host_base_) continue;
-            const auto chunk_end = std::uint64_t(chunk->base_) + chunk->max_size_;
-            if (chunk->base_ < end && chunk_end > address) return nullptr;
-            if (chunk->base_ >= end) segment_end = std::min(segment_end, std::uint64_t(chunk->base_));
+        if (required > direct_capacity_) {
+            auto capacity = std::max(direct_capacity_, 4u * 1024 * 1024);
+            while (required > capacity) capacity *= 2;
+            std::memset(static_cast<std::uint8_t *>(direct_local_) + direct_capacity_, 0, capacity - direct_capacity_);
+            stats.arena_initialized_bytes += capacity - direct_capacity_;
+            ++stats.arena_growths;
+            direct_capacity_ = capacity;
+            static_cast<control_multiple *>(control_)->direct_growing_[addr_space_id_] = {direct_begin, capacity,
+                static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(direct_local_)), 3};
+            mapping_changed();
         }
-        const auto bytes = static_cast<std::size_t>(segment_end - address);
-        auto *allocation = common::map_memory(bytes);
-        if (!allocation || allocation == reinterpret_cast<void *>(-1)) return nullptr;
-        direct_segments_.push_back({address, bytes, allocation});
-        const auto bias = static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(allocation)) - address;
-        for (auto bank = (address - direct_begin) >> bank_shift; bank < ((segment_end - direct_begin) >> bank_shift); ++bank)
-            direct_banks_[bank] = {bias, static_cast<std::uint32_t>(segment_end)};
-        if (!direct_local_) direct_local_ = allocation;
-        direct_capacity_ = capacity;
-        auto *control = static_cast<control_multiple *>(control_);
-        control->direct_growing_[addr_space_id_] = {direct_begin, capacity, 0, 3, direct_banks_.data()};
-        control->direct_local_[addr_space_id_] = direct_local_;
-        stats.arena_bytes += bytes;
-        ++stats.arena_growths; ++stats.arena_segments;
-        mapping_changed();
-        return allocation;
+        return static_cast<std::uint8_t *>(direct_local_) + address - direct_begin;
 #else
         return nullptr;
 #endif
@@ -95,6 +82,7 @@ namespace eka2l1::mem {
             direct_local_ = allocation;
             static_cast<control_multiple *>(control_)->direct_local_[addr_space_id_] = allocation;
             stats.arena_bytes += direct_size;
+            stats.arena_initialized_bytes += direct_size;
 #ifdef EKA2L1_MEMORY_ACCESS_PROFILE
             arm::aot::memory_access_profile::event("arena", addr_space_id_, direct_begin, direct_size, 0, true, true);
 #endif
@@ -111,18 +99,17 @@ namespace eka2l1::mem {
 #endif
         // Chunks release their mappings before the shared arena is released.
         chunks_.clear();
-        if (!direct_segments_.empty()) {
+        if (direct_local_) {
             auto *control = static_cast<control_multiple *>(control_);
             control->direct_local_[addr_space_id_] = nullptr;
             control->direct_growing_[addr_space_id_] = {};
-            for (const auto &segment : direct_segments_) {
-                common::unmap_memory(segment.host, segment.size);
-                arm::aot::memory_experiment::stats.arena_bytes -= segment.size;
-                --arm::aot::memory_experiment::stats.arena_segments;
+            if (direct_capacity_) {
+                std::free(direct_local_);
+                arm::aot::memory_experiment::stats.arena_initialized_bytes -= direct_capacity_;
+            } else {
+                common::unmap_memory(direct_local_, arm::aot::memory_experiment::direct_size);
+                arm::aot::memory_experiment::stats.arena_initialized_bytes -= arm::aot::memory_experiment::direct_size;
             }
-        } else if (direct_local_) {
-            static_cast<control_multiple *>(control_)->direct_local_[addr_space_id_] = nullptr;
-            common::unmap_memory(direct_local_, arm::aot::memory_experiment::direct_size);
             arm::aot::memory_experiment::stats.arena_bytes -= arm::aot::memory_experiment::direct_size;
         }
     }

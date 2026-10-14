@@ -35,9 +35,6 @@ namespace eka2l1::mem {
         linear_section user_local_sec_;
         linear_section user_dll_static_data_sec_;
         void *direct_local_ = nullptr;
-        struct direct_segment { vm_address begin; std::size_t size; void *host; };
-        std::vector<direct_segment> direct_segments_;
-        std::array<arm::aot::memory_experiment::bank, arm::aot::memory_experiment::bank_count> direct_banks_{};
         std::uint32_t direct_capacity_ = 0;
         void *direct_local_backing(vm_address address, std::size_t size);
         void *grow_direct_local_backing(vm_address address, std::size_t size);
