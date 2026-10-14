@@ -15,8 +15,13 @@ const browser=await puppeteer.launch({executablePath:process.env.EKA2L1_CHROMIUM
 const system=await browser.target().createCDPSession();
 const errors=[],log=fs.createWriteStream(out+'/browser.log');
 let status=async()=>null;
+let memoryProfiler;
 try {
 const page=await browser.newPage(); await page.setViewport({width:900,height:800});page.setDefaultTimeout(180000);
+if(process.argv[5]==='chrome-memory') {
+ const {ChromeMemoryProfiler}=await import('./chrome-memory-profiler.mjs');
+ memoryProfiler=new ChromeMemoryProfiler(page,out);await memoryProfiler.start();
+}
 page.on('console',m=>{log.write(m.text()+'\n');if(/Access violation|KERN-EXEC|ABORT:|panicked with category:/.test(m.text()))errors.push(m.text())});
 page.on('pageerror',e=>errors.push(String(e)));
 await page.evaluateOnNewDocument(()=>{window.ekaTransientSession=true;});
@@ -54,6 +59,7 @@ const measure=async(label,seconds=30)=>{
  else while(performance.now()-start<seconds*1000){await wait(500);samples.push(await status())}
  const a=samples[0],b=samples.at(-1),wall=(b.ms-a.ms)/1000;
  const report={game,label,hostFrequencyKHz:{before:clocksBefore,after:cpuFrequencies()},edition:entry.version??'launcher default',url:page.url(),browser:await browser.version(),wasm:await page.evaluate(()=>performance.getEntriesByType('resource').find(x=>x.name.includes('.wasm'))?.name),cpu:os.cpus()[0].model,load:os.loadavg(),mode:game==='n-gage'?'bounded guest-time client route; not an FPS benchmark':'unpaced, continuous route with 1800s guest deadline, no pauses',sound:'browser muted; guest audio remains enabled',seconds:wall,frames:b.frames-a.frames,fps:game==='n-gage'?null:(b.frames-a.frames)/wall,guestSeconds:(b.guest-a.guest)/1e6,guestSpeed:(b.guest-a.guest)/1e6/wall,compiledFunctions:b.monitor.compiled_functions-a.monitor.compiled_functions,diskScans:b.diskScans-a.diskScans,compilationUs:Object.fromEntries(['aot_translation_us','aot_emission_us','aot_installation_us'].map(k=>[k,b.monitor[k]-a.monitor[k]])),errors:[...errors],samples};
+ report.chromeMemoryProfiling=!!memoryProfiler;
  assert.ok(samples.every(s=>s.phase===(game==='n-gage'?1:0))); if(game!=='n-gage')assert.ok(report.frames>0);assert.equal(errors.length,0);assert.equal(b.monitor.instructions,0);
  report.browserMemory=[];for(const proc of (await system.send('SystemInfo.getProcessInfo')).processInfo){try{const text=fs.readFileSync(`/proc/${proc.id}/smaps_rollup`,'utf8');report.browserMemory.push({type:proc.type,id:proc.id,pssKiB:Number(text.match(/^Pss:\s+(\d+)/m)?.[1]??0),rssKiB:Number(text.match(/^Rss:\s+(\d+)/m)?.[1]??0)});}catch{}}report.browserPssKiB=report.browserMemory.reduce((n,p)=>n+p.pssKiB,0);report.wasmCapacity=await page.evaluate(()=>HEAPU8.buffer.byteLength);
  fs.writeFileSync(out+'/'+label+'.json',JSON.stringify(report,null,2));await shot(label+'-end');
@@ -110,4 +116,4 @@ console.log('READY',game,JSON.stringify(await status()));
  for(const [i,line] of commands.entries()){fs.appendFileSync(out+'/steps.log',line+'\n');const r=await eval(line);console.log('STEP',game,i+1,JSON.stringify(r));}
 
 
-} catch (error) {fs.writeFileSync(out+'/failure.json',JSON.stringify({error:String(error),errors,status:await status().catch(()=>null)},null,2));throw error;} finally {await browser.close();log.end();}
+} catch (error) {fs.writeFileSync(out+'/failure.json',JSON.stringify({error:String(error),errors,status:await status().catch(()=>null)},null,2));throw error;} finally {try{if(memoryProfiler)await memoryProfiler.stop();}finally{await browser.close();log.end();}}

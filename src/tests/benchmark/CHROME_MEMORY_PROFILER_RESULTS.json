@@ -1,0 +1,608 @@
+{
+  "date": "2026-10-14",
+  "browser": "Chrome/153.0.8010.52",
+  "graduation_commit": "8be6adbd8",
+  "runtime_wasm_sha256": "a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+  "runtime_map_sha256": "8a87843d702fac58a8df4335d1953d35af1adf8abaff0278c6b24a3906f3f8a2",
+  "fixture_wasm_sha256": "4c51b619b2b9986f1963964995a07ac4020fc66aca35833a6e2dd735a37aceae",
+  "fixture_map_sha256": "02b48e392ff3aa742814ea6e9336d4c6c623d6448c8094d598633ff3da4e2fe8",
+  "fixture_source_map_served": true,
+  "fixture_shared_memory": true,
+  "controls": [
+    {
+      "stage": "cpp-malloc-32mib",
+      "cpp_allocated_delta": 33554440,
+      "wasm_capacity_before_after": [
+        134217728,
+        134217728
+      ],
+      "v8_sampled_bytes": 0,
+      "native_samples": 3,
+      "native_estimated_bytes": 49152,
+      "wasm_frames": 0,
+      "errors": []
+    },
+    {
+      "stage": "js-array-16mib",
+      "cpp_allocated_delta": 0,
+      "wasm_capacity_before_after": [
+        134217728,
+        134217728
+      ],
+      "v8_sampled_bytes": 16777224,
+      "native_samples": 3,
+      "native_estimated_bytes": 49152,
+      "wasm_frames": 0,
+      "errors": []
+    },
+    {
+      "stage": "cpp-to-js-array-16mib",
+      "cpp_allocated_delta": 0,
+      "wasm_capacity_before_after": [
+        134217728,
+        134217728
+      ],
+      "v8_sampled_bytes": 16777224,
+      "native_samples": 1,
+      "native_estimated_bytes": 16384,
+      "wasm_frames": 1,
+      "errors": []
+    }
+  ],
+  "snapshot": [
+    {
+      "type": "string",
+      "name": "SharedArrayBuffer",
+      "self_bytes": 0
+    },
+    {
+      "type": "string",
+      "name": "WebAssembly.Memory",
+      "self_bytes": 32
+    },
+    {
+      "type": "closure",
+      "name": "SharedArrayBuffer",
+      "self_bytes": 32
+    },
+    {
+      "type": "object",
+      "name": "SharedArrayBuffer",
+      "self_bytes": 28
+    },
+    {
+      "type": "object",
+      "name": "WebAssembly.Memory",
+      "self_bytes": 28
+    },
+    {
+      "type": "object",
+      "name": "SharedArrayBuffer",
+      "self_bytes": 52
+    },
+    {
+      "type": "closure",
+      "name": "SharedArrayBuffer",
+      "self_bytes": 32
+    },
+    {
+      "type": "object",
+      "name": "WebAssembly.Memory",
+      "self_bytes": 28
+    },
+    {
+      "type": "object",
+      "name": "SharedArrayBuffer",
+      "self_bytes": 28
+    },
+    {
+      "type": "closure",
+      "name": "SharedArrayBuffer",
+      "self_bytes": 32
+    },
+    {
+      "type": "native",
+      "name": "system / JSArrayBufferData",
+      "self_bytes": 134217728
+    },
+    {
+      "type": "object",
+      "name": "WebAssembly.Memory",
+      "self_bytes": 28
+    },
+    {
+      "type": "object",
+      "name": "SharedArrayBuffer",
+      "self_bytes": 28
+    }
+  ],
+  "game": {
+    "name": "Snakes",
+    "capture": "/home/claude/.scratch/eka-arena-graduation-20261014/chrome-memory-snakes",
+    "isolates": 34,
+    "errors": [],
+    "v8_retained_sampled_bytes": 52945924,
+    "native_estimated_bytes": 406077440,
+    "native_samples": 5651,
+    "wasm_frames": 24,
+    "mapped_allocation_sites": 0,
+    "wasm_frame_attribution": [
+      {
+        "target": "page",
+        "frame": {
+          "functionName": "js-to-wasm::",
+          "scriptId": "19",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+          "lineNumber": 0,
+          "columnNumber": 54379
+        },
+        "scope": "entry wrapper, not allocation site",
+        "wasm_function": "__wasm_call_ctors",
+        "position_source_anchor": null,
+        "allocation_site": null
+      },
+      {
+        "target": "page",
+        "frame": {
+          "functionName": "js-to-wasm:i:i",
+          "scriptId": "19",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+          "lineNumber": 0,
+          "columnNumber": 618702
+        },
+        "scope": "entry wrapper, not allocation site",
+        "wasm_function": "eka2l1_init",
+        "position_source_anchor": [
+          618702,
+          "../../../../src/emu/wasm/main.cpp",
+          418,
+          1
+        ],
+        "allocation_site": null
+      },
+      {
+        "target": "page",
+        "frame": {
+          "functionName": "js-to-wasm:ii:i",
+          "scriptId": "19",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+          "lineNumber": 0,
+          "columnNumber": 657371
+        },
+        "scope": "entry wrapper, not allocation site",
+        "wasm_function": "eka2l1_install_device",
+        "position_source_anchor": [
+          657371,
+          "../../../../src/emu/wasm/main.cpp",
+          474,
+          1
+        ],
+        "allocation_site": null
+      },
+      {
+        "target": "page",
+        "frame": {
+          "functionName": "js-to-wasm:i:i",
+          "scriptId": "19",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+          "lineNumber": 0,
+          "columnNumber": 737495
+        },
+        "scope": "entry wrapper, not allocation site",
+        "wasm_function": "eka2l1_install_sis",
+        "position_source_anchor": [
+          737495,
+          "../../../../src/emu/wasm/main.cpp",
+          541,
+          1
+        ],
+        "allocation_site": null
+      },
+      {
+        "target": "page",
+        "frame": {
+          "functionName": "js-to-wasm::i",
+          "scriptId": "19",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+          "lineNumber": 0,
+          "columnNumber": 738575
+        },
+        "scope": "entry wrapper, not allocation site",
+        "wasm_function": "eka2l1_prepare_graphics",
+        "position_source_anchor": [
+          738575,
+          "../../../../src/emu/wasm/main.cpp",
+          562,
+          1
+        ],
+        "allocation_site": null
+      },
+      {
+        "target": "worker-14",
+        "frame": {
+          "functionName": "js-to-wasm:i:i",
+          "scriptId": "4",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+          "lineNumber": 0,
+          "columnNumber": 797293
+        },
+        "scope": "entry wrapper, not allocation site",
+        "wasm_function": "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, eka2l1_run::$_1>>(void*)",
+        "position_source_anchor": [
+          797293,
+          "../../../../../../.scratch/eka-benchmark/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__thread/thread.h",
+          203,
+          1
+        ],
+        "allocation_site": null
+      },
+      {
+        "target": "worker-15",
+        "frame": {
+          "functionName": "js-to-wasm:i:i",
+          "scriptId": "4",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+          "lineNumber": 0,
+          "columnNumber": 738883
+        },
+        "scope": "entry wrapper, not allocation site",
+        "wasm_function": "eka2l1_prepare_graphics::$_0::__invoke(void*)",
+        "position_source_anchor": [
+          738883,
+          "../../../../src/emu/wasm/main.cpp",
+          575,
+          1
+        ],
+        "allocation_site": null
+      },
+      {
+        "target": "worker-15",
+        "frame": {
+          "functionName": "js-to-wasm:i:i",
+          "scriptId": "4",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+          "lineNumber": 0,
+          "columnNumber": 1237368
+        },
+        "scope": "entry wrapper, not allocation site",
+        "wasm_function": "eka2l1::drivers::ogl_graphics_driver::run()::$_0::__invoke(void*)",
+        "position_source_anchor": [
+          1237368,
+          "../../../../src/emu/drivers/src/graphics/backend/ogl/graphics_ogl.cpp",
+          1999,
+          1
+        ],
+        "allocation_site": null
+      },
+      {
+        "target": "worker-16",
+        "frame": {
+          "functionName": "js-to-wasm:i:i",
+          "scriptId": "4",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+          "lineNumber": 0,
+          "columnNumber": 2580608
+        },
+        "scope": "entry wrapper, not allocation site",
+        "wasm_function": "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (BS::thread_pool::*)(unsigned int, std::__2::function<void ()> const&), BS::thread_pool*, unsigned int, std::__2::function<void ()>>>(void*)",
+        "position_source_anchor": [
+          2580606,
+          null,
+          null,
+          null
+        ],
+        "allocation_site": null
+      },
+      {
+        "target": "worker-17",
+        "frame": {
+          "functionName": "js-to-wasm:i:i",
+          "scriptId": "4",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+          "lineNumber": 0,
+          "columnNumber": 2580608
+        },
+        "scope": "entry wrapper, not allocation site",
+        "wasm_function": "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (BS::thread_pool::*)(unsigned int, std::__2::function<void ()> const&), BS::thread_pool*, unsigned int, std::__2::function<void ()>>>(void*)",
+        "position_source_anchor": [
+          2580606,
+          null,
+          null,
+          null
+        ],
+        "allocation_site": null
+      },
+      {
+        "target": "worker-18",
+        "frame": {
+          "functionName": "js-to-wasm:i:i",
+          "scriptId": "4",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+          "lineNumber": 0,
+          "columnNumber": 2580608
+        },
+        "scope": "entry wrapper, not allocation site",
+        "wasm_function": "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (BS::thread_pool::*)(unsigned int, std::__2::function<void ()> const&), BS::thread_pool*, unsigned int, std::__2::function<void ()>>>(void*)",
+        "position_source_anchor": [
+          2580606,
+          null,
+          null,
+          null
+        ],
+        "allocation_site": null
+      },
+      {
+        "target": "worker-19",
+        "frame": {
+          "functionName": "js-to-wasm:i:i",
+          "scriptId": "4",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+          "lineNumber": 0,
+          "columnNumber": 2580608
+        },
+        "scope": "entry wrapper, not allocation site",
+        "wasm_function": "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (BS::thread_pool::*)(unsigned int, std::__2::function<void ()> const&), BS::thread_pool*, unsigned int, std::__2::function<void ()>>>(void*)",
+        "position_source_anchor": [
+          2580606,
+          null,
+          null,
+          null
+        ],
+        "allocation_site": null
+      },
+      {
+        "target": "worker-20",
+        "frame": {
+          "functionName": "js-to-wasm:i:i",
+          "scriptId": "4",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+          "lineNumber": 0,
+          "columnNumber": 2580608
+        },
+        "scope": "entry wrapper, not allocation site",
+        "wasm_function": "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (BS::thread_pool::*)(unsigned int, std::__2::function<void ()> const&), BS::thread_pool*, unsigned int, std::__2::function<void ()>>>(void*)",
+        "position_source_anchor": [
+          2580606,
+          null,
+          null,
+          null
+        ],
+        "allocation_site": null
+      },
+      {
+        "target": "worker-21",
+        "frame": {
+          "functionName": "js-to-wasm:i:i",
+          "scriptId": "4",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+          "lineNumber": 0,
+          "columnNumber": 2580608
+        },
+        "scope": "entry wrapper, not allocation site",
+        "wasm_function": "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (BS::thread_pool::*)(unsigned int, std::__2::function<void ()> const&), BS::thread_pool*, unsigned int, std::__2::function<void ()>>>(void*)",
+        "position_source_anchor": [
+          2580606,
+          null,
+          null,
+          null
+        ],
+        "allocation_site": null
+      },
+      {
+        "target": "worker-22",
+        "frame": {
+          "functionName": "js-to-wasm:i:i",
+          "scriptId": "4",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+          "lineNumber": 0,
+          "columnNumber": 2580608
+        },
+        "scope": "entry wrapper, not allocation site",
+        "wasm_function": "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (BS::thread_pool::*)(unsigned int, std::__2::function<void ()> const&), BS::thread_pool*, unsigned int, std::__2::function<void ()>>>(void*)",
+        "position_source_anchor": [
+          2580606,
+          null,
+          null,
+          null
+        ],
+        "allocation_site": null
+      },
+      {
+        "target": "worker-23",
+        "frame": {
+          "functionName": "js-to-wasm:i:i",
+          "scriptId": "4",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+          "lineNumber": 0,
+          "columnNumber": 2580608
+        },
+        "scope": "entry wrapper, not allocation site",
+        "wasm_function": "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (BS::thread_pool::*)(unsigned int, std::__2::function<void ()> const&), BS::thread_pool*, unsigned int, std::__2::function<void ()>>>(void*)",
+        "position_source_anchor": [
+          2580606,
+          null,
+          null,
+          null
+        ],
+        "allocation_site": null
+      },
+      {
+        "target": "worker-24",
+        "frame": {
+          "functionName": "js-to-wasm:i:i",
+          "scriptId": "4",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+          "lineNumber": 0,
+          "columnNumber": 2580608
+        },
+        "scope": "entry wrapper, not allocation site",
+        "wasm_function": "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (BS::thread_pool::*)(unsigned int, std::__2::function<void ()> const&), BS::thread_pool*, unsigned int, std::__2::function<void ()>>>(void*)",
+        "position_source_anchor": [
+          2580606,
+          null,
+          null,
+          null
+        ],
+        "allocation_site": null
+      },
+      {
+        "target": "worker-25",
+        "frame": {
+          "functionName": "js-to-wasm:i:i",
+          "scriptId": "4",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+          "lineNumber": 0,
+          "columnNumber": 2580608
+        },
+        "scope": "entry wrapper, not allocation site",
+        "wasm_function": "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (BS::thread_pool::*)(unsigned int, std::__2::function<void ()> const&), BS::thread_pool*, unsigned int, std::__2::function<void ()>>>(void*)",
+        "position_source_anchor": [
+          2580606,
+          null,
+          null,
+          null
+        ],
+        "allocation_site": null
+      },
+      {
+        "target": "worker-26",
+        "frame": {
+          "functionName": "js-to-wasm:i:i",
+          "scriptId": "4",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+          "lineNumber": 0,
+          "columnNumber": 2580608
+        },
+        "scope": "entry wrapper, not allocation site",
+        "wasm_function": "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (BS::thread_pool::*)(unsigned int, std::__2::function<void ()> const&), BS::thread_pool*, unsigned int, std::__2::function<void ()>>>(void*)",
+        "position_source_anchor": [
+          2580606,
+          null,
+          null,
+          null
+        ],
+        "allocation_site": null
+      },
+      {
+        "target": "worker-27",
+        "frame": {
+          "functionName": "js-to-wasm:i:i",
+          "scriptId": "4",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+          "lineNumber": 0,
+          "columnNumber": 2580608
+        },
+        "scope": "entry wrapper, not allocation site",
+        "wasm_function": "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (BS::thread_pool::*)(unsigned int, std::__2::function<void ()> const&), BS::thread_pool*, unsigned int, std::__2::function<void ()>>>(void*)",
+        "position_source_anchor": [
+          2580606,
+          null,
+          null,
+          null
+        ],
+        "allocation_site": null
+      },
+      {
+        "target": "worker-28",
+        "frame": {
+          "functionName": "js-to-wasm:i:i",
+          "scriptId": "4",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+          "lineNumber": 0,
+          "columnNumber": 2580608
+        },
+        "scope": "entry wrapper, not allocation site",
+        "wasm_function": "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (BS::thread_pool::*)(unsigned int, std::__2::function<void ()> const&), BS::thread_pool*, unsigned int, std::__2::function<void ()>>>(void*)",
+        "position_source_anchor": [
+          2580606,
+          null,
+          null,
+          null
+        ],
+        "allocation_site": null
+      },
+      {
+        "target": "worker-29",
+        "frame": {
+          "functionName": "js-to-wasm:i:i",
+          "scriptId": "4",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+          "lineNumber": 0,
+          "columnNumber": 2580608
+        },
+        "scope": "entry wrapper, not allocation site",
+        "wasm_function": "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (BS::thread_pool::*)(unsigned int, std::__2::function<void ()> const&), BS::thread_pool*, unsigned int, std::__2::function<void ()>>>(void*)",
+        "position_source_anchor": [
+          2580606,
+          null,
+          null,
+          null
+        ],
+        "allocation_site": null
+      },
+      {
+        "target": "worker-30",
+        "frame": {
+          "functionName": "js-to-wasm:i:i",
+          "scriptId": "4",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+          "lineNumber": 0,
+          "columnNumber": 2580608
+        },
+        "scope": "entry wrapper, not allocation site",
+        "wasm_function": "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (BS::thread_pool::*)(unsigned int, std::__2::function<void ()> const&), BS::thread_pool*, unsigned int, std::__2::function<void ()>>>(void*)",
+        "position_source_anchor": [
+          2580606,
+          null,
+          null,
+          null
+        ],
+        "allocation_site": null
+      },
+      {
+        "target": "worker-31",
+        "frame": {
+          "functionName": "js-to-wasm:i:i",
+          "scriptId": "4",
+          "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+          "lineNumber": 0,
+          "columnNumber": 2580608
+        },
+        "scope": "entry wrapper, not allocation site",
+        "wasm_function": "void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (BS::thread_pool::*)(unsigned int, std::__2::function<void ()> const&), BS::thread_pool*, unsigned int, std::__2::function<void ()>>>(void*)",
+        "position_source_anchor": [
+          2580606,
+          null,
+          null,
+          null
+        ],
+        "allocation_site": null
+      }
+    ],
+    "cpp_allocated_bytes": 1174715136,
+    "wasm_capacity_bytes": 1251999744,
+    "initialized_arena_bytes": 67108864
+  },
+  "evidence_root": "/home/claude/.scratch/eka-arena-graduation-20261014",
+  "fixture_wrapper_attribution": [
+    {
+      "target": "page",
+      "frame": {
+        "functionName": "js-to-wasm:i:i",
+        "scriptId": "6",
+        "url": "http://127.0.0.1:34061/memory-profiler-fixture.wasm",
+        "lineNumber": 0,
+        "columnNumber": 1869
+      },
+      "scope": "entry wrapper, not allocation site",
+      "wasm_function": "allocate_js_from_cpp",
+      "position_source_anchor": [
+        1868,
+        null,
+        null,
+        null
+      ],
+      "allocation_site": null
+    }
+  ]
+}

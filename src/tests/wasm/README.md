@@ -190,6 +190,14 @@ physical browser memory, not WASM address-space capacity. See
 [measurements and limitations](../benchmark/ARENA_GROWTH_RESULTS.md) and
 [graduation checks](../benchmark/ARENA_GROWTH_ADOPTION.md).
 
+Chrome allocation diagnostics are available through `chrome-memory-probe.mjs`
+and the optional `chrome-memory` argument to `arena-growth-benchmark.mjs`.
+They capture V8 heap profiles per isolate and native memory samples once per
+renderer. These captures are not throughput benchmarks. The
+[controlled probe and actual-game findings](../benchmark/CHROME_MEMORY_PROFILER_RESULTS.md)
+show that source maps can contextualize WASM entry wrappers, but Chrome does
+not record C++ allocations inside existing WASM linear memory.
+
 Eligible ARM short blocks always use inline memory access. `EKA2L1_ARM_MEMORY`
 is retired and must be removed from launch environments. The TLB/direct backend
 selection below remains independent of this fixed compiler behavior. See the

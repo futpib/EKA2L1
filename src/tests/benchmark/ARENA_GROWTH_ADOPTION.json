@@ -163,17 +163,17 @@
   "public_lan_checks": [
     {
       "game": "snakes",
-      "frames": 132,
-      "inputs": 8,
+      "frames": 745,
+      "inputs": 12,
       "memory": {
         "mode": 2,
-        "rebuilds": 1092,
-        "mapped_pages": 19506,
-        "arena_bytes": 268435456,
-        "direct_pages": 1420,
-        "direct_rebuilds": 1020,
-        "arena_growths": 7,
-        "arena_initialized_bytes": 62914560
+        "rebuilds": 1120,
+        "mapped_pages": 19517,
+        "arena_bytes": 335544320,
+        "direct_pages": 1431,
+        "direct_rebuilds": 1048,
+        "arena_growths": 8,
+        "arena_initialized_bytes": 67108864
       },
       "policy": {
         "requested": {
@@ -194,17 +194,17 @@
     },
     {
       "game": "sky-force",
-      "frames": 262,
-      "inputs": 8,
+      "frames": 1451,
+      "inputs": 12,
       "memory": {
         "mode": 2,
-        "rebuilds": 354,
+        "rebuilds": 369,
         "mapped_pages": 18610,
-        "arena_bytes": 268435456,
+        "arena_bytes": 335544320,
         "direct_pages": 787,
-        "direct_rebuilds": 283,
-        "arena_growths": 7,
-        "arena_initialized_bytes": 79691776
+        "direct_rebuilds": 298,
+        "arena_growths": 8,
+        "arena_initialized_bytes": 83886080
       },
       "policy": {
         "requested": {
