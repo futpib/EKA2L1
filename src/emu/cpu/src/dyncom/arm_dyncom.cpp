@@ -188,6 +188,10 @@ namespace eka2l1::arm {
 
     void dyncom_core::set_asid(const std::uint32_t asid) {
         state_->instruction_cache_asid = asid;
+#ifdef EKA2L1_MEMORY_ACCESS_PROFILE
+        aot::memory_access_profile::active_row = reinterpret_cast<std::uintptr_t>(
+            aot::memory_access_profile::counters[asid < aot::memory_access_profile::spaces ? asid : 0]);
+#endif
         asid_instruction_cache_ = true;
     }
 

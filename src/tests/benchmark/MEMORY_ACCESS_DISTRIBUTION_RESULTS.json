@@ -1,0 +1,7105 @@
+{
+  "limits": [
+    "1 MiB start-address bins; read/write operations, not instruction fetches or host C++ copies",
+    "Short fixed routes; not all levels or all future chunk requests",
+    "Address coverage is not a hit-rate or a throughput measurement",
+    "Per-process capacity oracle uses future allocations and is not an implementable online policy"
+  ],
+  "games": [
+    {
+      "game": "snakes",
+      "runtime": {
+        "accesses": 211286200,
+        "in_current_address_window": 189464232,
+        "address_histogram": [
+          [
+            4,
+            1307894
+          ],
+          [
+            5,
+            127648825
+          ],
+          [
+            8,
+            39619081
+          ],
+          [
+            9,
+            2577431
+          ],
+          [
+            10,
+            16970432
+          ],
+          [
+            12,
+            103128
+          ],
+          [
+            13,
+            1237441
+          ],
+          [
+            1026,
+            4800
+          ],
+          [
+            1028,
+            17714426
+          ],
+          [
+            1792,
+            3643414
+          ],
+          [
+            2049,
+            444230
+          ],
+          [
+            2052,
+            5226
+          ],
+          [
+            2053,
+            6776
+          ],
+          [
+            2058,
+            222
+          ],
+          [
+            2121,
+            1320
+          ],
+          [
+            2124,
+            1554
+          ]
+        ],
+        "address_coverage_of_current_window_percent": {
+          "4": 68.06388606372943,
+          "8": 99.29244217452083,
+          "12": 100.0,
+          "16": 100.0,
+          "20": 100.0,
+          "24": 100.0,
+          "32": 100.0,
+          "40": 100.0,
+          "48": 100.0,
+          "64": 100.0
+        },
+        "histogram": [
+          1307894,
+          127648825,
+          0,
+          0,
+          39619081,
+          2577431,
+          16970432,
+          0,
+          103128,
+          1237441,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "all_phases": {
+        "accesses": 1365160240,
+        "in_current_address_window": 1093246355,
+        "address_histogram": [
+          [
+            4,
+            11196582
+          ],
+          [
+            5,
+            750081708
+          ],
+          [
+            7,
+            5251339
+          ],
+          [
+            8,
+            172667914
+          ],
+          [
+            9,
+            27982151
+          ],
+          [
+            10,
+            98285367
+          ],
+          [
+            11,
+            8965511
+          ],
+          [
+            12,
+            12804051
+          ],
+          [
+            13,
+            5520503
+          ],
+          [
+            16,
+            4
+          ],
+          [
+            23,
+            491225
+          ],
+          [
+            151,
+            2418
+          ],
+          [
+            152,
+            218
+          ],
+          [
+            1026,
+            78203132
+          ],
+          [
+            1028,
+            164092535
+          ],
+          [
+            1029,
+            146502
+          ],
+          [
+            1124,
+            9202
+          ],
+          [
+            1792,
+            19786984
+          ],
+          [
+            1793,
+            232
+          ],
+          [
+            1794,
+            48
+          ],
+          [
+            2048,
+            6217
+          ],
+          [
+            2049,
+            5205794
+          ],
+          [
+            2050,
+            747937
+          ],
+          [
+            2051,
+            4
+          ],
+          [
+            2052,
+            2068708
+          ],
+          [
+            2053,
+            279380
+          ],
+          [
+            2054,
+            176204
+          ],
+          [
+            2056,
+            227360
+          ],
+          [
+            2058,
+            3204
+          ],
+          [
+            2059,
+            63676
+          ],
+          [
+            2068,
+            110501
+          ],
+          [
+            2069,
+            3002
+          ],
+          [
+            2071,
+            55152
+          ],
+          [
+            2072,
+            28
+          ],
+          [
+            2086,
+            45308
+          ],
+          [
+            2087,
+            8510
+          ],
+          [
+            2092,
+            325338
+          ],
+          [
+            2094,
+            7268
+          ],
+          [
+            2121,
+            12965
+          ],
+          [
+            2124,
+            18858
+          ],
+          [
+            3218,
+            307200
+          ]
+        ],
+        "address_coverage_of_current_window_percent": {
+          "4": 70.11499516959286,
+          "8": 98.27890731911016,
+          "12": 99.95506694371737,
+          "16": 99.95506730960012,
+          "20": 100.0,
+          "24": 100.0,
+          "32": 100.0,
+          "40": 100.0,
+          "48": 100.0,
+          "64": 100.0
+        },
+        "histogram": [
+          11196582,
+          750081708,
+          0,
+          5251339,
+          172667914,
+          27982151,
+          98285367,
+          8965511,
+          12804051,
+          5520503,
+          0,
+          0,
+          4,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          491225,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "processes": [
+        {
+          "asid": 1,
+          "name": "6r45_1b",
+          "needed_mib": 15,
+          "runtime_accesses": 211286200,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 2,
+          "name": "AknIconSrv",
+          "needed_mib": 19,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": [
+            {
+              "kind": "decommit",
+              "asid": 2,
+              "address": 24117248,
+              "size": 134217728,
+              "committed": 4096,
+              "local": 1,
+              "direct": 0
+            }
+          ]
+        },
+        {
+          "asid": 3,
+          "name": "ecomserver",
+          "needed_mib": 5,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 4,
+          "name": "cdlserver",
+          "needed_mib": 4,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 5,
+          "name": "baksrvs",
+          "needed_mib": 4,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        }
+      ],
+      "observed_required_window_mib": 19,
+      "current": {
+        "peak_mib": 320,
+        "final_mib": 320
+      },
+      "fixed_48": {
+        "peak_mib": 240,
+        "final_mib": 240
+      },
+      "rounded_per_process_oracle": {
+        "peak_mib": 52,
+        "final_mib": 52
+      },
+      "exact_per_process_oracle": {
+        "peak_mib": 47,
+        "final_mib": 47
+      },
+      "doubling_growth_oracle": {
+        "growths": 6,
+        "runtime_growths": 0,
+        "copy_mib": 44,
+        "peak_mib": 64,
+        "final_mib": 64
+      },
+      "windows": [
+        {
+          "label": "opening-level-valid",
+          "guestSeconds": 5,
+          "frames": 74,
+          "errors": [],
+          "assets": {
+            "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+            "/preload/games/k-rally": "/preload/games/k-rally?v=e93abd790e7c5b05427e5e141f34532b329982e89f1a0112c856b59eb03db9e4",
+            "/preload/games/asphalt-2": "/preload/games/asphalt-2?v=d55bb082f53deb40b3b4d9f7440b7eb7b7087a648eabc8c8c9cdf1b8aa756b40",
+            "/preload/games/hooked-on": "/preload/games/hooked-on?v=ce8eeb53432f735ac2b2343290fb31ce37646f6231edc35610c0b07596d043f6",
+            "/preload/games/asphalt-3": "/preload/games/asphalt-3?v=53e38bf8770d9b98e49b263ee4d376cb6c49aea8ef646da8ae8e00a41cde9b6e",
+            "/preload/games/tetris": "/preload/games/tetris?v=71a6218eb6e6ace77fb2b85e850d5ac7f18fb1f7eaaa2c89df7b54412a8ba052",
+            "/preload/games/super-miners": "/preload/games/super-miners?v=3c48a19cbc061e40778a05b03002768d9014481c7ac290a69b12cf004bdc8e7c",
+            "/preload/games/n-gage": "/preload/games/n-gage?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/hooked-on/ngage": "/preload/games/hooked-on/ngage?v=a52da7a5d3d9f7ebd3eb81e49e3294d8998060f7cc2539fe955b8bfe14e1745c",
+            "/preload/games/hooked-on/runtime": "/preload/games/hooked-on/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/asphalt-3/ngage": "/preload/games/asphalt-3/ngage?v=afe7964b0968acc8c45908ac6abd48b25e1b171dd1abea1d07a098209c250093",
+            "/preload/games/asphalt-3/runtime": "/preload/games/asphalt-3/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/tetris/ngage": "/preload/games/tetris/ngage?v=37222257e26cfc1b1bbc1f0dbb684b04fd569e3638c2fbb58f44fe7fe7446569",
+            "/preload/games/tetris/runtime": "/preload/games/tetris/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+            "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+            "/eka2l1.data": "/eka2l1.data?v=8b7dd0983892bd09e5a12b06788a7a4073a8431d87890ffd2c8519dc1bbaadba",
+            "/eka2l1.js": "/eka2l1.js?v=4d67b223724259fd79f6627cd71a2698009f3f5814c036a70ed09ee7edb297d6",
+            "/eka2l1.wasm": "/eka2l1.wasm?v=b47b3378e51944fad36f9703be16f705d797ef510a7fe82624c6819aa0865933",
+            "/persistent-disk.js": "/persistent-disk.js?v=e996eed19cc90c04c929c2d77a8f49a9b4341d67817586ce5995a7b9ac7c6892",
+            "/preinstalled-image.js": "/preinstalled-image.js?v=31a66937318c32486e07c2c567f79000f2137af84a485247a8d6e98dfe83f525",
+            "/touch-controls.css": "/touch-controls.css?v=57338e55dc1af8fb1334faf89cc67b07911c54ee97ba21204d73e0a13eb2948f",
+            "/touch-controls.js": "/touch-controls.js?v=23f0ae61c1ddb13d90b314a29634c776738aed28cc1ac309b8c11496ff029aba"
+          }
+        }
+      ]
+    },
+    {
+      "game": "sky-force",
+      "runtime": {
+        "accesses": 45015052,
+        "in_current_address_window": 28737004,
+        "address_histogram": [
+          [
+            4,
+            74
+          ],
+          [
+            5,
+            6737366
+          ],
+          [
+            8,
+            15290640
+          ],
+          [
+            9,
+            3722351
+          ],
+          [
+            10,
+            2986573
+          ],
+          [
+            1026,
+            256
+          ],
+          [
+            1028,
+            11008978
+          ],
+          [
+            1792,
+            222353
+          ],
+          [
+            2049,
+            72204
+          ],
+          [
+            2052,
+            14571
+          ],
+          [
+            2053,
+            43329
+          ],
+          [
+            2121,
+            645
+          ],
+          [
+            2124,
+            512
+          ],
+          [
+            3218,
+            4915200
+          ]
+        ],
+        "address_coverage_of_current_window_percent": {
+          "4": 23.445171946247424,
+          "8": 100.0,
+          "12": 100.0,
+          "16": 100.0,
+          "20": 100.0,
+          "24": 100.0,
+          "32": 100.0,
+          "40": 100.0,
+          "48": 100.0,
+          "64": 100.0
+        },
+        "histogram": [
+          74,
+          6737366,
+          0,
+          0,
+          15290640,
+          3722351,
+          2986573,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "all_phases": {
+        "accesses": 978198824,
+        "in_current_address_window": 656083262,
+        "address_histogram": [
+          [
+            4,
+            4140187
+          ],
+          [
+            5,
+            136214116
+          ],
+          [
+            7,
+            5251339
+          ],
+          [
+            8,
+            355793158
+          ],
+          [
+            9,
+            79038107
+          ],
+          [
+            10,
+            75154102
+          ],
+          [
+            11,
+            4
+          ],
+          [
+            23,
+            492249
+          ],
+          [
+            151,
+            2418
+          ],
+          [
+            152,
+            218
+          ],
+          [
+            1026,
+            39580
+          ],
+          [
+            1028,
+            197519788
+          ],
+          [
+            1124,
+            9202
+          ],
+          [
+            1792,
+            5652914
+          ],
+          [
+            1793,
+            247
+          ],
+          [
+            1794,
+            48
+          ],
+          [
+            2048,
+            4849
+          ],
+          [
+            2049,
+            2031100
+          ],
+          [
+            2050,
+            747475
+          ],
+          [
+            2051,
+            4
+          ],
+          [
+            2052,
+            370201
+          ],
+          [
+            2053,
+            1282908
+          ],
+          [
+            2054,
+            2851
+          ],
+          [
+            2058,
+            737
+          ],
+          [
+            2059,
+            2133
+          ],
+          [
+            2068,
+            12424
+          ],
+          [
+            2069,
+            3214
+          ],
+          [
+            2071,
+            55152
+          ],
+          [
+            2072,
+            28
+          ],
+          [
+            2086,
+            45411
+          ],
+          [
+            2087,
+            8217
+          ],
+          [
+            2092,
+            325338
+          ],
+          [
+            2094,
+            218
+          ],
+          [
+            2121,
+            15350
+          ],
+          [
+            2124,
+            12337
+          ],
+          [
+            3218,
+            113971200
+          ]
+        ],
+        "address_coverage_of_current_window_percent": {
+          "4": 22.19316517177053,
+          "8": 99.92497156557546,
+          "12": 99.92497156557546,
+          "16": 99.92497156557546,
+          "20": 100.0,
+          "24": 100.0,
+          "32": 100.0,
+          "40": 100.0,
+          "48": 100.0,
+          "64": 100.0
+        },
+        "histogram": [
+          4140187,
+          136214116,
+          0,
+          5251339,
+          355793158,
+          79038107,
+          75154102,
+          4,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          492249,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "processes": [
+        {
+          "asid": 1,
+          "name": "SkyForce",
+          "needed_mib": 20,
+          "runtime_accesses": 45015052,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 2,
+          "name": "AknIconSrv",
+          "needed_mib": 19,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": [
+            {
+              "kind": "decommit",
+              "asid": 2,
+              "address": 24117248,
+              "size": 134217728,
+              "committed": 4096,
+              "local": 1,
+              "direct": 0
+            }
+          ]
+        },
+        {
+          "asid": 3,
+          "name": "ecomserver",
+          "needed_mib": 5,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 4,
+          "name": "cdlserver",
+          "needed_mib": 4,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 5,
+          "name": "baksrvs",
+          "needed_mib": 4,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        }
+      ],
+      "observed_required_window_mib": 20,
+      "current": {
+        "peak_mib": 320,
+        "final_mib": 320
+      },
+      "fixed_48": {
+        "peak_mib": 240,
+        "final_mib": 240
+      },
+      "rounded_per_process_oracle": {
+        "peak_mib": 56,
+        "final_mib": 56
+      },
+      "exact_per_process_oracle": {
+        "peak_mib": 52,
+        "final_mib": 52
+      },
+      "doubling_growth_oracle": {
+        "growths": 7,
+        "runtime_growths": 0,
+        "copy_mib": 60,
+        "peak_mib": 80,
+        "final_mib": 80
+      },
+      "windows": [
+        {
+          "label": "stage-1",
+          "guestSeconds": 2,
+          "frames": 64,
+          "errors": [],
+          "assets": {
+            "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+            "/preload/games/k-rally": "/preload/games/k-rally?v=e93abd790e7c5b05427e5e141f34532b329982e89f1a0112c856b59eb03db9e4",
+            "/preload/games/asphalt-2": "/preload/games/asphalt-2?v=d55bb082f53deb40b3b4d9f7440b7eb7b7087a648eabc8c8c9cdf1b8aa756b40",
+            "/preload/games/hooked-on": "/preload/games/hooked-on?v=ce8eeb53432f735ac2b2343290fb31ce37646f6231edc35610c0b07596d043f6",
+            "/preload/games/asphalt-3": "/preload/games/asphalt-3?v=53e38bf8770d9b98e49b263ee4d376cb6c49aea8ef646da8ae8e00a41cde9b6e",
+            "/preload/games/tetris": "/preload/games/tetris?v=71a6218eb6e6ace77fb2b85e850d5ac7f18fb1f7eaaa2c89df7b54412a8ba052",
+            "/preload/games/super-miners": "/preload/games/super-miners?v=3c48a19cbc061e40778a05b03002768d9014481c7ac290a69b12cf004bdc8e7c",
+            "/preload/games/n-gage": "/preload/games/n-gage?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/hooked-on/ngage": "/preload/games/hooked-on/ngage?v=a52da7a5d3d9f7ebd3eb81e49e3294d8998060f7cc2539fe955b8bfe14e1745c",
+            "/preload/games/hooked-on/runtime": "/preload/games/hooked-on/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/asphalt-3/ngage": "/preload/games/asphalt-3/ngage?v=afe7964b0968acc8c45908ac6abd48b25e1b171dd1abea1d07a098209c250093",
+            "/preload/games/asphalt-3/runtime": "/preload/games/asphalt-3/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/tetris/ngage": "/preload/games/tetris/ngage?v=37222257e26cfc1b1bbc1f0dbb684b04fd569e3638c2fbb58f44fe7fe7446569",
+            "/preload/games/tetris/runtime": "/preload/games/tetris/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+            "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+            "/eka2l1.data": "/eka2l1.data?v=8b7dd0983892bd09e5a12b06788a7a4073a8431d87890ffd2c8519dc1bbaadba",
+            "/eka2l1.js": "/eka2l1.js?v=4d67b223724259fd79f6627cd71a2698009f3f5814c036a70ed09ee7edb297d6",
+            "/eka2l1.wasm": "/eka2l1.wasm?v=b47b3378e51944fad36f9703be16f705d797ef510a7fe82624c6819aa0865933",
+            "/persistent-disk.js": "/persistent-disk.js?v=e996eed19cc90c04c929c2d77a8f49a9b4341d67817586ce5995a7b9ac7c6892",
+            "/preinstalled-image.js": "/preinstalled-image.js?v=31a66937318c32486e07c2c567f79000f2137af84a485247a8d6e98dfe83f525",
+            "/touch-controls.css": "/touch-controls.css?v=57338e55dc1af8fb1334faf89cc67b07911c54ee97ba21204d73e0a13eb2948f",
+            "/touch-controls.js": "/touch-controls.js?v=23f0ae61c1ddb13d90b314a29634c776738aed28cc1ac309b8c11496ff029aba"
+          }
+        }
+      ]
+    },
+    {
+      "game": "k-rally",
+      "runtime": {
+        "accesses": 93816387,
+        "in_current_address_window": 64638773,
+        "address_histogram": [
+          [
+            4,
+            7124
+          ],
+          [
+            5,
+            10191702
+          ],
+          [
+            8,
+            6501126
+          ],
+          [
+            9,
+            39755812
+          ],
+          [
+            10,
+            4674992
+          ],
+          [
+            12,
+            3508017
+          ],
+          [
+            1026,
+            336
+          ],
+          [
+            1028,
+            21875526
+          ],
+          [
+            1792,
+            498405
+          ],
+          [
+            1793,
+            348
+          ],
+          [
+            2049,
+            22532
+          ],
+          [
+            2052,
+            5167
+          ],
+          [
+            2053,
+            14055
+          ],
+          [
+            2059,
+            174
+          ],
+          [
+            2068,
+            1024
+          ],
+          [
+            2121,
+            975
+          ],
+          [
+            2124,
+            672
+          ],
+          [
+            3218,
+            6758400
+          ]
+        ],
+        "address_coverage_of_current_window_percent": {
+          "4": 15.778186259816534,
+          "8": 94.5728904847869,
+          "12": 100.0,
+          "16": 100.0,
+          "20": 100.0,
+          "24": 100.0,
+          "32": 100.0,
+          "40": 100.0,
+          "48": 100.0,
+          "64": 100.0
+        },
+        "histogram": [
+          7124,
+          10191702,
+          0,
+          0,
+          6501126,
+          39755812,
+          4674992,
+          0,
+          3508017,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "all_phases": {
+        "accesses": 4006144406,
+        "in_current_address_window": 2815009527,
+        "address_histogram": [
+          [
+            4,
+            5275097
+          ],
+          [
+            5,
+            402843684
+          ],
+          [
+            7,
+            5251339
+          ],
+          [
+            8,
+            429078061
+          ],
+          [
+            9,
+            1542671095
+          ],
+          [
+            10,
+            172617986
+          ],
+          [
+            11,
+            262148
+          ],
+          [
+            12,
+            256518600
+          ],
+          [
+            23,
+            491517
+          ],
+          [
+            151,
+            2418
+          ],
+          [
+            152,
+            218
+          ],
+          [
+            1026,
+            47491
+          ],
+          [
+            1028,
+            792307106
+          ],
+          [
+            1124,
+            9202
+          ],
+          [
+            1792,
+            23254698
+          ],
+          [
+            1793,
+            721
+          ],
+          [
+            1794,
+            48
+          ],
+          [
+            2048,
+            4849
+          ],
+          [
+            2049,
+            4757861
+          ],
+          [
+            2050,
+            747479
+          ],
+          [
+            2051,
+            16
+          ],
+          [
+            2052,
+            914670
+          ],
+          [
+            2053,
+            2900865
+          ],
+          [
+            2054,
+            2901
+          ],
+          [
+            2058,
+            737
+          ],
+          [
+            2059,
+            2373
+          ],
+          [
+            2068,
+            13588
+          ],
+          [
+            2069,
+            3214
+          ],
+          [
+            2071,
+            55152
+          ],
+          [
+            2072,
+            28
+          ],
+          [
+            2086,
+            45411
+          ],
+          [
+            2087,
+            8217
+          ],
+          [
+            2092,
+            325338
+          ],
+          [
+            2094,
+            237
+          ],
+          [
+            2095,
+            72
+          ],
+          [
+            2121,
+            47032
+          ],
+          [
+            2124,
+            38137
+          ],
+          [
+            3218,
+            365644800
+          ]
+        ],
+        "address_coverage_of_current_window_percent": {
+          "4": 14.68450163437049,
+          "8": 90.87000898096782,
+          "12": 99.98253941966144,
+          "16": 99.98253941966144,
+          "20": 100.0,
+          "24": 100.0,
+          "32": 100.0,
+          "40": 100.0,
+          "48": 100.0,
+          "64": 100.0
+        },
+        "histogram": [
+          5275097,
+          402843684,
+          0,
+          5251339,
+          429078061,
+          1542671095,
+          172617986,
+          262148,
+          256518600,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          491517,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "processes": [
+        {
+          "asid": 1,
+          "name": "KRally",
+          "needed_mib": 20,
+          "runtime_accesses": 93816387,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 2,
+          "name": "AknIconSrv",
+          "needed_mib": 19,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": [
+            {
+              "kind": "decommit",
+              "asid": 2,
+              "address": 24117248,
+              "size": 134217728,
+              "committed": 4096,
+              "local": 1,
+              "direct": 0
+            }
+          ]
+        },
+        {
+          "asid": 3,
+          "name": "ecomserver",
+          "needed_mib": 5,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 4,
+          "name": "cdlserver",
+          "needed_mib": 4,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 5,
+          "name": "baksrvs",
+          "needed_mib": 4,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        }
+      ],
+      "observed_required_window_mib": 20,
+      "current": {
+        "peak_mib": 320,
+        "final_mib": 320
+      },
+      "fixed_48": {
+        "peak_mib": 240,
+        "final_mib": 240
+      },
+      "rounded_per_process_oracle": {
+        "peak_mib": 56,
+        "final_mib": 56
+      },
+      "exact_per_process_oracle": {
+        "peak_mib": 52,
+        "final_mib": 52
+      },
+      "doubling_growth_oracle": {
+        "growths": 7,
+        "runtime_growths": 0,
+        "copy_mib": 60,
+        "peak_mib": 80,
+        "final_mib": 80
+      },
+      "windows": [
+        {
+          "label": "tutorial-driving",
+          "guestSeconds": 3,
+          "frames": 84,
+          "errors": [],
+          "assets": {
+            "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+            "/preload/games/k-rally": "/preload/games/k-rally?v=e93abd790e7c5b05427e5e141f34532b329982e89f1a0112c856b59eb03db9e4",
+            "/preload/games/asphalt-2": "/preload/games/asphalt-2?v=d55bb082f53deb40b3b4d9f7440b7eb7b7087a648eabc8c8c9cdf1b8aa756b40",
+            "/preload/games/hooked-on": "/preload/games/hooked-on?v=ce8eeb53432f735ac2b2343290fb31ce37646f6231edc35610c0b07596d043f6",
+            "/preload/games/asphalt-3": "/preload/games/asphalt-3?v=53e38bf8770d9b98e49b263ee4d376cb6c49aea8ef646da8ae8e00a41cde9b6e",
+            "/preload/games/tetris": "/preload/games/tetris?v=71a6218eb6e6ace77fb2b85e850d5ac7f18fb1f7eaaa2c89df7b54412a8ba052",
+            "/preload/games/super-miners": "/preload/games/super-miners?v=3c48a19cbc061e40778a05b03002768d9014481c7ac290a69b12cf004bdc8e7c",
+            "/preload/games/n-gage": "/preload/games/n-gage?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/hooked-on/ngage": "/preload/games/hooked-on/ngage?v=a52da7a5d3d9f7ebd3eb81e49e3294d8998060f7cc2539fe955b8bfe14e1745c",
+            "/preload/games/hooked-on/runtime": "/preload/games/hooked-on/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/asphalt-3/ngage": "/preload/games/asphalt-3/ngage?v=afe7964b0968acc8c45908ac6abd48b25e1b171dd1abea1d07a098209c250093",
+            "/preload/games/asphalt-3/runtime": "/preload/games/asphalt-3/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/tetris/ngage": "/preload/games/tetris/ngage?v=37222257e26cfc1b1bbc1f0dbb684b04fd569e3638c2fbb58f44fe7fe7446569",
+            "/preload/games/tetris/runtime": "/preload/games/tetris/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+            "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+            "/eka2l1.data": "/eka2l1.data?v=8b7dd0983892bd09e5a12b06788a7a4073a8431d87890ffd2c8519dc1bbaadba",
+            "/eka2l1.js": "/eka2l1.js?v=4d67b223724259fd79f6627cd71a2698009f3f5814c036a70ed09ee7edb297d6",
+            "/eka2l1.wasm": "/eka2l1.wasm?v=b47b3378e51944fad36f9703be16f705d797ef510a7fe82624c6819aa0865933",
+            "/persistent-disk.js": "/persistent-disk.js?v=e996eed19cc90c04c929c2d77a8f49a9b4341d67817586ce5995a7b9ac7c6892",
+            "/preinstalled-image.js": "/preinstalled-image.js?v=31a66937318c32486e07c2c567f79000f2137af84a485247a8d6e98dfe83f525",
+            "/touch-controls.css": "/touch-controls.css?v=57338e55dc1af8fb1334faf89cc67b07911c54ee97ba21204d73e0a13eb2948f",
+            "/touch-controls.js": "/touch-controls.js?v=23f0ae61c1ddb13d90b314a29634c776738aed28cc1ac309b8c11496ff029aba"
+          }
+        }
+      ]
+    },
+    {
+      "game": "asphalt-2",
+      "runtime": {
+        "accesses": 229041215,
+        "in_current_address_window": 187513076,
+        "address_histogram": [
+          [
+            4,
+            7420
+          ],
+          [
+            5,
+            112533374
+          ],
+          [
+            8,
+            17670272
+          ],
+          [
+            9,
+            30575740
+          ],
+          [
+            10,
+            9652576
+          ],
+          [
+            11,
+            12741938
+          ],
+          [
+            12,
+            1256583
+          ],
+          [
+            17,
+            1091181
+          ],
+          [
+            20,
+            1983992
+          ],
+          [
+            1792,
+            8309211
+          ],
+          [
+            2049,
+            26169
+          ],
+          [
+            2050,
+            214
+          ],
+          [
+            2051,
+            5184
+          ],
+          [
+            2052,
+            214
+          ],
+          [
+            2053,
+            3990
+          ],
+          [
+            2121,
+            4699
+          ],
+          [
+            2124,
+            858
+          ],
+          [
+            3218,
+            33177600
+          ]
+        ],
+        "address_coverage_of_current_window_percent": {
+          "4": 60.017571254604135,
+          "8": 97.6898912372383,
+          "12": 98.36002210320522,
+          "16": 98.94194472069778,
+          "20": 100.0,
+          "24": 100.0,
+          "32": 100.0,
+          "40": 100.0,
+          "48": 100.0,
+          "64": 100.0
+        },
+        "histogram": [
+          7420,
+          112533374,
+          0,
+          0,
+          17670272,
+          30575740,
+          9652576,
+          12741938,
+          1256583,
+          0,
+          0,
+          0,
+          0,
+          1091181,
+          0,
+          0,
+          1983992,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "all_phases": {
+        "accesses": 1811562188,
+        "in_current_address_window": 1410221534,
+        "address_histogram": [
+          [
+            4,
+            4197462
+          ],
+          [
+            5,
+            767190807
+          ],
+          [
+            7,
+            5251339
+          ],
+          [
+            8,
+            233450705
+          ],
+          [
+            9,
+            218585765
+          ],
+          [
+            10,
+            74002607
+          ],
+          [
+            11,
+            74695101
+          ],
+          [
+            12,
+            11568542
+          ],
+          [
+            13,
+            253
+          ],
+          [
+            14,
+            244
+          ],
+          [
+            15,
+            79022
+          ],
+          [
+            16,
+            4
+          ],
+          [
+            17,
+            6887058
+          ],
+          [
+            20,
+            13821400
+          ],
+          [
+            23,
+            491225
+          ],
+          [
+            151,
+            2418
+          ],
+          [
+            152,
+            218
+          ],
+          [
+            1026,
+            33754
+          ],
+          [
+            1028,
+            181557
+          ],
+          [
+            1029,
+            152646
+          ],
+          [
+            1124,
+            9202
+          ],
+          [
+            1792,
+            62735464
+          ],
+          [
+            1793,
+            301
+          ],
+          [
+            1794,
+            48
+          ],
+          [
+            2048,
+            5134
+          ],
+          [
+            2049,
+            564812
+          ],
+          [
+            2050,
+            749772
+          ],
+          [
+            2051,
+            536483
+          ],
+          [
+            2052,
+            13182
+          ],
+          [
+            2053,
+            761752
+          ],
+          [
+            2054,
+            2860
+          ],
+          [
+            2056,
+            863358
+          ],
+          [
+            2058,
+            749
+          ],
+          [
+            2059,
+            2149
+          ],
+          [
+            2068,
+            12094
+          ],
+          [
+            2069,
+            3053
+          ],
+          [
+            2071,
+            55152
+          ],
+          [
+            2072,
+            28
+          ],
+          [
+            2086,
+            45290
+          ],
+          [
+            2087,
+            8491
+          ],
+          [
+            2092,
+            325338
+          ],
+          [
+            2094,
+            218
+          ],
+          [
+            2120,
+            363
+          ],
+          [
+            2121,
+            31719
+          ],
+          [
+            2124,
+            9449
+          ],
+          [
+            3218,
+            334233600
+          ]
+        ],
+        "address_coverage_of_current_window_percent": {
+          "4": 55.07217052608133,
+          "8": 97.6707384472545,
+          "12": 98.49671229031169,
+          "16": 98.98507967330472,
+          "20": 100.0,
+          "24": 100.0,
+          "32": 100.0,
+          "40": 100.0,
+          "48": 100.0,
+          "64": 100.0
+        },
+        "histogram": [
+          4197462,
+          767190807,
+          0,
+          5251339,
+          233450705,
+          218585765,
+          74002607,
+          74695101,
+          11568542,
+          253,
+          244,
+          79022,
+          4,
+          6887058,
+          0,
+          0,
+          13821400,
+          0,
+          0,
+          491225,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "processes": [
+        {
+          "asid": 1,
+          "name": "asphalt2_full",
+          "needed_mib": 17,
+          "runtime_accesses": 229041215,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 2,
+          "name": "AknIconSrv",
+          "needed_mib": 19,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": [
+            {
+              "kind": "decommit",
+              "asid": 2,
+              "address": 24117248,
+              "size": 134217728,
+              "committed": 4096,
+              "local": 1,
+              "direct": 0
+            }
+          ]
+        },
+        {
+          "asid": 3,
+          "name": "ecomserver",
+          "needed_mib": 5,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 4,
+          "name": "cdlserver",
+          "needed_mib": 4,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 5,
+          "name": "baksrvs",
+          "needed_mib": 4,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        }
+      ],
+      "observed_required_window_mib": 19,
+      "current": {
+        "peak_mib": 320,
+        "final_mib": 320
+      },
+      "fixed_48": {
+        "peak_mib": 240,
+        "final_mib": 240
+      },
+      "rounded_per_process_oracle": {
+        "peak_mib": 56,
+        "final_mib": 56
+      },
+      "exact_per_process_oracle": {
+        "peak_mib": 49,
+        "final_mib": 49
+      },
+      "doubling_growth_oracle": {
+        "growths": 7,
+        "runtime_growths": 0,
+        "copy_mib": 60,
+        "peak_mib": 80,
+        "final_mib": 80
+      },
+      "windows": [
+        {
+          "label": "golf-san-francisco-barrier",
+          "guestSeconds": 10,
+          "frames": 107,
+          "errors": [],
+          "assets": {
+            "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+            "/preload/games/k-rally": "/preload/games/k-rally?v=e93abd790e7c5b05427e5e141f34532b329982e89f1a0112c856b59eb03db9e4",
+            "/preload/games/asphalt-2": "/preload/games/asphalt-2?v=d55bb082f53deb40b3b4d9f7440b7eb7b7087a648eabc8c8c9cdf1b8aa756b40",
+            "/preload/games/hooked-on": "/preload/games/hooked-on?v=ce8eeb53432f735ac2b2343290fb31ce37646f6231edc35610c0b07596d043f6",
+            "/preload/games/asphalt-3": "/preload/games/asphalt-3?v=53e38bf8770d9b98e49b263ee4d376cb6c49aea8ef646da8ae8e00a41cde9b6e",
+            "/preload/games/tetris": "/preload/games/tetris?v=71a6218eb6e6ace77fb2b85e850d5ac7f18fb1f7eaaa2c89df7b54412a8ba052",
+            "/preload/games/super-miners": "/preload/games/super-miners?v=3c48a19cbc061e40778a05b03002768d9014481c7ac290a69b12cf004bdc8e7c",
+            "/preload/games/n-gage": "/preload/games/n-gage?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/hooked-on/ngage": "/preload/games/hooked-on/ngage?v=a52da7a5d3d9f7ebd3eb81e49e3294d8998060f7cc2539fe955b8bfe14e1745c",
+            "/preload/games/hooked-on/runtime": "/preload/games/hooked-on/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/asphalt-3/ngage": "/preload/games/asphalt-3/ngage?v=afe7964b0968acc8c45908ac6abd48b25e1b171dd1abea1d07a098209c250093",
+            "/preload/games/asphalt-3/runtime": "/preload/games/asphalt-3/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/tetris/ngage": "/preload/games/tetris/ngage?v=37222257e26cfc1b1bbc1f0dbb684b04fd569e3638c2fbb58f44fe7fe7446569",
+            "/preload/games/tetris/runtime": "/preload/games/tetris/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+            "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+            "/eka2l1.data": "/eka2l1.data?v=8b7dd0983892bd09e5a12b06788a7a4073a8431d87890ffd2c8519dc1bbaadba",
+            "/eka2l1.js": "/eka2l1.js?v=4d67b223724259fd79f6627cd71a2698009f3f5814c036a70ed09ee7edb297d6",
+            "/eka2l1.wasm": "/eka2l1.wasm?v=b47b3378e51944fad36f9703be16f705d797ef510a7fe82624c6819aa0865933",
+            "/persistent-disk.js": "/persistent-disk.js?v=e996eed19cc90c04c929c2d77a8f49a9b4341d67817586ce5995a7b9ac7c6892",
+            "/preinstalled-image.js": "/preinstalled-image.js?v=31a66937318c32486e07c2c567f79000f2137af84a485247a8d6e98dfe83f525",
+            "/touch-controls.css": "/touch-controls.css?v=57338e55dc1af8fb1334faf89cc67b07911c54ee97ba21204d73e0a13eb2948f",
+            "/touch-controls.js": "/touch-controls.js?v=23f0ae61c1ddb13d90b314a29634c776738aed28cc1ac309b8c11496ff029aba"
+          }
+        }
+      ]
+    },
+    {
+      "game": "hooked-on",
+      "runtime": {
+        "accesses": 1039238437,
+        "in_current_address_window": 968809091,
+        "address_histogram": [
+          [
+            4,
+            816985
+          ],
+          [
+            5,
+            191662381
+          ],
+          [
+            8,
+            208668980
+          ],
+          [
+            9,
+            114146523
+          ],
+          [
+            10,
+            144867651
+          ],
+          [
+            11,
+            4672962
+          ],
+          [
+            12,
+            122322087
+          ],
+          [
+            13,
+            26635420
+          ],
+          [
+            14,
+            140340365
+          ],
+          [
+            24,
+            41098
+          ],
+          [
+            30,
+            83489
+          ],
+          [
+            33,
+            14551150
+          ],
+          [
+            1023,
+            9461
+          ],
+          [
+            1026,
+            419
+          ],
+          [
+            1029,
+            958464
+          ],
+          [
+            1804,
+            32
+          ],
+          [
+            1829,
+            43734
+          ],
+          [
+            1866,
+            811
+          ],
+          [
+            1870,
+            1428230
+          ],
+          [
+            1871,
+            2537238
+          ],
+          [
+            1875,
+            3322
+          ],
+          [
+            1884,
+            8110
+          ],
+          [
+            1885,
+            237
+          ],
+          [
+            1887,
+            226647
+          ],
+          [
+            1891,
+            1468
+          ],
+          [
+            1892,
+            2079
+          ],
+          [
+            2048,
+            870
+          ],
+          [
+            2049,
+            763149
+          ],
+          [
+            2050,
+            9032
+          ],
+          [
+            2052,
+            52719
+          ],
+          [
+            2053,
+            8216
+          ],
+          [
+            2054,
+            1290
+          ],
+          [
+            2055,
+            4209
+          ],
+          [
+            2056,
+            820581
+          ],
+          [
+            2094,
+            951190
+          ],
+          [
+            2124,
+            8910
+          ],
+          [
+            3218,
+            62284800
+          ],
+          [
+            3219,
+            304128
+          ]
+        ],
+        "address_coverage_of_current_window_percent": {
+          "4": 19.86762591186296,
+          "8": 68.62399291833235,
+          "12": 98.48517761276871,
+          "16": 98.48517761276871,
+          "20": 98.48517761276871,
+          "24": 98.48941972820525,
+          "32": 100.0,
+          "40": 100.0,
+          "48": 100.0,
+          "64": 100.0
+        },
+        "histogram": [
+          816985,
+          191662381,
+          0,
+          0,
+          208668980,
+          114146523,
+          144867651,
+          4672962,
+          122322087,
+          26635420,
+          140340365,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          41098,
+          0,
+          0,
+          0,
+          0,
+          0,
+          83489,
+          0,
+          0,
+          14551150,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "all_phases": {
+        "accesses": 14355018715,
+        "in_current_address_window": 13152782001,
+        "address_histogram": [
+          [
+            4,
+            39344656
+          ],
+          [
+            5,
+            2058973468
+          ],
+          [
+            7,
+            6713913
+          ],
+          [
+            8,
+            2860258774
+          ],
+          [
+            9,
+            1298724760
+          ],
+          [
+            10,
+            1372487743
+          ],
+          [
+            11,
+            183581608
+          ],
+          [
+            12,
+            1807247525
+          ],
+          [
+            13,
+            573177662
+          ],
+          [
+            14,
+            2765044295
+          ],
+          [
+            15,
+            5103549
+          ],
+          [
+            16,
+            22737
+          ],
+          [
+            17,
+            8697
+          ],
+          [
+            20,
+            562
+          ],
+          [
+            23,
+            15989
+          ],
+          [
+            24,
+            1639110
+          ],
+          [
+            25,
+            974
+          ],
+          [
+            28,
+            166
+          ],
+          [
+            29,
+            1577836
+          ],
+          [
+            30,
+            1500816
+          ],
+          [
+            32,
+            13433537
+          ],
+          [
+            33,
+            163550479
+          ],
+          [
+            34,
+            373145
+          ],
+          [
+            151,
+            930
+          ],
+          [
+            152,
+            222
+          ],
+          [
+            1023,
+            633936
+          ],
+          [
+            1026,
+            2323829
+          ],
+          [
+            1028,
+            500349
+          ],
+          [
+            1029,
+            15507926
+          ],
+          [
+            1030,
+            783072
+          ],
+          [
+            1124,
+            34526
+          ],
+          [
+            1792,
+            30685
+          ],
+          [
+            1793,
+            490186
+          ],
+          [
+            1794,
+            401
+          ],
+          [
+            1795,
+            407
+          ],
+          [
+            1796,
+            1298
+          ],
+          [
+            1797,
+            1259
+          ],
+          [
+            1798,
+            28
+          ],
+          [
+            1799,
+            69626
+          ],
+          [
+            1800,
+            406231
+          ],
+          [
+            1801,
+            7193
+          ],
+          [
+            1802,
+            375
+          ],
+          [
+            1803,
+            819
+          ],
+          [
+            1804,
+            1551
+          ],
+          [
+            1805,
+            4510160
+          ],
+          [
+            1806,
+            22
+          ],
+          [
+            1807,
+            11524
+          ],
+          [
+            1808,
+            1038
+          ],
+          [
+            1809,
+            1880
+          ],
+          [
+            1810,
+            165
+          ],
+          [
+            1811,
+            377
+          ],
+          [
+            1812,
+            2549
+          ],
+          [
+            1813,
+            2136
+          ],
+          [
+            1814,
+            302
+          ],
+          [
+            1815,
+            1871
+          ],
+          [
+            1816,
+            46
+          ],
+          [
+            1817,
+            181
+          ],
+          [
+            1818,
+            1528
+          ],
+          [
+            1819,
+            4
+          ],
+          [
+            1820,
+            34636
+          ],
+          [
+            1821,
+            5960
+          ],
+          [
+            1822,
+            4
+          ],
+          [
+            1823,
+            4
+          ],
+          [
+            1824,
+            4
+          ],
+          [
+            1825,
+            4
+          ],
+          [
+            1826,
+            4
+          ],
+          [
+            1827,
+            4
+          ],
+          [
+            1828,
+            88158
+          ],
+          [
+            1829,
+            851885
+          ],
+          [
+            1830,
+            13147
+          ],
+          [
+            1831,
+            1025941
+          ],
+          [
+            1832,
+            1747
+          ],
+          [
+            1833,
+            1164
+          ],
+          [
+            1834,
+            8606
+          ],
+          [
+            1835,
+            7501
+          ],
+          [
+            1836,
+            15315
+          ],
+          [
+            1837,
+            189
+          ],
+          [
+            1838,
+            1394
+          ],
+          [
+            1839,
+            4
+          ],
+          [
+            1840,
+            4
+          ],
+          [
+            1841,
+            4
+          ],
+          [
+            1842,
+            214
+          ],
+          [
+            1843,
+            914
+          ],
+          [
+            1844,
+            1224
+          ],
+          [
+            1845,
+            238
+          ],
+          [
+            1846,
+            435
+          ],
+          [
+            1847,
+            573
+          ],
+          [
+            1848,
+            299
+          ],
+          [
+            1849,
+            180
+          ],
+          [
+            1850,
+            538
+          ],
+          [
+            1851,
+            23
+          ],
+          [
+            1852,
+            2018
+          ],
+          [
+            1853,
+            446
+          ],
+          [
+            1854,
+            449
+          ],
+          [
+            1855,
+            3612
+          ],
+          [
+            1856,
+            468
+          ],
+          [
+            1857,
+            232
+          ],
+          [
+            1858,
+            323
+          ],
+          [
+            1859,
+            737
+          ],
+          [
+            1860,
+            4603
+          ],
+          [
+            1861,
+            34
+          ],
+          [
+            1862,
+            5218
+          ],
+          [
+            1863,
+            145
+          ],
+          [
+            1864,
+            28
+          ],
+          [
+            1865,
+            30
+          ],
+          [
+            1866,
+            12818
+          ],
+          [
+            1867,
+            1986
+          ],
+          [
+            1868,
+            220
+          ],
+          [
+            1869,
+            60
+          ],
+          [
+            1870,
+            23663937
+          ],
+          [
+            1871,
+            37903223
+          ],
+          [
+            1872,
+            8
+          ],
+          [
+            1873,
+            17291
+          ],
+          [
+            1874,
+            720
+          ],
+          [
+            1875,
+            51977
+          ],
+          [
+            1876,
+            14674
+          ],
+          [
+            1877,
+            2043
+          ],
+          [
+            1878,
+            82
+          ],
+          [
+            1879,
+            661
+          ],
+          [
+            1880,
+            5317
+          ],
+          [
+            1881,
+            3658
+          ],
+          [
+            1882,
+            12336
+          ],
+          [
+            1883,
+            13931
+          ],
+          [
+            1884,
+            126972
+          ],
+          [
+            1885,
+            7820
+          ],
+          [
+            1886,
+            48
+          ],
+          [
+            1887,
+            3548746
+          ],
+          [
+            1888,
+            45
+          ],
+          [
+            1889,
+            746
+          ],
+          [
+            1890,
+            173
+          ],
+          [
+            1891,
+            51885
+          ],
+          [
+            1892,
+            34840
+          ],
+          [
+            1893,
+            1463
+          ],
+          [
+            1894,
+            1160499
+          ],
+          [
+            1895,
+            1513
+          ],
+          [
+            2048,
+            104251
+          ],
+          [
+            2049,
+            76905742
+          ],
+          [
+            2050,
+            3563734
+          ],
+          [
+            2051,
+            120165
+          ],
+          [
+            2052,
+            1685700
+          ],
+          [
+            2053,
+            5371103
+          ],
+          [
+            2054,
+            243745
+          ],
+          [
+            2055,
+            101827
+          ],
+          [
+            2056,
+            13929587
+          ],
+          [
+            2057,
+            8051536
+          ],
+          [
+            2058,
+            43486
+          ],
+          [
+            2059,
+            4512012
+          ],
+          [
+            2060,
+            33672
+          ],
+          [
+            2065,
+            1836
+          ],
+          [
+            2067,
+            11
+          ],
+          [
+            2068,
+            73574
+          ],
+          [
+            2069,
+            19446
+          ],
+          [
+            2070,
+            10625
+          ],
+          [
+            2071,
+            142671
+          ],
+          [
+            2072,
+            10198
+          ],
+          [
+            2078,
+            12
+          ],
+          [
+            2084,
+            10398
+          ],
+          [
+            2086,
+            188886
+          ],
+          [
+            2087,
+            27483
+          ],
+          [
+            2088,
+            14557
+          ],
+          [
+            2090,
+            8
+          ],
+          [
+            2091,
+            28
+          ],
+          [
+            2092,
+            92926
+          ],
+          [
+            2094,
+            13168869
+          ],
+          [
+            2095,
+            344
+          ],
+          [
+            2107,
+            791
+          ],
+          [
+            2124,
+            137595
+          ],
+          [
+            3218,
+            974822400
+          ],
+          [
+            3219,
+            4800512
+          ]
+        ],
+        "address_coverage_of_current_window_percent": {
+          "4": 16.004462301891383,
+          "8": 59.455748003771696,
+          "12": 98.61531919265329,
+          "16": 98.61555818391763,
+          "20": 98.61568402041365,
+          "24": 98.62815350405502,
+          "32": 100.0,
+          "40": 100.0,
+          "48": 100.0,
+          "64": 100.0
+        },
+        "histogram": [
+          39344656,
+          2058973468,
+          0,
+          6713913,
+          2860258774,
+          1298724760,
+          1372487743,
+          183581608,
+          1807247525,
+          573177662,
+          2765044295,
+          5103549,
+          22737,
+          8697,
+          0,
+          0,
+          562,
+          0,
+          0,
+          15989,
+          1639110,
+          974,
+          0,
+          0,
+          166,
+          1577836,
+          1500816,
+          0,
+          13433537,
+          163550479,
+          373145,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "processes": [
+        {
+          "asid": 1,
+          "name": "ngiplay0x20003b78",
+          "needed_mib": 21,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 2,
+          "name": "AknIconSrv",
+          "needed_mib": 19,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": [
+            {
+              "kind": "commit",
+              "asid": 2,
+              "address": 24117248,
+              "size": 134217728,
+              "committed": 4096,
+              "local": 1,
+              "direct": 0
+            }
+          ]
+        },
+        {
+          "asid": 3,
+          "name": "ecomserver",
+          "needed_mib": 5,
+          "runtime_accesses": 280078,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 4,
+          "name": "cdlserver",
+          "needed_mib": 4,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 5,
+          "name": "playserver",
+          "needed_mib": 14,
+          "runtime_accesses": 2296,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 6,
+          "name": "gtmdserver",
+          "needed_mib": 5,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 7,
+          "name": "ngiinstaller",
+          "needed_mib": 46,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 8,
+          "name": "NAFServiceManagerSrvr_V3",
+          "needed_mib": 18,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 9,
+          "name": "TZSERVER",
+          "needed_mib": 5,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 10,
+          "name": "wmdrmpkserver",
+          "needed_mib": 4,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 11,
+          "name": "baksrvs",
+          "needed_mib": 4,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 12,
+          "name": "DownloadMgrServer",
+          "needed_mib": 6,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 13,
+          "name": "CookieServer",
+          "needed_mib": 4,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 14,
+          "name": "InstallServer",
+          "needed_mib": 6,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 15,
+          "name": "InstallServer",
+          "needed_mib": 6,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 16,
+          "name": "COTD",
+          "needed_mib": 31,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 17,
+          "name": "COTD",
+          "needed_mib": 32,
+          "runtime_accesses": 1038956063,
+          "conflicting_separate_chunks": []
+        }
+      ],
+      "observed_required_window_mib": 46,
+      "current": {
+        "peak_mib": 896,
+        "final_mib": 832
+      },
+      "fixed_48": {
+        "peak_mib": 672,
+        "final_mib": 624
+      },
+      "rounded_per_process_oracle": {
+        "peak_mib": 184,
+        "final_mib": 160
+      },
+      "exact_per_process_oracle": {
+        "peak_mib": 161,
+        "final_mib": 141
+      },
+      "doubling_growth_oracle": {
+        "growths": 27,
+        "runtime_growths": 0,
+        "copy_mib": 236,
+        "peak_mib": 232,
+        "final_mib": 192
+      },
+      "windows": [
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-0",
+          "guestSeconds": 10,
+          "frames": 173,
+          "errors": [],
+          "assets": {
+            "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+            "/preload/games/k-rally": "/preload/games/k-rally?v=e93abd790e7c5b05427e5e141f34532b329982e89f1a0112c856b59eb03db9e4",
+            "/preload/games/asphalt-2": "/preload/games/asphalt-2?v=d55bb082f53deb40b3b4d9f7440b7eb7b7087a648eabc8c8c9cdf1b8aa756b40",
+            "/preload/games/hooked-on": "/preload/games/hooked-on?v=ce8eeb53432f735ac2b2343290fb31ce37646f6231edc35610c0b07596d043f6",
+            "/preload/games/asphalt-3": "/preload/games/asphalt-3?v=53e38bf8770d9b98e49b263ee4d376cb6c49aea8ef646da8ae8e00a41cde9b6e",
+            "/preload/games/tetris": "/preload/games/tetris?v=71a6218eb6e6ace77fb2b85e850d5ac7f18fb1f7eaaa2c89df7b54412a8ba052",
+            "/preload/games/super-miners": "/preload/games/super-miners?v=3c48a19cbc061e40778a05b03002768d9014481c7ac290a69b12cf004bdc8e7c",
+            "/preload/games/n-gage": "/preload/games/n-gage?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/hooked-on/ngage": "/preload/games/hooked-on/ngage?v=a52da7a5d3d9f7ebd3eb81e49e3294d8998060f7cc2539fe955b8bfe14e1745c",
+            "/preload/games/hooked-on/runtime": "/preload/games/hooked-on/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/asphalt-3/ngage": "/preload/games/asphalt-3/ngage?v=afe7964b0968acc8c45908ac6abd48b25e1b171dd1abea1d07a098209c250093",
+            "/preload/games/asphalt-3/runtime": "/preload/games/asphalt-3/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/tetris/ngage": "/preload/games/tetris/ngage?v=37222257e26cfc1b1bbc1f0dbb684b04fd569e3638c2fbb58f44fe7fe7446569",
+            "/preload/games/tetris/runtime": "/preload/games/tetris/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+            "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+            "/eka2l1.data": "/eka2l1.data?v=8b7dd0983892bd09e5a12b06788a7a4073a8431d87890ffd2c8519dc1bbaadba",
+            "/eka2l1.js": "/eka2l1.js?v=4d67b223724259fd79f6627cd71a2698009f3f5814c036a70ed09ee7edb297d6",
+            "/eka2l1.wasm": "/eka2l1.wasm?v=b47b3378e51944fad36f9703be16f705d797ef510a7fe82624c6819aa0865933",
+            "/persistent-disk.js": "/persistent-disk.js?v=e996eed19cc90c04c929c2d77a8f49a9b4341d67817586ce5995a7b9ac7c6892",
+            "/preinstalled-image.js": "/preinstalled-image.js?v=31a66937318c32486e07c2c567f79000f2137af84a485247a8d6e98dfe83f525",
+            "/touch-controls.css": "/touch-controls.css?v=57338e55dc1af8fb1334faf89cc67b07911c54ee97ba21204d73e0a13eb2948f",
+            "/touch-controls.js": "/touch-controls.js?v=23f0ae61c1ddb13d90b314a29634c776738aed28cc1ac309b8c11496ff029aba"
+          }
+        },
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-1",
+          "guestSeconds": 10,
+          "frames": 319,
+          "errors": [],
+          "assets": {
+            "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+            "/preload/games/k-rally": "/preload/games/k-rally?v=e93abd790e7c5b05427e5e141f34532b329982e89f1a0112c856b59eb03db9e4",
+            "/preload/games/asphalt-2": "/preload/games/asphalt-2?v=d55bb082f53deb40b3b4d9f7440b7eb7b7087a648eabc8c8c9cdf1b8aa756b40",
+            "/preload/games/hooked-on": "/preload/games/hooked-on?v=ce8eeb53432f735ac2b2343290fb31ce37646f6231edc35610c0b07596d043f6",
+            "/preload/games/asphalt-3": "/preload/games/asphalt-3?v=53e38bf8770d9b98e49b263ee4d376cb6c49aea8ef646da8ae8e00a41cde9b6e",
+            "/preload/games/tetris": "/preload/games/tetris?v=71a6218eb6e6ace77fb2b85e850d5ac7f18fb1f7eaaa2c89df7b54412a8ba052",
+            "/preload/games/super-miners": "/preload/games/super-miners?v=3c48a19cbc061e40778a05b03002768d9014481c7ac290a69b12cf004bdc8e7c",
+            "/preload/games/n-gage": "/preload/games/n-gage?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/hooked-on/ngage": "/preload/games/hooked-on/ngage?v=a52da7a5d3d9f7ebd3eb81e49e3294d8998060f7cc2539fe955b8bfe14e1745c",
+            "/preload/games/hooked-on/runtime": "/preload/games/hooked-on/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/asphalt-3/ngage": "/preload/games/asphalt-3/ngage?v=afe7964b0968acc8c45908ac6abd48b25e1b171dd1abea1d07a098209c250093",
+            "/preload/games/asphalt-3/runtime": "/preload/games/asphalt-3/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/tetris/ngage": "/preload/games/tetris/ngage?v=37222257e26cfc1b1bbc1f0dbb684b04fd569e3638c2fbb58f44fe7fe7446569",
+            "/preload/games/tetris/runtime": "/preload/games/tetris/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+            "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+            "/eka2l1.data": "/eka2l1.data?v=8b7dd0983892bd09e5a12b06788a7a4073a8431d87890ffd2c8519dc1bbaadba",
+            "/eka2l1.js": "/eka2l1.js?v=4d67b223724259fd79f6627cd71a2698009f3f5814c036a70ed09ee7edb297d6",
+            "/eka2l1.wasm": "/eka2l1.wasm?v=b47b3378e51944fad36f9703be16f705d797ef510a7fe82624c6819aa0865933",
+            "/persistent-disk.js": "/persistent-disk.js?v=e996eed19cc90c04c929c2d77a8f49a9b4341d67817586ce5995a7b9ac7c6892",
+            "/preinstalled-image.js": "/preinstalled-image.js?v=31a66937318c32486e07c2c567f79000f2137af84a485247a8d6e98dfe83f525",
+            "/touch-controls.css": "/touch-controls.css?v=57338e55dc1af8fb1334faf89cc67b07911c54ee97ba21204d73e0a13eb2948f",
+            "/touch-controls.js": "/touch-controls.js?v=23f0ae61c1ddb13d90b314a29634c776738aed28cc1ac309b8c11496ff029aba"
+          }
+        },
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-2",
+          "guestSeconds": 10,
+          "frames": 318,
+          "errors": [],
+          "assets": {
+            "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+            "/preload/games/k-rally": "/preload/games/k-rally?v=e93abd790e7c5b05427e5e141f34532b329982e89f1a0112c856b59eb03db9e4",
+            "/preload/games/asphalt-2": "/preload/games/asphalt-2?v=d55bb082f53deb40b3b4d9f7440b7eb7b7087a648eabc8c8c9cdf1b8aa756b40",
+            "/preload/games/hooked-on": "/preload/games/hooked-on?v=ce8eeb53432f735ac2b2343290fb31ce37646f6231edc35610c0b07596d043f6",
+            "/preload/games/asphalt-3": "/preload/games/asphalt-3?v=53e38bf8770d9b98e49b263ee4d376cb6c49aea8ef646da8ae8e00a41cde9b6e",
+            "/preload/games/tetris": "/preload/games/tetris?v=71a6218eb6e6ace77fb2b85e850d5ac7f18fb1f7eaaa2c89df7b54412a8ba052",
+            "/preload/games/super-miners": "/preload/games/super-miners?v=3c48a19cbc061e40778a05b03002768d9014481c7ac290a69b12cf004bdc8e7c",
+            "/preload/games/n-gage": "/preload/games/n-gage?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/hooked-on/ngage": "/preload/games/hooked-on/ngage?v=a52da7a5d3d9f7ebd3eb81e49e3294d8998060f7cc2539fe955b8bfe14e1745c",
+            "/preload/games/hooked-on/runtime": "/preload/games/hooked-on/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/asphalt-3/ngage": "/preload/games/asphalt-3/ngage?v=afe7964b0968acc8c45908ac6abd48b25e1b171dd1abea1d07a098209c250093",
+            "/preload/games/asphalt-3/runtime": "/preload/games/asphalt-3/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/tetris/ngage": "/preload/games/tetris/ngage?v=37222257e26cfc1b1bbc1f0dbb684b04fd569e3638c2fbb58f44fe7fe7446569",
+            "/preload/games/tetris/runtime": "/preload/games/tetris/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+            "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+            "/eka2l1.data": "/eka2l1.data?v=8b7dd0983892bd09e5a12b06788a7a4073a8431d87890ffd2c8519dc1bbaadba",
+            "/eka2l1.js": "/eka2l1.js?v=4d67b223724259fd79f6627cd71a2698009f3f5814c036a70ed09ee7edb297d6",
+            "/eka2l1.wasm": "/eka2l1.wasm?v=b47b3378e51944fad36f9703be16f705d797ef510a7fe82624c6819aa0865933",
+            "/persistent-disk.js": "/persistent-disk.js?v=e996eed19cc90c04c929c2d77a8f49a9b4341d67817586ce5995a7b9ac7c6892",
+            "/preinstalled-image.js": "/preinstalled-image.js?v=31a66937318c32486e07c2c567f79000f2137af84a485247a8d6e98dfe83f525",
+            "/touch-controls.css": "/touch-controls.css?v=57338e55dc1af8fb1334faf89cc67b07911c54ee97ba21204d73e0a13eb2948f",
+            "/touch-controls.js": "/touch-controls.js?v=23f0ae61c1ddb13d90b314a29634c776738aed28cc1ac309b8c11496ff029aba"
+          }
+        }
+      ]
+    },
+    {
+      "game": "asphalt-3",
+      "runtime": {
+        "accesses": 238293656,
+        "in_current_address_window": 226947537,
+        "address_histogram": [
+          [
+            4,
+            3668731
+          ],
+          [
+            5,
+            75
+          ],
+          [
+            6,
+            103932329
+          ],
+          [
+            8,
+            202
+          ],
+          [
+            9,
+            21299595
+          ],
+          [
+            10,
+            48775099
+          ],
+          [
+            11,
+            7192694
+          ],
+          [
+            12,
+            3748524
+          ],
+          [
+            13,
+            1658507
+          ],
+          [
+            14,
+            14339523
+          ],
+          [
+            15,
+            15272517
+          ],
+          [
+            16,
+            6423334
+          ],
+          [
+            25,
+            7062
+          ],
+          [
+            31,
+            629345
+          ],
+          [
+            1804,
+            4
+          ],
+          [
+            1852,
+            300
+          ],
+          [
+            1866,
+            85
+          ],
+          [
+            1870,
+            3901754
+          ],
+          [
+            1871,
+            773213
+          ],
+          [
+            1873,
+            9305
+          ],
+          [
+            1880,
+            3303
+          ],
+          [
+            1883,
+            2601
+          ],
+          [
+            1890,
+            765
+          ],
+          [
+            1891,
+            1127
+          ],
+          [
+            2049,
+            7590
+          ],
+          [
+            2052,
+            5128
+          ],
+          [
+            2053,
+            1901
+          ],
+          [
+            2055,
+            2254
+          ],
+          [
+            2059,
+            150
+          ],
+          [
+            2068,
+            900
+          ],
+          [
+            2094,
+            16692
+          ],
+          [
+            2124,
+            935
+          ],
+          [
+            3218,
+            6528000
+          ],
+          [
+            3219,
+            79872
+          ],
+          [
+            3220,
+            10240
+          ]
+        ],
+        "address_coverage_of_current_window_percent": {
+          "4": 47.41233873800534,
+          "8": 81.45879327168024,
+          "12": 96.88926300178353,
+          "16": 99.71957968418049,
+          "20": 99.71957968418049,
+          "24": 99.72269141656294,
+          "32": 100.0,
+          "40": 100.0,
+          "48": 100.0,
+          "64": 100.0
+        },
+        "histogram": [
+          3668731,
+          75,
+          103932329,
+          0,
+          202,
+          21299595,
+          48775099,
+          7192694,
+          3748524,
+          1658507,
+          14339523,
+          15272517,
+          6423334,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          7062,
+          0,
+          0,
+          0,
+          0,
+          0,
+          629345,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "all_phases": {
+        "accesses": 2516835649,
+        "in_current_address_window": 2358298179,
+        "address_histogram": [
+          [
+            4,
+            41749078
+          ],
+          [
+            5,
+            246713297
+          ],
+          [
+            6,
+            656383164
+          ],
+          [
+            7,
+            9220547
+          ],
+          [
+            8,
+            135767552
+          ],
+          [
+            9,
+            339013900
+          ],
+          [
+            10,
+            491783252
+          ],
+          [
+            11,
+            180573161
+          ],
+          [
+            12,
+            86278240
+          ],
+          [
+            13,
+            12320501
+          ],
+          [
+            14,
+            54465084
+          ],
+          [
+            15,
+            64991379
+          ],
+          [
+            16,
+            33056880
+          ],
+          [
+            17,
+            686970
+          ],
+          [
+            18,
+            320
+          ],
+          [
+            19,
+            4
+          ],
+          [
+            20,
+            562
+          ],
+          [
+            23,
+            493769
+          ],
+          [
+            24,
+            8941
+          ],
+          [
+            25,
+            101033
+          ],
+          [
+            26,
+            487
+          ],
+          [
+            29,
+            271
+          ],
+          [
+            30,
+            26
+          ],
+          [
+            31,
+            4517384
+          ],
+          [
+            34,
+            172377
+          ],
+          [
+            151,
+            2438
+          ],
+          [
+            152,
+            222
+          ],
+          [
+            1023,
+            48641
+          ],
+          [
+            1026,
+            1732927
+          ],
+          [
+            1028,
+            392861
+          ],
+          [
+            1029,
+            899277
+          ],
+          [
+            1124,
+            27799
+          ],
+          [
+            1792,
+            18518
+          ],
+          [
+            1793,
+            273018
+          ],
+          [
+            1794,
+            401
+          ],
+          [
+            1795,
+            260
+          ],
+          [
+            1796,
+            1296
+          ],
+          [
+            1797,
+            1258
+          ],
+          [
+            1798,
+            28
+          ],
+          [
+            1799,
+            34654
+          ],
+          [
+            1800,
+            216142
+          ],
+          [
+            1801,
+            6427
+          ],
+          [
+            1802,
+            286
+          ],
+          [
+            1803,
+            594
+          ],
+          [
+            1804,
+            1002
+          ],
+          [
+            1805,
+            4040330
+          ],
+          [
+            1806,
+            12
+          ],
+          [
+            1807,
+            6526
+          ],
+          [
+            1808,
+            1038
+          ],
+          [
+            1809,
+            1880
+          ],
+          [
+            1810,
+            165
+          ],
+          [
+            1811,
+            377
+          ],
+          [
+            1812,
+            2408
+          ],
+          [
+            1813,
+            1722
+          ],
+          [
+            1814,
+            261
+          ],
+          [
+            1815,
+            633
+          ],
+          [
+            1816,
+            46
+          ],
+          [
+            1817,
+            181
+          ],
+          [
+            1818,
+            1528
+          ],
+          [
+            1819,
+            4
+          ],
+          [
+            1820,
+            16195
+          ],
+          [
+            1821,
+            5295
+          ],
+          [
+            1822,
+            4
+          ],
+          [
+            1823,
+            4
+          ],
+          [
+            1824,
+            4
+          ],
+          [
+            1825,
+            4
+          ],
+          [
+            1826,
+            4
+          ],
+          [
+            1827,
+            4
+          ],
+          [
+            1828,
+            96248
+          ],
+          [
+            1829,
+            2229
+          ],
+          [
+            1830,
+            6857
+          ],
+          [
+            1831,
+            420345
+          ],
+          [
+            1832,
+            1747
+          ],
+          [
+            1833,
+            1164
+          ],
+          [
+            1834,
+            8606
+          ],
+          [
+            1835,
+            7501
+          ],
+          [
+            1836,
+            15315
+          ],
+          [
+            1837,
+            189
+          ],
+          [
+            1838,
+            1394
+          ],
+          [
+            1839,
+            4
+          ],
+          [
+            1840,
+            4
+          ],
+          [
+            1841,
+            4
+          ],
+          [
+            1842,
+            214
+          ],
+          [
+            1843,
+            914
+          ],
+          [
+            1844,
+            1224
+          ],
+          [
+            1845,
+            238
+          ],
+          [
+            1846,
+            435
+          ],
+          [
+            1847,
+            573
+          ],
+          [
+            1848,
+            299
+          ],
+          [
+            1849,
+            180
+          ],
+          [
+            1850,
+            538
+          ],
+          [
+            1851,
+            23
+          ],
+          [
+            1852,
+            2013
+          ],
+          [
+            1853,
+            361
+          ],
+          [
+            1854,
+            373
+          ],
+          [
+            1855,
+            2870
+          ],
+          [
+            1856,
+            464
+          ],
+          [
+            1857,
+            226
+          ],
+          [
+            1858,
+            281
+          ],
+          [
+            1859,
+            457
+          ],
+          [
+            1860,
+            3066
+          ],
+          [
+            1861,
+            34
+          ],
+          [
+            1862,
+            4484
+          ],
+          [
+            1863,
+            140
+          ],
+          [
+            1864,
+            26
+          ],
+          [
+            1865,
+            25
+          ],
+          [
+            1866,
+            1133
+          ],
+          [
+            1867,
+            987
+          ],
+          [
+            1868,
+            215
+          ],
+          [
+            1869,
+            58
+          ],
+          [
+            1870,
+            16351801
+          ],
+          [
+            1871,
+            2922585
+          ],
+          [
+            1872,
+            4
+          ],
+          [
+            1873,
+            154769
+          ],
+          [
+            1874,
+            6678
+          ],
+          [
+            1875,
+            361
+          ],
+          [
+            1876,
+            27054
+          ],
+          [
+            1877,
+            1209580
+          ],
+          [
+            1878,
+            2568
+          ],
+          [
+            1879,
+            34
+          ],
+          [
+            1880,
+            41891
+          ],
+          [
+            1881,
+            31
+          ],
+          [
+            1882,
+            4413
+          ],
+          [
+            1883,
+            6789
+          ],
+          [
+            1884,
+            1746
+          ],
+          [
+            1885,
+            5691
+          ],
+          [
+            1886,
+            6428
+          ],
+          [
+            1887,
+            124
+          ],
+          [
+            1888,
+            19
+          ],
+          [
+            1889,
+            270
+          ],
+          [
+            1890,
+            9585
+          ],
+          [
+            1891,
+            23410
+          ],
+          [
+            1892,
+            27
+          ],
+          [
+            1893,
+            18
+          ],
+          [
+            2048,
+            59195
+          ],
+          [
+            2049,
+            31611757
+          ],
+          [
+            2050,
+            1479024
+          ],
+          [
+            2051,
+            75606
+          ],
+          [
+            2052,
+            695485
+          ],
+          [
+            2053,
+            2998709
+          ],
+          [
+            2054,
+            191750
+          ],
+          [
+            2055,
+            78319
+          ],
+          [
+            2056,
+            1949574
+          ],
+          [
+            2057,
+            2749446
+          ],
+          [
+            2058,
+            40237
+          ],
+          [
+            2059,
+            2794252
+          ],
+          [
+            2060,
+            24974
+          ],
+          [
+            2065,
+            801
+          ],
+          [
+            2067,
+            11
+          ],
+          [
+            2068,
+            51507
+          ],
+          [
+            2069,
+            14391
+          ],
+          [
+            2070,
+            7623
+          ],
+          [
+            2071,
+            120805
+          ],
+          [
+            2072,
+            4896
+          ],
+          [
+            2078,
+            12
+          ],
+          [
+            2084,
+            10398
+          ],
+          [
+            2086,
+            144833
+          ],
+          [
+            2087,
+            21102
+          ],
+          [
+            2088,
+            14555
+          ],
+          [
+            2090,
+            8
+          ],
+          [
+            2091,
+            28
+          ],
+          [
+            2092,
+            334096
+          ],
+          [
+            2094,
+            1385361
+          ],
+          [
+            2095,
+            93
+          ],
+          [
+            2107,
+            791
+          ],
+          [
+            2124,
+            12351
+          ],
+          [
+            3218,
+            81638400
+          ],
+          [
+            3219,
+            879872
+          ],
+          [
+            3220,
+            51200
+          ]
+        ],
+        "address_coverage_of_current_window_percent": {
+          "4": 40.45570210313935,
+          "8": 89.09831545945488,
+          "12": 98.3446103487832,
+          "16": 99.77548004543492,
+          "20": 99.79644138969587,
+          "24": 99.80112531817377,
+          "32": 100.0,
+          "40": 100.0,
+          "48": 100.0,
+          "64": 100.0
+        },
+        "histogram": [
+          41749078,
+          246713297,
+          656383164,
+          9220547,
+          135767552,
+          339013900,
+          491783252,
+          180573161,
+          86278240,
+          12320501,
+          54465084,
+          64991379,
+          33056880,
+          686970,
+          320,
+          4,
+          562,
+          0,
+          0,
+          493769,
+          8941,
+          101033,
+          487,
+          0,
+          0,
+          271,
+          26,
+          4517384,
+          0,
+          0,
+          172377,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "processes": [
+        {
+          "asid": 1,
+          "name": "ngiplay0x20003b78",
+          "needed_mib": 21,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 2,
+          "name": "AknIconSrv",
+          "needed_mib": 19,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": [
+            {
+              "kind": "decommit",
+              "asid": 2,
+              "address": 24117248,
+              "size": 134217728,
+              "committed": 4096,
+              "local": 1,
+              "direct": 0
+            }
+          ]
+        },
+        {
+          "asid": 3,
+          "name": "ecomserver",
+          "needed_mib": 5,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 4,
+          "name": "cdlserver",
+          "needed_mib": 4,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 5,
+          "name": "playserver",
+          "needed_mib": 14,
+          "runtime_accesses": 287,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 6,
+          "name": "gtmdserver",
+          "needed_mib": 5,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 7,
+          "name": "ngiinstaller",
+          "needed_mib": 46,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 8,
+          "name": "NAFServiceManagerSrvr_V3",
+          "needed_mib": 18,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 9,
+          "name": "TZSERVER",
+          "needed_mib": 5,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 10,
+          "name": "wmdrmpkserver",
+          "needed_mib": 4,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 11,
+          "name": "baksrvs",
+          "needed_mib": 4,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 12,
+          "name": "DownloadMgrServer",
+          "needed_mib": 6,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 13,
+          "name": "CookieServer",
+          "needed_mib": 4,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 14,
+          "name": "InstallServer",
+          "needed_mib": 6,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 15,
+          "name": "InstallServer",
+          "needed_mib": 6,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 16,
+          "name": "Asphalt3",
+          "needed_mib": 30,
+          "runtime_accesses": 238293369,
+          "conflicting_separate_chunks": []
+        }
+      ],
+      "observed_required_window_mib": 46,
+      "current": {
+        "peak_mib": 896,
+        "final_mib": 832
+      },
+      "fixed_48": {
+        "peak_mib": 672,
+        "final_mib": 624
+      },
+      "rounded_per_process_oracle": {
+        "peak_mib": 184,
+        "final_mib": 160
+      },
+      "exact_per_process_oracle": {
+        "peak_mib": 161,
+        "final_mib": 139
+      },
+      "doubling_growth_oracle": {
+        "growths": 24,
+        "runtime_growths": 0,
+        "copy_mib": 208,
+        "peak_mib": 232,
+        "final_mib": 192
+      },
+      "windows": [
+        {
+          "label": "instant-play-driving-sound-on",
+          "guestSeconds": 5,
+          "frames": 85,
+          "errors": [],
+          "assets": {
+            "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+            "/preload/games/k-rally": "/preload/games/k-rally?v=e93abd790e7c5b05427e5e141f34532b329982e89f1a0112c856b59eb03db9e4",
+            "/preload/games/asphalt-2": "/preload/games/asphalt-2?v=d55bb082f53deb40b3b4d9f7440b7eb7b7087a648eabc8c8c9cdf1b8aa756b40",
+            "/preload/games/hooked-on": "/preload/games/hooked-on?v=ce8eeb53432f735ac2b2343290fb31ce37646f6231edc35610c0b07596d043f6",
+            "/preload/games/asphalt-3": "/preload/games/asphalt-3?v=53e38bf8770d9b98e49b263ee4d376cb6c49aea8ef646da8ae8e00a41cde9b6e",
+            "/preload/games/tetris": "/preload/games/tetris?v=71a6218eb6e6ace77fb2b85e850d5ac7f18fb1f7eaaa2c89df7b54412a8ba052",
+            "/preload/games/super-miners": "/preload/games/super-miners?v=3c48a19cbc061e40778a05b03002768d9014481c7ac290a69b12cf004bdc8e7c",
+            "/preload/games/n-gage": "/preload/games/n-gage?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/hooked-on/ngage": "/preload/games/hooked-on/ngage?v=a52da7a5d3d9f7ebd3eb81e49e3294d8998060f7cc2539fe955b8bfe14e1745c",
+            "/preload/games/hooked-on/runtime": "/preload/games/hooked-on/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/asphalt-3/ngage": "/preload/games/asphalt-3/ngage?v=afe7964b0968acc8c45908ac6abd48b25e1b171dd1abea1d07a098209c250093",
+            "/preload/games/asphalt-3/runtime": "/preload/games/asphalt-3/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/tetris/ngage": "/preload/games/tetris/ngage?v=37222257e26cfc1b1bbc1f0dbb684b04fd569e3638c2fbb58f44fe7fe7446569",
+            "/preload/games/tetris/runtime": "/preload/games/tetris/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+            "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+            "/eka2l1.data": "/eka2l1.data?v=8b7dd0983892bd09e5a12b06788a7a4073a8431d87890ffd2c8519dc1bbaadba",
+            "/eka2l1.js": "/eka2l1.js?v=4d67b223724259fd79f6627cd71a2698009f3f5814c036a70ed09ee7edb297d6",
+            "/eka2l1.wasm": "/eka2l1.wasm?v=b47b3378e51944fad36f9703be16f705d797ef510a7fe82624c6819aa0865933",
+            "/persistent-disk.js": "/persistent-disk.js?v=e996eed19cc90c04c929c2d77a8f49a9b4341d67817586ce5995a7b9ac7c6892",
+            "/preinstalled-image.js": "/preinstalled-image.js?v=31a66937318c32486e07c2c567f79000f2137af84a485247a8d6e98dfe83f525",
+            "/touch-controls.css": "/touch-controls.css?v=57338e55dc1af8fb1334faf89cc67b07911c54ee97ba21204d73e0a13eb2948f",
+            "/touch-controls.js": "/touch-controls.js?v=23f0ae61c1ddb13d90b314a29634c776738aed28cc1ac309b8c11496ff029aba"
+          }
+        }
+      ]
+    },
+    {
+      "game": "tetris",
+      "runtime": {
+        "accesses": 1210997106,
+        "in_current_address_window": 1174439981,
+        "address_histogram": [
+          [
+            4,
+            61294
+          ],
+          [
+            5,
+            782122029
+          ],
+          [
+            8,
+            165594347
+          ],
+          [
+            9,
+            71330489
+          ],
+          [
+            10,
+            127365371
+          ],
+          [
+            11,
+            27854251
+          ],
+          [
+            24,
+            8976
+          ],
+          [
+            30,
+            103224
+          ],
+          [
+            1804,
+            12
+          ],
+          [
+            1829,
+            1279882
+          ],
+          [
+            1866,
+            458
+          ],
+          [
+            1871,
+            22743
+          ],
+          [
+            1876,
+            4122
+          ],
+          [
+            1887,
+            17113
+          ],
+          [
+            2049,
+            22272
+          ],
+          [
+            2052,
+            26570
+          ],
+          [
+            2053,
+            1853
+          ],
+          [
+            2094,
+            2992
+          ],
+          [
+            2124,
+            4708
+          ],
+          [
+            3218,
+            35174400
+          ]
+        ],
+        "address_coverage_of_current_window_percent": {
+          "4": 66.60053605583103,
+          "8": 99.99044651052287,
+          "12": 99.99044651052287,
+          "16": 99.99044651052287,
+          "20": 99.99044651052287,
+          "24": 99.99121078968105,
+          "32": 100.0,
+          "40": 100.0,
+          "48": 100.0,
+          "64": 100.0
+        },
+        "histogram": [
+          61294,
+          782122029,
+          0,
+          0,
+          165594347,
+          71330489,
+          127365371,
+          27854251,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          8976,
+          0,
+          0,
+          0,
+          0,
+          0,
+          103224,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "all_phases": {
+        "accesses": 3888964840,
+        "in_current_address_window": 3719490009,
+        "address_histogram": [
+          [
+            4,
+            20945024
+          ],
+          [
+            5,
+            2472495738
+          ],
+          [
+            7,
+            8600005
+          ],
+          [
+            8,
+            583107972
+          ],
+          [
+            9,
+            190885229
+          ],
+          [
+            10,
+            295864818
+          ],
+          [
+            11,
+            90493462
+          ],
+          [
+            12,
+            44520325
+          ],
+          [
+            13,
+            5972920
+          ],
+          [
+            14,
+            24620
+          ],
+          [
+            15,
+            4784602
+          ],
+          [
+            16,
+            22881
+          ],
+          [
+            17,
+            8697
+          ],
+          [
+            20,
+            562
+          ],
+          [
+            22,
+            952
+          ],
+          [
+            23,
+            493769
+          ],
+          [
+            24,
+            84677
+          ],
+          [
+            25,
+            1049
+          ],
+          [
+            27,
+            994
+          ],
+          [
+            28,
+            113
+          ],
+          [
+            29,
+            26
+          ],
+          [
+            30,
+            1136528
+          ],
+          [
+            33,
+            2
+          ],
+          [
+            34,
+            45027
+          ],
+          [
+            41,
+            17
+          ],
+          [
+            151,
+            2438
+          ],
+          [
+            152,
+            222
+          ],
+          [
+            1023,
+            1246
+          ],
+          [
+            1026,
+            1914552
+          ],
+          [
+            1028,
+            394205
+          ],
+          [
+            1029,
+            921042
+          ],
+          [
+            1030,
+            37251
+          ],
+          [
+            1124,
+            31517
+          ],
+          [
+            1792,
+            14509
+          ],
+          [
+            1793,
+            245890
+          ],
+          [
+            1794,
+            401
+          ],
+          [
+            1795,
+            327
+          ],
+          [
+            1796,
+            1296
+          ],
+          [
+            1797,
+            1258
+          ],
+          [
+            1798,
+            28
+          ],
+          [
+            1799,
+            23958
+          ],
+          [
+            1800,
+            276846
+          ],
+          [
+            1801,
+            6439
+          ],
+          [
+            1802,
+            286
+          ],
+          [
+            1803,
+            984
+          ],
+          [
+            1804,
+            1045
+          ],
+          [
+            1805,
+            4411310
+          ],
+          [
+            1806,
+            176
+          ],
+          [
+            1807,
+            7954
+          ],
+          [
+            1808,
+            1038
+          ],
+          [
+            1809,
+            1885
+          ],
+          [
+            1810,
+            170
+          ],
+          [
+            1811,
+            377
+          ],
+          [
+            1812,
+            2408
+          ],
+          [
+            1813,
+            1722
+          ],
+          [
+            1814,
+            265
+          ],
+          [
+            1815,
+            240
+          ],
+          [
+            1816,
+            53
+          ],
+          [
+            1817,
+            362
+          ],
+          [
+            1818,
+            2415
+          ],
+          [
+            1819,
+            4
+          ],
+          [
+            1820,
+            8645
+          ],
+          [
+            1821,
+            5390
+          ],
+          [
+            1822,
+            918
+          ],
+          [
+            1823,
+            4
+          ],
+          [
+            1824,
+            4
+          ],
+          [
+            1825,
+            8
+          ],
+          [
+            1826,
+            4
+          ],
+          [
+            1827,
+            4
+          ],
+          [
+            1828,
+            100643
+          ],
+          [
+            1829,
+            13170982
+          ],
+          [
+            1830,
+            4932
+          ],
+          [
+            1831,
+            333000
+          ],
+          [
+            1832,
+            1899
+          ],
+          [
+            1833,
+            1685
+          ],
+          [
+            1834,
+            14784
+          ],
+          [
+            1835,
+            13684
+          ],
+          [
+            1836,
+            26075
+          ],
+          [
+            1837,
+            314
+          ],
+          [
+            1838,
+            2789
+          ],
+          [
+            1839,
+            8
+          ],
+          [
+            1840,
+            8
+          ],
+          [
+            1841,
+            8
+          ],
+          [
+            1842,
+            428
+          ],
+          [
+            1843,
+            1461
+          ],
+          [
+            1844,
+            1762
+          ],
+          [
+            1845,
+            343
+          ],
+          [
+            1846,
+            657
+          ],
+          [
+            1847,
+            721
+          ],
+          [
+            1848,
+            507
+          ],
+          [
+            1849,
+            360
+          ],
+          [
+            1850,
+            653
+          ],
+          [
+            1851,
+            23
+          ],
+          [
+            1852,
+            1657
+          ],
+          [
+            1853,
+            375
+          ],
+          [
+            1854,
+            373
+          ],
+          [
+            1855,
+            2870
+          ],
+          [
+            1856,
+            464
+          ],
+          [
+            1857,
+            226
+          ],
+          [
+            1858,
+            281
+          ],
+          [
+            1859,
+            457
+          ],
+          [
+            1860,
+            2411
+          ],
+          [
+            1861,
+            34
+          ],
+          [
+            1862,
+            4682
+          ],
+          [
+            1863,
+            140
+          ],
+          [
+            1864,
+            26
+          ],
+          [
+            1865,
+            25
+          ],
+          [
+            1866,
+            1670
+          ],
+          [
+            1867,
+            987
+          ],
+          [
+            1868,
+            215
+          ],
+          [
+            1869,
+            58
+          ],
+          [
+            1870,
+            4
+          ],
+          [
+            1871,
+            134248
+          ],
+          [
+            1872,
+            9815
+          ],
+          [
+            1873,
+            358
+          ],
+          [
+            1874,
+            2118
+          ],
+          [
+            1875,
+            49
+          ],
+          [
+            1876,
+            14210
+          ],
+          [
+            1877,
+            41
+          ],
+          [
+            1878,
+            7036
+          ],
+          [
+            1879,
+            7744
+          ],
+          [
+            1880,
+            398643
+          ],
+          [
+            1881,
+            60
+          ],
+          [
+            1882,
+            13
+          ],
+          [
+            1883,
+            466
+          ],
+          [
+            1884,
+            4340
+          ],
+          [
+            1885,
+            411
+          ],
+          [
+            1886,
+            19
+          ],
+          [
+            1887,
+            61310
+          ],
+          [
+            1888,
+            159
+          ],
+          [
+            1889,
+            18
+          ],
+          [
+            1890,
+            142
+          ],
+          [
+            1891,
+            4
+          ],
+          [
+            1892,
+            4
+          ],
+          [
+            1893,
+            4
+          ],
+          [
+            1894,
+            4
+          ],
+          [
+            1895,
+            4
+          ],
+          [
+            1896,
+            4
+          ],
+          [
+            1897,
+            4
+          ],
+          [
+            1898,
+            4
+          ],
+          [
+            1899,
+            2686
+          ],
+          [
+            1900,
+            1746
+          ],
+          [
+            1901,
+            5691
+          ],
+          [
+            1902,
+            6428
+          ],
+          [
+            1903,
+            573
+          ],
+          [
+            1904,
+            53
+          ],
+          [
+            2048,
+            56398
+          ],
+          [
+            2049,
+            12206220
+          ],
+          [
+            2050,
+            1651920
+          ],
+          [
+            2051,
+            86294
+          ],
+          [
+            2052,
+            797702
+          ],
+          [
+            2053,
+            3323653
+          ],
+          [
+            2054,
+            203940
+          ],
+          [
+            2055,
+            39290
+          ],
+          [
+            2056,
+            592176
+          ],
+          [
+            2057,
+            4103000
+          ],
+          [
+            2058,
+            48546
+          ],
+          [
+            2059,
+            1810434
+          ],
+          [
+            2060,
+            18589
+          ],
+          [
+            2065,
+            1714
+          ],
+          [
+            2067,
+            11
+          ],
+          [
+            2068,
+            56311
+          ],
+          [
+            2069,
+            16226
+          ],
+          [
+            2070,
+            32076
+          ],
+          [
+            2071,
+            135199
+          ],
+          [
+            2072,
+            4962
+          ],
+          [
+            2078,
+            12
+          ],
+          [
+            2084,
+            10434
+          ],
+          [
+            2086,
+            170426
+          ],
+          [
+            2087,
+            24220
+          ],
+          [
+            2088,
+            18458
+          ],
+          [
+            2090,
+            12
+          ],
+          [
+            2091,
+            28
+          ],
+          [
+            2092,
+            334096
+          ],
+          [
+            2094,
+            36345
+          ],
+          [
+            2095,
+            182
+          ],
+          [
+            2107,
+            1276
+          ],
+          [
+            2124,
+            18383
+          ],
+          [
+            3218,
+            120931200
+          ],
+          [
+            3219,
+            70912
+          ]
+        ],
+        "address_coverage_of_current_window_percent": {
+          "4": 67.26838251872826,
+          "8": 98.46490349854842,
+          "12": 99.95173279144034,
+          "16": 99.95258177879946,
+          "20": 99.96589766347185,
+          "24": 99.96822916590337,
+          "32": 99.99999954294809,
+          "40": 100.0,
+          "48": 100.0,
+          "64": 100.0
+        },
+        "histogram": [
+          20945024,
+          2472495738,
+          0,
+          8600005,
+          583107972,
+          190885229,
+          295864818,
+          90493462,
+          44520325,
+          5972920,
+          24620,
+          4784602,
+          22881,
+          8697,
+          0,
+          0,
+          562,
+          0,
+          952,
+          493769,
+          84677,
+          1049,
+          0,
+          994,
+          113,
+          26,
+          1136528,
+          0,
+          0,
+          2,
+          45027,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          17,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "processes": [
+        {
+          "asid": 1,
+          "name": "ngiplay0x20003b78",
+          "needed_mib": 21,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 2,
+          "name": "AknIconSrv",
+          "needed_mib": 19,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": [
+            {
+              "kind": "decommit",
+              "asid": 2,
+              "address": 24117248,
+              "size": 134217728,
+              "committed": 4096,
+              "local": 1,
+              "direct": 0
+            }
+          ]
+        },
+        {
+          "asid": 3,
+          "name": "ecomserver",
+          "needed_mib": 5,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 4,
+          "name": "cdlserver",
+          "needed_mib": 4,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 5,
+          "name": "playserver",
+          "needed_mib": 14,
+          "runtime_accesses": 861,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 6,
+          "name": "gtmdserver",
+          "needed_mib": 5,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 7,
+          "name": "ngiinstaller",
+          "needed_mib": 46,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 8,
+          "name": "NAFServiceManagerSrvr_V3",
+          "needed_mib": 27,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 9,
+          "name": "TZSERVER",
+          "needed_mib": 5,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 10,
+          "name": "baksrvs",
+          "needed_mib": 4,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 11,
+          "name": "wmdrmpkserver",
+          "needed_mib": 4,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 12,
+          "name": "DownloadMgrServer",
+          "needed_mib": 6,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 13,
+          "name": "CookieServer",
+          "needed_mib": 4,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 14,
+          "name": "InstallServer",
+          "needed_mib": 6,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 15,
+          "name": "InstallServer",
+          "needed_mib": 6,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 16,
+          "name": "Tetris",
+          "needed_mib": 38,
+          "runtime_accesses": 1210996245,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 17,
+          "name": "activationengineserver",
+          "needed_mib": 5,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        }
+      ],
+      "observed_required_window_mib": 46,
+      "current": {
+        "peak_mib": 896,
+        "final_mib": 832
+      },
+      "fixed_48": {
+        "peak_mib": 672,
+        "final_mib": 624
+      },
+      "rounded_per_process_oracle": {
+        "peak_mib": 196,
+        "final_mib": 180
+      },
+      "exact_per_process_oracle": {
+        "peak_mib": 170,
+        "final_mib": 156
+      },
+      "doubling_growth_oracle": {
+        "growths": 26,
+        "runtime_growths": 0,
+        "copy_mib": 244,
+        "peak_mib": 232,
+        "final_mib": 224
+      },
+      "windows": [
+        {
+          "label": "marathon-level-1-long",
+          "guestSeconds": 15,
+          "frames": 428,
+          "errors": [],
+          "assets": {
+            "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+            "/preload/games/k-rally": "/preload/games/k-rally?v=e93abd790e7c5b05427e5e141f34532b329982e89f1a0112c856b59eb03db9e4",
+            "/preload/games/asphalt-2": "/preload/games/asphalt-2?v=d55bb082f53deb40b3b4d9f7440b7eb7b7087a648eabc8c8c9cdf1b8aa756b40",
+            "/preload/games/hooked-on": "/preload/games/hooked-on?v=ce8eeb53432f735ac2b2343290fb31ce37646f6231edc35610c0b07596d043f6",
+            "/preload/games/asphalt-3": "/preload/games/asphalt-3?v=53e38bf8770d9b98e49b263ee4d376cb6c49aea8ef646da8ae8e00a41cde9b6e",
+            "/preload/games/tetris": "/preload/games/tetris?v=71a6218eb6e6ace77fb2b85e850d5ac7f18fb1f7eaaa2c89df7b54412a8ba052",
+            "/preload/games/super-miners": "/preload/games/super-miners?v=3c48a19cbc061e40778a05b03002768d9014481c7ac290a69b12cf004bdc8e7c",
+            "/preload/games/n-gage": "/preload/games/n-gage?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/hooked-on/ngage": "/preload/games/hooked-on/ngage?v=a52da7a5d3d9f7ebd3eb81e49e3294d8998060f7cc2539fe955b8bfe14e1745c",
+            "/preload/games/hooked-on/runtime": "/preload/games/hooked-on/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/asphalt-3/ngage": "/preload/games/asphalt-3/ngage?v=afe7964b0968acc8c45908ac6abd48b25e1b171dd1abea1d07a098209c250093",
+            "/preload/games/asphalt-3/runtime": "/preload/games/asphalt-3/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/tetris/ngage": "/preload/games/tetris/ngage?v=37222257e26cfc1b1bbc1f0dbb684b04fd569e3638c2fbb58f44fe7fe7446569",
+            "/preload/games/tetris/runtime": "/preload/games/tetris/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+            "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+            "/eka2l1.data": "/eka2l1.data?v=8b7dd0983892bd09e5a12b06788a7a4073a8431d87890ffd2c8519dc1bbaadba",
+            "/eka2l1.js": "/eka2l1.js?v=4d67b223724259fd79f6627cd71a2698009f3f5814c036a70ed09ee7edb297d6",
+            "/eka2l1.wasm": "/eka2l1.wasm?v=b47b3378e51944fad36f9703be16f705d797ef510a7fe82624c6819aa0865933",
+            "/persistent-disk.js": "/persistent-disk.js?v=e996eed19cc90c04c929c2d77a8f49a9b4341d67817586ce5995a7b9ac7c6892",
+            "/preinstalled-image.js": "/preinstalled-image.js?v=31a66937318c32486e07c2c567f79000f2137af84a485247a8d6e98dfe83f525",
+            "/touch-controls.css": "/touch-controls.css?v=57338e55dc1af8fb1334faf89cc67b07911c54ee97ba21204d73e0a13eb2948f",
+            "/touch-controls.js": "/touch-controls.js?v=23f0ae61c1ddb13d90b314a29634c776738aed28cc1ac309b8c11496ff029aba"
+          }
+        }
+      ]
+    },
+    {
+      "game": "super-miners",
+      "runtime": {
+        "accesses": 122971348,
+        "in_current_address_window": 82917603,
+        "address_histogram": [
+          [
+            4,
+            595
+          ],
+          [
+            5,
+            17178664
+          ],
+          [
+            8,
+            52307230
+          ],
+          [
+            9,
+            13431114
+          ],
+          [
+            1026,
+            640
+          ],
+          [
+            1028,
+            26848359
+          ],
+          [
+            1792,
+            594352
+          ],
+          [
+            2049,
+            177302
+          ],
+          [
+            2052,
+            35788
+          ],
+          [
+            2053,
+            106404
+          ],
+          [
+            2121,
+            1620
+          ],
+          [
+            2124,
+            1280
+          ],
+          [
+            3218,
+            12288000
+          ]
+        ],
+        "address_coverage_of_current_window_percent": {
+          "4": 20.71847035906236,
+          "8": 100.0,
+          "12": 100.0,
+          "16": 100.0,
+          "20": 100.0,
+          "24": 100.0,
+          "32": 100.0,
+          "40": 100.0,
+          "48": 100.0,
+          "64": 100.0
+        },
+        "histogram": [
+          595,
+          17178664,
+          0,
+          0,
+          52307230,
+          13431114,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "all_phases": {
+        "accesses": 1117881752,
+        "in_current_address_window": 770467334,
+        "address_histogram": [
+          [
+            4,
+            4163486
+          ],
+          [
+            5,
+            157970398
+          ],
+          [
+            7,
+            5251339
+          ],
+          [
+            8,
+            476781474
+          ],
+          [
+            9,
+            101548899
+          ],
+          [
+            10,
+            24259485
+          ],
+          [
+            11,
+            4
+          ],
+          [
+            23,
+            492249
+          ],
+          [
+            151,
+            2418
+          ],
+          [
+            152,
+            218
+          ],
+          [
+            1026,
+            41704
+          ],
+          [
+            1028,
+            219619960
+          ],
+          [
+            1124,
+            9202
+          ],
+          [
+            1792,
+            6286589
+          ],
+          [
+            1793,
+            265
+          ],
+          [
+            1794,
+            48
+          ],
+          [
+            2048,
+            4849
+          ],
+          [
+            2049,
+            1919083
+          ],
+          [
+            2050,
+            747479
+          ],
+          [
+            2051,
+            16
+          ],
+          [
+            2052,
+            347612
+          ],
+          [
+            2053,
+            1214678
+          ],
+          [
+            2054,
+            2833
+          ],
+          [
+            2058,
+            737
+          ],
+          [
+            2059,
+            2142
+          ],
+          [
+            2068,
+            12627
+          ],
+          [
+            2069,
+            3214
+          ],
+          [
+            2071,
+            55152
+          ],
+          [
+            2072,
+            28
+          ],
+          [
+            2086,
+            45411
+          ],
+          [
+            2087,
+            8217
+          ],
+          [
+            2092,
+            325338
+          ],
+          [
+            2094,
+            218
+          ],
+          [
+            2121,
+            15755
+          ],
+          [
+            2124,
+            12625
+          ],
+          [
+            3218,
+            116736000
+          ]
+        ],
+        "address_coverage_of_current_window_percent": {
+          "4": 21.72515506024036,
+          "8": 99.9361103348218,
+          "12": 99.9361103348218,
+          "16": 99.9361103348218,
+          "20": 100.0,
+          "24": 100.0,
+          "32": 100.0,
+          "40": 100.0,
+          "48": 100.0,
+          "64": 100.0
+        },
+        "histogram": [
+          4163486,
+          157970398,
+          0,
+          5251339,
+          476781474,
+          101548899,
+          24259485,
+          4,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          492249,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "processes": [
+        {
+          "asid": 1,
+          "name": "SuperMiners",
+          "needed_mib": 20,
+          "runtime_accesses": 122971348,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 2,
+          "name": "AknIconSrv",
+          "needed_mib": 19,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": [
+            {
+              "kind": "decommit",
+              "asid": 2,
+              "address": 24117248,
+              "size": 134217728,
+              "committed": 4096,
+              "local": 1,
+              "direct": 0
+            }
+          ]
+        },
+        {
+          "asid": 3,
+          "name": "ecomserver",
+          "needed_mib": 5,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 4,
+          "name": "cdlserver",
+          "needed_mib": 4,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 5,
+          "name": "baksrvs",
+          "needed_mib": 4,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        }
+      ],
+      "observed_required_window_mib": 20,
+      "current": {
+        "peak_mib": 320,
+        "final_mib": 320
+      },
+      "fixed_48": {
+        "peak_mib": 240,
+        "final_mib": 240
+      },
+      "rounded_per_process_oracle": {
+        "peak_mib": 56,
+        "final_mib": 56
+      },
+      "exact_per_process_oracle": {
+        "peak_mib": 52,
+        "final_mib": 52
+      },
+      "doubling_growth_oracle": {
+        "growths": 7,
+        "runtime_growths": 0,
+        "copy_mib": 60,
+        "peak_mib": 80,
+        "final_mib": 80
+      },
+      "windows": [
+        {
+          "label": "challenge-level-1",
+          "guestSeconds": 5,
+          "frames": 160,
+          "errors": [],
+          "assets": {
+            "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+            "/preload/games/k-rally": "/preload/games/k-rally?v=e93abd790e7c5b05427e5e141f34532b329982e89f1a0112c856b59eb03db9e4",
+            "/preload/games/asphalt-2": "/preload/games/asphalt-2?v=d55bb082f53deb40b3b4d9f7440b7eb7b7087a648eabc8c8c9cdf1b8aa756b40",
+            "/preload/games/hooked-on": "/preload/games/hooked-on?v=ce8eeb53432f735ac2b2343290fb31ce37646f6231edc35610c0b07596d043f6",
+            "/preload/games/asphalt-3": "/preload/games/asphalt-3?v=53e38bf8770d9b98e49b263ee4d376cb6c49aea8ef646da8ae8e00a41cde9b6e",
+            "/preload/games/tetris": "/preload/games/tetris?v=71a6218eb6e6ace77fb2b85e850d5ac7f18fb1f7eaaa2c89df7b54412a8ba052",
+            "/preload/games/super-miners": "/preload/games/super-miners?v=3c48a19cbc061e40778a05b03002768d9014481c7ac290a69b12cf004bdc8e7c",
+            "/preload/games/n-gage": "/preload/games/n-gage?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/hooked-on/ngage": "/preload/games/hooked-on/ngage?v=a52da7a5d3d9f7ebd3eb81e49e3294d8998060f7cc2539fe955b8bfe14e1745c",
+            "/preload/games/hooked-on/runtime": "/preload/games/hooked-on/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/asphalt-3/ngage": "/preload/games/asphalt-3/ngage?v=afe7964b0968acc8c45908ac6abd48b25e1b171dd1abea1d07a098209c250093",
+            "/preload/games/asphalt-3/runtime": "/preload/games/asphalt-3/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/tetris/ngage": "/preload/games/tetris/ngage?v=37222257e26cfc1b1bbc1f0dbb684b04fd569e3638c2fbb58f44fe7fe7446569",
+            "/preload/games/tetris/runtime": "/preload/games/tetris/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+            "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+            "/eka2l1.data": "/eka2l1.data?v=8b7dd0983892bd09e5a12b06788a7a4073a8431d87890ffd2c8519dc1bbaadba",
+            "/eka2l1.js": "/eka2l1.js?v=4d67b223724259fd79f6627cd71a2698009f3f5814c036a70ed09ee7edb297d6",
+            "/eka2l1.wasm": "/eka2l1.wasm?v=b47b3378e51944fad36f9703be16f705d797ef510a7fe82624c6819aa0865933",
+            "/persistent-disk.js": "/persistent-disk.js?v=e996eed19cc90c04c929c2d77a8f49a9b4341d67817586ce5995a7b9ac7c6892",
+            "/preinstalled-image.js": "/preinstalled-image.js?v=31a66937318c32486e07c2c567f79000f2137af84a485247a8d6e98dfe83f525",
+            "/touch-controls.css": "/touch-controls.css?v=57338e55dc1af8fb1334faf89cc67b07911c54ee97ba21204d73e0a13eb2948f",
+            "/touch-controls.js": "/touch-controls.js?v=23f0ae61c1ddb13d90b314a29634c776738aed28cc1ac309b8c11496ff029aba"
+          }
+        }
+      ]
+    },
+    {
+      "game": "n-gage",
+      "runtime": {
+        "accesses": 11803558,
+        "in_current_address_window": 8871199,
+        "address_histogram": [
+          [
+            4,
+            7081864
+          ],
+          [
+            5,
+            226308
+          ],
+          [
+            7,
+            1475698
+          ],
+          [
+            8,
+            87329
+          ],
+          [
+            1026,
+            2007451
+          ],
+          [
+            1028,
+            45538
+          ],
+          [
+            1029,
+            206154
+          ],
+          [
+            1030,
+            21306
+          ],
+          [
+            1792,
+            6434
+          ],
+          [
+            1793,
+            59691
+          ],
+          [
+            1797,
+            6
+          ],
+          [
+            1799,
+            216
+          ],
+          [
+            1800,
+            1836
+          ],
+          [
+            1804,
+            20
+          ],
+          [
+            1849,
+            618
+          ],
+          [
+            1850,
+            98
+          ],
+          [
+            1851,
+            234
+          ],
+          [
+            1852,
+            2220
+          ],
+          [
+            1853,
+            3
+          ],
+          [
+            1854,
+            36
+          ],
+          [
+            1855,
+            48
+          ],
+          [
+            1856,
+            420
+          ],
+          [
+            1857,
+            15
+          ],
+          [
+            1860,
+            1961
+          ],
+          [
+            1861,
+            30
+          ],
+          [
+            1865,
+            2496
+          ],
+          [
+            1866,
+            30
+          ],
+          [
+            1867,
+            12
+          ],
+          [
+            2048,
+            5266
+          ],
+          [
+            2049,
+            234424
+          ],
+          [
+            2050,
+            22821
+          ],
+          [
+            2051,
+            1410
+          ],
+          [
+            2052,
+            164615
+          ],
+          [
+            2053,
+            67840
+          ],
+          [
+            2054,
+            31834
+          ],
+          [
+            2056,
+            15567
+          ],
+          [
+            2057,
+            5153
+          ],
+          [
+            2058,
+            1422
+          ],
+          [
+            2059,
+            10990
+          ],
+          [
+            2068,
+            11225
+          ],
+          [
+            2069,
+            157
+          ],
+          [
+            2070,
+            66
+          ],
+          [
+            2071,
+            1068
+          ],
+          [
+            2086,
+            105
+          ],
+          [
+            2094,
+            1523
+          ]
+        ],
+        "address_coverage_of_current_window_percent": {
+          "4": 99.01558966268257,
+          "8": 100.0,
+          "12": 100.0,
+          "16": 100.0,
+          "20": 100.0,
+          "24": 100.0,
+          "32": 100.0,
+          "40": 100.0,
+          "48": 100.0,
+          "64": 100.0
+        },
+        "histogram": [
+          7081864,
+          226308,
+          0,
+          1475698,
+          87329,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "all_phases": {
+        "accesses": 64368510,
+        "in_current_address_window": 55366228,
+        "address_histogram": [
+          [
+            4,
+            20071155
+          ],
+          [
+            5,
+            17999681
+          ],
+          [
+            7,
+            8345171
+          ],
+          [
+            8,
+            8283005
+          ],
+          [
+            11,
+            81617
+          ],
+          [
+            13,
+            58138
+          ],
+          [
+            15,
+            5586
+          ],
+          [
+            16,
+            22737
+          ],
+          [
+            17,
+            952
+          ],
+          [
+            20,
+            562
+          ],
+          [
+            23,
+            488683
+          ],
+          [
+            24,
+            8941
+          ],
+          [
+            151,
+            2362
+          ],
+          [
+            152,
+            218
+          ],
+          [
+            1026,
+            4065548
+          ],
+          [
+            1028,
+            390566
+          ],
+          [
+            1029,
+            582391
+          ],
+          [
+            1030,
+            21306
+          ],
+          [
+            1124,
+            16991
+          ],
+          [
+            1792,
+            14490
+          ],
+          [
+            1793,
+            110807
+          ],
+          [
+            1794,
+            401
+          ],
+          [
+            1795,
+            106
+          ],
+          [
+            1796,
+            1296
+          ],
+          [
+            1797,
+            521
+          ],
+          [
+            1798,
+            28
+          ],
+          [
+            1799,
+            1840
+          ],
+          [
+            1800,
+            3621
+          ],
+          [
+            1801,
+            5383
+          ],
+          [
+            1802,
+            198
+          ],
+          [
+            1803,
+            331
+          ],
+          [
+            1804,
+            229
+          ],
+          [
+            1805,
+            46848
+          ],
+          [
+            1806,
+            4
+          ],
+          [
+            1807,
+            134
+          ],
+          [
+            1808,
+            1038
+          ],
+          [
+            1809,
+            1880
+          ],
+          [
+            1810,
+            165
+          ],
+          [
+            1811,
+            377
+          ],
+          [
+            1812,
+            2408
+          ],
+          [
+            1813,
+            678
+          ],
+          [
+            1814,
+            122
+          ],
+          [
+            1815,
+            20
+          ],
+          [
+            1816,
+            46
+          ],
+          [
+            1817,
+            181
+          ],
+          [
+            1818,
+            1528
+          ],
+          [
+            1819,
+            4
+          ],
+          [
+            1820,
+            596
+          ],
+          [
+            1821,
+            4493
+          ],
+          [
+            1822,
+            4
+          ],
+          [
+            1823,
+            4
+          ],
+          [
+            1824,
+            4
+          ],
+          [
+            1825,
+            4
+          ],
+          [
+            1826,
+            4
+          ],
+          [
+            1827,
+            4
+          ],
+          [
+            1828,
+            6169
+          ],
+          [
+            1829,
+            1747
+          ],
+          [
+            1830,
+            1164
+          ],
+          [
+            1831,
+            8606
+          ],
+          [
+            1832,
+            7501
+          ],
+          [
+            1833,
+            15315
+          ],
+          [
+            1834,
+            189
+          ],
+          [
+            1835,
+            1394
+          ],
+          [
+            1836,
+            4
+          ],
+          [
+            1837,
+            4
+          ],
+          [
+            1838,
+            4
+          ],
+          [
+            1839,
+            214
+          ],
+          [
+            1840,
+            914
+          ],
+          [
+            1841,
+            1224
+          ],
+          [
+            1842,
+            238
+          ],
+          [
+            1843,
+            435
+          ],
+          [
+            1844,
+            573
+          ],
+          [
+            1845,
+            299
+          ],
+          [
+            1846,
+            180
+          ],
+          [
+            1847,
+            538
+          ],
+          [
+            1848,
+            23
+          ],
+          [
+            1849,
+            1319
+          ],
+          [
+            1850,
+            264
+          ],
+          [
+            1851,
+            726
+          ],
+          [
+            1852,
+            5474
+          ],
+          [
+            1853,
+            454
+          ],
+          [
+            1854,
+            262
+          ],
+          [
+            1855,
+            354
+          ],
+          [
+            1856,
+            863
+          ],
+          [
+            1857,
+            316
+          ],
+          [
+            1858,
+            67
+          ],
+          [
+            1859,
+            34
+          ],
+          [
+            1860,
+            2777
+          ],
+          [
+            1861,
+            170
+          ],
+          [
+            1862,
+            25
+          ],
+          [
+            1863,
+            21
+          ],
+          [
+            1864,
+            25
+          ],
+          [
+            1865,
+            5608
+          ],
+          [
+            1866,
+            245
+          ],
+          [
+            1867,
+            70
+          ],
+          [
+            2048,
+            35411
+          ],
+          [
+            2049,
+            945866
+          ],
+          [
+            2050,
+            796167
+          ],
+          [
+            2051,
+            5596
+          ],
+          [
+            2052,
+            367789
+          ],
+          [
+            2053,
+            480416
+          ],
+          [
+            2054,
+            194149
+          ],
+          [
+            2055,
+            34991
+          ],
+          [
+            2056,
+            115424
+          ],
+          [
+            2057,
+            71989
+          ],
+          [
+            2058,
+            33972
+          ],
+          [
+            2059,
+            68366
+          ],
+          [
+            2067,
+            11
+          ],
+          [
+            2068,
+            41233
+          ],
+          [
+            2069,
+            8245
+          ],
+          [
+            2070,
+            202
+          ],
+          [
+            2071,
+            44763
+          ],
+          [
+            2072,
+            56
+          ],
+          [
+            2078,
+            8
+          ],
+          [
+            2084,
+            10394
+          ],
+          [
+            2086,
+            75054
+          ],
+          [
+            2087,
+            12150
+          ],
+          [
+            2088,
+            10132
+          ],
+          [
+            2090,
+            8
+          ],
+          [
+            2091,
+            28
+          ],
+          [
+            2092,
+            299896
+          ],
+          [
+            2094,
+            4187
+          ],
+          [
+            2107,
+            791
+          ]
+        ],
+        "address_coverage_of_current_window_percent": {
+          "4": 83.83451189775832,
+          "8": 98.94231732745095,
+          "12": 99.0574127607176,
+          "16": 99.10019877099086,
+          "20": 99.98385116645476,
+          "24": 100.0,
+          "32": 100.0,
+          "40": 100.0,
+          "48": 100.0,
+          "64": 100.0
+        },
+        "histogram": [
+          20071155,
+          17999681,
+          0,
+          8345171,
+          8283005,
+          0,
+          0,
+          81617,
+          0,
+          58138,
+          0,
+          5586,
+          22737,
+          952,
+          0,
+          0,
+          562,
+          0,
+          0,
+          488683,
+          8941,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "processes": [
+        {
+          "asid": 1,
+          "name": "ngiplay0x20003b78",
+          "needed_mib": 21,
+          "runtime_accesses": 11460472,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 2,
+          "name": "AknIconSrv",
+          "needed_mib": 19,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": [
+            {
+              "kind": "decommit",
+              "asid": 2,
+              "address": 24117248,
+              "size": 134217728,
+              "committed": 4096,
+              "local": 1,
+              "direct": 0
+            }
+          ]
+        },
+        {
+          "asid": 3,
+          "name": "ecomserver",
+          "needed_mib": 5,
+          "runtime_accesses": 201444,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 4,
+          "name": "cdlserver",
+          "needed_mib": 4,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 5,
+          "name": "playserver",
+          "needed_mib": 14,
+          "runtime_accesses": 135030,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 6,
+          "name": "gtmdserver",
+          "needed_mib": 5,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 7,
+          "name": "baksrvs",
+          "needed_mib": 4,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 8,
+          "name": "NAFServiceManagerSrvr_V3",
+          "needed_mib": 18,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 9,
+          "name": "TZSERVER",
+          "needed_mib": 5,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 10,
+          "name": "wmdrmpkserver",
+          "needed_mib": 4,
+          "runtime_accesses": 6612,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 11,
+          "name": "DownloadMgrServer",
+          "needed_mib": 6,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        },
+        {
+          "asid": 12,
+          "name": "CookieServer",
+          "needed_mib": 4,
+          "runtime_accesses": 0,
+          "conflicting_separate_chunks": []
+        }
+      ],
+      "observed_required_window_mib": 21,
+      "current": {
+        "peak_mib": 768,
+        "final_mib": 768
+      },
+      "fixed_48": {
+        "peak_mib": 576,
+        "final_mib": 576
+      },
+      "rounded_per_process_oracle": {
+        "peak_mib": 128,
+        "final_mib": 128
+      },
+      "exact_per_process_oracle": {
+        "peak_mib": 109,
+        "final_mib": 109
+      },
+      "doubling_growth_oracle": {
+        "growths": 15,
+        "runtime_growths": 0,
+        "copy_mib": 112,
+        "peak_mib": 160,
+        "final_mib": 160
+      },
+      "windows": [
+        {
+          "label": "client-library-navigation",
+          "guestSeconds": 19.6,
+          "frames": 103,
+          "errors": [],
+          "assets": {
+            "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+            "/preload/games/k-rally": "/preload/games/k-rally?v=e93abd790e7c5b05427e5e141f34532b329982e89f1a0112c856b59eb03db9e4",
+            "/preload/games/asphalt-2": "/preload/games/asphalt-2?v=d55bb082f53deb40b3b4d9f7440b7eb7b7087a648eabc8c8c9cdf1b8aa756b40",
+            "/preload/games/hooked-on": "/preload/games/hooked-on?v=ce8eeb53432f735ac2b2343290fb31ce37646f6231edc35610c0b07596d043f6",
+            "/preload/games/asphalt-3": "/preload/games/asphalt-3?v=53e38bf8770d9b98e49b263ee4d376cb6c49aea8ef646da8ae8e00a41cde9b6e",
+            "/preload/games/tetris": "/preload/games/tetris?v=71a6218eb6e6ace77fb2b85e850d5ac7f18fb1f7eaaa2c89df7b54412a8ba052",
+            "/preload/games/super-miners": "/preload/games/super-miners?v=3c48a19cbc061e40778a05b03002768d9014481c7ac290a69b12cf004bdc8e7c",
+            "/preload/games/n-gage": "/preload/games/n-gage?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/hooked-on/ngage": "/preload/games/hooked-on/ngage?v=a52da7a5d3d9f7ebd3eb81e49e3294d8998060f7cc2539fe955b8bfe14e1745c",
+            "/preload/games/hooked-on/runtime": "/preload/games/hooked-on/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/asphalt-3/ngage": "/preload/games/asphalt-3/ngage?v=afe7964b0968acc8c45908ac6abd48b25e1b171dd1abea1d07a098209c250093",
+            "/preload/games/asphalt-3/runtime": "/preload/games/asphalt-3/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/preload/games/tetris/ngage": "/preload/games/tetris/ngage?v=37222257e26cfc1b1bbc1f0dbb684b04fd569e3638c2fbb58f44fe7fe7446569",
+            "/preload/games/tetris/runtime": "/preload/games/tetris/runtime?v=e31bb10c5bf013dfd3a51ef09cc6e313cc6eb2275a2b3363f44f4dd712330ba4",
+            "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+            "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+            "/eka2l1.data": "/eka2l1.data?v=8b7dd0983892bd09e5a12b06788a7a4073a8431d87890ffd2c8519dc1bbaadba",
+            "/eka2l1.js": "/eka2l1.js?v=4d67b223724259fd79f6627cd71a2698009f3f5814c036a70ed09ee7edb297d6",
+            "/eka2l1.wasm": "/eka2l1.wasm?v=b47b3378e51944fad36f9703be16f705d797ef510a7fe82624c6819aa0865933",
+            "/persistent-disk.js": "/persistent-disk.js?v=e996eed19cc90c04c929c2d77a8f49a9b4341d67817586ce5995a7b9ac7c6892",
+            "/preinstalled-image.js": "/preinstalled-image.js?v=31a66937318c32486e07c2c567f79000f2137af84a485247a8d6e98dfe83f525",
+            "/touch-controls.css": "/touch-controls.css?v=57338e55dc1af8fb1334faf89cc67b07911c54ee97ba21204d73e0a13eb2948f",
+            "/touch-controls.js": "/touch-controls.js?v=23f0ae61c1ddb13d90b314a29634c776738aed28cc1ac309b8c11496ff029aba"
+          }
+        }
+      ]
+    }
+  ]
+}

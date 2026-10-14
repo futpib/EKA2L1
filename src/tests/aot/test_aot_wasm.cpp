@@ -5649,7 +5649,22 @@ static bool test_direct_memory_translation() {
                 };
                 g_test_mem=&memory;
                 const auto &module=variant?tested:baseline;
+#ifdef EKA2L1_MEMORY_ACCESS_PROFILE
+                memory_access_profile::active_row = reinterpret_cast<std::uintptr_t>(memory_access_profile::counters[250]);
+                const auto reads_before = memory_access_profile::counters[250][0][0];
+                const auto writes_before = memory_access_profile::counters[250][0][1];
+#endif
                 counts[variant]=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(states[0]));
+#ifdef EKA2L1_MEMORY_ACCESS_PROFILE
+                if (variant && address == 0x8000 && (program == 1 || program == 4)) {
+                    const auto expected_reads = program == 1 ? 6 : 3;
+                    if (memory_access_profile::counters[250][0][0] - reads_before != expected_reads
+                        || memory_access_profile::counters[250][0][1] - writes_before != 3) {
+                        printf("FAIL generated memory histogram block transfer program=%u\n", program);
+                        return false;
+                    }
+                }
+#endif
                 if(variant)mapping.leave();g_memory_boundary={};
             }
             bool equal=actual.data==expected.data;

@@ -23,6 +23,7 @@
 #include <unordered_map>
 
 #include <cpu/12l1r/tlb.h>
+#include <cpu/aot/memory_access_profile.h>
 #include <cpu/dyncom/arm_regformat.h>
 
 namespace eka2l1::arm {
@@ -166,11 +167,17 @@ public:
     // header needn't see the full dyncom_core. Permission-specific lookup and
     // endian conversion are identical on fast and callback paths.
     std::uint8_t ReadMemory8(std::uint32_t address) const {
+#ifdef EKA2L1_MEMORY_ACCESS_PROFILE
+        eka2l1::arm::aot::memory_access_profile::count(instruction_cache_asid, address, false);
+#endif
         if (std::uint8_t *ptr = mem_cache_->lookup_access<prot_read>(address))
             return *ptr;
         return ReadMemory8Slow(address);
     }
     std::uint16_t ReadMemory16(std::uint32_t address) const {
+#ifdef EKA2L1_MEMORY_ACCESS_PROFILE
+        eka2l1::arm::aot::memory_access_profile::count(instruction_cache_asid, address, false);
+#endif
         if (auto *ptr = mem_cache_->lookup_access<prot_read>(address)) {
             std::uint16_t value;
             std::memcpy(&value, ptr, sizeof(value));
@@ -179,6 +186,9 @@ public:
         return ReadMemory16Slow(address);
     }
     std::uint32_t ReadMemory32(std::uint32_t address) const {
+#ifdef EKA2L1_MEMORY_ACCESS_PROFILE
+        eka2l1::arm::aot::memory_access_profile::count(instruction_cache_asid, address, false);
+#endif
         if (auto *ptr = mem_cache_->lookup_access<prot_read>(address)) {
             std::uint32_t value;
             std::memcpy(&value, ptr, sizeof(value));
@@ -187,6 +197,9 @@ public:
         return ReadMemory32Slow(address);
     }
     std::uint64_t ReadMemory64(std::uint32_t address) const {
+#ifdef EKA2L1_MEMORY_ACCESS_PROFILE
+        eka2l1::arm::aot::memory_access_profile::count(instruction_cache_asid, address, false);
+#endif
         if (auto *ptr = mem_cache_->lookup_access<prot_read>(address)) {
             std::uint64_t value;
             std::memcpy(&value, ptr, sizeof(value));
@@ -196,6 +209,9 @@ public:
     }
     std::uint32_t ReadCode(std::uint32_t address) const;
     void WriteMemory8(std::uint32_t address, std::uint8_t data) {
+#ifdef EKA2L1_MEMORY_ACCESS_PROFILE
+        eka2l1::arm::aot::memory_access_profile::count(instruction_cache_asid, address, true);
+#endif
         if (std::uint8_t *ptr = mem_cache_->lookup_access<prot_write>(address)) {
             *ptr = data;
             return;
@@ -203,6 +219,9 @@ public:
         WriteMemory8Slow(address, data);
     }
     void WriteMemory16(std::uint32_t address, std::uint16_t data) {
+#ifdef EKA2L1_MEMORY_ACCESS_PROFILE
+        eka2l1::arm::aot::memory_access_profile::count(instruction_cache_asid, address, true);
+#endif
         if (InBigEndianMode())
             data = eka2l1::common::byte_swap(data);
         if (std::uint16_t *ptr = reinterpret_cast<std::uint16_t *>(mem_cache_->lookup_access<prot_write>(address))) {
@@ -212,6 +231,9 @@ public:
         WriteMemory16Slow(address, data);
     }
     void WriteMemory32(std::uint32_t address, std::uint32_t data) {
+#ifdef EKA2L1_MEMORY_ACCESS_PROFILE
+        eka2l1::arm::aot::memory_access_profile::count(instruction_cache_asid, address, true);
+#endif
         if (InBigEndianMode())
             data = eka2l1::common::byte_swap(data);
         if (std::uint32_t *ptr = reinterpret_cast<std::uint32_t *>(mem_cache_->lookup_access<prot_write>(address))) {
@@ -221,6 +243,9 @@ public:
         WriteMemory32Slow(address, data);
     }
     void WriteMemory64(std::uint32_t address, std::uint64_t data) {
+#ifdef EKA2L1_MEMORY_ACCESS_PROFILE
+        eka2l1::arm::aot::memory_access_profile::count(instruction_cache_asid, address, true);
+#endif
         if (InBigEndianMode())
             data = eka2l1::common::byte_swap(data);
         if (std::uint64_t *ptr = reinterpret_cast<std::uint64_t *>(mem_cache_->lookup_access<prot_write>(address))) {
@@ -244,6 +269,9 @@ public:
     };
 
     std::uint32_t ReadMemory32Block(std::uint32_t address, block_cursor &c) const {
+#ifdef EKA2L1_MEMORY_ACCESS_PROFILE
+        eka2l1::arm::aot::memory_access_profile::count(instruction_cache_asid, address, false);
+#endif
         const std::uint32_t page_off = address & static_cast<std::uint32_t>(mem_cache_->page_mask);
         if (c.page_host && (address - page_off) == c.page_base) {
             std::uint32_t value;
@@ -262,6 +290,9 @@ public:
     }
 
     void WriteMemory32Block(std::uint32_t address, std::uint32_t data, block_cursor &c) {
+#ifdef EKA2L1_MEMORY_ACCESS_PROFILE
+        eka2l1::arm::aot::memory_access_profile::count(instruction_cache_asid, address, true);
+#endif
         if (InBigEndianMode())
             data = eka2l1::common::byte_swap(data);
         const std::uint32_t page_off = address & static_cast<std::uint32_t>(mem_cache_->page_mask);

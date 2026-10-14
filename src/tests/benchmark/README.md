@@ -9,6 +9,10 @@ original metrics and are not added together or treated as current-runtime gains.
 
 The [verified audio replay results](RESULTS.md) record the four-run comparison and test limitations.
 
+The [memory-access distribution report](MEMORY_ACCESS_DISTRIBUTION_RESULTS.md)
+covers all supported stock-device games and the N-Gage client, with per-process
+arena capacity estimates and the limits of adaptive resizing.
+
 The [four compiler-option experiments](COMPILER_OPTIONS_RESULTS.md) compare V8 tiering, connected regions, a validation-cost ceiling, and restricted Dynarmic-IR-to-WASM kernels.
 
 The native deterministic benchmark is opt-in (`EKA2L1_BENCHMARK=1`). Browser

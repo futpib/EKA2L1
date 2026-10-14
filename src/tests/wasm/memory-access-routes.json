@@ -1,0 +1,63 @@
+{
+  "snakes": [
+    "(async()=>{await step(24000000);await press(167);return shot('select')})()",
+    "(async()=>{await press(167,7000000);return shot('level-ready')})()",
+    "(async()=>{await press(167,7000000);return shot('playing')})()",
+    "(async()=>{await step(8000000);return shot('active')})()",
+    "(async()=>{const r=await measure('opening-level-valid',5);return r})()"
+  ],
+  "sky-force": [
+    "(async()=>{await step(30000000);for(let i=0;i<4;i++)await press(167,3000000);return shot('menu')})()",
+    "(async()=>{await step(6000000);return shot('stage')})()",
+    "(async()=>{await step(4000000);const r=await measure('stage-1',2);return r})()"
+  ],
+  "k-rally": [
+    "(async()=>{await step(18000000);await press(167);return shot('profile')})()",
+    "(async()=>{await step(45000000);await press(167);return shot('name')})()",
+    "(async()=>{await step(25000000);await press(167,4000000);return shot('name2')})()",
+    "(async()=>{await press(17);for(let i=0;i<7;i++)await press(167,3000000);await step(40000000);return shot('track')})()",
+    "(async()=>{await page.evaluate(()=>{Module._eka2l1_key_state(52,1);Module._eka2l1_key_state(15,1)});const r=await measure('tutorial-driving',3);return r})()"
+  ],
+  "asphalt-2": [
+    "(async()=>{await step(20000000);return shot('initial')})()",
+    "(async()=>{await press(164);await press(167);await press(17);await press(167);await press(167);return shot('golf')})()",
+    "(async()=>{await press(167);await shot('track');await press(167,60000000);return shot('barrier')})()",
+    "(async()=>{const r=await measure('golf-san-francisco-barrier',10);return r})()"
+  ],
+  "hooked-on": [
+    "(async()=>{await step(700000000);return shot('client')})()",
+    "(async()=>{await press(164,70000000);await press(165,4000000);await press(167,10000000);return shot('language')})()",
+    "(async()=>{await press(167,5000000);await press(167,3000000);await press(16,1000000);await press(164,50000000);return shot('main')})()",
+    "(async()=>{await press(167,60000000);return shot('restart')})()",
+    "(async()=>{await press(167,2000000);await press(167,10000000);return shot('name')})()",
+    "(async()=>{await press(167,3000000);await press(16,1000000);await press(164,60000000);return shot('menu')})()",
+    "(async()=>{await press(167,8000000);await press(167,70000000);return shot('boat')})()",
+    "(async()=>{await press(164,1000000);await press(167,35000000);await shot('fishing-help');await press(164,1000000);await press(164,1000000);await shot('fishing-pause');await press(17,1000000);await press(167,30000000);await step(100000000);await shot('boat-after-tutorial');const results=[];for(let i=0;i<3;++i)results.push(await measure('costa-rica-stationary-tutorial-dismissed-window-'+i,10));const r=results.at(-1);return r})()"
+  ],
+  "asphalt-3": [
+    "(async()=>{await step(650000000); await press(164,60000000); return shot('language')})()",
+    "(async()=>{await press(167,1000000); return shot('after-language-short')})()",
+    "(async()=>{await step(15000000); return shot('loaded-short')})()",
+    "(async()=>{await press(167,1000000); return shot('sound-prompt-short')})()",
+    "(async()=>{await press(164,1000000); return shot('sound-yes-short')})()",
+    "(async()=>{await press(167,5000000); return shot('race-short')})()",
+    "(async()=>{await step(15000000); return shot('race-loaded')})()",
+    "(async()=>{await page.evaluate(()=>Module._eka2l1_key_state(16,1)); await step(5000000); await shot('race-warm');  const r=await measure('instant-play-driving-sound-on',5);  return r})()"
+  ],
+  "tetris": [
+    "(async()=>{await step(650000000);return await shot('client')})()",
+    "(async()=>{await press(164,60000000);await press(165,2000000);await press(167,10000000);return await shot('start')})()",
+    "(async()=>{await press(167,1000000);await press(167,1000000);await press(167,10000000);return await shot('marathon')})()",
+    "(async()=>{for(let i=0;i<4;i++)await press(164,500000);await press(167,1000000);return await shot('board')})()",
+    "(async()=>{await press(14,100000);await press(16,100000);await step(3000000);const r=await measure('marathon-level-1-long',15);return r})()"
+  ],
+  "super-miners": [
+    "(async()=>{await step(30000000);await press(167,3000000);await press(167,3000000);return await shot('menu')})()",
+    "(async()=>{await press(167,1000000);await press(167,1000000);return await shot('mode')})()",
+    "(async()=>{await step(15000000);return await shot('level')})()",
+    "(async()=>{await press(14,100000);const r=await measure('challenge-level-1',5);return r})()"
+  ],
+  "n-gage": [
+    "(async()=>{await step(30000000);await press(164,10000000);await press(165,10000000);await shot('client-home');await press(15,3000000);await shot('client-library');return await measure('client-library-navigation',10)})()"
+  ]
+}

@@ -26,6 +26,7 @@
 
 #include <kernel/kernel.h>
 #include <mem/mem.h>
+#include <cpu/aot/memory_access_profile.h>
 
 #include <kernel/codeseg.h>
 #include <kernel/libmanager.h>
@@ -222,6 +223,9 @@ namespace eka2l1::kernel {
         // Create mem model implementation
         if (use_memory) {
             mm_impl_ = mem::make_new_mem_model_process(mem->get_control(), mem->get_model_type());
+#ifdef EKA2L1_MEMORY_ACCESS_PROFILE
+            arm::aot::memory_access_profile::process(mm_impl_->address_space_id(), process_name);
+#endif
         }
 
         generation_ = refresh_generation();

@@ -234,6 +234,7 @@ namespace eka2l1::arm::aot {
             unsigned offset = 0;
             for (unsigned reg = 0; reg < 16; ++reg) {
                 if (!(registers & (1u << reg))) continue;
+                profile_memory_access(*this, address_local, write, offset);
                 get_local(SPAN_HOST);
                 if (write) load_reg(reg);
                 guest_memory_op(*this, write ? op_i32_store : op_i32_load, 2, offset);

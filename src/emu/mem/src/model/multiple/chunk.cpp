@@ -18,6 +18,7 @@
  */
 
 #include <mem/model/multiple/chunk.h>
+#include <cpu/aot/memory_access_profile.h>
 #include <mem/model/multiple/control.h>
 #include <mem/model/multiple/process.h>
 
@@ -137,6 +138,10 @@ namespace eka2l1::mem {
             running_offset += (page_num << control_->page_size_bits_);
         }
 
+#ifdef EKA2L1_MEMORY_ACCESS_PROFILE
+        arm::aot::memory_access_profile::event("commit", own_process_ ? own_process_->address_space_id() : 0,
+            base_, max_size_, committed_, is_local, is_direct_host);
+#endif
         return running_offset - offset;
     }
 
@@ -230,6 +235,10 @@ namespace eka2l1::mem {
 
             running_offset += (page_num << control_->page_size_bits_);
         }
+#ifdef EKA2L1_MEMORY_ACCESS_PROFILE
+        if (host_base_) arm::aot::memory_access_profile::event("decommit", own_process_ ? own_process_->address_space_id() : 0,
+            base_, max_size_, committed_, is_local, is_direct_host);
+#endif
     }
 
     std::int32_t multiple_mem_model_chunk::allocate(const std::size_t size) {
@@ -387,6 +396,10 @@ namespace eka2l1::mem {
             page_bma_ = std::make_unique<common::bitmap_allocator>(max_size_ >> control_->page_size_bits_);
         }
 
+#ifdef EKA2L1_MEMORY_ACCESS_PROFILE
+        arm::aot::memory_access_profile::event("create", own_process_ ? own_process_->address_space_id() : 0,
+            base_, max_size_, committed_, is_local, is_direct_host);
+#endif
         return MEM_MODEL_CHUNK_ERR_OK;
     }
 
@@ -403,6 +416,10 @@ namespace eka2l1::mem {
     }
 
     multiple_mem_model_chunk::~multiple_mem_model_chunk() {
+#ifdef EKA2L1_MEMORY_ACCESS_PROFILE
+        if (host_base_) arm::aot::memory_access_profile::event("destroy", own_process_ ? own_process_->address_space_id() : 0,
+            base_, max_size_, committed_, is_local, is_direct_host);
+#endif
         // Decommit the whole things
         decommit(0, max_size_);
 

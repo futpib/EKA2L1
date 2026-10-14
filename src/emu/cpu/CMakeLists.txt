@@ -79,6 +79,7 @@ set(SOURCE_DYNCOM
 
 set(SOURCE_AOT
         src/aot/memory_experiment.cpp
+        src/aot/memory_access_profile.cpp
         include/cpu/aot/aot_registry.h
         include/cpu/aot/aot_runtime.h
     include/cpu/aot/code_cache.h
@@ -177,4 +178,9 @@ endif()
 option(EKA2L1_AOT_SOURCE_MAPS "Emit guest provenance metadata for native profiling" OFF)
 if(EKA2L1_AOT_SOURCE_MAPS)
     target_compile_definitions(cpu PUBLIC EKA2L1_AOT_SOURCE_MAPS=1)
+endif()
+
+option(EKA2L1_MEMORY_ACCESS_PROFILE "Count guest memory accesses and chunk lifetimes in diagnostic builds" OFF)
+if(EKA2L1_MEMORY_ACCESS_PROFILE)
+    target_compile_definitions(cpu PUBLIC EKA2L1_MEMORY_ACCESS_PROFILE=1)
 endif()

@@ -2,8 +2,24 @@
 
 #include <cpu/aot/memory_experiment.h>
 #include <cpu/aot/state_locals.h>
+#include <cpu/aot/memory_access_profile.h>
 
 namespace eka2l1::arm::aot {
+    template<class W> void profile_memory_access(W &w, unsigned address, bool write, unsigned offset = 0) {
+#if defined(EKA2L1_MEMORY_ACCESS_PROFILE) && defined(__EMSCRIPTEN__)
+        auto imm=[&](unsigned v){state_local_cache::leb(w.b,v);};
+        w.i32_const(static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(&memory_access_profile::active_row)));
+        w.op(op_i32_load);imm(2);imm(0);
+        w.get_local(address);
+        if (offset) { w.i32_const(offset); w.op(op_i32_add); }
+        w.i32_const(memory_access_profile::bucket_shift);w.op(op_i32_shr_u);
+        w.i32_const(4);w.op(op_i32_shl);w.op(op_i32_add);
+        w.tee_local(W::ENTRY);w.get_local(W::ENTRY);
+        w.op(op_i64_load);imm(3);imm(write ? 8 : 0);
+        w.op(op_i64_const);w.b.push_back(1);w.op(op_i64_add);
+        w.op(op_i64_store);imm(3);imm(write ? 8 : 0);
+#endif
+    }
     // Three derived locals: address bias, enabled-arena mask and valid view.
     // A zero mask makes the unsigned range test fail for every guest address;
     // a zero view routes invalid/endian accesses through the ordinary helper.
@@ -90,6 +106,7 @@ namespace eka2l1::arm::aot {
         auto imm=[&](unsigned v){state_local_cache::leb(w.b,v);};
         auto access=[&] {
             source_scope access_provenance(w.source, source_kind::guest_memory);
+            profile_memory_access(w, W::ADDRESS, write);
             if(write) w.get_local(W::VALUE);
             guest_memory_op(w,write ? (bytes==4?op_i32_store:bytes==2?op_i32_store16:op_i32_store8)
                 : (bytes==4?op_i32_load:bytes==2?op_i32_load16_u:op_i32_load8_u),bytes==4?2:bytes==2?1:0);

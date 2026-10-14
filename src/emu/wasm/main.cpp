@@ -35,6 +35,7 @@
 #include <cpu/dyncom/arm_dyncom_interpreter.h>
 #include <cpu/aot/aot_runtime.h>
 #include <cpu/aot/memory_experiment.h>
+#include <cpu/aot/memory_access_profile.h>
 #include <cpu/aot/code_cache.h>
 #include <common/log.h>
 #include <common/path.h>
@@ -367,6 +368,17 @@ const char *eka2l1_monitor_report() {
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_diagnostics_available() { return common::diagnostics::available ? 1 : 0; }
+
+#ifdef EKA2L1_MEMORY_ACCESS_PROFILE
+EMSCRIPTEN_KEEPALIVE
+const char *eka2l1_memory_access_profile_report() {
+    static std::string result;
+    // No generated counter writer can still be running at a route pause.
+    if (!g_route.paused || !g_state || !g_state->running) return "{}";
+    result = arm::aot::memory_access_profile::report();
+    return result.c_str();
+}
+#endif
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_profile_phase() { return common::performance::phase.load(); }

@@ -201,6 +201,7 @@ namespace eka2l1::arm::aot {
                 // The entry pass accepted only word accesses and proved both
                 // their permissions and physical non-alias with current code.
                 proved_host(); get_local(HOST);
+                profile_memory_access(*this, ADDRESS, write);
                 if (write) get_local(VALUE);
                 guest_memory_op(*this, write ? op_i32_store : op_i32_load, 2);
                 return;
@@ -1806,6 +1807,7 @@ namespace eka2l1::arm::aot {
                     unsigned offset = 0;
                     for (int r = 0; r < 16; ++r) {
                         if (!(reglist & (1u << r))) continue;
+                        profile_memory_access(w, TMP1, !load, offset);
                         w.get_local(arm_emit::HOST);
                         if (load) {
                             guest_memory_op(w,op_i32_load,2,offset);
@@ -2460,6 +2462,11 @@ namespace eka2l1::arm::aot {
                 if (memory_experiment::enabled() && w.has_proved_access() && w.cache.enabled && !I && preindex
                     && !byte && !writeback && rn != 15 && rd != 15) {
                     const auto &access = w.proved_accesses.at(insn_addr);
+#ifdef EKA2L1_MEMORY_ACCESS_PROFILE
+                    w.load_reg(rn); w.i32_const(up ? (inst & 4095) : -static_cast<std::int32_t>(inst & 4095));
+                    w.op(op_i32_add); w.set_local(arm_emit::ADDRESS);
+                    profile_memory_access(w, arm_emit::ADDRESS, !load);
+#endif
                     w.get_local(access.host);
                     if (!load) w.load_reg(rd);
                     guest_memory_op(w, load ? op_i32_load : op_i32_store, 2, access.offset);
@@ -2727,6 +2734,7 @@ namespace eka2l1::arm::aot {
         direct_memory_setup(w);
         w.get_local(arm_emit::M+2); w.op(op_i32_eqz); original();
         auto load = [&](unsigned base, unsigned offset) {
+            profile_memory_access(w, address, false, offset);
             w.get_local(base); w.op(op_i32_load); leb(prefix, 2); leb(prefix, offset);
         };
         auto span = [&](unsigned bytes, unsigned alignment) {

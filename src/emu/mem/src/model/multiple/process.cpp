@@ -27,6 +27,7 @@
 
 #include <cpu/arm_interface.h>
 #include <cpu/aot/memory_experiment.h>
+#include <cpu/aot/memory_access_profile.h>
 
 namespace eka2l1::mem {
     multiple_mem_model_process::multiple_mem_model_process(control_base *ctrl)
@@ -49,6 +50,9 @@ namespace eka2l1::mem {
             direct_local_ = allocation;
             static_cast<control_multiple *>(control_)->direct_local_[addr_space_id_] = allocation;
             stats.arena_bytes += direct_size;
+#ifdef EKA2L1_MEMORY_ACCESS_PROFILE
+            arm::aot::memory_access_profile::event("arena", addr_space_id_, direct_begin, direct_size, 0, true, true);
+#endif
         }
         return static_cast<std::uint8_t *>(direct_local_) + address - direct_begin;
 #else
@@ -57,6 +61,9 @@ namespace eka2l1::mem {
     }
 
     multiple_mem_model_process::~multiple_mem_model_process() {
+#ifdef EKA2L1_MEMORY_ACCESS_PROFILE
+        arm::aot::memory_access_profile::event("process-destroy", addr_space_id_, 0, 0, 0, false, false);
+#endif
         // Chunks release their mappings before the shared arena is released.
         chunks_.clear();
         if (direct_local_) {
