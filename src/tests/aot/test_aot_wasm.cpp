@@ -6114,6 +6114,64 @@ static bool test_precompile_capacity() {
     return true;
 }
 
+static bool test_ram_function_retirement() {
+#ifdef __EMSCRIPTEN__
+    struct restore {
+        unsigned memory = memory_experiment::mode;
+        unsigned unsafe = eka2l1::common::code_tracking::unsafe_code_mode;
+        bool hot = hot_compilation_enabled;
+        ~restore() {
+            memory_experiment::mode = memory;
+            eka2l1::common::code_tracking::unsafe_code_mode = unsafe;
+            configure_hot_rom(nullptr, 0x80000000, 0, hot);
+        }
+    } saved;
+    memory_experiment::mode = 0;
+    eka2l1::common::code_tracking::unsafe_code_mode = 3;
+    configure_hot_rom(nullptr, 0x80000000, 0, true);
+    test_mem memory; r12l1::exclusive_monitor monitor(1);
+    auto cpu = make_cpu(memory, monitor);
+    auto state = std::make_unique<ARMul_State>(cpu.get(), USER32MODE);
+    constexpr std::uint32_t address = 0x5ff00000;
+    std::array<std::uint16_t, 2> code{0x2001, 0x4770}; // MOV r0, #1; BX LR.
+    std::atomic<std::uint64_t> generation{1};
+    bool mapped = true;
+    cpu->code_address_space = 17;
+    cpu->code_mapping_generation = &generation;
+    cpu->resolve_code = [&](std::uint32_t pc, core::code_mapping &view) {
+        if (!mapped || pc < address || pc - address >= sizeof(code)) return false;
+        const auto offset = pc - address;
+        view = {17, reinterpret_cast<const std::uint8_t *>(code.data()) + offset, sizeof(code) - offset};
+        return true;
+    };
+    auto prepare = [&] {
+        queue_precompile_image(17, address, reinterpret_cast<const std::uint8_t *>(code.data()), sizeof(code), {address | 1});
+        prepare_compiled_code(*cpu);
+        state->Reset(); state->Reg[15] = address; state->Reg[14] = address + 0x1001; state->TFlag = 1;
+        state->NumInstrsToExecute = UINT32_MAX;
+        return lookup_compiled(state.get());
+    };
+    const auto first = prepare();
+    if (!first || !execute_single(state.get(), first) || state->Reg[0] != 1) return false;
+    const auto before = retired_compiled_function_count();
+    mapped = false; ++generation;
+    invalidate_ram_code(address, sizeof(code));
+    if (lookup_compiled(state.get()) || retired_compiled_function_count() != before) return false;
+    if (!EM_ASM_INT({ return WebAssembly.Table.prototype.get.call(wasmTable, $0) !== null; }, first)) return false;
+    prepare_compiled_code(*cpu);
+    if (retired_compiled_function_count() != before + 1) return false;
+    if (!EM_ASM_INT({ return WebAssembly.Table.prototype.get.call(wasmTable, $0) === null; }, first)) return false;
+    code[0] = 0x2007; mapped = true; ++generation;
+    const auto replacement = prepare();
+    if (!replacement || replacement != first || !execute_single(state.get(), replacement) || state->Reg[0] != 7) return false;
+    invalidate_ram_code(address, sizeof(code));
+    prepare_compiled_code(*cpu);
+    if (retired_compiled_function_count() != before + 2) return false;
+    printf(" PASS RAM function retirement (deferred table removal, slot reuse and remapped execution)\n");
+#endif
+    return true;
+}
+
 int main(int argc, char **argv) {
     // Production module staging logs its result; standalone tests have no sink.
     eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
@@ -6139,6 +6197,7 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--emit-memory-probes") {emit_memory_probes();return 0;}
 #endif
     if(argc==2 && std::string(argv[1])=="--precompile-only") return test_precompile() && test_precompile_capacity()?0:1;
+    if(argc==2 && std::string(argv[1])=="--ram-retirement-only") return test_ram_function_retirement()?0:1;
     if(argc==2 && std::string(argv[1])=="--watchdog-only") return test_watchdog()?0:1;
     if(argc==2 && std::string(argv[1])=="--thumb-finite-loops-only") return test_thumb_finite_loops()?0:1;
     if(argc==2 && std::string(argv[1])=="--thumb-ram-fusion-only") return test_region_fusion(false,true)?0:1;
@@ -6991,6 +7050,7 @@ int main(int argc, char **argv) {
     if (test_thumb_ram_leaves()) passed++; else failed++;
     if (test_thumb_polled_loops()) passed++; else failed++;
     if (test_region_fusion(false,true)) passed++; else failed++;
+    if (test_ram_function_retirement()) passed++; else failed++;
     printf("\n%d passed, %d failed\n", passed, failed);
     return failed > 0 ? 1 : 0;
 }

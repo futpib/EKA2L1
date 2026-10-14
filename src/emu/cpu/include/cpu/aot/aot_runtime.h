@@ -76,4 +76,5 @@ namespace eka2l1::arm::aot {
     bool instantiate_staged_modules();
     // Atomic observer value; safe to read from the browser main thread.
     std::uint64_t compiled_function_count();
+    std::uint64_t retired_compiled_function_count();
 }

@@ -58,7 +58,9 @@ struct compilation_timer {
         std::chrono::steady_clock::now() - start).count(), std::memory_order_relaxed); }
 };
 static std::atomic<std::uint64_t> completed_function_count{0};
+static std::atomic<std::uint64_t> retired_function_count{0};
 std::uint64_t compiled_function_count() { return completed_function_count.load(std::memory_order_relaxed); }
+std::uint64_t retired_compiled_function_count() { return retired_function_count.load(std::memory_order_relaxed); }
 
 static std::uint32_t hot_rom_base = 0, hot_rom_size = 0;
 common::diagnostics::flag diagnostics_enabled = false;
@@ -81,6 +83,9 @@ struct precompile_image {
 static std::mutex precompile_mutex;
 static std::vector<precompile_image> precompile_images;
 static std::atomic<bool> precompile_pending{false};
+#ifdef __EMSCRIPTEN__
+static void release_retired_functions();
+#endif
 
 void queue_precompile_image(std::uint32_t space, std::uint32_t base,
         const std::uint8_t *bytes, std::uint32_t size, std::vector<std::uint32_t> entries) {
@@ -121,6 +126,7 @@ void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32
     global_registry().configure_rom_index(base, size, true);
     hot_compilation_enabled = enabled;
     completed_function_count = 0;
+    retired_function_count = 0;
     compilation.translation_us = 0; compilation.emission_us = 0; compilation.installation_us = 0;
     compilation.eager_functions = 0; compilation.eager_passes = 0;
     { const std::lock_guard<std::mutex> lock(precompile_mutex);
@@ -350,6 +356,9 @@ static void compile_at(core &cpu, std::uint32_t key, std::vector<std::uint32_t> 
 
 void prepare_compiled_code(core &cpu) {
 #ifdef __EMSCRIPTEN__
+    // Previous CPU runs have returned every generated frame. Unmap callbacks
+    // only queued retirement, so no table slot is reused while it is executing.
+    if (ram_cache.has_retired()) release_retired_functions();
     if (!hot_compilation_enabled || !precompile_pending.load(std::memory_order_acquire)) return;
     std::vector<precompile_image> images;
     {
@@ -521,6 +530,21 @@ EM_JS(char*, js_instantiate_aot_module, (const uint8_t* bytes, int len, const st
     }
 });
 
+EM_JS(void, js_release_aot_functions, (const std::uintptr_t *functions, std::size_t count), {
+    for (var i = 0; i < count; ++i) removeFunction(HEAPU32[(functions >>> 2) + i]);
+});
+
+static void release_functions(const std::vector<aot_func> &functions) {
+    if (functions.empty()) return;
+    static_assert(sizeof(aot_func) == sizeof(std::uintptr_t));
+    js_release_aot_functions(reinterpret_cast<const std::uintptr_t *>(functions.data()), functions.size());
+    retired_function_count.fetch_add(functions.size(), std::memory_order_relaxed);
+}
+
+static void release_retired_functions() {
+    release_functions(ram_cache.collect_retired());
+}
+
 // Staged modules waiting for worker-thread instantiation
 struct staged_module {
     std::vector<std::uint8_t> wasm_bytes;
@@ -565,6 +589,7 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
     free(result_str);
 
     int count = 0;
+    std::vector<aot_func> rejected;
     registry &reg = global_registry();
 
     std::size_t pos = 0;
@@ -583,8 +608,10 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
 
         // Parse address from "f_<decimal_addr>"
         if (name.substr(0, 2) == "r_") {
-            ram_cache.attach(static_cast<std::uint32_t>(std::stoul(name.substr(2))),
-                reinterpret_cast<aot_func>(table_idx));
+            const auto function = reinterpret_cast<aot_func>(table_idx);
+            const auto version = static_cast<std::uint32_t>(std::stoul(name.substr(2)));
+            if (!ram_cache.attach(version, function) && ram_cache.was_unloaded(version))
+                rejected.push_back(function);
             ++count;
             continue;
         }
@@ -599,6 +626,7 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
     }
 
     completed_function_count.fetch_add(count, std::memory_order_relaxed);
+    release_functions(rejected);
     if (dll_name != "hot-rom") LOG_INFO(CPU_DYNCOM, "AOT: instantiated {} functions for {}", count, dll_name);
     return count;
 }

@@ -40,6 +40,7 @@ namespace eka2l1::arm::aot {
             aot_func function = nullptr;
             bool live = true;
             bool rejected = false;
+            bool unloaded = false;
             std::uint64_t mapping_generation = 0;
             const std::atomic<std::uint64_t> *mapping_source = nullptr;
         };
@@ -168,11 +169,69 @@ namespace eka2l1::arm::aot {
             return false;
         }
 
-        void attach(std::uint32_t version, aot_func function) {
+        bool attach(std::uint32_t version, aot_func function) {
             if (version < versions_.size() && versions_[version].live) {
                 forget_dispatch(versions_[version].key);
                 versions_[version].function = function;
+                return true;
             }
+            return false;
+        }
+
+        void retire(block &entry) {
+            if (entry.unloaded) return;
+            forget_dispatch(entry.key);
+            auto &recent = recent_[recent_index(entry.key)];
+            if (recent == &entry) recent = nullptr;
+            const auto current = current_.find(entry.key);
+            if (current != current_.end() && current->second == entry.version) current_.erase(current);
+            entry.live = false;
+            entry.unloaded = true;
+            retired_versions_.push_back(entry.version);
+        }
+
+        bool was_unloaded(std::uint32_t version) const {
+            return version < versions_.size() && versions_[version].unloaded;
+        }
+
+        bool has_retired() const { return !retired_versions_.empty(); }
+
+        // Only call after generated code has returned. Version IDs remain
+        // tombstones so a late staged module cannot attach to a replacement.
+        std::vector<aot_func> collect_retired() {
+            std::vector<aot_func> functions;
+            std::vector<std::uint32_t> pages;
+            const auto span = [&](std::uint32_t address, std::size_t size) {
+                if (!size) return;
+                const auto end = std::uint64_t(address) + std::min<std::uint64_t>(size, 0x100000000ull - address);
+                for (auto page = std::uint64_t(address) >> 12; page <= ((end - 1) >> 12); ++page)
+                    pages.push_back(static_cast<std::uint32_t>(page));
+            };
+            for (auto version : retired_versions_) {
+                auto &entry = versions_[version];
+                if (entry.function) functions.push_back(entry.function);
+                span(static_cast<std::uint32_t>(entry.key) & ~1u, entry.code.size());
+                for (const auto &dependency : entry.dependencies) span(dependency.address, dependency.code.size());
+                std::vector<std::uint8_t>{}.swap(entry.code);
+                std::vector<dependency>{}.swap(entry.dependencies);
+                entry.function = nullptr;
+                entry.backing = nullptr;
+                entry.mapping_source = nullptr;
+                entry.mapping_generation = 0;
+                entry.guard_begin = entry.guard_end = 0;
+            }
+            retired_versions_.clear();
+            std::sort(pages.begin(), pages.end());
+            pages.erase(std::unique(pages.begin(), pages.end()), pages.end());
+            for (auto page : pages) {
+                const auto found = invalidation_pages_.find(page);
+                if (found == invalidation_pages_.end()) continue;
+                auto &versions = found->second;
+                versions.erase(std::remove_if(versions.begin(), versions.end(),
+                    [&](auto version) { return versions_[version].unloaded; }), versions.end());
+                if (versions.empty()) invalidation_pages_.erase(found);
+            }
+            return functions;
         }
 
         void invalidate(std::uint32_t address, std::size_t size) {
@@ -185,15 +244,14 @@ namespace eka2l1::arm::aot {
                     page != invalidation_pages_.end() && (std::uint64_t(page->first) << 12) < end; ++page) {
                 for (auto version : page->second) {
                     auto &entry = versions_[version];
-                    if (!entry.live) continue;
+                    if (entry.unloaded) continue;
                     const auto start = static_cast<std::uint32_t>(entry.key) & ~1u;
                     const bool dependency_hit = std::any_of(entry.dependencies.begin(), entry.dependencies.end(),
                         [&](const auto &d) { return d.address < end && std::uint64_t(d.address) + d.code.size() > address; });
                     if (dependency_hit || (start < end && std::uint64_t(start) + entry.code.size() > address)) {
-                        forget_dispatch(entry.key);
-                        entry.live = false;
-                        current_.erase(entry.key);
-                        ++invalidations;
+                        const bool was_live = entry.live;
+                        retire(entry);
+                        if (was_live) ++invalidations;
                     }
                 }
             }
@@ -229,8 +287,7 @@ namespace eka2l1::arm::aot {
             const auto pc_mode = static_cast<std::uint32_t>(k);
             return ((pc_mode >> 1) ^ (pc_mode << 7) ^ (k >> 32)) & 4095;
         }
-        // deque entries stay allocated until reset; invalidation/replacement
-        // marks old entries dead before a cached pointer can be reused.
+        // Deque identities stay stable; dead payloads are freed at a CPU boundary.
         std::array<block *, 4096> recent_{};
         struct dispatch_entry {
             std::uint64_t key = 0, generation = 0;
@@ -238,13 +295,11 @@ namespace eka2l1::arm::aot {
             aot_func function = nullptr;
         };
         std::vector<dispatch_entry> dispatch_ = std::vector<dispatch_entry>(4096);
-        // Versions remain allocated until reset so late module instantiation can
-        // never attach an old function to a replacement block. Hot admission is
-        // budgeted separately from preparation of loaded images.
+        // Version IDs are never reused by a late module instantiation.
         std::deque<block> versions_;
+        std::vector<std::uint32_t> retired_versions_;
         std::unordered_map<std::uint64_t, std::uint32_t> current_;
-        // Like versions_, old index entries survive until reset. Dead versions
-        // are ignored and cannot invalidate or attach to their replacements.
+        // Reclamation removes dead versions from the touched page buckets.
         std::map<std::uint32_t, std::vector<std::uint32_t>> invalidation_pages_;
     };
 }

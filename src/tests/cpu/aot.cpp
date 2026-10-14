@@ -998,6 +998,67 @@ TEST_CASE("RAM recent lookup survives collisions, replacement and reset", "[aot]
     REQUIRE(cache.find(0x3000, view)->function == second);
 }
 
+TEST_CASE("RAM retirement releases dead payloads without reusing identities", "[aot][cpu]") {
+    using namespace eka2l1::arm;
+    aot::validated_code_cache cache;
+    std::array<std::uint8_t, 32> bytes{};
+    core::code_mapping view{7, bytes.data(), bytes.size()};
+    auto first = +[](ARMul_State *) -> std::uint32_t { return 1; };
+    auto second = +[](ARMul_State *) -> std::uint32_t { return 2; };
+    auto third = +[](ARMul_State *) -> std::uint32_t { return 3; };
+    auto &old = cache.insert(0x1000, view, 8);
+    REQUIRE(cache.attach(old.version, first));
+    REQUIRE(cache.find(0x1000, view) == &old);
+    cache.add_dependency(old, 0x2ffe, bytes.data(), {bytes.begin(), bytes.begin() + 8});
+    cache.invalidate(0x3000, 1);
+    REQUIRE_FALSE(old.live);
+    REQUIRE(old.function == first); // Still callable until the CPU boundary.
+    REQUIRE_FALSE(old.code.empty());
+    REQUIRE(cache.has_retired());
+    auto &replacement = cache.insert(0x1000, view, 8);
+    REQUIRE(cache.attach(replacement.version, second));
+    const auto released = cache.collect_retired();
+    REQUIRE(released == std::vector<aot::aot_func>{first});
+    REQUIRE(old.code.capacity() == 0);
+    REQUIRE(old.dependencies.capacity() == 0);
+    REQUIRE(old.function == nullptr);
+    REQUIRE(old.backing == nullptr);
+    REQUIRE(cache.find(0x1000, view) == &replacement);
+    REQUIRE_FALSE(cache.attach(old.version, third)); // Late compilation is rejected.
+    REQUIRE(cache.versions() == 2);
+    REQUIRE_FALSE(cache.has_retired());
+    REQUIRE(cache.collect_retired().empty());
+
+    cache.invalidate(0x3000, 1); // Dead dependency index was removed.
+    REQUIRE(replacement.live);
+    REQUIRE(cache.find(0x1000, view)->function == second);
+    cache.invalidate(0x1000, 8);
+    REQUIRE(cache.collect_retired() == std::vector<aot::aot_func>{second});
+    REQUIRE(cache.find(0x1000, view) == nullptr);
+}
+
+TEST_CASE("Superseded RAM translations are reclaimed when their code is unmapped", "[aot][cpu]") {
+    using namespace eka2l1::arm;
+    aot::validated_code_cache cache;
+    std::array<std::uint8_t, 16> bytes{};
+    core::code_mapping view{9, bytes.data(), bytes.size()};
+    auto function = +[](ARMul_State *) -> std::uint32_t { return 1; };
+    auto &old = cache.insert(0x1000, view, 8);
+    REQUIRE(cache.attach(old.version, function));
+    auto &replacement = cache.insert(0x1000, view, 8);
+    REQUIRE(cache.collect_retired().empty());
+    REQUIRE_FALSE(cache.was_unloaded(old.version));
+    REQUIRE(cache.find(0x1000, view) == &replacement);
+    cache.invalidate(0x1000, 8);
+    cache.invalidate(0x1000, 8);
+    REQUIRE(cache.was_unloaded(old.version));
+    REQUIRE(cache.was_unloaded(replacement.version));
+    REQUIRE(cache.collect_retired() == std::vector<aot::aot_func>{function});
+    REQUIRE(replacement.code.capacity() == 0);
+    REQUIRE(cache.find(0x1000, view) == nullptr);
+    REQUIRE_FALSE(cache.has_retired());
+}
+
 TEST_CASE("RAM translation dependencies end after the first store", "[aot]") {
     using namespace eka2l1::arm::aot;
     const std::uint32_t arm[] = {0xe3a00007, 0xe5810000, 0xe2800001};
