@@ -4423,7 +4423,7 @@ static bool test_list_scan_summary() {
             view.pages=static_cast<unsigned>(reinterpret_cast<std::uintptr_t>(pages.data()));
             if(scenario==9) {
                 view.bias=static_cast<unsigned>(reinterpret_cast<std::uintptr_t>(memory.data.data()))-base;
-                view.arena_mask=~0u;
+                view.arena_start_limit=test_mem::SIZE-63;
             }
             test_mem reference_memory=memory;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(reference_memory,monitor);
             if(base)reference->read_32bit=[&](unsigned guest,unsigned *value) {
@@ -5790,10 +5790,10 @@ static bool test_direct_memory_translation() {
             if(host!=chunks[i]->host_base())return memory_failure(__LINE__);
             const auto backing=static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(host));
             auto resolve=[&]{return std::vector<binding>{{guest,backing,3}};};
-            const range direct{direct_begin,direct_size,static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(control.direct_local_memory(processes[i]->address_space_id()))),3};
+            const auto direct=control.direct_arena(processes[i]->address_space_id());
             const auto pointer=mapping.enter(1,processes[i]->address_space_id(),resolve,direct);
             auto *descriptor=reinterpret_cast<direct_view*>(pointer);
-            if(descriptor->size!=direct_size)return memory_failure(__LINE__);
+            if(descriptor->size!=4*1024*1024)return memory_failure(__LINE__);
             reinterpret_cast<page*>(descriptor->pages)[guest>>12]={};
             alignas(8)std::uint32_t state[256]{};
             state[0]=123+i;state[1]=guest;state[5]=0x90000000;state[15]=0x1000;
@@ -5903,31 +5903,35 @@ static bool test_memory_implementations() {
         if(processes[i]->create_chunk(chunks[i],info) || chunks[i]->commit(0,4096)!=4096)return false;
         static_cast<std::uint32_t*>(chunks[i]->host_base())[64]=0xe1a00000; // MOV r0,r0
     }
-    // Exercise both arena edges and invalidate hoisted state inside a Thumb
-    // invocation. The arena has canonical storage even at its uncommitted tail;
-    // mode 2 deliberately assumes mapped/permitted accesses inside that window.
+    // Exercise both prefix edges and invalidate hoisted state inside a Thumb
+    // invocation. The conservative final bytes use canonical page mappings.
     {
         const std::vector<wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
         auto *arena=static_cast<std::uint8_t*>(control.direct_local_memory(first->address_space_id()));
-        std::memset(arena,0x31,4);std::memset(arena+direct_size-4,0x57,4);
+        const auto direct=control.direct_arena(first->address_space_id());
+        auto edge_info=info;edge_info.addr=direct_begin+direct.size-4096;edge_info.size=4096;
+        mem::mem_model_chunk *edge{};
+        if(first->create_chunk(edge,edge_info) || edge->commit(0,4096)!=4096)return false;
+        std::memset(arena,0x31,4);std::memset(arena+direct.size-4,0x57,4);
         const auto host=static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(arena));
         view mapping;
-        auto resolve=[&]{return std::vector<binding>{{direct_begin,host,3}};};
-        const auto pointer=mapping.enter(1,1,resolve,{direct_begin,direct_size,host,3});
+        auto resolve=[&]{return std::vector<binding>{{direct_begin,host,3},
+            {direct_begin+direct.size-4096,host+direct.size-4096,3}};};
+        const auto pointer=mapping.enter(1,1,resolve,direct);
         g_test_mem=nullptr;g_memory_boundary={};
         for(unsigned width:{1u,2u,4u}) {
             const std::uint16_t code=width==1?0x7808:width==2?0x8808:0x6808;
             auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t*>(&code),2,0x1000,nullptr,nullptr,true,false,true);
             auto module=build_wasm_module({tr.func},imports);
             for(auto address:{direct_begin-width,direct_begin,direct_begin+1,direct_begin+4095,
-                    direct_begin+direct_size-width-1,direct_begin+direct_size-width,
-                    direct_begin+direct_size-width+1,direct_begin+direct_size,0xfffffffcu}) {
+                    direct_begin+direct.size-width-1,direct_begin+direct.size-width,
+                    direct_begin+direct.size-width+1,direct_begin+direct.size,0xfffffffcu}) {
                 alignas(8)std::uint32_t state[256]{};
                 state[1]=address;state[15]=0x1000;state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=48;
                 state[state_offsets::TFLAG/4]=1;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_TLB/4]=pointer;
                 g_all_memory_helper_calls=0;
-                const bool fast=address>=direct_begin && std::uint64_t(address)+width<=direct_begin+direct_size;
+                const bool fast=address>=direct_begin && std::uint64_t(address)+width<=direct_begin+direct.size;
                 std::uint32_t expected=0;if(fast)std::memcpy(&expected,arena+address-direct_begin,width);
                 auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
                 if(count!=1 || state[0]!=expected || g_all_memory_helper_calls!=!fast) {
@@ -5964,7 +5968,7 @@ static bool test_memory_implementations() {
     if(!cpu->experimental_dirty || !mmu->set_current_addr_space(first->address_space_id()))return fail(__LINE__);
     cpu->set_pc(guest+256);cpu->set_cpsr(16);cpu->step();
     auto *view=reinterpret_cast<direct_view*>(cpu->experimental_pointer);
-    if(!view || view->arena_mask!=~0u || cpu->experimental_dirty->load())return fail(__LINE__);
+    if(!view || !view->arena_start_limit || cpu->experimental_dirty->load())return fail(__LINE__);
     const auto generation=mem::mapping_generation.load();
     if(!mmu->set_current_addr_space(second->address_space_id()) || !cpu->experimental_dirty->load()
             || mem::mapping_generation.load()!=generation)return fail(__LINE__);
@@ -5976,11 +5980,11 @@ static bool test_memory_implementations() {
     cpu->system_call_handler=[&](auto){page->assign(chunks[0]->host_base(),prot_read_write);};
     auto *state=eka2l1::arm::matched_kernel_access::state(*cpu);
     state->RaiseSystemCall(0);
-    if(cpu->experimental_dirty->load() || view->arena_mask ||
+    if(cpu->experimental_dirty->load() || view->arena_start_limit ||
             reinterpret_cast<memory_experiment::page*>(view->pages)[guest>>12].read!=reinterpret_cast<std::uintptr_t>(chunks[0]->host_base()))return fail(__LINE__);
     // Slow-memory callbacks also publish before generated code can resume.
     cpu->read_8bit=[&](auto,std::uint8_t *out){page->assign(old_host,prot_read);*out=7;return true;};
-    if(state->ReadMemory8Slow(guest)!=7 || cpu->experimental_dirty->load() || view->arena_mask!=~0u ||
+    if(state->ReadMemory8Slow(guest)!=7 || cpu->experimental_dirty->load() || !view->arena_start_limit ||
             reinterpret_cast<memory_experiment::page*>(view->pages)[guest>>12].write)return fail(__LINE__);
     cpu->exception_handler=[&](auto,auto){page->clear();return true;};
     state->RaiseException(exception_type_access_violation_read,guest);
@@ -6134,11 +6138,10 @@ static bool test_growing_arenas() {
     using namespace memory_experiment;
     struct restore {
         unsigned implementation = mode;
-        bool growth = arena_growth;
         unsigned unsafe = eka2l1::common::code_tracking::unsafe_code_mode;
-        ~restore() { mode = implementation; arena_growth = growth; eka2l1::common::code_tracking::unsafe_code_mode = unsafe; }
+        ~restore() { mode = implementation; eka2l1::common::code_tracking::unsafe_code_mode = unsafe; }
     } saved;
-    mode = 2; arena_growth = true; eka2l1::common::code_tracking::unsafe_code_mode = 3;
+    mode = 2; eka2l1::common::code_tracking::unsafe_code_mode = 3;
     namespace mem = eka2l1::mem;
     eka2l1::config::state conf; r12l1::exclusive_monitor monitor(1);
     mem::basic_page_table_allocator allocator;
@@ -6153,7 +6156,7 @@ static bool test_growing_arenas() {
     mem::mem_model_chunk *small{}, *large{}, *isolated{};
     if (first->create_chunk(small, info) || small->commit(0,4096) != 4096) return false;
     auto *held = static_cast<std::uint32_t *>(small->host_base());
-    if (control.direct_growing_memory(first->address_space_id()).size != 4 * 1024 * 1024) return false;
+    if (control.direct_arena(first->address_space_id()).size != 4 * 1024 * 1024) return false;
     held[64] = 0x12345678;
     using native_map = std::unordered_map<unsigned,unsigned>;
     auto *object = new (held + 128) native_map;
@@ -6167,7 +6170,7 @@ static bool test_growing_arenas() {
     static_cast<std::uint32_t *>(isolated->host_base())[64] = 0x87654321;
     if (held[64] != 0x12345678 || stats.arena_bytes - bytes_before != 2 * direct_size
         || stats.arena_initialized_bytes - initialized_before != 20 * 1024 * 1024) return false;
-    auto direct = control.direct_growing_memory(first->address_space_id());
+    auto direct = control.direct_arena(first->address_space_id());
     if (direct.host != reinterpret_cast<std::uintptr_t>(held) || direct.size != 16 * 1024 * 1024) return false;
     const auto guest = small->base(first.get()), target = large->base(first.get());
     if (reinterpret_cast<std::uintptr_t>(large->host_base()) != direct.host + target - guest
@@ -6200,7 +6203,7 @@ static bool test_growing_arenas() {
     auto aliases = resolve(); aliases[0].host = aliases[1].host;
     const auto pointer = mapping.enter(2,first->address_space_id(),[&]{return aliases;},direct);
     const auto *published = reinterpret_cast<const direct_view *>(pointer);
-    if (published->size || published->arena_mask) return false;
+    if (published->size || published->arena_start_limit) return false;
     const std::uint32_t alias_code[]={0xe5910000};
     auto alias_tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(alias_code),sizeof(alias_code),0x1000,nullptr,nullptr,true,true,true,true);
     auto alias_module=build_wasm_module({alias_tr.func},imports);
@@ -6254,12 +6257,12 @@ static bool test_growing_arenas() {
     info.addr = direct_begin + 60 * 1024 * 1024;
     mem::mem_model_chunk *upper{}, *outside{};
     if (first->create_chunk(upper, info) || upper->commit(0,4096) != 4096) return false;
-    direct = control.direct_growing_memory(first->address_space_id());
+    direct = control.direct_arena(first->address_space_id());
     if (direct.size != direct_size || direct.host != reinterpret_cast<std::uintptr_t>(held)
         || object->at(7)!=91 || held[64]!=0x12345678) return false;
     info.addr = direct_begin + direct_size;
     if (first->create_chunk(outside, info) || outside->commit(0,4096) != 4096) return false;
-    if (control.direct_growing_memory(first->address_space_id()).size != direct_size
+    if (control.direct_arena(first->address_space_id()).size != direct_size
         || stats.arena_bytes - bytes_before != 2 * direct_size) return false;
     object->~native_map(); owned.object = nullptr;
     first.reset(); second.reset();

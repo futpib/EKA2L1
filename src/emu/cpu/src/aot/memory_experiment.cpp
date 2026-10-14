@@ -25,13 +25,13 @@ namespace eka2l1::arm::aot::memory_experiment {
             else ++stats.direct_rebuilds;
             direct_={direct.begin,direct.size,direct.host,
                 static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(pages_.data())),
-                direct.host-direct_begin,
-                direct.begin==direct_begin && (arena_growth ? direct.size>0 && direct.size<=direct_size : direct.size==direct_size) ? ~0u : 0u};
+                direct.host-direct_begin};
+            const bool affine = direct.begin==direct_begin && direct.size>0 && direct.size<=direct_size;
             // Scalars, list nodes and ARM register transfers fit this guard.
             // Its conservative end uses canonical pages for the final bytes.
-            direct_.arena_start_limit = direct_.arena_mask && direct.size >= 64 ? direct.size - 63 : 0;
-            direct_.return_limit4 = direct_.arena_mask && direct.size >= 4 ? direct.size - 3 : 0;
-            direct_.return_limit8 = direct_.arena_mask && direct.size >= 8 ? direct.size - 7 : 0;
+            direct_.arena_start_limit = affine && direct.size >= 64 ? direct.size - 63 : 0;
+            direct_.return_limit4 = affine && direct.size >= 4 ? direct.size - 3 : 0;
+            direct_.return_limit8 = affine && direct.size >= 8 ? direct.size - 7 : 0;
             generation_=generation; space_=space; ++stats.rebuilds;
             stats.mapped_pages=bindings_.size();
         }

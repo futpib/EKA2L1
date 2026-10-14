@@ -177,16 +177,18 @@ Memory translation defaults to direct memory (mode 2) in WASM play. Set
 and must be removed from launch environments. See the
 [cache comparison and adoption](../benchmark/MEMORY_CACHE_RESULTS.md).
 
-`EKA2L1_ARENA_GROWTH=1` enables experimental contiguous process arena prefix
-growth; it is off by default. It requires direct memory (mode 2) and unsafe
-code mode 3, and is frozen before guest initialization. Each process reserves
+Direct memory (mode 2) always uses contiguous process arena prefix growth.
+`EKA2L1_ARENA_GROWTH` is retired; remove it from launch environments even when
+set to zero. The full-arena initialization variant and runtime selector APIs
+are removed. Each process reserves
 a stable 64 MiB WASM address range without clearing its unused tail. The
 initialized prefix starts at 4 MiB and doubles when guest chunk allocation
 needs more room. No live data or native pointers move. Generated accesses use
 one cached bias and limit; addresses outside the prefix and conflicting aliases
 use the canonical page table. The reservation remains 64 MiB, so this targets
 physical browser memory, not WASM address-space capacity. See
-[measurements and limitations](../benchmark/ARENA_GROWTH_RESULTS.md).
+[measurements and limitations](../benchmark/ARENA_GROWTH_RESULTS.md) and
+[graduation checks](../benchmark/ARENA_GROWTH_ADOPTION.md).
 
 Eligible ARM short blocks always use inline memory access. `EKA2L1_ARM_MEMORY`
 is retired and must be removed from launch environments. The TLB/direct backend

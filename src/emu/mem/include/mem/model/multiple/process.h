@@ -37,7 +37,6 @@ namespace eka2l1::mem {
         void *direct_local_ = nullptr;
         std::uint32_t direct_capacity_ = 0;
         void *direct_local_backing(vm_address address, std::size_t size);
-        void *grow_direct_local_backing(vm_address address, std::size_t size);
 
         std::vector<std::unique_ptr<multiple_mem_model_chunk>> chunks_;
         std::vector<multiple_mem_model_chunk *> attached_;

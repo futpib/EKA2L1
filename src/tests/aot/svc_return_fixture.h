@@ -71,11 +71,12 @@ static bool test_svc_return_state() {
                 mapping==9?memory::direct_begin+4092:mapping==10?memory::direct_begin+memory::direct_size-8:
                 mapping==11?memory::direct_begin+memory::direct_size-4:mapping==12?memory::direct_begin+17:0x8010;
             pages[sp>>12]={};
-            view.arena_mask=affine?~0u:0;
+            view.arena_start_limit=affine?memory::direct_size-63:0;
             view.return_limit4=affine?memory::direct_size-3:0;
             view.return_limit8=affine?memory::direct_size-7:0;
             auto *page=backing.data.data()+(mapping==6?0x9000:0x8000);
             if(!affine && mapping!=4)pages[sp>>12].read=static_cast<unsigned>(reinterpret_cast<std::uintptr_t>(page));
+            if(affine)pages[sp>>12].read=arena_host+((sp-memory::direct_begin)&~4095u);
             const unsigned bytes=reg<8?8:4;
             const bool span=affine ? std::uint64_t(sp-memory::direct_begin)+bytes<=memory::direct_size : (sp&4095)+bytes<=4096;
             const bool readable=span && mapping!=4 && mapping!=5;

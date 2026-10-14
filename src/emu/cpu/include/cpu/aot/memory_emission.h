@@ -20,8 +20,8 @@ namespace eka2l1::arm::aot {
         w.op(op_i64_store);imm(3);imm(write ? 8 : 0);
 #endif
     }
-    // Three derived locals: address bias, arena mask/start limit and valid view.
-    // A zero mask makes the unsigned range test fail for every guest address;
+    // Three derived locals: address bias, arena start limit and valid view.
+    // A zero limit makes the unsigned range test fail for every guest address;
     // a zero view routes invalid/endian accesses through the ordinary helper.
     template<class W> void direct_memory_setup(W &w) {
         auto imm=[&](unsigned v){state_local_cache::leb(w.b,v);};
@@ -33,7 +33,7 @@ namespace eka2l1::arm::aot {
         w.op(op_if);w.op(type_void);
         w.load_i32(state_offsets::AOT_TLB);w.set_local(W::M+2);
         w.get_local(W::M+2);load(offsetof(memory_experiment::direct_view,bias));w.set_local(W::M);
-        w.get_local(W::M+2);load(memory_experiment::arena_growth ? offsetof(memory_experiment::direct_view,arena_start_limit) : offsetof(memory_experiment::direct_view,arena_mask));w.set_local(W::M+1);
+        w.get_local(W::M+2);load(offsetof(memory_experiment::direct_view,arena_start_limit));w.set_local(W::M+1);
         w.op(op_end);w.op(op_end);
     }
 
@@ -56,16 +56,11 @@ namespace eka2l1::arm::aot {
     template<class W> void arena_fits(W &w,unsigned address,unsigned bytes) {
         if (!bytes || bytes > memory_experiment::direct_size) { w.i32_const(0);return; }
         w.get_local(address);w.i32_const(memory_experiment::direct_begin);w.op(op_i32_sub);
-        if (memory_experiment::arena_growth) {
-            if (bytes > 64) {
-                // Larger block spans retain an explicit whole-span proof.
-                w.op(op_i64_extend_i32_u);w.i32_const(bytes-64);w.op(op_i64_extend_i32_u);w.op(op_i64_add);
-                w.get_local(W::M+1);w.op(op_i64_extend_i32_u);w.op(op_i64_lt_u);
-            } else { w.get_local(W::M+1);w.op(op_i32_lt_u); }
-        } else {
-            w.get_local(W::M+1);w.i32_const(memory_experiment::direct_size-bytes+1);
-            w.op(op_i32_and);w.op(op_i32_lt_u);
-        }
+        if (bytes > 64) {
+            // Larger block spans retain an explicit whole-span proof.
+            w.op(op_i64_extend_i32_u);w.i32_const(bytes-64);w.op(op_i64_extend_i32_u);w.op(op_i64_add);
+            w.get_local(W::M+1);w.op(op_i64_extend_i32_u);w.op(op_i64_lt_u);
+        } else { w.get_local(W::M+1);w.op(op_i32_lt_u); }
     }
 
     template<class W> void direct_host(W &w,unsigned address,unsigned bytes,bool write,unsigned alignment) {

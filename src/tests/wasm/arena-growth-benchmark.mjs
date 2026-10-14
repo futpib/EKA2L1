@@ -63,11 +63,10 @@ const measure=async(label,seconds=30)=>{
 await page.waitForFunction(()=>Module._eka2l1_route_phase()===1);
 const press=async(code,us=1500000,hold=200000)=>{await page.evaluate(c=>Module._eka2l1_key_state(c,1),code);await step(hold);await page.evaluate(c=>Module._eka2l1_key_state(c,0),code);return step(us)};
 const go=async()=>page.evaluate(t=>Module._eka2l1_route_step_to(t),1800000000);
-if (await page.evaluate(()=>typeof Module._eka2l1_arena_growth_configure==='function')) {
- assert.equal(await page.evaluate(()=>Module._eka2l1_arena_growth_configure(1)), -1, 'Arena policy must be frozen after launch');
- const s=await status();
- assert.equal(s.memory.arena_growth,!!(s.policy.requested.arenaGrowth??0));
-}
+const initialMemory=(await status()).memory;
+assert.equal(initialMemory.mode,2);
+assert.ok(initialMemory.arena_growths>0);
+assert.ok(initialMemory.arena_initialized_bytes<=initialMemory.arena_bytes);
 const regionCount=async(name,x0,x1,y0,y1,match)=>{
  await shot(name);const png=PNG.sync.read(fs.readFileSync(out+'/'+name+'.png'));
  let count=0;for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){const i=(y*png.width+x)*4;if(match(...png.data.subarray(i,i+3)))count++;}return count;
@@ -98,7 +97,9 @@ const ensureRace=async()=>{
   if(count(20,175,75,160,yellow)>400&&count(770,890,75,160,yellow)>400)return shot('race-loaded');
   const prompt=count(300,600,370,450,yellow);
   const pink=count(200,750,225,740,(r,g,b)=>r>180&&b>140&&g<190);
+  const english=count(220,680,190,260,(r,g,b)=>r<160&&g>180&&b<160);
   if(prompt>1500)await press(164,3000000,1000000);
+  else if(english>800)await press(167,8000000,1000000);
   else if(pink>13000)await press(167,8000000,1000000);
   // Loading and splash screens advance without speculative button presses.
  }

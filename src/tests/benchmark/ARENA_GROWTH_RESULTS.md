@@ -1,8 +1,13 @@
 # Contiguous process arena prefix growth
 
-This replaces the segmented implementation at `24a6c7560`. The existing
-`EKA2L1_ARENA_GROWTH=1` flag selects the new implementation and stays **off by
-default**. The [segmented measurements](SEGMENTED_ARENA_GROWTH_RESULTS.md) are
+Contiguous prefix growth is now the sole direct-memory arena implementation,
+graduated at the user's request. The flag, runtime selectors and eagerly
+initialized full-arena variant are removed. See
+[the graduation checks](ARENA_GROWTH_ADOPTION.md).
+
+The measurements below describe the experiment at `8f2c0df15`, when
+`EKA2L1_ARENA_GROWTH=1` selected it and it was off by default. It replaced the
+segmented implementation at `24a6c7560`. The [segmented measurements](SEGMENTED_ARENA_GROWTH_RESULTS.md) are
 preserved, but its bank tables, backing segments and additional scratch locals
 have been removed from executable code.
 
@@ -95,7 +100,7 @@ not captured startup memory peaks. No forced GC or host-frequency locking is
 used. Short-window differences are observations rather than precise guarantees.
 Screenshots and runtime error collections gate valid captures.
 
-## Final measurements and disposition
+## Final experimental measurements and pre-graduation disposition
 
 **Physical-memory savings are consistent; the throughput effect is not
 established.** Keep the experiment off by default. The single frozen final

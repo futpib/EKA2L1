@@ -1,0 +1,227 @@
+{
+  "date": "2026-10-14",
+  "source_parent": "8f2c0df15",
+  "wasm_sha256": "a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+  "validation": {
+    "wasm_tests_passed": 190,
+    "wasm_tests_failed": 0,
+    "known_crash_fixture_xfail": 1,
+    "native_assertions": 915,
+    "native_cases": 37
+  },
+  "purpose": "graduation and gameplay compatibility, not controlled throughput comparisons",
+  "windows": [
+    {
+      "game": "snakes",
+      "route": "opening-level-valid",
+      "raw": "/home/claude/.scratch/eka-arena-graduation-20261014/snakes-retry/opening-level-valid.json",
+      "frames": 476,
+      "fps": 94.51880298526268,
+      "reserved_mib": 320.0,
+      "initialized_mib": 64.0,
+      "growth_events_during_window": 0,
+      "errors": []
+    },
+    {
+      "game": "sky-force",
+      "route": "stage-1",
+      "raw": "/home/claude/.scratch/eka-arena-graduation-20261014/sky-force-retry/stage-1.json",
+      "frames": 621,
+      "fps": 308.64120834774485,
+      "reserved_mib": 320.0,
+      "initialized_mib": 80.0,
+      "growth_events_during_window": 0,
+      "errors": []
+    },
+    {
+      "game": "k-rally",
+      "route": "tutorial-driving",
+      "raw": "/home/claude/.scratch/eka-arena-graduation-20261014/k-rally-retry/tutorial-driving.json",
+      "frames": 597,
+      "fps": 197.37723020814846,
+      "reserved_mib": 320.0,
+      "initialized_mib": 80.0,
+      "growth_events_during_window": 0,
+      "errors": []
+    },
+    {
+      "game": "asphalt-2",
+      "route": "golf-san-francisco-barrier",
+      "raw": "/home/claude/.scratch/eka-arena-graduation-20261014/asphalt-2/golf-san-francisco-barrier.json",
+      "frames": 1162,
+      "fps": 115.42067957175168,
+      "reserved_mib": 320.0,
+      "initialized_mib": 80.0,
+      "growth_events_during_window": 0,
+      "errors": []
+    },
+    {
+      "game": "super-miners",
+      "route": "challenge-level-1",
+      "raw": "/home/claude/.scratch/eka-arena-graduation-20261014/super-miners/challenge-level-1.json",
+      "frames": 1427,
+      "fps": 283.3806296267934,
+      "reserved_mib": 320.0,
+      "initialized_mib": 80.0,
+      "growth_events_during_window": 0,
+      "errors": []
+    },
+    {
+      "game": "tetris",
+      "route": "marathon-level-1-long",
+      "raw": "/home/claude/.scratch/eka-arena-graduation-20261014/tetris/marathon-level-1-long.json",
+      "frames": 1381,
+      "fps": 90.54909403380655,
+      "reserved_mib": 832.0,
+      "initialized_mib": 224.0,
+      "growth_events_during_window": 0,
+      "errors": []
+    },
+    {
+      "game": "hooked-on",
+      "route": "costa-rica-stationary-tutorial-dismissed-window-0",
+      "raw": "/home/claude/.scratch/eka-arena-graduation-20261014/hooked-on/costa-rica-stationary-tutorial-dismissed-window-0.json",
+      "frames": 1174,
+      "fps": 115.44999191194165,
+      "reserved_mib": 832.0,
+      "initialized_mib": 192.0,
+      "growth_events_during_window": 0,
+      "errors": []
+    },
+    {
+      "game": "hooked-on",
+      "route": "costa-rica-stationary-tutorial-dismissed-window-1",
+      "raw": "/home/claude/.scratch/eka-arena-graduation-20261014/hooked-on/costa-rica-stationary-tutorial-dismissed-window-1.json",
+      "frames": 1010,
+      "fps": 98.96343154034919,
+      "reserved_mib": 832.0,
+      "initialized_mib": 192.0,
+      "growth_events_during_window": 0,
+      "errors": []
+    },
+    {
+      "game": "hooked-on",
+      "route": "costa-rica-stationary-tutorial-dismissed-window-2",
+      "raw": "/home/claude/.scratch/eka-arena-graduation-20261014/hooked-on/costa-rica-stationary-tutorial-dismissed-window-2.json",
+      "frames": 1559,
+      "fps": 153.45492593699745,
+      "reserved_mib": 832.0,
+      "initialized_mib": 192.0,
+      "growth_events_during_window": 0,
+      "errors": []
+    },
+    {
+      "game": "asphalt-3",
+      "route": "instant-play-stationary-sound-on",
+      "raw": "/home/claude/.scratch/eka-arena-graduation-20261014/asphalt-3-retry/instant-play-stationary-sound-on.json",
+      "frames": 557,
+      "fps": 110.23459981308883,
+      "reserved_mib": 832.0,
+      "initialized_mib": 192.0,
+      "growth_events_during_window": 0,
+      "errors": []
+    },
+    {
+      "game": "n-gage",
+      "route": "client-idle",
+      "raw": "/home/claude/.scratch/eka-arena-graduation-20261014/n-gage/client-idle.json",
+      "frames": 18,
+      "fps": null,
+      "reserved_mib": 768.0,
+      "initialized_mib": 160.0,
+      "growth_events_during_window": 0,
+      "errors": []
+    }
+  ],
+  "retained_attempts": [
+    {
+      "game": "snakes",
+      "error": "Error: net::ERR_CONNECTION_REFUSED at https://claude-laptop.lan:8274/?game=custom",
+      "errors": [],
+      "raw": "/home/claude/.scratch/eka-arena-graduation-20261014/snakes/failure.json"
+    },
+    {
+      "game": "sky-force",
+      "error": "Error: net::ERR_CONNECTION_REFUSED at https://claude-laptop.lan:8274/?game=custom",
+      "errors": [],
+      "raw": "/home/claude/.scratch/eka-arena-graduation-20261014/sky-force/failure.json"
+    },
+    {
+      "game": "k-rally",
+      "error": "Error: net::ERR_CONNECTION_REFUSED at https://claude-laptop.lan:8274/?game=custom",
+      "errors": [],
+      "raw": "/home/claude/.scratch/eka-arena-graduation-20261014/k-rally/failure.json"
+    },
+    {
+      "game": "asphalt-3",
+      "error": "Error: Asphalt 3 did not reach its racing HUD",
+      "errors": [],
+      "raw": "/home/claude/.scratch/eka-arena-graduation-20261014/asphalt-3/failure.json"
+    }
+  ],
+  "evidence_root": "/home/claude/.scratch/eka-arena-graduation-20261014",
+  "public_lan_checks": [
+    {
+      "game": "snakes",
+      "frames": 132,
+      "inputs": 8,
+      "memory": {
+        "mode": 2,
+        "rebuilds": 1092,
+        "mapped_pages": 19506,
+        "arena_bytes": 268435456,
+        "direct_pages": 1420,
+        "direct_rebuilds": 1020,
+        "arena_growths": 7,
+        "arena_initialized_bytes": 62914560
+      },
+      "policy": {
+        "requested": {
+          "watchdogUs": 2000,
+          "unsafeCode": 3,
+          "memoryImpl": 2
+        },
+        "applied": true,
+        "observed": {
+          "unsafeCode": 3,
+          "memoryImpl": 2
+        }
+      },
+      "configureType": "undefined",
+      "reportType": "undefined",
+      "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+      "errors": []
+    },
+    {
+      "game": "sky-force",
+      "frames": 262,
+      "inputs": 8,
+      "memory": {
+        "mode": 2,
+        "rebuilds": 354,
+        "mapped_pages": 18610,
+        "arena_bytes": 268435456,
+        "direct_pages": 787,
+        "direct_rebuilds": 283,
+        "arena_growths": 7,
+        "arena_initialized_bytes": 79691776
+      },
+      "policy": {
+        "requested": {
+          "watchdogUs": 2000,
+          "unsafeCode": 3,
+          "memoryImpl": 2
+        },
+        "applied": true,
+        "observed": {
+          "unsafeCode": 3,
+          "memoryImpl": 2
+        }
+      },
+      "configureType": "undefined",
+      "reportType": "undefined",
+      "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+      "errors": []
+    }
+  ]
+}

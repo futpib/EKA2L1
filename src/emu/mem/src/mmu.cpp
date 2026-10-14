@@ -45,10 +45,7 @@ namespace eka2l1::mem {
                 memory_experiment::range direct{};
                 if (memory_experiment::mode == 2 && manager_->model_type() == mem_model_type::multiple) {
                     auto *control = static_cast<control_multiple *>(manager_);
-                    auto *host = control->direct_local_memory(current_addr_space());
-                    if (host) direct = {memory_experiment::direct_begin, memory_experiment::direct_size,
-                        static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(host)), 3};
-                    if (memory_experiment::arena_growth) direct = control->direct_growing_memory(current_addr_space());
+                    direct = control->direct_arena(current_addr_space());
                 }
                 return view->enter(mapping_generation.load(std::memory_order_acquire), current_addr_space(), [this] {
                     std::vector<memory_experiment::binding> pages;
