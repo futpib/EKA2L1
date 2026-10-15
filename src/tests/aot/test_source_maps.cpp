@@ -25,6 +25,17 @@ int main(int argc, char **argv) {
     assert(!module.empty());
     std::ofstream(argv[1], std::ios::binary).write(reinterpret_cast<const char *>(module.data()), module.size());
 
+    wasm_func_def large;
+    large.export_name = "compressed_sources";
+    large.body.resize(4096, 0x01); // nop
+    large.body.insert(large.body.end(), {op_i32_const, 0, op_return});
+    for (unsigned n = 0; n < 4096; ++n)
+        large.sources.push_back({n, 0xffffff00u + 2 * n, static_cast<source_kind>(n % 8)});
+    const auto compressed = build_wasm_module({large});
+    assert(!compressed.empty());
+    std::ofstream(std::string(argv[1]) + ".compressed", std::ios::binary).write(
+        reinterpret_cast<const char *>(compressed.data()), compressed.size());
+
     source_marks marks{{0, 10, source_kind::guest}, {4, 20, source_kind::guest_memory},
         {9, 30, source_kind::state}}, copied;
     copy_source_marks(marks, 2, 7, 0, copied);

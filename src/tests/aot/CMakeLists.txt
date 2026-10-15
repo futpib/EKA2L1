@@ -8,6 +8,7 @@ add_executable(test_source_maps test_source_maps.cpp
     ../../emu/cpu/src/aot/wasm_emitter.cpp ../../emu/cpu/src/aot/state_liveness.cpp)
 target_include_directories(test_source_maps PRIVATE ../../emu/cpu/include ../../emu/common/include)
 target_compile_definitions(test_source_maps PRIVATE EKA2L1_AOT_SOURCE_MAPS=1)
+target_link_libraries(test_source_maps PRIVATE zlibstatic)
 
 if(EMSCRIPTEN)
     add_executable(test_device_disk ../wasm/persistent-disk-fixture.cpp ../../emu/wasm/persistent_disk.cpp)

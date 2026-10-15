@@ -5,7 +5,7 @@ Only V8 source anchors and trapping instructions receive instruction attribution
 An annotation does not label every following native instruction until the next
 annotation: V8 omits arithmetic positions. Unmapped samples remain explicit.
 """
-import argparse, bisect, collections, hashlib, json, pathlib, re, struct, subprocess
+import argparse, bisect, collections, hashlib, json, pathlib, re, struct, subprocess, zlib
 
 KINDS = ['unknown', 'guest', 'state', 'memory_check', 'guest_memory', 'accounting', 'dispatch', 'helper']
 BASE64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
@@ -22,6 +22,13 @@ class Reader:
         raise ValueError('Invalid LEB')
     def text(self):
         n = self.leb(); value = self.data[self.pos:self.pos+n].decode(); self.pos += n; return value
+    def sleb(self):
+        value = 0
+        for n in range(5):
+            byte = self.byte(); value |= (byte & 127) << (7*n)
+            if not byte & 128:
+                return value - (1 << (7*(n+1))) if byte & 64 else value
+        raise ValueError('Invalid signed LEB')
     def limits(self):
         flags = self.leb(); self.leb()
         if flags & 1: self.leb()
@@ -57,10 +64,21 @@ def module_info(file):
                             index = s.leb(); names[index] = s.text()
                     s.pos = stop
             elif name == 'eka2l1.sources':
-                assert s.leb() == 1
+                version = s.leb()
+                if version == 3:
+                    inflated_size = s.leb()
+                    inflated = zlib.decompress(s.data[s.pos:]); assert len(inflated) == inflated_size
+                    s = Reader(inflated); size = len(inflated); version = s.leb()
+                assert version in (1, 2)
                 for _ in range(s.leb()):
                     index, count = s.leb(), s.leb()
-                    marks = [[s.leb(),s.leb(),s.leb()] for _ in range(count)]
+                    marks = []; offset = pc = 0
+                    for _ in range(count):
+                        if version == 2:
+                            offset += s.leb(); pc = (pc + s.sleb()) & 0xffffffff
+                        else:
+                            offset, pc = s.leb(), s.leb()
+                        marks.append([offset, pc, s.leb()])
                     assert all(a[0] <= b[0] for a,b in zip(marks,marks[1:]))
                     provenance[index] = marks
                 assert s.pos == size

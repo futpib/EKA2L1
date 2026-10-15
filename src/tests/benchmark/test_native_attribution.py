@@ -1,7 +1,33 @@
-import hashlib, json, pathlib, struct, tempfile, unittest
+import hashlib, json, pathlib, struct, tempfile, unittest, zlib
 from native_attribution import export_guest_map, load_source_map, module_info, match_code, source_anchors, jit_records
 
 class SourceMaps(unittest.TestCase):
+    def test_provenance_versions_preserve_wrapping_pcs(self):
+        def leb(value, signed=False):
+            data=bytearray()
+            while True:
+                byte=value&127; value >>= 7
+                done=(value==0 and not byte&64) or (value==-1 and byte&64) if signed else value==0
+                data.append(byte if done else byte|128)
+                if done:return bytes(data)
+        def section(kind,data):return bytes([kind])+leb(len(data))+data
+        expected=[[0,0x80000000,1],[1,0x80000004,2],[1,0xffffffff,4],[2,0,3]]
+        with tempfile.TemporaryDirectory() as directory:
+            for version in (1,2,3):
+                data=leb(1 if version==1 else 2)+leb(1)+leb(0)+leb(len(expected)); offset=pc=0
+                for new_offset,new_pc,kind in expected:
+                    if version!=1:
+                        delta=(new_pc-pc)&0xffffffff
+                        if delta&0x80000000:delta-=1<<32
+                        data+=leb(new_offset-offset)+leb(delta,True)
+                    else:data+=leb(new_offset)+leb(new_pc)
+                    data+=leb(kind); offset,pc=new_offset,new_pc
+                name=b'eka2l1.sources'; body=b'\x00\x41\x00\x0b'
+                if version==3:data=leb(3)+leb(len(data))+zlib.compress(data)
+                module=b'\0asm\1\0\0\0'+section(10,leb(1)+leb(len(body))+body)+section(0,leb(len(name))+name+data)
+                path=pathlib.Path(directory)/f'v{version}.wasm';path.write_bytes(module)
+                self.assertEqual(module_info(path)['functions'][0]['marks'],expected)
+
     def test_jit_records_beyond_two_gib_and_partial_tail(self):
         with tempfile.TemporaryDirectory() as directory:
             p=pathlib.Path(directory)/'large.dump'

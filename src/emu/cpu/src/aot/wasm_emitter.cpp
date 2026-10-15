@@ -20,6 +20,9 @@
 #include <cpu/aot/wasm_emitter.h>
 #include <cpu/aot/memory_experiment.h>
 #include <cstring>
+#ifdef EKA2L1_AOT_SOURCE_MAPS
+#include <zlib.h>
+#endif
 
 namespace eka2l1::arm::aot {
 
@@ -162,7 +165,8 @@ namespace eka2l1::arm::aot {
             leb128(sec, num_funcs);
             for (std::uint32_t i = 0; i < num_funcs; i++) {
                 auto emit_export = [&](const std::string &name) {
-                    emit_str(sec, name); sec.push_back(0x00); leb128(sec, num_imports + i);
+                    emit_str(sec, name); sec.push_back(0x00);
+                    leb128(sec, num_imports + i);
                 };
                 emit_export(funcs[i].export_name);
             }
@@ -246,17 +250,33 @@ namespace eka2l1::arm::aot {
         {
             std::vector<std::uint8_t> custom;
             emit_str(custom, "eka2l1.sources");
-            leb128(custom, 1);
+            const auto payload_start = custom.size();
+            leb128(custom, 2);
             leb128(custom, num_definitions);
             for (std::uint32_t i = 0; i < num_definitions; ++i) {
                 const auto &func = *definitions[i];
                 leb128(custom, num_imports + i);
                 leb128(custom, static_cast<std::uint32_t>(func.sources.size()));
+                std::uint32_t previous_offset = 0, previous_pc = 0;
                 for (const auto &mark : func.sources) {
                     if (mark.offset > func.body.size()) return {};
-                    leb128(custom, mark.offset + local_prefixes[i]);
-                    leb128(custom, mark.pc);
+                    const auto offset = mark.offset + local_prefixes[i];
+                    if (offset < previous_offset) return {};
+                    leb128(custom, offset - previous_offset);
+                    sleb128(custom, static_cast<std::int32_t>(mark.pc - previous_pc));
                     leb128(custom, static_cast<std::uint32_t>(mark.kind));
+                    previous_offset = offset; previous_pc = mark.pc;
+                }
+            }
+            if (custom.size() - payload_start >= 2048) {
+                const auto size = static_cast<uLong>(custom.size() - payload_start);
+                uLongf compressed_size = compressBound(size);
+                std::vector<std::uint8_t> compressed(compressed_size);
+                if (compress2(compressed.data(), &compressed_size, custom.data() + payload_start, size, Z_BEST_SPEED) == Z_OK
+                        && compressed_size + 8 < size) {
+                    custom.resize(payload_start);
+                    leb128(custom, 3); leb128(custom, size);
+                    custom.insert(custom.end(), compressed.begin(), compressed.begin() + compressed_size);
                 }
             }
             emit_section(module, 0, custom);
