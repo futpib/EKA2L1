@@ -1,0 +1,577 @@
+{
+  "status": "not adopted; cold installation, K-Rally driving attribution and Asphalt 3 startup stability remain unresolved",
+  "controlWasm": "a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
+  "catalogueCandidateWasm": "39238b5f6592fe5ef94349eb2b3c0bce23394482097be63e6bbc35d5fd68a5c9",
+  "currentCandidateWasm": "806198bb6886b2611c1e218a82ae0f4ee1aea9f2887bdb28f548c2672334c03a",
+  "rows": [
+    {
+      "number": 1,
+      "game": "Snakes",
+      "variants": {
+        "control": {
+          "evidence": [
+            "/home/claude/.scratch/eka-compiled-only-20261014/final50-snakes-control/opening-level-valid.json"
+          ],
+          "fps": 99.75944460580557,
+          "fpsWindows": [
+            99.75944460580557
+          ],
+          "steadyPssMiB": 2098.8505859375,
+          "observedPeakPssMiB": 2098.8505859375,
+          "wasmCapacityMiB": 1194.0,
+          "cpuMsPerFrame": 12.669322709163355
+        },
+        "candidate": {
+          "evidence": [
+            "/home/claude/.scratch/eka-compiled-only-20261014/final50-snakes-candidate/opening-level-valid.json"
+          ],
+          "fps": 100.00069582685786,
+          "fpsWindows": [
+            100.00069582685786
+          ],
+          "steadyPssMiB": 1962.1865234375,
+          "observedPeakPssMiB": 1962.1865234375,
+          "wasmCapacityMiB": 1033.875,
+          "cpuMsPerFrame": 12.644135188866802
+        }
+      }
+    },
+    {
+      "number": 2,
+      "game": "Sky Force",
+      "variants": {
+        "control": {
+          "evidence": [
+            "/home/claude/.scratch/eka-compiled-only-20261014/final50-sky-force-control/stage-1.json"
+          ],
+          "fps": 315.79025765250117,
+          "fpsWindows": [
+            315.79025765250117
+          ],
+          "steadyPssMiB": 2019.1240234375,
+          "observedPeakPssMiB": 2020.9287109375,
+          "wasmCapacityMiB": 1202.0,
+          "cpuMsPerFrame": 5.157232704402515
+        },
+        "candidate": {
+          "evidence": [
+            "/home/claude/.scratch/eka-compiled-only-20261014/final50-sky-force-candidate/stage-1.json"
+          ],
+          "fps": 224.0125566271999,
+          "fpsWindows": [
+            224.0125566271999
+          ],
+          "steadyPssMiB": 1957.736328125,
+          "observedPeakPssMiB": 1957.736328125,
+          "wasmCapacityMiB": 1033.875,
+          "cpuMsPerFrame": 7.139689578713976
+        }
+      }
+    },
+    {
+      "number": 3,
+      "game": "K-Rally",
+      "variants": {
+        "control": {
+          "evidence": [
+            "/home/claude/.scratch/eka-compiled-only-20261014/final50-k-rally-control/tutorial-driving.json"
+          ],
+          "fps": 161.83800313951616,
+          "fpsWindows": [
+            161.83800313951616
+          ],
+          "steadyPssMiB": 2159.5537109375,
+          "observedPeakPssMiB": 2175.6435546875,
+          "wasmCapacityMiB": 1202.0,
+          "cpuMsPerFrame": 9.488752556237209
+        },
+        "candidate": {
+          "evidence": [
+            "/home/claude/.scratch/eka-compiled-only-20261014/final50-k-rally-candidate/tutorial-driving.json"
+          ],
+          "fps": 182.23234624145786,
+          "fpsWindows": [
+            182.23234624145786
+          ],
+          "steadyPssMiB": 1892.0625,
+          "observedPeakPssMiB": 2019.9619140625,
+          "wasmCapacityMiB": 1033.875,
+          "cpuMsPerFrame": 8.381818181818181
+        }
+      }
+    },
+    {
+      "number": 4,
+      "game": "Asphalt 2",
+      "variants": {
+        "control": {
+          "evidence": [
+            "/home/claude/.scratch/eka-compiled-only-20261014/final50-asphalt-2-control/golf-san-francisco-barrier.json"
+          ],
+          "fps": 144.1053937169049,
+          "fpsWindows": [
+            144.1053937169049
+          ],
+          "steadyPssMiB": 2138.9228515625,
+          "observedPeakPssMiB": 2141.9658203125,
+          "wasmCapacityMiB": 1194.0,
+          "cpuMsPerFrame": 9.63448275862069
+        },
+        "candidate": {
+          "evidence": [
+            "/home/claude/.scratch/eka-compiled-only-20261014/final50-asphalt-2-candidate/golf-san-francisco-barrier.json"
+          ],
+          "fps": 132.15581279635865,
+          "fpsWindows": [
+            132.15581279635865
+          ],
+          "steadyPssMiB": 1944.291015625,
+          "observedPeakPssMiB": 2086.880859375,
+          "wasmCapacityMiB": 1033.875,
+          "cpuMsPerFrame": 10.570999248685196
+        }
+      }
+    },
+    {
+      "number": 5,
+      "game": "Hooked On",
+      "variants": {
+        "control": {
+          "evidence": [
+            "/home/claude/.scratch/eka-compiled-only-20261014/final50-hooked-on-control/costa-rica-stationary-tutorial-dismissed-window-0.json",
+            "/home/claude/.scratch/eka-compiled-only-20261014/final50-hooked-on-control/costa-rica-stationary-tutorial-dismissed-window-1.json",
+            "/home/claude/.scratch/eka-compiled-only-20261014/final50-hooked-on-control/costa-rica-stationary-tutorial-dismissed-window-2.json"
+          ],
+          "fps": 242.9233949047316,
+          "fpsWindows": [
+            197.14513383752234,
+            243.4029525568636,
+            288.34804585560113
+          ],
+          "steadyPssMiB": 3279.912109375,
+          "observedPeakPssMiB": 3279.912109375,
+          "wasmCapacityMiB": 1831.9375,
+          "cpuMsPerFrame": 4.858022579541575
+        },
+        "candidate": {
+          "evidence": [
+            "/home/claude/.scratch/eka-compiled-only-20261014/final50-hooked-on-candidate/costa-rica-stationary-tutorial-dismissed-window-0.json",
+            "/home/claude/.scratch/eka-compiled-only-20261014/final50-hooked-on-candidate/costa-rica-stationary-tutorial-dismissed-window-1.json",
+            "/home/claude/.scratch/eka-compiled-only-20261014/final50-hooked-on-candidate/costa-rica-stationary-tutorial-dismissed-window-2.json"
+          ],
+          "fps": 249.20392732093518,
+          "fpsWindows": [
+            196.00040681248117,
+            267.0237544238337,
+            284.72935860841073
+          ],
+          "steadyPssMiB": 2744.8701171875,
+          "observedPeakPssMiB": 2744.8701171875,
+          "wasmCapacityMiB": 1706.8125,
+          "cpuMsPerFrame": 4.9721835883171055
+        }
+      }
+    },
+    {
+      "number": 6,
+      "game": "Asphalt 3",
+      "variants": {
+        "control": {
+          "evidence": [
+            "/home/claude/.scratch/eka-compiled-only-20261014/final50-asphalt-3-control/instant-play-stationary-sound-on.json"
+          ],
+          "fps": 120.96590582896363,
+          "fpsWindows": [
+            120.96590582896363
+          ],
+          "steadyPssMiB": 3341.921875,
+          "observedPeakPssMiB": 3342.0078125,
+          "wasmCapacityMiB": 1952.5625,
+          "cpuMsPerFrame": 11.031096563011438
+        },
+        "candidate": {
+          "evidence": [
+            "/home/claude/.scratch/eka-compiled-only-20261014/final50-asphalt-3-candidate/instant-play-stationary-sound-on.json"
+          ],
+          "fps": 120.5564476587262,
+          "fpsWindows": [
+            120.5564476587262
+          ],
+          "steadyPssMiB": 3063.2099609375,
+          "observedPeakPssMiB": 3067.435546875,
+          "wasmCapacityMiB": 1758.5,
+          "cpuMsPerFrame": 11.729200652528545
+        }
+      }
+    },
+    {
+      "number": 7,
+      "game": "Tetris",
+      "variants": {
+        "control": {
+          "evidence": [
+            "/home/claude/.scratch/eka-compiled-only-20261014/final50-tetris-control/marathon-level-1-long.json"
+          ],
+          "fps": 158.33035364334177,
+          "fpsWindows": [
+            158.33035364334177
+          ],
+          "steadyPssMiB": 3325.603515625,
+          "observedPeakPssMiB": 3344.4453125,
+          "wasmCapacityMiB": 2048.0,
+          "cpuMsPerFrame": 8.258333333333336
+        },
+        "candidate": {
+          "evidence": [
+            "/home/claude/.scratch/eka-compiled-only-20261014/final50-tetris-candidate/marathon-level-1-long.json"
+          ],
+          "fps": 165.3185333883355,
+          "fpsWindows": [
+            165.3185333883355
+          ],
+          "steadyPssMiB": 2992.50390625,
+          "observedPeakPssMiB": 3095.3896484375,
+          "wasmCapacityMiB": 1888.8125,
+          "cpuMsPerFrame": 8.068635275339185
+        }
+      }
+    },
+    {
+      "number": 8,
+      "game": "Super Miners",
+      "variants": {
+        "control": {
+          "evidence": [
+            "/home/claude/.scratch/eka-compiled-only-20261014/sanity50-super-miners-control/challenge-level-1.json"
+          ],
+          "fps": 343.7586933097852,
+          "fpsWindows": [
+            343.7586933097852
+          ],
+          "steadyPssMiB": 2077.0791015625,
+          "observedPeakPssMiB": 2098.9951171875,
+          "wasmCapacityMiB": 1202.0,
+          "cpuMsPerFrame": 4.375722543352601
+        },
+        "candidate": {
+          "evidence": [
+            "/home/claude/.scratch/eka-compiled-only-20261014/final50-super-miners-candidate/challenge-level-1.json"
+          ],
+          "fps": 344.54085753144597,
+          "fpsWindows": [
+            344.54085753144597
+          ],
+          "steadyPssMiB": 1934.6962890625,
+          "observedPeakPssMiB": 1969.630859375,
+          "wasmCapacityMiB": 1033.875,
+          "cpuMsPerFrame": 4.32448036951501
+        }
+      }
+    },
+    {
+      "number": 9,
+      "game": "N-Gage client",
+      "variants": {
+        "control": {
+          "evidence": [
+            "/home/claude/.scratch/eka-compiled-only-20261014/ready50-n-gage-control/client-idle.json"
+          ],
+          "fps": null,
+          "fpsWindows": [
+            null
+          ],
+          "steadyPssMiB": 2603.080078125,
+          "observedPeakPssMiB": 2615.626953125,
+          "wasmCapacityMiB": 1744.5,
+          "cpuMsPerFrame": 38.333333333333194
+        },
+        "candidate": {
+          "evidence": [
+            "/home/claude/.scratch/eka-compiled-only-20261014/ready50-n-gage-candidate/client-idle.json"
+          ],
+          "fps": null,
+          "fpsWindows": [
+            null
+          ],
+          "steadyPssMiB": 2541.650390625,
+          "observedPeakPssMiB": 2567.876953125,
+          "wasmCapacityMiB": 1679.875,
+          "cpuMsPerFrame": 43.12500000000019
+        }
+      }
+    }
+  ],
+  "excluded": [
+    "final49-asphalt-2-candidate: sound prompt",
+    "final49-super-miners-candidate: menu",
+    "final50-n-gage-candidate: client not loaded",
+    "final50-super-miners-control: HUD threshold rejected an animated heart before sampling"
+  ],
+  "pacedInstallationSeconds": {
+    "control": 31.192220675,
+    "candidate50": 47.6350616,
+    "candidate52": 42.033770352,
+    "candidate53": 40.742597069,
+    "controlRepeat": 31.249706778,
+    "candidate54": 41.354260847,
+    "candidate55": 37.520680223,
+    "candidate56": 40.303005913,
+    "candidate57": 44.176372489
+  },
+  "candidate53Decision": "rejected: Asphalt 2 observed startup peak 2191.9 MiB exceeds 2142.0 MiB control",
+  "catalogueFollowupCandidateWasm": "fd1a82401ce7b420b7b55216a1396411f7fff252ab7b8ac64844736666f0a938",
+  "followupEvidence": {
+    "final54-catalogue.json": "/home/claude/.scratch/eka-compiled-only-20261014/final54-catalogue.json",
+    "paired54.json": "/home/claude/.scratch/eka-compiled-only-20261014/paired54.json",
+    "steady54.json": "/home/claude/.scratch/eka-compiled-only-20261014/steady54.json",
+    "steady58-asphalt-3-candidate/": "/home/claude/.scratch/eka-compiled-only-20261014/steady58-asphalt-3-candidate/",
+    "asphalt3-stability58.json": "/home/claude/.scratch/eka-compiled-only-20261014/asphalt3-stability58.json"
+  },
+  "remainingGates": [
+    "Cold paced Asphalt 3 installation must not silently be traded for memory savings",
+    "K-Rally short driving regression needs attribution despite matching warmed stationary windows",
+    "Asphalt 3 null read after language selection needs diagnosis; keep all launch failures",
+    "Public .lan remains on unchanged control until adoption gates are met"
+  ],
+  "productionBuild59": {
+    "wasmSha256": "ce4fcc5cc560cfacee5304896d2040917c5d2e3782aa485f5fa84da183d5a66f",
+    "inspection": "/home/claude/.scratch/eka-compiled-only-20261014/final59-binary-inspection.json",
+    "tests": [
+      "194 standalone WASM cases",
+      "24 compiled-only CPU checks",
+      "915 native assertions in 37 cases",
+      "6 attribution tests",
+      "4096 lossless source-anchor fixture marks"
+    ]
+  },
+  "startupTraceComparison": "/home/claude/.scratch/eka-compiled-only-20261014/startup-trace-comparison59.json",
+  "nativeKComparison": "/home/claude/.scratch/eka-compiled-only-20261014/native59-k-rally-comparison.json",
+  "focusedRounds60to67": [
+    {
+      "candidate": 60,
+      "approach": "All RAM exports",
+      "startupReport": "/home/claude/.scratch/eka-compiled-only-20261014/paced60-asphalt3-candidate/report.json",
+      "gameplayReport": "/home/claude/.scratch/eka-compiled-only-20261014/focused60-asphalt2-candidate/golf-san-francisco-barrier.json",
+      "wasmSha256": "c1054a611402a90eea062c6637bae792cfccfab6eec0cf6b2f4e46dda65891e5",
+      "installationSeconds": 47.735160256,
+      "asphalt2Fps": 125.37509864565982,
+      "asphalt2SteadyPssMiB": 1912.6748046875,
+      "asphalt2PeakPssMiB": 2041.4443359375,
+      "compilerAtStartupEnd": {
+        "guest_us": 45664423,
+        "instructions": 0,
+        "compiled_functions": 148401,
+        "retired_compiled_functions": 14860,
+        "aot_shared_functions": 5877,
+        "aot_demand_functions": 83589,
+        "aot_single_functions": 9,
+        "aot_translation_us": 6762530,
+        "aot_emission_us": 2302483,
+        "aot_installation_us": 4803003,
+        "aot_eager_functions": 64803,
+        "aot_eager_passes": 92,
+        "allocated_bytes": 1696219880,
+        "free_bytes": 157765464
+      },
+      "status": "not adopted; focused screening only"
+    },
+    {
+      "candidate": 61,
+      "approach": "Imported dependency entries",
+      "startupReport": "/home/claude/.scratch/eka-compiled-only-20261014/paced61-asphalt3-candidate/report.json",
+      "gameplayReport": "/home/claude/.scratch/eka-compiled-only-20261014/focused61-asphalt2-candidate/golf-san-francisco-barrier.json",
+      "wasmSha256": "7cc58b7e7f7b2a720342618d0dc680e61151a60c17fe2df946a14f222d80ee11",
+      "installationSeconds": 51.777789376,
+      "asphalt2Fps": 127.76541951366045,
+      "asphalt2SteadyPssMiB": 2028.5244140625,
+      "asphalt2PeakPssMiB": 2165.9599609375,
+      "compilerAtStartupEnd": {
+        "guest_us": 43516510,
+        "instructions": 0,
+        "compiled_functions": 169232,
+        "retired_compiled_functions": 13301,
+        "aot_shared_functions": 4354,
+        "aot_demand_functions": 70953,
+        "aot_single_functions": 9,
+        "aot_translation_us": 9221470,
+        "aot_emission_us": 2590575,
+        "aot_installation_us": 5208204,
+        "aot_eager_functions": 98270,
+        "aot_eager_passes": 93,
+        "allocated_bytes": 1698339408,
+        "free_bytes": 157603824
+      },
+      "status": "not adopted; focused screening only"
+    },
+    {
+      "candidate": 62,
+      "approach": "Cold linear blocks, watchdog next-PC promotion",
+      "startupReport": "/home/claude/.scratch/eka-compiled-only-20261014/paced62-asphalt3-candidate/report.json",
+      "gameplayReport": "/home/claude/.scratch/eka-compiled-only-20261014/focused62-asphalt2-candidate/golf-san-francisco-barrier.json",
+      "wasmSha256": "f011add68edc41640fa26a613e9601444c248a5f747e289edf10fd7cb1c13782",
+      "installationSeconds": 41.577286906,
+      "asphalt2Fps": 107.65597713820975,
+      "asphalt2SteadyPssMiB": 1897.20703125,
+      "asphalt2PeakPssMiB": 1986.5732421875,
+      "compilerAtStartupEnd": {
+        "guest_us": 40380000,
+        "instructions": 0,
+        "compiled_functions": 155059,
+        "retired_compiled_functions": 29614,
+        "aot_shared_functions": 4108,
+        "aot_demand_functions": 151664,
+        "aot_single_functions": 5,
+        "aot_translation_us": 3862146,
+        "aot_emission_us": 1622178,
+        "aot_installation_us": 5836531,
+        "aot_eager_functions": 3390,
+        "aot_eager_passes": 92,
+        "allocated_bytes": 1689282600,
+        "free_bytes": 155314712
+      },
+      "status": "not adopted; focused screening only"
+    },
+    {
+      "candidate": 63,
+      "approach": "Control precompilation policy",
+      "startupReport": "/home/claude/.scratch/eka-compiled-only-20261014/paced63-asphalt3-candidate/report.json",
+      "gameplayReport": "/home/claude/.scratch/eka-compiled-only-20261014/focused63-asphalt2-candidate/golf-san-francisco-barrier.json",
+      "wasmSha256": "aee6fa01995876f5ca635845ca8fba4327b17f9c6de679b75c1cb5fa13276042",
+      "installationSeconds": 48.939154482999996,
+      "asphalt2Fps": 123.98029178199826,
+      "asphalt2SteadyPssMiB": 2207.6982421875,
+      "asphalt2PeakPssMiB": 2301.3349609375,
+      "compilerAtStartupEnd": {
+        "guest_us": 36756647,
+        "instructions": 0,
+        "compiled_functions": 273950,
+        "retired_compiled_functions": 14496,
+        "aot_shared_functions": 12355,
+        "aot_demand_functions": 54293,
+        "aot_single_functions": 7,
+        "aot_translation_us": 10612172,
+        "aot_emission_us": 2624781,
+        "aot_installation_us": 4811484,
+        "aot_eager_functions": 213936,
+        "aot_eager_passes": 93,
+        "allocated_bytes": 1723205144,
+        "free_bytes": 156666280
+      },
+      "status": "not adopted; focused screening only"
+    },
+    {
+      "candidate": 64,
+      "approach": "Cold regions, executed-entry sampling",
+      "startupReport": "/home/claude/.scratch/eka-compiled-only-20261014/paced64-asphalt3-candidate/report.json",
+      "gameplayReport": "/home/claude/.scratch/eka-compiled-only-20261014/focused64-asphalt2-candidate/golf-san-francisco-barrier.json",
+      "wasmSha256": "72fa1ad891f0882eb8c8e1dac5d444844d72f96d7b7bd854d417e1561fbb55c7",
+      "installationSeconds": 43.79548118500001,
+      "asphalt2Fps": 137.58471766442528,
+      "asphalt2SteadyPssMiB": 1958.1591796875,
+      "asphalt2PeakPssMiB": 2036.408203125,
+      "compilerAtStartupEnd": {
+        "guest_us": 42780061,
+        "instructions": 0,
+        "compiled_functions": 118842,
+        "retired_compiled_functions": 19488,
+        "aot_shared_functions": 3984,
+        "aot_demand_functions": 114802,
+        "aot_single_functions": 9,
+        "aot_translation_us": 4886432,
+        "aot_emission_us": 1881432,
+        "aot_installation_us": 4678057,
+        "aot_eager_functions": 4031,
+        "aot_eager_passes": 92,
+        "allocated_bytes": 1685071232,
+        "free_bytes": 157314240
+      },
+      "status": "not adopted; focused screening only"
+    },
+    {
+      "candidate": 65,
+      "approach": "Background native prewarm",
+      "startupReport": "/home/claude/.scratch/eka-compiled-only-20261014/paced65-asphalt3-candidate/report.json",
+      "gameplayReport": "/home/claude/.scratch/eka-compiled-only-20261014/focused65-asphalt2-candidate/golf-san-francisco-barrier.json",
+      "wasmSha256": "b20190f54508a49434a36093589e34f0214ad0840ab0b167462126295cc301b9",
+      "installationSeconds": 60.529451531999996,
+      "asphalt2Fps": 161.8104493387602,
+      "asphalt2SteadyPssMiB": 2078.6708984375,
+      "asphalt2PeakPssMiB": 2204.7109375,
+      "compilerAtStartupEnd": {
+        "guest_us": 57357615,
+        "instructions": 0,
+        "compiled_functions": 112172,
+        "retired_compiled_functions": 19785,
+        "aot_shared_functions": 3229,
+        "aot_demand_functions": 108547,
+        "aot_single_functions": 9,
+        "aot_translation_us": 6557353,
+        "aot_emission_us": 2581746,
+        "aot_installation_us": 5606218,
+        "aot_eager_functions": 3616,
+        "aot_eager_passes": 94,
+        "allocated_bytes": 1685757248,
+        "free_bytes": 158456192
+      },
+      "status": "not adopted; focused screening only"
+    },
+    {
+      "candidate": 66,
+      "approach": "Background module validation",
+      "startupReport": "/home/claude/.scratch/eka-compiled-only-20261014/paced66-asphalt3-candidate/report.json",
+      "gameplayReport": "/home/claude/.scratch/eka-compiled-only-20261014/focused66-asphalt2-candidate/golf-san-francisco-barrier.json",
+      "wasmSha256": "07df1b5b843651fba0fc385a1f976681aed4595ea50111f4a7222ac3d75f8f68",
+      "installationSeconds": 41.597581534,
+      "asphalt2Fps": 151.55683430700776,
+      "asphalt2SteadyPssMiB": 1918.7451171875,
+      "asphalt2PeakPssMiB": 2021.193359375,
+      "compilerAtStartupEnd": {
+        "guest_us": 40478580,
+        "instructions": 0,
+        "compiled_functions": 107050,
+        "retired_compiled_functions": 14651,
+        "aot_shared_functions": 3227,
+        "aot_demand_functions": 103467,
+        "aot_single_functions": 9,
+        "aot_translation_us": 4770612,
+        "aot_emission_us": 1840047,
+        "aot_installation_us": 3562781,
+        "aot_eager_functions": 3574,
+        "aot_eager_passes": 92,
+        "allocated_bytes": 1686073688,
+        "free_bytes": 156849640
+      },
+      "status": "not adopted; focused screening only"
+    },
+    {
+      "candidate": 67,
+      "approach": "ROM translations survive process exits",
+      "startupReport": "/home/claude/.scratch/eka-compiled-only-20261014/paced67-asphalt3-candidate/report.json",
+      "gameplayReport": "/home/claude/.scratch/eka-compiled-only-20261014/focused67-asphalt2-candidate/golf-san-francisco-barrier.json",
+      "wasmSha256": "4a15bf09a1896d13cb8bcce4bfb79feec3c3f93f311537c3de71eefd283d60c8",
+      "installationSeconds": 41.534424819,
+      "asphalt2Fps": 153.98896958299017,
+      "asphalt2SteadyPssMiB": 1905.3564453125,
+      "asphalt2PeakPssMiB": 2045.375,
+      "compilerAtStartupEnd": {
+        "guest_us": 40660082,
+        "instructions": 0,
+        "compiled_functions": 106844,
+        "retired_compiled_functions": 3595,
+        "aot_shared_functions": 3227,
+        "aot_demand_functions": 103253,
+        "aot_single_functions": 9,
+        "aot_translation_us": 4716365,
+        "aot_emission_us": 1828726,
+        "aot_installation_us": 4010291,
+        "aot_eager_functions": 3582,
+        "aot_eager_passes": 93,
+        "allocated_bytes": 1685385912,
+        "free_bytes": 153985032
+      },
+      "status": "not adopted; focused screening only"
+    }
+  ],
+  "adopted": false,
+  "publicServiceChanged": false
+}
