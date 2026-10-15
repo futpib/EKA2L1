@@ -43,7 +43,7 @@ def subsystem(frames, stack, group, allocation, interpreter):
     if interpreter and any(a['group'] == group['id'] and a['requested'] == interpreter['state_size'] for a in allocation.get('large_allocations', [])):
         return 'ARM interpreter state'
     if any('ARMul_State' in n for n in names):
-        return 'ARM interpreter state'
+        return 'ARM CPU state'
     if any('map_file' in n for n in names):
         return 'ROM and mapped files'
     if any('/cpu/' in s for s in sources) or any('aot::' in n for n in names):

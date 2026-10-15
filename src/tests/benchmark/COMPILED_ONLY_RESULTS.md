@@ -303,9 +303,15 @@ Neither these screens nor the diagnostic counter split alone justified adoption.
 
 ## Build 106 release evaluation
 
-The production WASM for build 106 is
+The frozen production WASM for build 106 is
 `d31435fa2b15ab989776f661ce7afc6bfb416b953474193adf992bc1f7a2f7dd`.
-Rebuilding from the restored production source produced that exact SHA-256.
+The incremental restored build matched that SHA-256 during adoption. A later
+relink after toggling the allocation profiler did not: the frozen binary has
+one diagnostic export, `eka2l1_guest_failure_trace`, absent from the
+current source, relink and checked-in callers. Exact bitwise reproducibility
+from the current source is therefore not established. The public service
+still serves the tested frozen binary; see the
+[fresh memory profile](COMPILED_ONLY_MEMORY_PROFILE.md).
 The independent WASM interpreter oracle passed 196 tests with no failures;
 compiled-only, cache, callback and browser cache-integrity tests also passed.
 Native CPU and preserved Asphalt resource suites passed 915/37 and 42/3.
