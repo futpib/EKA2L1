@@ -41,6 +41,8 @@
 #include <set>
 
 namespace eka2l1::arm::aot {
+
+#ifndef __EMSCRIPTEN__
     // AOT target: DLL identified by UID3, with list of ordinals to translate.
     // Empty ordinals = translate all exports.
     // Override with EKA2L1_AOT_MAX_EXPORTS env var (-1 = unlimited, 0..N = limit).
@@ -84,6 +86,7 @@ namespace eka2l1::arm::aot {
     };
 
     static constexpr std::uint32_t DLL_UID1 = 0x10000079;
+#endif
 
     void initialize(eka2l1::system *sys, const std::string &config_override) {
         // Native reference captures retain their interpreter baseline.
@@ -102,6 +105,7 @@ namespace eka2l1::arm::aot {
             return;
         }
 
+#ifndef __EMSCRIPTEN__
         const int max_exports = get_max_exports();
         fprintf(stderr, "AOT: max_exports=%d\n", max_exports);
 
@@ -110,6 +114,8 @@ namespace eka2l1::arm::aot {
             LOG_INFO(KERNEL, "AOT: no targets configured");
             return;
         }
+
+#endif
 
         // Scan ROM for target DLLs by UID3.
         // The ROM is mapped starting at 0x80000000. Scan for rom_image_headers.
@@ -124,10 +130,15 @@ namespace eka2l1::arm::aot {
         const auto rom_size = static_cast<std::uint32_t>(
             std::min<std::uint64_t>(romf->header.rom_size, romf->file_size));
 
+#ifndef __EMSCRIPTEN__
         fprintf(stderr, "AOT: scanning ROM at 0x%08X (%u bytes) for %zu target DLL(s)\n",
             rom_base, rom_size, targets.size());
         LOG_INFO(KERNEL, "AOT: scanning ROM at 0x{:08X} ({} bytes) for {} target DLL(s)",
             rom_base, rom_size, targets.size());
+
+#else
+        LOG_INFO(KERNEL, "AOT: configuring ROM at 0x{:08X} ({} bytes)", rom_base, rom_size);
+#endif
 
         std::uint8_t *rom_host = reinterpret_cast<std::uint8_t *>(mem->get_real_pointer(rom_base));
         if (!rom_host) {
@@ -138,22 +149,25 @@ namespace eka2l1::arm::aot {
         configure_hot_rom(rom_host, rom_base, rom_size, true);
 #ifdef __EMSCRIPTEN__
         if (hot_compilation_enabled) {
+            sys->get_kernel_system()->register_process_exit_callback([](kernel::process *process) {
+                if (process && process->get_mem_model()) retire_process_code(process->get_mem_model()->address_space_id());
+            });
             sys->get_kernel_system()->register_codeseg_loaded_callback(
-                [](const std::string &, kernel::process *process, kernel::codeseg *image) {
+                [](const std::string &name, kernel::process *process, kernel::codeseg *image) {
                     if (!process || !process->get_mem_model()) return;
                     std::uint8_t *bytes = nullptr;
                     const auto base = image->get_code_run_addr(process, &bytes);
-                    // RAM images contain the application's imports/callbacks.
-                    // ROM libraries are reached through these references and
-                    // direct calls, not every unused export in each DLL.
-                    auto entries = image->is_rom() ? std::vector<std::uint32_t>{}
-                                                  : image->get_export_table(process);
-                    entries.push_back(image->get_entry_point(process));
+                    register_module(base, image->get_code_size(), name);
+                    // Relocations identify address-taken RAM callbacks. Seed
+                    // callable entries without treating arbitrary words as code.
+                    auto entries = image->get_relocated_code_entries(process);
+                    if (!entries.empty()) LOG_INFO(KERNEL, "AOT: {} relocation entries for {} (text={}, code={})", entries.size(), name, image->get_text_size(), image->get_code_size());
                     queue_precompile_image(process->get_mem_model()->address_space_id(), base,
-                        bytes, std::min(image->get_code_size(), image->get_text_size()), std::move(entries));
+                        bytes, std::min(image->get_code_size(), image->get_text_size()),
+                        {image->get_entry_point(process)}, std::move(entries));
                 });
         }
-#endif
+#else
         const code_window immutable_code{rom_host, rom_base, rom_size};
         const auto eager_start = std::chrono::steady_clock::now();
         std::vector<wasm_func_def> all_funcs;
@@ -326,6 +340,8 @@ namespace eka2l1::arm::aot {
             {"env", "tlb_write8", 3, false},
             {"env", "tlb_read16", 2, true},
             {"env", "tlb_write16", 3, false},
+            {"env", "exclusive_read32", 2, true},
+            {"env", "exclusive_write32", 3, true},
         };
 
         const auto emission_start = std::chrono::steady_clock::now();
@@ -344,5 +360,6 @@ namespace eka2l1::arm::aot {
         // Stage for deferred instantiation on the worker thread.
         // addFunction must be called on the thread that will use the table.
         stage_aot_module(std::move(wasm_bytes), "rom-aot");
+#endif
     }
 }

@@ -874,9 +874,10 @@ namespace eka2l1 {
                             to_run->get_remaining_screenticks(),
                             (timing_->microseconds() - now) * kern_->capped_cpu_hz() / 1000000)));
                     }
-                } else if (!to_run || preempted) {
+                } else if (!to_run || (preempted && cpu->guest_code_dispatched)) {
                     // Unpaced execution retains virtual CPU slices and skips
                     // idle waits without tying guest time to the host clock.
+                    // Compilation-only host yields consume no virtual CPU time.
                     const auto now = timing_->microseconds();
                     const auto hz = kern_->capped_cpu_hz();
                     const auto quantum = to_run ? std::max<std::uint64_t>(1,

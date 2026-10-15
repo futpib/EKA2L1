@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import {configureRomCacheCapture,captureRomCache} from './rom-cache-capture.mjs';
 import {PNG} from 'pngjs';
 import path from 'node:path';
 import os from 'node:os';
@@ -49,11 +50,14 @@ if(allocationProfile || process.env.EKA2L1_BROWSER_MEMORY==='1')browserMemoryTim
 await guardedWait(()=>window.Module?.calledRun);
 assert.equal(await page.evaluate(t=>Module._eka2l1_route_configure(t),6000000),0);
 let installedImage;
+const html=await page.evaluate(async()=>await(await fetch('/')).text());
+const launch=html.match(/<script>configureGameLauncher\((\[.*\]), [^;]+\);<\/script>/);
+assert(launch,'Missing launcher configuration');
+const launchGame=JSON.parse(launch[1]).find(g=>g.id===game);
+if(process.env.EKA2L1_ROM_CACHE_CAPTURE==='1')await configureRomCacheCapture(page);
+else if(launchGame?.romCache)await page.evaluate(cache=>EkaRomCache.prepare(cache),launchGame.romCache);
 if(process.env.EKA2L1_BENCHMARK_PREPARED==='1') {
- const html=await page.evaluate(async()=>await(await fetch('/')).text());
- const launch=html.match(/<script>configureGameLauncher\((\[.*\]), [^;]+\);<\/script>/);
- assert(launch,'Missing launcher configuration');
- installedImage=JSON.parse(launch[1]).find(g=>g.id===game)?.image;
+ installedImage=launchGame?.image;
  assert(installedImage,'This game has no prepared installation on this server');
 }else for(const [selector,file] of [['#rom-file','SYM.ROM'],['#rpkg-file','SYM.RPKG'],['#sis-file',entry.ngage?.runtime.file ?? entry.file]])await(await page.$(selector)).uploadFile(path.join(assetDir,file));
 await page.$eval('#app-name',(e,v)=>e.value=v,entry.uid);
@@ -135,6 +139,7 @@ const measure=async(label,seconds=30)=>{
  else while(performance.now()-start<seconds*1000){await wait(500);samples.push(await status())}
  const a=samples[0],b=samples.at(-1),wall=(b.ms-a.ms)/1000;
  const report={game,label,hostFrequencyKHz:{before:clocksBefore,after:cpuFrequencies()},edition:entry.version??'launcher default',url:page.url(),browser:await browser.version(),wasm:await page.evaluate(()=>performance.getEntriesByType('resource').find(x=>x.name.includes('.wasm'))?.name),cpu:os.cpus()[0].model,load:os.loadavg(),mode:game==='n-gage'?'bounded guest-time client route; not an FPS benchmark':'unpaced, continuous route with 1800s guest deadline, no pauses',sound:'browser muted; guest audio remains enabled',seconds:wall,frames:b.frames-a.frames,fps:game==='n-gage'?null:(b.frames-a.frames)/wall,guestSeconds:(b.guest-a.guest)/1e6,guestSpeed:(b.guest-a.guest)/1e6/wall,compiledFunctions:b.monitor.compiled_functions-a.monitor.compiled_functions,diskScans:b.diskScans-a.diskScans,compilationUs:Object.fromEntries(['aot_translation_us','aot_emission_us','aot_installation_us'].map(k=>[k,b.monitor[k]-a.monitor[k]])),errors:[...errors],samples};
+ report.romCache=await page.evaluate(()=>({staging:window.ekaRomCacheStatus??null,status:Module._eka2l1_rom_cache_status?.()??null}));
  report.chromeMemoryProfiling=!!memoryProfiler;
  report.allocationProfiling=allocationProfile;
  report.preparedInstallation=!!installedImage;
@@ -234,8 +239,13 @@ const ensureRace=async()=>{
  throw Error('Asphalt 3 did not reach its racing HUD');
 };
 console.log('READY',game,JSON.stringify(await status()));
- const commands=JSON.parse(fs.readFileSync(new URL('./arena-growth-routes.json',import.meta.url)))[game];
+ const commands=JSON.parse(fs.readFileSync(process.env.EKA2L1_BENCHMARK_ROUTES || new URL('./arena-growth-routes.json',import.meta.url)))[game];
  for(const [i,line] of commands.entries()){fs.appendFileSync(out+'/steps.log',line+'\n');const r=await eval(line);console.log('STEP',game,i+1,JSON.stringify(r));}
+ if(process.env.EKA2L1_ROM_CACHE_CAPTURE==='1') {
+  clearInterval(browserMemoryTimer);browserMemoryTimer=undefined;
+  await new Promise(resolve=>setTimeout(resolve,100));
+  console.log('ROM CACHE',JSON.stringify(await captureRomCache(page,out,game)));
+ }
 
 
 

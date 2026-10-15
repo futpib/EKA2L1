@@ -64,6 +64,32 @@ Direct links use `?game=sky-force`, `?game=snakes`, `?game=k-rally`, `?game=asph
 `?game=custom`.
 All browser execution uses the watchdog without instruction accounting.
 Legacy `counting` URL parameters are ignored and removed on Play.
+
+The compiled-only experiment can also use derived ROM translations. After a
+successful game route, generate a cache with:
+
+```sh
+EKA2L1_ROM_CACHE_CAPTURE=1 EKA2L1_BROWSER_MEMORY=1 \
+  node arena-growth-benchmark.mjs GAME /absolute/new-output SERVER_URL
+mkdir -p ../../../build-wasm/src/emu/wasm/rom-cache/GAME
+cp /absolute/new-output/rom-cache.bin /absolute/new-output/manifest.json \
+  ../../../build-wasm/src/emu/wasm/rom-cache/GAME/
+```
+
+Restart the development server to discover those artifacts. An optional
+`EKA2L1_ROM_CACHE_DIR` selects another cache directory with the same game
+subdirectories. The launcher downloads the cache alongside game assets, checks
+its SHA-256 and stages it before initialization. The CPU verifies the exact
+build, ABI and compiler policy, and fingerprints the whole mapped ROM backing
+including all code folded into translations. Missing or incompatible entries compile on
+demand. Regenerate caches after changing the WASM binary; these are generated
+deployment files, not game dependencies committed to Git.
+
+This stores optimized translated code. Guest RAM, installed files, clocks and
+running processes still start normally. Export happens after FPS and memory
+sampling and is excluded from their results. See the remaining adoption gates
+in [compiled-only results](../benchmark/COMPILED_ONLY_RESULTS.md).
+
 An optional
 third command-line argument, such as `node serve.ts 8188 Snakes`, selects an
 automatic default. Without it, the page waits for a choice.
@@ -203,12 +229,11 @@ is retired and must be removed from launch environments. The TLB/direct backend
 selection below remains independent of this fixed compiler behavior. See the
 [eligibility and adoption checks](../benchmark/ARM_MEMORY_ADOPTION.md).
 
-For compiled-region replay and profiling, set `EKA2L1_BENCHMARK_AOT=5`.
-Only 5 (full compiler) and 0 (interpreter reference) are supported; intermediate
-stages 1–4 are retired.
+Browser replay and profiling always use compiled execution (mode 5).
+Modes 0–4 are retired in the browser; the interpreter remains an offline
+correctness oracle and native reference backend.
 These runs select direct memory and unsafe code mode 3.
-Interpreter and mutation-compatible runs select TLB unless explicitly
-overridden. The launcher also selects TLB for `EKA2L1_UNSAFE_CODE=0` when no
+Mutation-compatible runs select TLB unless explicitly overridden. The launcher also selects TLB for `EKA2L1_UNSAFE_CODE=0` when no
 memory override is supplied. Only values 0 (TLB) and 2 (direct) are
 supported; the separate direct-policy and delayed-activation controls are
 removed. See [memory implementation selection](../benchmark/README.md#memory-implementations).
@@ -227,10 +252,17 @@ tests remain. Full state pruning, predicated leaves, branch/tail/literal veneers
 and the former policy-7 lowering are fixed. There is no numeric IR selector.
 
 The browser also retires verifier/census/detailed-guest-profile controls,
-comparator variant 2, compiled exclusive accesses, the optional deferred-memory
-build, and the internal ROM/region/chain/RAM stage environment ladder. Exclusive
-accesses retain interpreter handling; eligible compiled memory misses always use
-deferred recovery. Chrome sampling, native attribution, coarse progress reports,
+comparator variant 2, exclusive-access configuration switches, the optional
+deferred-memory build, and the internal ROM/region/chain/RAM stage environment
+ladder. Word exclusive operations use compiled calls into the existing monitor.
+Loaded image entry paths compile before execution; other code compiles on demand.
+The historical batch of all EUser/FntStore exports is not part of browser startup.
+Deferred accesses use a separately cached precise compiled instruction. Browser
+execution allocates no interpreter storage. Compiled ROM entries first discovered
+by a process can be retired after its exit and rebuilt if another process needs
+them. The CPU worker returns to its browser event loop between bounded batches,
+allowing ordinary browser tasks and garbage collection to run. Chrome sampling,
+native attribution, coarse progress reports,
 and native correctness diagnostics remain. See the [nine-group retirement and
 verification](CONFIGURATION_CLEANUP.md#current-retirement-2026-10-11).
 

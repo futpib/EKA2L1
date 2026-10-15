@@ -2,7 +2,6 @@
   "status": "not adopted; cold installation, K-Rally driving attribution and Asphalt 3 startup stability remain unresolved",
   "controlWasm": "a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
   "catalogueCandidateWasm": "39238b5f6592fe5ef94349eb2b3c0bce23394482097be63e6bbc35d5fd68a5c9",
-  "currentCandidateWasm": "806198bb6886b2611c1e218a82ae0f4ee1aea9f2887bdb28f548c2672334c03a",
   "rows": [
     {
       "number": 1,
@@ -573,5 +572,123 @@
     }
   ],
   "adopted": false,
-  "publicServiceChanged": false
+  "publicServiceChanged": false,
+  "followupCandidate58Wasm": "806198bb6886b2611c1e218a82ae0f4ee1aea9f2887bdb28f548c2672334c03a",
+  "latestTestedCandidate": {
+    "candidate": 70,
+    "wasmSha256": "009e73917abee7208bfa386819970d40c6f4a2ebcf11dfe1d00dc1fffc281ccd",
+    "status": "private diagnostic build; not adopted"
+  },
+  "focusedRounds68to70": [
+    {
+      "candidate": 68,
+      "approach": "Relocated callback entries with recursive closure",
+      "startupReport": "/home/claude/.scratch/eka-compiled-only-20261014/paced68-asphalt3-candidate/report.json",
+      "wasmSha256": "d51b93cbc44d873c1d89d93215e2ff909bf9c9ae228dacf3af37353703254e72",
+      "installationSeconds": 46.034772411000006,
+      "firstPresentationSeconds": 6.1938450000286105,
+      "compilerAtStartupEnd": {
+        "guest_us": 40000005,
+        "instructions": 0,
+        "compiled_functions": 221186,
+        "retired_compiled_functions": 4534,
+        "aot_shared_functions": 6528,
+        "aot_demand_functions": 72175,
+        "aot_single_functions": 9,
+        "aot_translation_us": 7710446,
+        "aot_emission_us": 2292836,
+        "aot_installation_us": 4603375,
+        "aot_eager_functions": 149002,
+        "aot_eager_passes": 92,
+        "allocated_bytes": 1711815680,
+        "free_bytes": 154752704
+      },
+      "status": "not adopted; focused screening only",
+      "gameplayReport": "/home/claude/.scratch/eka-compiled-only-20261014/focused68-asphalt2-candidate/golf-san-francisco-barrier.json",
+      "asphalt2Fps": 148.0759052540882,
+      "asphalt2SteadyPssMiB": 2052.671875,
+      "asphalt2PeakPssMiB": 2183.080078125
+    },
+    {
+      "candidate": 69,
+      "approach": "Flat relocated callback entries",
+      "startupReport": "/home/claude/.scratch/eka-compiled-only-20261014/paced69-asphalt3-candidate/report.json",
+      "wasmSha256": "0d49b47122c554f3eecf0ad0accfa7c4504419d0f752cfb2e5992196c1b665ab",
+      "installationSeconds": 41.198155868,
+      "firstPresentationSeconds": 5.206524999856949,
+      "compilerAtStartupEnd": {
+        "guest_us": 40769856,
+        "instructions": 0,
+        "compiled_functions": 110235,
+        "retired_compiled_functions": 3622,
+        "aot_shared_functions": 5869,
+        "aot_demand_functions": 101536,
+        "aot_single_functions": 9,
+        "aot_translation_us": 4855500,
+        "aot_emission_us": 1839687,
+        "aot_installation_us": 4009224,
+        "aot_eager_functions": 8690,
+        "aot_eager_passes": 92,
+        "allocated_bytes": 1686979424,
+        "free_bytes": 155385696
+      },
+      "status": "not adopted; focused screening only",
+      "gameplayReport": "/home/claude/.scratch/eka-compiled-only-20261014/focused69-asphalt2-candidate/golf-san-francisco-barrier.json",
+      "asphalt2Fps": 162.68306813734992,
+      "asphalt2SteadyPssMiB": 1908.841796875,
+      "asphalt2PeakPssMiB": 2054.759765625
+    },
+    {
+      "candidate": 70,
+      "approach": "ROM/RAM translation attribution",
+      "startupReport": "/home/claude/.scratch/eka-compiled-only-20261014/paced70-asphalt3-candidate/report.json",
+      "wasmSha256": "009e73917abee7208bfa386819970d40c6f4a2ebcf11dfe1d00dc1fffc281ccd",
+      "installationSeconds": 41.587161679999994,
+      "firstPresentationSeconds": 5.264450000047684,
+      "compilerAtStartupEnd": {
+        "guest_us": 40543321,
+        "instructions": 0,
+        "compiled_functions": 110223,
+        "retired_compiled_functions": 3622,
+        "aot_shared_functions": 5869,
+        "aot_demand_functions": 101516,
+        "aot_single_functions": 9,
+        "aot_translation_us": 4911632,
+        "aot_rom_translation_us": 3708404,
+        "aot_ram_translation_us": 1203228,
+        "aot_rom_translations": 64475,
+        "aot_ram_translations": 45739,
+        "aot_emission_us": 1864552,
+        "aot_installation_us": 4055370,
+        "aot_eager_functions": 8698,
+        "aot_eager_passes": 92,
+        "allocated_bytes": 1687164152,
+        "free_bytes": 154696904
+      },
+      "status": "not adopted; focused screening only"
+    }
+  ],
+  "releaseCandidate106": {
+    "wasmSha256": "d31435fa2b15ab989776f661ce7afc6bfb416b953474193adf992bc1f7a2f7dd",
+    "romCache": {
+      "game": "asphalt-3",
+      "bytes": 34448179,
+      "sha256": "8319c1b8ac844af8c1718f2ce31d1cc09b8b596249e71ccfb38f501198d40040",
+      "pacedInstallSecondsControl": 38.97,
+      "pacedInstallSecondsCandidate": 38.23,
+      "startupRomRetranslations": 0
+    },
+    "browserPssMiB": [
+      {"number": 1, "game": "snakes", "controlFinal": 2044, "candidateFinal": 1849, "controlPeak": 2052, "candidatePeak": 1938},
+      {"number": 2, "game": "sky-force", "controlFinal": 2000, "candidateFinal": 1943, "controlPeak": 2000, "candidatePeak": 1943},
+      {"number": 3, "game": "k-rally", "controlFinal": 2131, "candidateFinal": 1867, "controlPeak": 2146, "candidatePeak": 1990},
+      {"number": 4, "game": "asphalt-2", "controlFinal": 2074, "candidateFinal": 1910, "controlPeak": 2080, "candidatePeak": 2056},
+      {"number": 5, "game": "hooked-on", "controlFinal": 3241, "candidateFinal": 2684, "controlPeak": 3241, "candidatePeak": 2684},
+      {"number": 6, "game": "asphalt-3", "controlFinal": 3191, "candidateFinal": 2914, "controlPeak": 3191, "candidatePeak": 2977},
+      {"number": 7, "game": "tetris", "controlFinal": 3268, "candidateFinal": 2924, "controlPeak": 3288, "candidatePeak": 3088},
+      {"number": 8, "game": "super-miners", "controlFinal": 1941, "candidateFinal": 1760, "controlPeak": 1941, "candidatePeak": 1972},
+      {"number": 9, "game": "n-gage", "controlFinal": 2466, "candidateFinal": 2412, "controlPeak": 2516, "candidatePeak": 2450}
+    ],
+    "limits": ["Unrelated Cheerp work overlapped FPS and startup runs", "One Super Miners candidate peak exceeded control; two repeats were lower", "Asphalt 3 full-version prompt in long candidate runs; cause unresolved"]
+  }
 }

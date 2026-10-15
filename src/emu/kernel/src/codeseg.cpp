@@ -27,6 +27,7 @@
 #include <utils/consts.h>
 
 #include <algorithm>
+#include <cstring>
 
 namespace eka2l1::kernel {
     codeseg::codeseg(kernel_system *kern, const std::string &name, codeseg_create_info &info)
@@ -743,6 +744,46 @@ namespace eka2l1::kernel {
         }
 
         return true;
+    }
+
+    std::vector<std::uint32_t> codeseg::get_relocated_code_entries(kernel::process *pr) {
+        std::vector<std::uint32_t> entries;
+        if (is_rom()) return entries;
+        std::uint8_t *code = nullptr, *data = nullptr;
+        const auto base = get_code_run_addr(pr, &code);
+        const auto text = std::min(text_size, code_size);
+        if (!code || !text) return entries;
+        if (data_size) get_data_run_addr(pr, &data);
+        for (const auto relocation : relocation_list) {
+            const auto type = static_cast<loader::relocation_type>((relocation >> 32) & 0xffffu);
+            if (type != loader::relocation_type::text && type != loader::relocation_type::inferred) continue;
+            const auto section = static_cast<loader::relocate_section>((relocation >> 48) & 0xffffu);
+            const auto offset = static_cast<std::uint32_t>(relocation);
+            const std::uint8_t *pointer = nullptr;
+            if (section == loader::relocate_section_text && offset <= code_size && code_size - offset >= 4)
+                pointer = code + offset;
+            else if (section == loader::relocate_section_data && data && offset <= data_size && data_size - offset >= 4)
+                pointer = data + offset;
+            if (!pointer) continue;
+            std::uint32_t target; std::memcpy(&target, pointer, 4);
+            const auto position = (target & ~1u) - base;
+            if (position >= text) continue;
+            // Only seed recognizable callable entries. Other pointers can name
+            // constants or vtables in the code section; they compile on demand.
+            bool callable = false;
+            if (target & 1) {
+                if (text - position < 2) continue;
+                std::uint16_t opcode; std::memcpy(&opcode, code + position, 2);
+                callable = (opcode & 0xff00u) == 0xb500u;
+            } else if (!(target & 3) && text - position >= 4) {
+                std::uint32_t opcode; std::memcpy(&opcode, code + position, 4);
+                callable = (opcode & 0xffffc000u) == 0xe92d4000u || opcode == 0xe52de004u;
+            }
+            if (callable) entries.push_back(target);
+        }
+        std::sort(entries.begin(), entries.end());
+        entries.erase(std::unique(entries.begin(), entries.end()), entries.end());
+        return entries;
     }
 
     std::vector<std::uint32_t> codeseg::get_export_table(kernel::process *pr) {

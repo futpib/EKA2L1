@@ -98,6 +98,7 @@ namespace eka2l1::arm::aot {
         }
         bool has_function(std::uint32_t arm_address) const;
         std::size_t size() const;
+        std::vector<std::uint32_t> addresses() const;
     };
 
     // The catalog holds all available AOT translations, indexed by DLL.

@@ -36,6 +36,7 @@
 #include <mem/model/multiple/process.h>
 
 #include <cstdio>
+#include <fstream>
 #include <thread>
 #include <cstring>
 #include <memory>
@@ -81,6 +82,13 @@ static std::unique_ptr<dyncom_core> make_cpu(test_mem &mem, r12l1::exclusive_mon
     auto core = std::make_unique<dyncom_core>(&mon, 12);
     test_mem *mp = &mem;
 
+    auto *owner = core.get();
+    core->resolve_code = [mp, owner](address a, core::code_mapping &view) {
+        if (a >= test_mem::SIZE) return false;
+        view = {owner->code_address_space, mp->data.data() + a, std::min<std::size_t>(4096 - (a & 4095), test_mem::SIZE - a)};
+        return true;
+    };
+
     core->read_code = [mp](address a, std::uint32_t *r) -> bool {
         if (a > test_mem::SIZE - 4) return false;
         std::memcpy(r, &mp->data[a], 4); return true;
@@ -122,7 +130,7 @@ static std::unique_ptr<dyncom_core> make_cpu(test_mem &mem, r12l1::exclusive_mon
 }
 
 static void reference_steps(dyncom_core &cpu, unsigned steps) {
-    for (unsigned i = 0; i < steps; ++i) cpu.step();
+    for (unsigned i = 0; i < steps; ++i) cpu.interpret_step_for_test();
 }
 
 static int reference_to(dyncom_core &cpu, const void *bytes) {
@@ -144,7 +152,7 @@ static int reference_to(dyncom_core &cpu, const void *bytes) {
             printf("FAIL reference unreachable compiled exit: target=%x pc=%x steps=%u\n",target,cpu.get_pc(),steps);
             return -1;
         }
-        cpu.step();
+        cpu.interpret_step_for_test();
     }
     return steps;
 }
@@ -178,10 +186,10 @@ static bool test_context_reuse() {
     // Without scheduler ASIDs, reuse must still invalidate decoded instructions.
     test_mem mem;r12l1::exclusive_monitor monitor(1);auto cpu=make_cpu(mem,monitor);
     core::thread_context ctx{};ctx.cpsr=16;ctx.cpu_registers[15]=0x1000;
-    mem.write32(0x1000,0xe3a00001);cpu->load_context(ctx);cpu->step();
+    mem.write32(0x1000,0xe3a00001);cpu->load_context(ctx);cpu->interpret_step_for_test();
     if(cpu->get_reg(0)!=1)return false;
     mem.write32(0x1000,0xe3a00002);cpu->set_pc(0x1000);cpu->save_context(ctx);
-    cpu->reuse_context(ctx);cpu->step();
+    cpu->reuse_context(ctx);cpu->interpret_step_for_test();
     if(cpu->get_reg(0)!=2){printf(" FAIL embedded context cache invalidation\n");return false;}
     printf(" PASS context reuse (%u full integer/VFP/status/TLS round trips and embedded cache invalidation)\n",checks);
     return true;
@@ -2230,6 +2238,12 @@ static bool test_bounded_execution(bool thumb_only = false) {
         arm({0xe8a18000}), // STM stores pipeline PC
         arm({0xe1c100d0}), // LDRD is not STRH
         arm({0xe1c100f0}), // STRD is not STRH
+        arm({0xe1cd00d0}), arm({0xe1cd20f0}),
+        arm({0xe92de000}), // STM stores the original listed base before updating it
+        arm({0xfa000008}), arm({0xfbfffffc}), // ARM BLX immediate interworking
+        arm({0xe1640c83}), arm({0xe1640ca3}), arm({0xe1640cc3}), arm({0xe1640ce3}),
+        arm({0xe1000281}), arm({0xe10002a1}), arm({0xe10002c1}), arm({0xe10002e1}),
+        thumb({0x447b}), thumb({0x44fb}), thumb({0x468f}), thumb({0x467b}), thumb({0x457b}), thumb({0x45bf}), // PC-relative ADD and ADD to PC
         arm({0xe1c100b0}), // STRH preserves neighboring bytes
         arm({0xe1d100b2}), // LDRH at halfword offset
         arm({0xe1d100f2}), // LDRSH at halfword offset
@@ -2245,8 +2259,6 @@ static bool test_bounded_execution(bool thumb_only = false) {
         arm({0xe1b00060}), // RRX
         arm({0xe1b00070}), // ROR R0
         arm({0xe1b00010}), // LSL R0
-        arm({0xe1902f9f}), // LDREX must fall back
-        arm({0xe1803f91}), // STREX must fall back
         thumb({0x3001, 0x3801, 0x2107}),
         thumb({0x2203,0x0712}), // live failure: LSLS must clear carry
         thumb({0x3001}), thumb({0x3801}), thumb({0x2801}),
@@ -2385,7 +2397,11 @@ static bool test_bounded_execution(bool thumb_only = false) {
             g_test_mem = &actual; watchdog::request=1;
             int count = js_run_aot_wasm(module.data(), module.size(), state, sizeof(state));
             g_test_mem = nullptr; watchdog::request=0;
-            if (count < 0) return false;
+            if (count < 0) {
+                printf(" FAIL bounded module index=%d variant=%u first=%08x\n",index,variant,
+                    p.bytes.size()>=4?*reinterpret_cast<const unsigned*>(p.bytes.data()):p.bytes[0]);
+                return false;
+            }
             count = reference_to(*cpu,state);
             if (count < 0) {
                 printf("  FAIL bounded %d budget %u count %d\n",index,budget,count); return false;
@@ -3609,7 +3625,7 @@ static bool test_msr_privilege_guard() {
         r12l1::exclusive_monitor monitor(1);
         auto cpu = make_cpu(memory,monitor);
         cpu->set_reg(0,operand); cpu->set_reg(15,0x1000); cpu->set_cpsr(mode_bits);
-        cpu->step();
+        cpu->interpret_step_for_test();
         const int count = js_run_aot_wasm(module.data(),module.size(),
             reinterpret_cast<std::uint8_t *>(state.data()),sizeof(state));
         if (count != 1 || state[state_offsets::CPSR/4] != cpu->get_cpsr()
@@ -4086,6 +4102,7 @@ static bool test_thumb_transfer_spans() {
                 if((opcode&0xfe00)==0xb400)state[13]+=4*(__builtin_popcount(opcode&255)+((opcode>>8)&1));
                 state[state_offsets::CPSR/4]=0xa0000030u|endian;
                 state[state_offsets::NFLAG/4]=state[state_offsets::CFLAG/4]=state[state_offsets::TFLAG/4]=1;
+                state[state_offsets::NIRQ/4]=1;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=1;
 
                 state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
                 g_test_mem=&memory;g_all_memory_helper_calls=0;
@@ -4139,6 +4156,7 @@ static bool test_thumb_direct_memory() {
                 auto *state=states[enabled];state[0]=0x12345678;state[1]=address;state[3]=41;state[15]=0x1000;
                 state[state_offsets::CPSR/4]=0xA0000030|endian;state[state_offsets::TFLAG/4]=1;
                 state[state_offsets::NFLAG/4]=1;state[state_offsets::CFLAG/4]=1;
+                state[state_offsets::NIRQ/4]=1;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=1;
 
                 state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
                 g_test_mem=enabled?&actual:&control;g_all_memory_helper_calls=0;
@@ -4168,6 +4186,7 @@ static bool test_thumb_direct_memory() {
         r12l1::tlb tlb(12);
         alignas(8) unsigned state[256]{};state[1]=0x8000;state[3]=0xA000;state[15]=0x1000;
         state[state_offsets::CPSR/4]=0x30;state[state_offsets::TFLAG/4]=1;
+        state[state_offsets::NIRQ/4]=1;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=1;
         state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
         bool observed=false;
         g_read32_observer=[&](unsigned ptr,unsigned address){
@@ -4198,6 +4217,7 @@ static bool test_thumb_direct_memory() {
         new_tlb.add(0x9000,memory.data.data()+0x9000,1);
         alignas(8) unsigned state[256]{};state[1]=0x8000;state[3]=0x9000;state[4]=99;state[15]=0x1000;
         state[state_offsets::CPSR/4]=0x30;state[state_offsets::TFLAG/4]=1;
+        state[state_offsets::NIRQ/4]=1;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=1;
         state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(old_tlb.entries);
         unsigned observed=0;
         g_read32_observer=[&](unsigned ptr,unsigned address){
@@ -5537,7 +5557,8 @@ static bool test_arm_exclusive_decode() {
         const std::uint32_t op=(cond<<28)|(kind==0?0x01900f9f:kind==1?0x01800f90:0x01d00f9f)
             |(rn<<16)|(rd<<12)|(kind==1?rm:0);
         auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(&op),4,0x1000,nullptr,nullptr,true,false,true);
-        if(tr.entry_supported){printf(" FAIL exclusive decode %08x\n",op);ok=false;break;}
+        const bool expected=kind<2 && cond<15 && rn<15 && rd<15 && (kind!=1 || rm<15);
+        if(tr.entry_supported!=expected){printf(" FAIL exclusive decode %08x\n",op);return false;}
         ++checked;
     }
     printf("  exclusive decode checks: %u\n",checked);return ok;
@@ -5594,6 +5615,13 @@ static bool test_direct_memory_translation() {
 #ifdef __EMSCRIPTEN__
     using namespace memory_experiment;
     const auto old_unsafe=eka2l1::common::code_tracking::unsafe_code_mode;
+    struct restore_configuration {
+        unsigned memory = mode, unsafe = eka2l1::common::code_tracking::unsafe_code_mode;
+        ~restore_configuration() {
+            mode = memory; eka2l1::common::code_tracking::unsafe_code_mode = unsafe;
+            g_test_mem = nullptr; g_memory_boundary = {}; g_read32_observer = {};
+        }
+    } restore;
     eka2l1::common::code_tracking::unsafe_code_mode=3;
 
     const std::vector<std::vector<std::uint32_t>> programs={
@@ -5642,7 +5670,7 @@ static bool test_direct_memory_translation() {
                 const range direct{0x7000,0x5000,static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(memory.data.data()+0x7000)),3};
                 state[1]=address;state[4]=program==2?0x7000:0xb000;state[14]=0x8008;state[15]=0x1000;
                 state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=16|(program>=3?32:0);
-                state[state_offsets::TFLAG/4]=program>=3;state[state_offsets::NIRQ/4]=1;
+                state[state_offsets::TFLAG/4]=program>=3;state[state_offsets::NIRQ/4]=1;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=1;
                 state[state_offsets::AOT_TLB/4]=variant?mapping.enter(1,1,resolve,direct):reinterpret_cast<std::uintptr_t>(tlb.entries);
                 if(variant)g_memory_boundary=[&](bool enter,std::uint32_t p) {
                     if(!enter)mapping.leave();else reinterpret_cast<std::uint32_t*>(p)[state_offsets::AOT_TLB/4]=mapping.enter(1,1,resolve,direct);
@@ -5712,7 +5740,7 @@ static bool test_direct_memory_translation() {
             return std::vector<binding>{{0x80000000u,host,3},{0xfffe0000u,host,3}};};
         view mapping;alignas(8)std::uint32_t state[256]{};
         state[0]=0x12345678;state[1]=0x80000000;state[2]=0xfffe0000;state[15]=0x1000;
-        state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=16;state[state_offsets::NIRQ/4]=1;
+        state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=1;
         state[state_offsets::AOT_TLB/4]=mapping.enter(1,1,resolve);
         auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));mapping.leave();
         if(count!=1 || state[3]!=state[0] || memory.read32(0x8000)!=state[0]){printf("FAIL direct alias mode=%u count=%d value=%x\n",2u,count,state[3]);return memory_failure(__LINE__);}
@@ -5733,7 +5761,7 @@ static bool test_direct_memory_translation() {
         const auto module=build_wasm_module({tr.func},imports);
         alignas(8)std::uint32_t state[256]{};state[1]=0x8000;state[5]=0xc000;state[15]=0x1000;
         state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=48;state[state_offsets::TFLAG/4]=1;
-        state[state_offsets::NIRQ/4]=1;
+        state[state_offsets::NIRQ/4]=1;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=1;
         state[state_offsets::AOT_TLB/4]=mapping.enter(1,1,resolve,direct);
         g_memory_boundary=[&](bool enter,std::uint32_t p) {
             if(!enter)mapping.leave();else {remapped=true;reinterpret_cast<std::uint32_t*>(p)[state_offsets::AOT_TLB/4]=mapping.enter(2,1,resolve,direct);}
@@ -5797,7 +5825,7 @@ static bool test_direct_memory_translation() {
             reinterpret_cast<page*>(descriptor->pages)[guest>>12]={};
             alignas(8)std::uint32_t state[256]{};
             state[0]=123+i;state[1]=guest;state[5]=0x90000000;state[15]=0x1000;
-            state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=48;state[state_offsets::NIRQ/4]=1;state[state_offsets::TFLAG/4]=1;
+            state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=48;state[state_offsets::NIRQ/4]=1;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=1;state[state_offsets::TFLAG/4]=1;
             state[state_offsets::AOT_TLB/4]=pointer;
             bool observed=false;g_memory_boundary={};g_test_mem=nullptr;g_all_memory_helper_calls=0;
             g_read32_observer=[&](auto,auto){observed=*host==123+i;*host=456+i;};
@@ -5929,7 +5957,7 @@ static bool test_memory_implementations() {
                     direct_begin+direct.size-width+1,direct_begin+direct.size,0xfffffffcu}) {
                 alignas(8)std::uint32_t state[256]{};
                 state[1]=address;state[15]=0x1000;state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=48;
-                state[state_offsets::TFLAG/4]=1;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_TLB/4]=pointer;
+                state[state_offsets::TFLAG/4]=1;state[state_offsets::NIRQ/4]=1;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=1;state[state_offsets::AOT_TLB/4]=pointer;
                 g_all_memory_helper_calls=0;
                 const bool fast=address>=direct_begin && std::uint64_t(address)+width<=direct_begin+direct.size;
                 std::uint32_t expected=0;if(fast)std::memcpy(&expected,arena+address-direct_begin,width);
@@ -5945,7 +5973,7 @@ static bool test_memory_implementations() {
         for(unsigned change:{0u,1u,2u}) {
             alignas(8)std::uint32_t state[256]{};
             state[1]=direct_begin;state[5]=0x90000000;state[15]=0x1000;state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=48;
-            state[state_offsets::TFLAG/4]=1;state[state_offsets::NIRQ/4]=1;
+            state[state_offsets::TFLAG/4]=1;state[state_offsets::NIRQ/4]=1;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=1;
             state[state_offsets::AOT_TLB/4]=change==2?0:pointer;
             g_read32_observer=[&](auto p,auto address){auto *s=reinterpret_cast<std::uint32_t*>(p);
                 if(address==0x90000000) {
@@ -5966,13 +5994,13 @@ static bool test_memory_implementations() {
     const auto guest=chunks[0]->base(first.get());
     auto fail=[](int line){printf("FAIL direct publication at line %d\n",line);return false;};
     if(!cpu->experimental_dirty || !mmu->set_current_addr_space(first->address_space_id()))return fail(__LINE__);
-    cpu->set_pc(guest+256);cpu->set_cpsr(16);cpu->step();
+    cpu->set_pc(guest+256);cpu->set_cpsr(16);cpu->interpret_step_for_test();
     auto *view=reinterpret_cast<direct_view*>(cpu->experimental_pointer);
     if(!view || !view->arena_start_limit || cpu->experimental_dirty->load())return fail(__LINE__);
     const auto generation=mem::mapping_generation.load();
     if(!mmu->set_current_addr_space(second->address_space_id()) || !cpu->experimental_dirty->load()
             || mem::mapping_generation.load()!=generation)return fail(__LINE__);
-    cpu->set_pc(guest+256);cpu->step();
+    cpu->set_pc(guest+256);cpu->interpret_step_for_test();
     if(cpu->experimental_dirty->load() || view->host!=reinterpret_cast<std::uintptr_t>(control.direct_local_memory(second->address_space_id())))return fail(__LINE__);
     auto *page=control.get_page_info(second->address_space_id(),guest);
     const auto old_host=page->host_addr;
@@ -6011,6 +6039,7 @@ static bool test_memory_implementations() {
 #include "test_stack_return.inc"
 
 #include "test_watchdog.inc"
+#include "test_compiled_only.inc"
 #include "test_thumb_polled_loop.inc"
 
 // Eager preparation must follow known exits without running guest code, keep
@@ -6358,6 +6387,7 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--ram-retirement-only") return test_ram_function_retirement()?0:1;
     if(argc==2 && std::string(argv[1])=="--arena-growth-only") return test_growing_arenas()?0:1;
     if(argc==2 && std::string(argv[1])=="--watchdog-only") return test_watchdog()?0:1;
+    if(argc==2 && std::string(argv[1])=="--compiled-only") return test_compiled_only() && test_shared_compiled_code() && test_cold_module_lifetime() && test_rom_process_lifetime() && test_rom_translation_cache() && test_flat_precompile_entries()?0:1;
     if(argc==2 && std::string(argv[1])=="--thumb-finite-loops-only") return test_thumb_finite_loops()?0:1;
     if(argc==2 && std::string(argv[1])=="--thumb-ram-fusion-only") return test_region_fusion(false,true)?0:1;
     if(argc==2 && std::string(argv[1])=="--thumb-polled-loops-only") return test_thumb_polled_loops()?0:1;
@@ -6389,6 +6419,8 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--thumb-complete-counts")return test_thumb_complete_calls(true)?0:1;
     if(argc==2 && std::string(argv[1])=="--region-fusion-counts")return test_region_fusion(true)?0:1;
     if(argc==2 && std::string(argv[1])=="--region-fusion-only")return test_region_fusion()?0:1;
+    if(argc==2 && std::string(argv[1])=="--code-alias-only") return test_region_code_alias()?0:1;
+    if(argc==2 && std::string(argv[1])=="--bounded-only") return test_bounded_execution()?0:1;
     if(argc==2 && std::string(argv[1])=="--bounded-thumb-only") {
 
         return test_bounded_execution(true) && test_thumb_register_exchange()
@@ -7211,6 +7243,12 @@ int main(int argc, char **argv) {
     if (test_region_fusion(false,true)) passed++; else failed++;
     if (test_ram_function_retirement()) passed++; else failed++;
     if (test_growing_arenas()) passed++; else failed++;
+    if (test_compiled_only()) passed++; else failed++;
+    if (test_shared_compiled_code()) passed++; else failed++;
+    if (test_cold_module_lifetime()) passed++; else failed++;
+    if (test_rom_process_lifetime()) passed++; else failed++;
+    if (test_rom_translation_cache()) passed++; else failed++;
+    if (test_flat_precompile_entries()) passed++; else failed++;
     printf("\n%d passed, %d failed\n", passed, failed);
     return failed > 0 ? 1 : 0;
 }

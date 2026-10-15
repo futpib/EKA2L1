@@ -28,6 +28,7 @@ namespace eka2l1::arm::aot {
             return count == 8;
         }
 
+        void forget(std::uint32_t key) { counts_.erase(key); }
         void clear() { counts_.clear(); observed_ = 0; }
     };
 }

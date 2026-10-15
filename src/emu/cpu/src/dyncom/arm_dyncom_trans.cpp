@@ -8,6 +8,9 @@
 #include <cstdlib>
 
 static void *AllocBuffer(ARMul_State *state, std::size_t size) {
+#ifdef __EMSCRIPTEN__
+    state->ensure_interpreter_cache();
+#endif
     std::size_t start = state->trans_cache_buf_top;
     state->trans_cache_buf_top += ((size + 7) >> 3) << 3;
     assert(state->trans_cache_buf_top <= TRANS_CACHE_SIZE && "Translation cache is full!");

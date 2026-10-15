@@ -6,6 +6,7 @@ import https from "node:https";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import type {RomCache} from './rom-cache.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -67,6 +68,7 @@ export type CompilerPolicy = { watchdogUs?: number; unsafeCode?: number; memoryI
 export type LauncherGame = {
   id: string; title: string; uid: string; sis: string; ngage?: string;
   image?: { url: string; game: string; sources: Record<string, string> };
+  romCache?: RomCache;
 };
 
 function makeGameLauncherScript(games: LauncherGame[], defaultGame?: string): string {

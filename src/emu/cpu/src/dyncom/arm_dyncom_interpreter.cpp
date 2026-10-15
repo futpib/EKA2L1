@@ -1755,6 +1755,9 @@ static unsigned int InterpreterTranslateInstruction(ARMul_State *cpu, const std:
 }
 
 static int InterpreterTranslateBlock(ARMul_State *cpu, std::size_t &bb_start, std::uint32_t addr) {
+#ifdef __EMSCRIPTEN__
+    cpu->ensure_interpreter_cache();
+#endif
     // Decode instruction, get index
     // Allocate memory and init InsCream
     // Go on next, until terminal instruction
@@ -1825,6 +1828,9 @@ static int InterpreterTranslateBlock(ARMul_State *cpu, std::size_t &bb_start, st
 }
 
 static int InterpreterTranslateSingle(ARMul_State *cpu, std::size_t &bb_start, std::uint32_t addr) {
+#ifdef __EMSCRIPTEN__
+    cpu->ensure_interpreter_cache();
+#endif
     ARM_INST_PTR inst_base = nullptr;
     bb_start = cpu->trans_cache_buf_top;
 

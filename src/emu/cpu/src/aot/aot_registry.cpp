@@ -83,6 +83,14 @@ namespace eka2l1::arm::aot {
         return functions_.size();
     }
 
+    std::vector<std::uint32_t> registry::addresses() const {
+        std::vector<std::uint32_t> result;
+        result.reserve(functions_.size());
+        for (const auto &[address, function] : functions_) if (function) result.push_back(address);
+        std::sort(result.begin(), result.end());
+        return result;
+    }
+
     // --- catalog ---
 
     void catalog::add_entry(const catalog_entry &entry) {

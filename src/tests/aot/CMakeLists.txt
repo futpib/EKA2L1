@@ -26,7 +26,12 @@ if(EMSCRIPTEN)
     configure_file(../wasm/persistent-disk-fixture.html test_device_disk.html COPYONLY)
     configure_file(../../emu/wasm/persistent-disk.js persistent-disk.js COPYONLY)
 
-    add_executable(test_aot_wasm test_aot_wasm.cpp)
+    add_executable(test_aot_wasm test_aot_wasm.cpp test_interpreter_reference.cpp
+        ../../emu/cpu/src/dyncom/arm_dyncom_dec.cpp
+        ../../emu/cpu/src/dyncom/arm_dyncom_interpreter.cpp
+        ../../emu/cpu/src/dyncom/arm_dyncom_thumb.cpp
+        ../../emu/cpu/src/dyncom/arm_dyncom_trans.cpp)
+    target_compile_definitions(test_aot_wasm PRIVATE $<TARGET_PROPERTY:cpu,COMPILE_DEFINITIONS>)
     target_link_libraries(test_aot_wasm PRIVATE cpu epocmem config)
     target_link_options(test_aot_wasm PRIVATE
         "SHELL:-s PTHREAD_POOL_SIZE=1"

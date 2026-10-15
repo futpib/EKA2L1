@@ -292,6 +292,7 @@
                 while (!Module.calledRun) await new Promise(resolve => setTimeout(resolve, 100));
                 Module.setStatus('Loading ' + selected.title + '...');
                 _selectedGame = selected;
+                window.ekaRomCachePreparation = EkaRomCache.prepare(selected.romCache);
                 var disk = await prepareDeviceStorage(selected);
                 var useImage = selected.image && !disk?.manifest;
                 var needsSis = !disk?.installed[assetHash(selected.sis)];
@@ -348,6 +349,7 @@
                 }
 
                 // The runtime defaults to immutable executable bytes (mode 3).
+                await window.ekaRomCachePreparation;
                 // A launcher can select compatibility mode 0 before initialization.
                 window.ekaUnsafeCode = Module.ccall('eka2l1_unsafe_code_report', 'number', [], []);
                 if (![0,1,2,3].includes(window.ekaUnsafeCode))
@@ -470,6 +472,7 @@
         }
     </script>
     <script src="preinstalled-image.js"></script>
+    <script src="rom-cache.js"></script>
     <script src="persistent-disk.js"></script>
     <script src="touch-controls.js"></script>
     <script>

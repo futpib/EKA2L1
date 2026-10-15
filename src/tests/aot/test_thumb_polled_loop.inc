@@ -123,15 +123,42 @@ static bool test_thumb_polled_loops() {
     const auto progress=watchdog_test_run(cycle_bytes.data(),cycle_bytes.size(),
         reinterpret_cast<std::uintptr_t>(state),reinterpret_cast<std::uintptr_t>(&handshake));
     if(progress!=1 || !state[0] || state[15]!=0x1000 || !watchdog::requested())return false;
-    // Callback-bearing bodies cannot retain mappings across the loop edge.
-    const std::uint16_t callback[]={0xc101,0xe7fd};
-    if(translate(callback,sizeof(callback)).watchdog_safepoints)return false;
+    // Whole-span misses leave before any transfer; a successful proof needs
+    // no callback and may retain the polled loop just like a scalar access.
+    const std::uint16_t transfer[]={0xc203,0xe7fd}; // STMIA r2!, {r0,r1}; B loop
+    const auto transfer_loop=translate(transfer,sizeof(transfer));
+    if(transfer_loop.watchdog_safepoints!=1 || transfer_loop.proved_terminating_loops)return false;
+    const auto transfer_bytes=module(transfer_loop);
+    for(unsigned permission:{0u,1u,3u})for(unsigned address:{0x8000u,0x8ffcu}) {
+        test_mem memory;
+        memory.write_code(0x1000,{reinterpret_cast<const std::uint8_t *>(transfer),
+            reinterpret_cast<const std::uint8_t *>(transfer)+sizeof(transfer)});
+        test_mem reference=memory;
+        alignas(8) unsigned state[256]{};
+        state[0]=7;state[1]=11;state[2]=address;state[15]=0x1000;
+        state[S::MODE/4]=16;state[S::CPSR/4]=0x30;state[S::TFLAG/4]=1;
+        state[S::NIRQ/4]=1;state[S::NUM_INSTRS_TO_EXECUTE/4]=UINT32_MAX;
+        r12l1::exclusive_monitor monitor(1);auto cpu=make_cpu(reference,monitor);
+        for(unsigned r=0;r<16;++r)cpu->set_reg(r,state[r]);cpu->set_cpsr(0x30);
+        memory_experiment::view view;
+        state[S::AOT_TLB/4]=view.enter(1,1,[&]{return std::vector<memory_experiment::binding>{
+            {0x8000,static_cast<unsigned>(reinterpret_cast<std::uintptr_t>(memory.data.data()+0x8000)),permission}};});
+        g_test_mem=&memory;g_all_memory_helper_calls=0;watchdog::request=1;
+        const auto progress=js_run_aot_wasm(transfer_bytes.data(),transfer_bytes.size(),
+            reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+        watchdog::request=0;
+        if(progress<0 || g_all_memory_helper_calls || reference_to(*cpu,state)<0 || memory.data!=reference.data) {
+            printf("FAIL polled Thumb transfer permission=%u address=%x pc=%x helpers=%u\n",
+                permission,address,state[15],g_all_memory_helper_calls);return false;
+        }
+        ++checks;
+    }
     for(unsigned mode:{0u,2u})for(unsigned unsafe:{0u,3u}) {
         if(mode==2 && unsafe==3)continue;
         memory_experiment::mode=mode;tracking::unsafe_code_mode=unsafe;
         if(translate(code,sizeof(code)).watchdog_safepoints)return false;
     }
-    printf("PASS polled Thumb loops: %u interpreter comparisons, external atomic watchdog, callback rejection\n",checks);
+    printf("PASS polled Thumb loops: %u interpreter comparisons, external atomic watchdog, deferred spans and callback rejection\n",checks);
 #endif
     return true;
 }

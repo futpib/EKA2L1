@@ -70,14 +70,21 @@ set(SOURCE_DYNCOM
         src/dyncom/vfp/vfpdouble.cpp
         src/dyncom/vfp/vfpsingle.cpp
         src/dyncom/arm_dyncom.cpp
-        src/dyncom/arm_dyncom_dec.cpp
-        src/dyncom/arm_dyncom_interpreter.cpp
-        src/dyncom/arm_dyncom_thumb.cpp
-        src/dyncom/arm_dyncom_trans.cpp
         src/dyncom/armstate.cpp
         src/dyncom/armsupp.cpp)
 
+# Browser production contains only the compiled CPU. The standalone WASM
+# correctness target links the independent interpreter directly as its oracle.
+if (NOT EMSCRIPTEN)
+    list(APPEND SOURCE_DYNCOM
+        src/dyncom/arm_dyncom_dec.cpp
+        src/dyncom/arm_dyncom_interpreter.cpp
+        src/dyncom/arm_dyncom_thumb.cpp
+        src/dyncom/arm_dyncom_trans.cpp)
+endif()
+
 set(SOURCE_AOT
+        src/aot/compiled_loop.cpp
         src/aot/memory_experiment.cpp
         src/aot/memory_access_profile.cpp
         include/cpu/aot/aot_registry.h
@@ -154,6 +161,7 @@ target_include_directories(cpu PUBLIC include)
 target_include_directories(cpu PRIVATE ${capstone_INCLUDE_DIRS})
 
 target_link_libraries(cpu PUBLIC common)
+target_link_libraries(cpu PRIVATE xxHash)
 target_link_libraries(cpu
         PRIVATE
         capstone)

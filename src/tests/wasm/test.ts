@@ -189,10 +189,10 @@ async function runTests(): Promise<void> {
         if (typeof m['_eka2l1_' + name + '_configure'] !== 'undefined')
           throw Error('Retired configuration API is still exported: ' + name);
       }
-      for (const mode of [1,2,3,4,-1]) if (m._eka2l1_aot_configure(mode) !== -1)
+      for (const mode of [0,1,2,3,4,-1]) if (m._eka2l1_aot_configure(mode) !== -1)
         throw Error('Invalid compiler mode accepted');
-      for (const mode of [0,5]) if (m._eka2l1_aot_configure(mode) !== 0)
-        throw Error('Compiler/interpreter selection failed');
+      for (const mode of [5]) if (m._eka2l1_aot_configure(mode) !== 0)
+        throw Error('Compiler configuration failed');
       for (const [name, expected, valid, invalid] of [
         ['unsafe_code', 3, [0,3], [-1,1,2,4]],
         ['memory_impl', 2, [0,2], [-1,1,3]],

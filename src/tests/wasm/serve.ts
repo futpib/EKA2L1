@@ -5,6 +5,8 @@ import crypto from "node:crypto";
 import { buildDir, startServer, compilerPolicyFromEnv } from "./server.ts";
 import { fetchCid } from "@futpib/fetch-cid";
 import { loadInstalledImage } from './installed-image.ts';
+import { loadRomCache } from './rom-cache.ts';
+import { refreshAsset } from './asset-cache.ts';
 
 if (!fs.existsSync(path.join(buildDir, "eka2l1.html"))) {
   console.error("build-wasm output not found. Run the WASM build first.");
@@ -68,6 +70,23 @@ const preloadFiles: Record<string, string> = {
 // Optional prepared files are local deployment artifacts, never game blobs in
 // Git. Missing images keep the existing installer path for that game.
 const installedImages = new Map();
+const romCaches = new Map();
+const policy = compilerPolicyFromEnv();
+const romCacheDir = process.env.EKA2L1_ROM_CACHE_DIR || path.join(buildDir, 'rom-cache');
+if (fs.existsSync(romCacheDir)) {
+  const wasm = await refreshAsset(path.join(buildDir, 'eka2l1.wasm'));
+  for (const game of games) {
+    try {
+      const compiled = await loadRomCache(romCacheDir, game.id, wasm.digest,
+        '89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490',
+        policy.memoryImpl!, policy.unsafeCode!);
+      if (!compiled) continue;
+      romCaches.set(game.id, compiled.cache);
+      preloadFiles[compiled.cache.url] = compiled.file;
+      console.log(game.title + ': ROM translation cache (' + compiled.file + ')');
+    } catch (error) { console.warn(game.title + ': ignoring ROM translation cache: ' + String(error)); }
+  }
+}
 if (process.env.EKA2L1_PREINSTALLED_DIR) {
   for (const game of games) {
     if (!game.ngage) continue;
@@ -98,9 +117,10 @@ const tls = certPath && keyPath
   ? { cert: fs.readFileSync(certPath), key: fs.readFileSync(keyPath) }
   : undefined;
 const { port: resolvedPort } = await startServer(port, preloadFiles, undefined, {
-  host, tls, compilerPolicy: compilerPolicyFromEnv(), defaultGame,
+  host, tls, compilerPolicy: policy, defaultGame,
   games: games.map(({id, title, uid, ngage}) => ({id, title, uid,
     ...(installedImages.has(id) ? {image:installedImages.get(id)} : {}),
+    ...(romCaches.has(id) ? {romCache:romCaches.get(id)} : {}),
     sis: '/preload/games/' + id + (ngage ? '/runtime' : ''),
     ...(ngage ? {ngage: '/preload/games/' + id + '/ngage'} : {}),
   })),

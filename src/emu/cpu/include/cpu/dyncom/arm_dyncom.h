@@ -53,6 +53,9 @@ namespace eka2l1::arm {
 
         void step() override;
 
+        // Offline correctness oracle. Browser execution never calls this path.
+        void interpret_step_for_test();
+
         uint32_t get_reg(size_t idx) override;
         uint32_t get_sp() override;
         uint32_t get_pc() override;

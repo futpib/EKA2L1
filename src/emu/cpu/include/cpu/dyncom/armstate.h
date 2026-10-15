@@ -18,6 +18,7 @@
 #pragma once
 
 #include <array>
+#include <memory>
 #include <common/bytes.h>
 #include <common/types.h>
 #include <unordered_map>
@@ -401,7 +402,15 @@ public:
     // definition. Set by dyncom_core right after construction.
     eka2l1::arm::r12l1::tlb *mem_cache_ = nullptr;
 
+#ifdef __EMSCRIPTEN__
+    // Only the separate reference interpreter requests decoded storage.
+    std::unique_ptr<char[]> trans_cache_buf;
+    void ensure_interpreter_cache() {
+        if (!trans_cache_buf) trans_cache_buf.reset(new char[TRANS_CACHE_SIZE]);
+    }
+#else
     char trans_cache_buf[TRANS_CACHE_SIZE];
+#endif
     size_t trans_cache_buf_top = 0;
 
     // Translated basic blocks are tagged with the address space (asid) they were

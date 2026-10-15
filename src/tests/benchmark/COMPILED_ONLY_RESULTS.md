@@ -25,8 +25,8 @@ policy, executable bytes and folded dependencies in each process's own mapping.
 
 Demand functions consolidate into ordinary modules by image/process lifetime,
 keeping their callable table slots. Retired versions cannot replace reused
-slots. Demand-discovered ROM entries can be retired when their compiling process
-exits and recompiled for a subsequent process. The CPU worker returns to its
+slots. In the current experiment, immutable ROM entries remain shared across
+process exits; process retirement releases RAM translations. The CPU worker returns to its
 browser event loop between bounded batches, allowing ordinary garbage collection.
 No forced-GC flags or calls are part of production or adoption measurements.
 
@@ -53,7 +53,9 @@ builds on private HTTPS ports and the unchanged public control. Chromium uses
 hardware ANGLE/Vulkan, a fresh browser profile and a temporary guest disk for
 each run. Only Hooked On uses the same prepared installation on both sides.
 Guest sound stays enabled; the browser output is muted. Asphalt 3 explicitly
-selects sound YES. No builds, profilers or correctness tests overlap timing runs.
+selects sound YES. The build-50 catalogue did not overlap builds, profilers or
+correctness tests. Later build-106 comparisons overlapped unrelated Cheerp
+build/browser work, so their FPS differences are screening evidence only.
 
 RAM is total browser-process PSS, including renderer, GPU and utilities, rather
 than WASM allocation capacity. A 1 Hz sample records the observed startup and
@@ -65,8 +67,10 @@ speed. N-Gage receives a bounded client navigation check and no FPS claim.
 Every accepted game sample must show actual gameplay at both endpoints. Earlier
 Asphalt 2 sound-prompt and Super Miners menu samples are excluded. Their high
 presentation rates are not game speedups. Sky Force checks the complete HUD,
-not just a bright logo. Asphalt 3's intermittent N-Gage -1000002 startup failure
-is retained separately from successful fresh retries.
+not just a bright logo. Asphalt 3's N-Gage startup rejection was traced to
+[inconsistent preservation-package instructions](ASPHALT3_LAUNCH_INTEGRITY.md).
+Failed and successful historical launches remain separate evidence; the exact
+known-image repair is validated independently of compiled-only adoption.
 
 ## Rejected approaches
 
@@ -273,3 +277,79 @@ Detailed local records are `round60-67.json`, `startup-trace-comparison59.json`,
 `native59-k-rally-comparison.json`, `async-compile-probe/report.json` and
 `worker-prewarm-probe/report.json` beneath the evidence directory above. Frozen
 artifacts remain available for reproduction. The public service is unchanged.
+
+## Callback preparation and ROM attribution
+
+Build 68 follows relocated, callable RAM entries recursively. It compiles
+149,002 eager functions, installs in 46.03 seconds and reaches 148.1 FPS in the
+Asphalt 2 barrier scene. Its 2183.1 MiB observed browser peak exceeds control.
+Build 69 prepares these callbacks individually while retaining recursive
+preparation for original image entries. Eager functions fall to 8,690, paced
+installation takes 41.20 seconds, and Asphalt 2 reaches 162.7 FPS with
+1908.8 / 2054.8 MiB steady / peak PSS. This avoids the eager expansion but does
+not clear the startup gate.
+
+Build 70 splits the existing compilation totals by ROM and RAM, without adding
+guest instruction instrumentation. Paced Asphalt 3 installation takes 41.59
+seconds. Of 110,214 translations, 64,475 are ROM (3.708 seconds of C++
+translation) and 45,739 RAM (1.203 seconds). Emission takes 1.865 seconds and
+installation 4.055 seconds. These totals overlap browser compilation activity
+and must not be added to Chrome trace durations as an exact wall-clock split.
+Chrome's lazy-compilation events carry function indices without module identity,
+so that trace cannot itself identify the ROM share of lazy compilation.
+
+The new focused records are in `focusedRounds68to70` in the evidence JSON.
+Neither these screens nor the diagnostic counter split constitute adoption.
+
+## Build 106 release evaluation
+
+The production WASM for build 106 is
+`d31435fa2b15ab989776f661ce7afc6bfb416b953474193adf992bc1f7a2f7dd`.
+Rebuilding from the restored production source produced that exact SHA-256.
+The independent WASM interpreter oracle passed 196 tests with no failures;
+compiled-only, cache, callback and browser cache-integrity tests also passed.
+Native CPU and preserved Asphalt resource suites passed 915/37 and 42/3.
+
+Fresh browser runs reached actual gameplay in all eight supported games and
+loaded the N-Gage client. Total browser-process PSS in MiB at the gameplay
+checkpoint and observed 1 Hz peak was:
+
+| # | Game | Final control / build 106 | Peak control / build 106 |
+| --- | --- | --- | --- |
+| 1 | Snakes | 2044 / 1849 | 2052 / 1938 |
+| 2 | Sky Force | 2000 / 1943 | 2000 / 1943 |
+| 3 | K-Rally | 2131 / 1867 | 2146 / 1990 |
+| 4 | Asphalt 2 | 2074 / 1910 | 2080 / 2056 |
+| 5 | Hooked On | 3241 / 2684 | 3241 / 2684 |
+| 6 | Asphalt 3 | 3191 / 2914 | 3191 / 2977 |
+| 7 | Tetris | 3268 / 2924 | 3288 / 3088 |
+| 8 | Super Miners | 1941 / 1760 | 1941 / 1972 |
+| 9 | N-Gage client | 2466 / 2412 | 2516 / 2450 |
+
+The one Super Miners candidate peak above control is retained. Two more
+paired runs gave control peaks 1941 and 1935 MiB versus candidate peaks 1861
+and 1833 MiB; this establishes lower typical RAM, not a per-run maximum
+guarantee. The savings cannot be assigned solely to removing the interpreter,
+because build 106 also changes translation and cache policy.
+
+A 34,448,179-byte ROM translation cache was captured from build 106's Asphalt 3
+race. The browser and emulator verify the build, ROM, policy, content digest and
+guest source dependencies before using it, falling back to compilation on
+mismatch. A normal paced cached launch reached racing with zero ROM
+retranslations. Under overlapping host load, installer completion measured
+38.97 seconds control and 38.23 seconds cached candidate. The cached candidate
+used about 3105 MiB at the race checkpoint versus 3191 MiB control, a smaller
+saving than its uncached run. These timings do not prove a reliable startup
+advantage, but the original uncached roughly ten-second installation deficit
+did not appear in this pair.
+
+Three ten-second K-Rally driving windows measured 84.8 / 71.4 / 162.6 FPS
+control and 320.6 / 250.8 / 156.6 candidate. The final windows compiled no
+new guest functions and are close, while scene and host activity prevent an
+exact throughput claim. Asphalt 3's candidate reached racing in repeated
+builds, but longer unpaced runs then displayed a full-version purchase prompt.
+The prompt also appeared without the preserved-image source repair, and one
+fresh control launch failed earlier with N-Gage error -1000002. Full-version
+activation and the exact cause of the prompt remain unverified. Gameplay
+throughput and startup stability are therefore release caveats, not resolved
+correctness claims.

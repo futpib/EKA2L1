@@ -48,19 +48,34 @@ namespace eka2l1::arm::aot {
     std::uint32_t execute_single(ARMul_State *cpu, aot_func function);
     compiled_run execute_chain(ARMul_State *cpu, aot_func function);
     aot_func lookup_compiled(ARMul_State *cpu);
+    aot_func compile_missing(ARMul_State *cpu);
+    aot_func compile_single_instruction(ARMul_State *cpu, int decode_thumb = -1);
+    bool run_compiled_cpu(ARMul_State *cpu);
+    void run_compiled_step(ARMul_State *cpu);
     void invalidate_ram_code(std::uint32_t address, std::size_t size);
+    void retire_process_code(std::uint32_t address_space);
     void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32_t size, bool enabled);
     void observe_hot_pc(ARMul_State *cpu);
     // Loader notifications contain relocated entry points, never retained guest
     // pointers. Translation/installation happens on the owning CPU worker.
     void queue_precompile_image(std::uint32_t space, std::uint32_t base,
-        const std::uint8_t *bytes, std::uint32_t size, std::vector<std::uint32_t> entries);
+        const std::uint8_t *bytes, std::uint32_t size, std::vector<std::uint32_t> entries,
+        std::vector<std::uint32_t> flat_entries = {});
     void prepare_compiled_code(core &cpu);
     struct compilation_counters {
         std::atomic<std::uint64_t> translation_us{0}, emission_us{0}, installation_us{0};
         std::atomic<std::uint64_t> eager_functions{0}, eager_passes{0};
+        std::atomic<std::uint64_t> shared_functions{0}, demand_functions{0}, single_functions{0};
+        std::atomic<std::uint64_t> rom_translation_us{0}, ram_translation_us{0};
+        std::atomic<std::uint64_t> rom_translations{0}, ram_translations{0};
     };
     extern compilation_counters compilation;
+
+    // Optional build-specific ROM cache experiment. Files are consumed on the
+    // CPU worker; export recompiles immutable entries without retaining IR.
+    bool configure_rom_cache(const std::string &path, const std::string &build_id);
+    bool request_rom_cache_export(const std::string &path);
+    int rom_cache_status();
 
     // Stage WASM module bytes for deferred instantiation.
     // The actual WebAssembly.Instance + addFunction calls happen on the

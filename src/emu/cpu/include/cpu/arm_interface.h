@@ -138,6 +138,11 @@ namespace eka2l1::arm {
         // Code contents are deliberately not covered and must still be checked.
         const std::atomic<std::uint64_t> *code_mapping_generation = nullptr;
         std::uint32_t code_address_space = 0;
+#ifdef __EMSCRIPTEN__
+        // Compilation may consume a watchdog interval before any guest dispatch.
+        // Such a host yield must not consume an unpaced virtual CPU slice.
+        bool guest_code_dispatched = false;
+#endif
         struct diagnostic_code { std::string process, module; };
         std::function<diagnostic_code(address)> describe_code;
 

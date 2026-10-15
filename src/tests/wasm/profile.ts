@@ -38,9 +38,9 @@ if (process.env.EKA2L1_DIRECT_POLICY !== undefined || process.env.EKA2L1_MEMORY_
   throw Error('Direct policy and delayed activation were removed; select EKA2L1_MEMORY_IMPL=0 (TLB) or 2 (direct)');
 const unsafeCode=Number(unsafeText);
 if(![0,3].includes(unsafeCode))throw Error('Invalid unsafe code mode');
-const aot = Number(process.env.EKA2L1_BENCHMARK_AOT || "0");
-if (![0,5].includes(aot)) throw new Error("AOT mode must be 0 (interpreter) or 5 (compiler)");
-// Direct memory is the compiled-play default; interpreter and mutation-compatible runs need TLB.
+const aot = Number(process.env.EKA2L1_BENCHMARK_AOT || "5");
+if (aot !== 5) throw new Error("The browser build only supports compiled execution (AOT mode 5)");
+// Mutation-compatible runs need TLB; normal compiled play uses direct memory.
 const memoryText = process.env.EKA2L1_MEMORY_IMPL ?? (aot === 5 && unsafeCode === 3 ? '2' : '0');
 if (!/^[02]$/.test(memoryText)) throw Error('Memory implementation must be 0 (TLB) or 2 (direct)');
 const memoryImpl = Number(memoryText);

@@ -104,7 +104,7 @@ namespace eka2l1::arm::aot {
         bool finite_loop = false;
         bool polled_loop = false;
         bool continue_stores = false;
-        bool defer_scalar_memory = false;
+        bool defer_memory = false;
         const leaf_resolver *leaves = nullptr;
         unsigned helper_calls = 0;
         // Number of early-exit bails emitted into the function body.
@@ -182,10 +182,10 @@ namespace eka2l1::arm::aot {
 
         // Call imported function (index relative to imports)
         void slow_call(std::uint32_t func_idx) {
-            if (finite_loop || defer_scalar_memory) {
+            if (finite_loop || defer_memory) {
                 // A callback could change the counter or mappings and invalidate
                 // the loop proof or store continuation. Exit before this scalar access;
-                // the interpreter services it with the exact pre-instruction state.
+                // compiled recovery services it with the exact pre-instruction state.
                 bail(census_pc & ~1u, 0, exit_census::memory);
                 return;
             }
@@ -194,20 +194,32 @@ namespace eka2l1::arm::aot {
             cache.barrier_at(b.size());
             op(op_call); leb(b, func_idx);
             cache.barrier_at(b.size(), true);
+            load_i32(S::NUM_INSTRS_TO_EXECUTE); load_i32(S::NUM_INSTRS_TO_EXECUTE + 4);
+            op(op_i32_or); op(op_i32_eqz);
+            load_i32(S::NIRQ); op(op_i32_eqz);
+            load_i32(S::CPSR); i32_const(0x80); op(op_i32_and); op(op_i32_eqz);
+            op(op_i32_and); op(op_i32_or);
+            op(op_if); op(type_void); store_i32_const(S::AOT_EXIT, 1); op(op_end);
             if(memory_experiment::enabled() && !cache.enabled) direct_memory_setup(*this);
         }
 
         // A whole register transfer can reuse one memory proof. On
         // failure the scalar path retains all original callback barriers;
         // no successful proof survives any callback or instruction boundary.
-        void begin_span(unsigned address_local, unsigned registers, bool write) {
+        bool begin_span(unsigned address_local, unsigned registers, bool write) {
             const auto words = static_cast<unsigned>(__builtin_popcount(registers));
             span_active = direct_memory && wasm_cost::repeated_test_saves_work(words) && (!write ||
                 common::code_tracking::skip_code_write_guards());
-            if (!span_active) return;
+            if (!span_active) return true;
             if(memory_experiment::mode) {
                 direct_host(*this,address_local,words*4,write,4);
                 get_local(HOST);set_local(SPAN_HOST);
+                if (defer_memory) {
+                    get_local(SPAN_HOST); op(op_i32_eqz);
+                    op(op_if); op(type_void);
+                    bail(census_pc & ~1u, 0, exit_census::memory);
+                    op(op_end);
+                }
             } else {
             i32_const(0); set_local(SPAN_HOST);
             load_i32(S::AOT_TLB); tee_local(ENTRY);
@@ -225,12 +237,12 @@ namespace eka2l1::arm::aot {
             op(op_if); op(type_void);
             get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,12); set_local(SPAN_HOST);
             op(op_end); op(op_end);
-            return;
+            return true;
             }
             // The existing proof covers every transfer. Branch once, then
             // use fixed memory offsets; a miss keeps the original scalar body.
             // For words > 1 both paths remove repeated proof-result tests.
-            get_local(SPAN_HOST); op(op_if); op(type_void);
+            if (!defer_memory) { get_local(SPAN_HOST); op(op_if); op(type_void); }
             unsigned offset = 0;
             for (unsigned reg = 0; reg < 16; ++reg) {
                 if (!(registers & (1u << reg))) continue;
@@ -247,7 +259,14 @@ namespace eka2l1::arm::aot {
                 } else memory_write = true;
                 offset += 4;
             }
+            if (defer_memory) {
+                // A failed whole-span proof already returned for compiled
+                // recovery. No scalar callback path can be reached here.
+                span_active = false;
+                return false;
+            }
             op(op_else);
+            return true;
         }
         void end_span() {
             if (span_active && memory_experiment::enabled()) op(op_end);
@@ -910,6 +929,7 @@ namespace eka2l1::arm::aot {
             // Keep its locals across iterations, but poll at the unproved edge.
             // The proven finite-loop path below deliberately omits this poll.
             ++tr.watchdog_safepoints;
+            tr.dispatch_entries.push_back(target | 1u);
             w.polled_loop = true;
             watchdog::emit_request(w);
             w.load_i32(S::NUM_INSTRS_TO_EXECUTE);
@@ -1079,9 +1099,17 @@ namespace eka2l1::arm::aot {
         // Tracks how far the decoder walked before breaking out of the
         // loop (typically at a terminator like POP {PC}).
         std::uint32_t decoded_end_offset = 0;
+        auto checked_helpers = w.helper_calls;
         for (std::size_t i = 0; i + 1 < code_size; i += 2) {
             if (bounded && stop_after_store && w.memory_write && !w.finite_loop
                     && (!w.continue_stores || w.helper_calls)) break;
+            if (bounded && w.helper_calls != checked_helpers) {
+                checked_helpers = w.helper_calls;
+                w.load_i32(S::AOT_EXIT);
+                w.op(op_if); w.op(type_void);
+                w.bail(start_address + static_cast<std::uint32_t>(i), insn_idx, exit_census::guard);
+                w.op(op_end);
+            }
             // Skip unreachable offsets. `reachable` is the CFG closure
             // from offset 0, so anything not in it is either the middle
             // halfword of a wide insn or literal-pool data past the
@@ -1098,14 +1126,16 @@ namespace eka2l1::arm::aot {
             }
             std::uint16_t insn = code[i] | (code[i+1] << 8);
             std::uint32_t insn_addr = start_address + static_cast<std::uint32_t>(i);
-            // A scalar miss leaves before touching guest state. Successful
+            // A memory miss leaves before touching guest state. Successful
             // direct accesses cannot change mappings or request an interrupt,
             // so their stores need no intermediate return to the dispatcher.
-            // Multi-register transfers retain their original callback boundary.
-            w.defer_scalar_memory = w.continue_stores && (
+            // Whole-span misses leave before the first register transfer.
+            w.defer_memory = w.continue_stores && (
                 (insn & 0xf000) == 0x5000 || (insn & 0xe000) == 0x6000
                 || (insn & 0xf000) == 0x8000 || (insn & 0xf000) == 0x9000
-                || (insn & 0xf800) == 0x4800);
+                || (insn & 0xf800) == 0x4800
+                || (insn & 0xfe00) == 0xb400 || (insn & 0xfe00) == 0xbc00
+                || (insn & 0xf000) == 0xc000);
             if (fusion) {
                 fusion->path.insert(insn_addr);
                 ++fusion->emitted;
@@ -1125,14 +1155,6 @@ namespace eka2l1::arm::aot {
             if (bounded) {
                 w.store_i32_const(S::PC, insn_addr);
 
-                // High-register PC operands require pipeline/control-flow semantics.
-                // Keep these rare forms in the interpreter until implemented fully.
-                if ((insn & 0xFC00) == 0x4400 && (insn & 0x0300) != 0x0300
-                        && ((((insn & 7) | ((insn >> 4) & 8)) == 15) || (((insn >> 3) & 15) == 15))) {
-                    w.bail_unsupported(insn_addr, insn_idx);
-                    decoded_end_offset = static_cast<std::uint32_t>(i);
-                    break;
-                }
                 // ARMv5/v6 long calls have two separately observable halfwords.
                 // Keep the intermediate LR visible even if execution stops between them.
                 const auto call_half = insn & 0xF800;
@@ -3838,18 +3860,28 @@ namespace eka2l1::arm::aot {
                 // ADD Rdn, Rm (T2, high register) — no flags update
                 int rdn = (insn & 7) | ((insn >> 4) & 8);
                 int rm = (insn >> 3) & 0xF;
-                w.load_reg(rdn);
-                w.load_reg(rm);
+                if (rdn == 15) w.i32_const(insn_addr + 4); else w.load_reg(rdn);
+                if (rm == 15) w.i32_const(insn_addr + 4); else w.load_reg(rm);
                 w.op(op_i32_add);
                 w.set_local(TMP1);
                 w.store_reg(rdn, TMP1);
+                if (rdn == 15) {
+                    w.bail_preserve_pc();
+                    ++insn_idx; decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                    break;
+                }
             } else if ((insn & 0xFF00) == 0x4600) {
                 // MOV Rd, Rm (high register)
                 int rd = (insn & 7) | ((insn >> 4) & 8);
                 int rm = (insn >> 3) & 0xF;
-                w.load_reg(rm);
+                if (rm == 15) w.i32_const(insn_addr + 4); else w.load_reg(rm);
                 w.set_local(TMP1);
                 w.store_reg(rd, TMP1);
+                if (rd == 15) {
+                    w.bail_preserve_pc();
+                    ++insn_idx; decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                    break;
+                }
             } else if ((insn & 0xFFC0) == 0x0000 && (insn & 0x07C0) != 0) {
                 // LSLS Rd, Rm, #imm5
                 int rd = insn & 7;
@@ -4073,32 +4105,33 @@ namespace eka2l1::arm::aot {
                 w.i32_const(count * 4);
                 w.op(op_i32_sub);
                 w.set_local(TMP1);
-                w.begin_span(TMP1, reglist | (push_lr ? 1u << 14 : 0), true);
-                // Store registers at ascending addresses from new SP
-                int offset = 0;
-                for (int r = 0; r < 8; r++) {
-                    if (reglist & (1 << r)) {
-                        w.load_reg(r);
+                if (w.begin_span(TMP1, reglist | (push_lr ? 1u << 14 : 0), true)) {
+                    // Store registers at ascending addresses from new SP
+                    int offset = 0;
+                    for (int r = 0; r < 8; r++) {
+                        if (reglist & (1 << r)) {
+                            w.load_reg(r);
+                            w.set_local(TMP2);
+                            // tlb_write32(state_ptr, SP + offset, value)
+                            w.state_ptr();
+                            w.get_local(TMP1);
+                            if (offset > 0) { w.i32_const(offset); w.op(op_i32_add); }
+                            w.get_local(TMP2);
+                            w.call(1); // tlb_write32
+                            offset += 4;
+                        }
+                    }
+                    if (push_lr) {
+                        w.load_reg(14); // LR
                         w.set_local(TMP2);
-                        // tlb_write32(state_ptr, SP + offset, value)
                         w.state_ptr();
                         w.get_local(TMP1);
                         if (offset > 0) { w.i32_const(offset); w.op(op_i32_add); }
                         w.get_local(TMP2);
-                        w.call(1); // tlb_write32
-                        offset += 4;
+                        w.call(1);
                     }
+                    w.end_span();
                 }
-                if (push_lr) {
-                    w.load_reg(14); // LR
-                    w.set_local(TMP2);
-                    w.state_ptr();
-                    w.get_local(TMP1);
-                    if (offset > 0) { w.i32_const(offset); w.op(op_i32_add); }
-                    w.get_local(TMP2);
-                    w.call(1);
-                }
-                w.end_span();
                 // Fault callbacks observe the original SP. Publish writeback
                 // only after the transfers, matching the native core.
                 w.store_reg(13, TMP1);
@@ -4109,33 +4142,34 @@ namespace eka2l1::arm::aot {
                 // Load registers from SP at ascending addresses
                 w.load_reg(13);
                 w.set_local(TMP1); // current SP
-                w.begin_span(TMP1, reglist | (pop_pc ? 1u << 15 : 0), false);
-                int offset = 0;
-                for (int r = 0; r < 8; r++) {
-                    if (reglist & (1 << r)) {
-                        // tlb_read32(state_ptr, SP + offset)
+                if (w.begin_span(TMP1, reglist | (pop_pc ? 1u << 15 : 0), false)) {
+                    int offset = 0;
+                    for (int r = 0; r < 8; r++) {
+                        if (reglist & (1 << r)) {
+                            // tlb_read32(state_ptr, SP + offset)
+                            w.state_ptr();
+                            w.get_local(TMP1);
+                            if (offset > 0) { w.i32_const(offset); w.op(op_i32_add); }
+                            w.call(0); // tlb_read32
+                            w.set_local(TMP2);
+                            w.store_reg(r, TMP2);
+                            offset += 4;
+                        }
+                    }
+                    if (pop_pc) {
+                        // Load PC value
                         w.state_ptr();
                         w.get_local(TMP1);
                         if (offset > 0) { w.i32_const(offset); w.op(op_i32_add); }
-                        w.call(0); // tlb_read32
+                        w.call(0);
                         w.set_local(TMP2);
-                        w.store_reg(r, TMP2);
+                        w.store_reg(15, TMP2); // set PC
+                        w.get_local(TMP2); w.i32_const(1); w.op(op_i32_and);
+                        w.set_local(TMP2); w.store_i32(S::TFLAG, TMP2);
                         offset += 4;
                     }
+                    w.end_span();
                 }
-                if (pop_pc) {
-                    // Load PC value
-                    w.state_ptr();
-                    w.get_local(TMP1);
-                    if (offset > 0) { w.i32_const(offset); w.op(op_i32_add); }
-                    w.call(0);
-                    w.set_local(TMP2);
-                    w.store_reg(15, TMP2); // set PC
-                    w.get_local(TMP2); w.i32_const(1); w.op(op_i32_and);
-                    w.set_local(TMP2); w.store_i32(S::TFLAG, TMP2);
-                    offset += 4;
-                }
-                w.end_span();
                 // Count registers popped
                 int count = 0;
                 for (int r = 0; r < 8; r++) {
@@ -4457,21 +4491,23 @@ namespace eka2l1::arm::aot {
                 std::uint16_t reglist = insn & 0xFF;
                 w.load_reg(rn);
                 w.set_local(ADDR_TMP);
-                w.begin_span(ADDR_TMP, reglist, true);
-                int count = 0;
-                for (int r = 0; r < 8; r++) {
-                    if (reglist & (1 << r)) {
-                        w.load_reg(r);
-                        w.set_local(TMP1);
-                        w.state_ptr();
-                        w.get_local(ADDR_TMP);
-                        if (count > 0) { w.i32_const(count * 4); w.op(op_i32_add); }
-                        w.get_local(TMP1);
-                        w.call(1); // tlb_write32
-                        count++;
+                const int count = __builtin_popcount(reglist);
+                if (w.begin_span(ADDR_TMP, reglist, true)) {
+                    int offset = 0;
+                    for (int r = 0; r < 8; r++) {
+                        if (reglist & (1 << r)) {
+                            w.load_reg(r);
+                            w.set_local(TMP1);
+                            w.state_ptr();
+                            w.get_local(ADDR_TMP);
+                            if (offset > 0) { w.i32_const(offset * 4); w.op(op_i32_add); }
+                            w.get_local(TMP1);
+                            w.call(1); // tlb_write32
+                            offset++;
+                        }
                     }
+                    w.end_span();
                 }
-                w.end_span();
                 // Writeback: Rn += count*4
                 w.get_local(ADDR_TMP);
                 w.i32_const(count * 4);
@@ -4484,20 +4520,22 @@ namespace eka2l1::arm::aot {
                 std::uint16_t reglist = insn & 0xFF;
                 w.load_reg(rn);
                 w.set_local(ADDR_TMP);
-                w.begin_span(ADDR_TMP, reglist, false);
-                int count = 0;
-                for (int r = 0; r < 8; r++) {
-                    if (reglist & (1 << r)) {
-                        w.state_ptr();
-                        w.get_local(ADDR_TMP);
-                        if (count > 0) { w.i32_const(count * 4); w.op(op_i32_add); }
-                        w.call(0); // tlb_read32
-                        w.set_local(TMP1);
-                        w.store_reg(r, TMP1);
-                        count++;
+                const int count = __builtin_popcount(reglist);
+                if (w.begin_span(ADDR_TMP, reglist, false)) {
+                    int offset = 0;
+                    for (int r = 0; r < 8; r++) {
+                        if (reglist & (1 << r)) {
+                            w.state_ptr();
+                            w.get_local(ADDR_TMP);
+                            if (offset > 0) { w.i32_const(offset * 4); w.op(op_i32_add); }
+                            w.call(0); // tlb_read32
+                            w.set_local(TMP1);
+                            w.store_reg(r, TMP1);
+                            offset++;
+                        }
                     }
+                    w.end_span();
                 }
-                w.end_span();
                 // Writeback only if Rn not in reglist
                 if (!(reglist & (1 << rn))) {
                     w.get_local(ADDR_TMP);
@@ -4650,8 +4688,8 @@ namespace eka2l1::arm::aot {
                 // CMP Rn, Rm (T2, one or both regs high)
                 int rn = (insn & 7) | ((insn >> 4) & 8);
                 int rm = (insn >> 3) & 0xF;
-                w.load_reg(rn); w.set_local(TMP1);
-                w.load_reg(rm); w.set_local(TMP2);
+                if (rn == 15) w.i32_const(insn_addr + 4); else w.load_reg(rn); w.set_local(TMP1);
+                if (rm == 15) w.i32_const(insn_addr + 4); else w.load_reg(rm); w.set_local(TMP2);
                 w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_sub); w.set_local(TMP3);
                 w.get_local(TMP3); w.i32_const(31); w.op(op_i32_shr_u); w.set_local(TMP4);
                 w.store_i32(S::NFLAG, TMP4);
@@ -4659,7 +4697,10 @@ namespace eka2l1::arm::aot {
                 w.store_i32(S::ZFLAG, TMP4);
                 w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_ge_u); w.set_local(TMP4);
                 w.store_i32(S::CFLAG, TMP4);
-                w.store_i32_const(S::VFLAG, 0);
+                w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_xor);
+                w.get_local(TMP1); w.get_local(TMP3); w.op(op_i32_xor); w.op(op_i32_and);
+                w.i32_const(31); w.op(op_i32_shr_u); w.set_local(TMP4);
+                w.store_i32(S::VFLAG, TMP4);
             } else if ((insn & 0xFFC0) == 0x4200) {
                 // TST Rn, Rm
                 int rn = insn & 7;

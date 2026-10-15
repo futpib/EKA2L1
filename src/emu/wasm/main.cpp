@@ -100,7 +100,8 @@ namespace {
         bool system_started = false;
         int present_status = 0;
         std::size_t screen_redraw_cb_id = 0;
-        std::unique_ptr<std::thread> emu_thread;
+        pthread_t emu_thread{};
+        bool emu_thread_started = false;
         pthread_t gfx_thread{};
         bool gfx_thread_started = false;
         std::atomic<int> gfx_ready{0};
@@ -177,6 +178,21 @@ namespace {
 
 }
 
+EM_JS(void, start_emulator_tasks, (std::uintptr_t callback), {
+    const tasks = new MessageChannel();
+    tasks.port1.onmessage = () => {
+        try {
+            const status = wasmTable.get(callback)(0);
+            if (status === 2) setTimeout(() => tasks.port2.postMessage(0), 1);
+            else tasks.port2.postMessage(0);
+        } catch (error) {
+            tasks.port1.close(); tasks.port2.close();
+            if (error !== "unwind") throw error;
+        }
+    };
+    tasks.port2.postMessage(0);
+});
+
 extern "C" {
 
 EMSCRIPTEN_KEEPALIVE
@@ -189,10 +205,24 @@ int eka2l1_graphics_diagnostics_configure(int enabled) {
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_aot_configure(int mode) {
-    if (g_state || (mode != 0 && mode != 5)) return -1;
-    eka2l1::arm::aot::compiler_enabled = mode == 5;
+    if (g_state || mode != 5) return -1;
+    eka2l1::arm::aot::compiler_enabled = true;
     return 0;
 }
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_rom_cache_configure(const char *path, const char *build_id) {
+    if (g_state || !path || !build_id) return -1;
+    return arm::aot::configure_rom_cache(path, build_id) ? 0 : -1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_rom_cache_export(const char *path) {
+    return path && arm::aot::request_rom_cache_export(path) ? 0 : -1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_rom_cache_status() { return arm::aot::rom_cache_status(); }
 
 // Also start the watchdog for clients that use the raw frontend API. Launchers
 // may already have started one with a custom interval before initialization.
@@ -356,7 +386,14 @@ const char *eka2l1_monitor_report() {
         << ",\"instructions\":" << common::benchmark::instructions.load()
         << ",\"compiled_functions\":" << arm::aot::compiled_function_count()
         << ",\"retired_compiled_functions\":" << arm::aot::retired_compiled_function_count()
+        << ",\"aot_shared_functions\":" << arm::aot::compilation.shared_functions.load()
+        << ",\"aot_demand_functions\":" << arm::aot::compilation.demand_functions.load()
+        << ",\"aot_single_functions\":" << arm::aot::compilation.single_functions.load()
         << ",\"aot_translation_us\":" << arm::aot::compilation.translation_us.load()
+        << ",\"aot_rom_translation_us\":" << arm::aot::compilation.rom_translation_us.load()
+        << ",\"aot_ram_translation_us\":" << arm::aot::compilation.ram_translation_us.load()
+        << ",\"aot_rom_translations\":" << arm::aot::compilation.rom_translations.load()
+        << ",\"aot_ram_translations\":" << arm::aot::compilation.ram_translations.load()
         << ",\"aot_emission_us\":" << arm::aot::compilation.emission_us.load()
         << ",\"aot_installation_us\":" << arm::aot::compilation.installation_us.load()
         << ",\"aot_eager_functions\":" << arm::aot::compilation.eager_functions.load()
@@ -853,21 +890,23 @@ int eka2l1_run(const char *app_name) {
     g_state->running = true;
     start_benchmark_input(g_state->symsys.get(), g_state->winserv);
 
-    // Run the emulator loop on a background thread so the main thread stays free
-    g_state->emu_thread = std::make_unique<std::thread>([]() {
-        LOG_INFO(FRONTEND_CMDLINE, "Emulator thread started");
-        int iterations = 0;
-        while (g_state && g_state->running) {
+    // Return from each bounded batch so browser tasks and collection can run
+    // on the CPU worker as they already do on the graphics worker.
+    const auto run_batch = +[](void *) -> int {
+        static unsigned iterations = 0;
+        const auto deadline = emscripten_get_now() + 4;
+        do {
+            if (!g_state || !g_state->running) {
+                LOG_INFO(FRONTEND_CMDLINE, "Emulator loop exited after {} iterations", iterations);
+                pthread_exit(nullptr);
+            }
             if (g_route.enabled) {
-                std::unique_lock<std::mutex> lock(g_route.mutex);
+                const std::lock_guard<std::mutex> lock(g_route.mutex);
                 if (common::benchmark::virtual_us.load() >= g_route.target_us) {
                     g_route.paused = true;
-                    g_route.changed.wait(lock, [] {
-                        return !g_state->running || common::benchmark::virtual_us.load() < g_route.target_us;
-                    });
-                    g_route.paused = false;
+                    return 2;
                 }
-                if (!g_state->running) break;
+                g_route.paused = false;
             }
             if (common::benchmark::interactive) {
                 std::vector<wasm_state::live_key> inputs;
@@ -886,17 +925,24 @@ int eka2l1_run(const char *app_name) {
             }
             if (common::performance::checkpoint(common::benchmark::virtual_us.load(), common::benchmark::instructions.load())) {
                 g_state->running = false;
-                break;
+                continue;
             }
-            int ret = g_state->symsys->loop();
-            iterations++;
-            if (ret == 0) {
-                g_state->running = false;
-                break;
-            }
-        }
-        LOG_INFO(FRONTEND_CMDLINE, "Emulator loop exited after {} iterations", iterations);
-    });
+            if (g_state->symsys->loop() == 0) g_state->running = false;
+            ++iterations;
+        } while (emscripten_get_now() < deadline);
+        return 1;
+    };
+    const auto thread_error = pthread_create(&g_state->emu_thread, nullptr, [](void *callback) -> void * {
+        LOG_INFO(FRONTEND_CMDLINE, "Emulator thread started");
+        start_emulator_tasks(reinterpret_cast<std::uintptr_t>(callback));
+        emscripten_exit_with_live_runtime();
+    }, reinterpret_cast<void *>(run_batch));
+    if (thread_error) {
+        g_state->running = false;
+        LOG_ERROR(FRONTEND_CMDLINE, "Emulator thread creation failed: {}", thread_error);
+        return -1;
+    }
+    g_state->emu_thread_started = true;
 
     return 0;
 }
@@ -957,9 +1003,7 @@ void eka2l1_shutdown() {
             g_state->running = false;
             g_route.changed.notify_all();
         }
-        if (g_state->emu_thread && g_state->emu_thread->joinable()) {
-            g_state->emu_thread->join();
-        }
+        if (g_state->emu_thread_started) pthread_join(g_state->emu_thread, nullptr);
         if (g_state->graphics_driver && g_state->winserv) {
             // Drain prior display hooks before destroying their window server.
             int drained = -100;

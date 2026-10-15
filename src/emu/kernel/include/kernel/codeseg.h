@@ -287,6 +287,7 @@ namespace eka2l1::kernel {
         }
 
         std::vector<std::uint32_t> get_export_table(kernel::process *pr);
+        std::vector<std::uint32_t> get_relocated_code_entries(kernel::process *pr);
         std::vector<std::uint32_t> &get_export_table_raw() {
             return export_table;
         }

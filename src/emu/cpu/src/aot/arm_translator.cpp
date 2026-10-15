@@ -1448,6 +1448,7 @@ namespace eka2l1::arm::aot {
             }
 
             if (!instruction.leaf && safepoints.count(insn_addr)) {
+                tr.dispatch_entries.push_back(insn_addr);
                 w.end_wide();
                 watchdog::emit_request(w); w.op(op_if); w.op(type_void);
                 w.bail(insn_addr, insn_idx, exit_census::guard); w.op(op_end);
@@ -1478,6 +1479,18 @@ namespace eka2l1::arm::aot {
                     w.bail(insn_addr, insn_idx, exit_census::guard);
                     w.op(op_end);
                 }
+            // BLX immediate uses condition 15 and changes to Thumb execution.
+            if ((inst & 0xfe000000u) == 0xfa000000u) {
+                const auto displacement = static_cast<std::int32_t>(inst << 8) >> 6;
+                const auto target = insn_addr + 8 + displacement + ((inst >> 23) & 2);
+                w.store_i32_const(S::LR, insn_addr + 4);
+                w.store_i32_const(S::TFLAG, 1);
+                w.successor_thumb = true;
+                w.bail(target, insn_idx + 1);
+                tr.resume_points.push_back(insn_addr + 4);
+                ++insn_idx; decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                break;
+            }
                 // Match DynCom's PLD decode: an optional prefetch hint has no
                 // architectural effect, but still consumes one guest instruction.
                 if ((inst & 0xFD70F000) == 0xF550F000) {
@@ -1487,7 +1500,8 @@ namespace eka2l1::arm::aot {
                 }
                 // Exclusive/swap encodings overlap broad data-processing masks.
                 // Let DynCom preserve the exclusive monitor and instruction semantics.
-                if ((inst & 0x0F0000F0) == 0x01000090 || (inst >> 28) == 15) {
+                const bool exclusive_word = (inst & 0x0ff00fffu) == 0x01900f9fu || (inst & 0x0ff00ff0u) == 0x01800f90u;
+                if (((inst & 0x0F0000F0) == 0x01000090 && !exclusive_word) || (inst >> 28) == 15) {
                     w.bail_unsupported(insn_addr, insn_idx);
                     decoded_end_offset = static_cast<std::uint32_t>(i);
                     break;
@@ -1577,6 +1591,7 @@ namespace eka2l1::arm::aot {
                 w.store_i32_const(S::AOT_EXIT, descriptor | svc_taken);
                 if (predicate) w.op(op_end);
                 w.store_i32_const(S::PC, insn_addr + 4);
+                tr.dispatch_entries.push_back(insn_addr + 4);
 
                 w.i32_const(0); w.ret(); ++w.bail_count;
                 ++insn_idx; decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
@@ -1585,6 +1600,30 @@ namespace eka2l1::arm::aot {
 
             // Emit condition check
             bool cond_opened = emit_cond_check(w, cond, TMP1, TMP2);
+            if ((inst & 0x0ff00fffu) == 0x01900f9fu || (inst & 0x0ff00ff0u) == 0x01800f90u) {
+                const bool read = inst & (1u << 20);
+                if (((inst >> 16) & 15) == 15 || ((inst >> 12) & 15) == 15 || (!read && (inst & 15) == 15)) {
+                    w.bail_unsupported(insn_addr, insn_idx);
+                    if (cond_opened) w.op(op_end);
+                    decoded_end_offset = static_cast<std::uint32_t>(i);
+                    break;
+                }
+                w.state_ptr(); w.load_reg((inst >> 16) & 15);
+                if (!read) w.load_reg(inst & 15);
+                if (!read && !common::code_tracking::skip_code_write_guards()) {
+                    w.slow_call(7);
+                } else {
+                    // The monitor's MMU operations only access memory and its
+                    // reservation. They cannot run guest exceptions or change
+                    // CPU registers, so locals remain live across this call.
+                    source_scope provenance(w.source, source_kind::helper);
+                    w.op(op_call); leb(result.body, read ? 6 : 7);
+                }
+                w.set_local(TMP1); w.store_reg((inst >> 12) & 15, TMP1);
+                if (cond_opened) w.op(op_end);
+                ++insn_idx; decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                continue;
+            }
 
             // === B/BL: bits [27:25] = 101 ===
             if (((inst >> 25) & 7) == 5) {
@@ -1756,7 +1795,7 @@ namespace eka2l1::arm::aot {
                 bool preindex = (inst >> 24) & 1;
                 int rn = (inst >> 16) & 0xF;
                 std::uint32_t reglist = inst & 0xFFFF;
-                if (bounded && ((inst & (1u << 22)) || !reglist || (writeback && (reglist & (1u << rn))))) {
+                if (bounded && ((inst & (1u << 22)) || !reglist || (load && writeback && (reglist & (1u << rn))))) {
                     w.bail_unsupported(insn_addr, insn_idx); // banked/SPSR and base-in-list cases
                     if (cond_opened) w.op(op_end);
                     ++insn_idx; decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
@@ -1789,6 +1828,12 @@ namespace eka2l1::arm::aot {
                     w.op(op_i32_add);
                 }
                 w.set_local(TMP1); // base address
+                const bool early_writeback = !load && writeback && (reglist & (1u << rn));
+                if (early_writeback) {
+                    w.load_reg(rn); w.set_local(ADDR_TMP);
+                    w.load_reg(rn); w.i32_const(up ? count * 4 : -count * 4); w.op(op_i32_add);
+                    w.set_local(TMP4); w.store_reg(rn, TMP4);
+                }
 
                 const bool proved_span = w.has_proved_access();
                 // Short blocks can share one permission/alignment/endian proof
@@ -1813,7 +1858,9 @@ namespace eka2l1::arm::aot {
                             guest_memory_op(w,op_i32_load,2,offset);
                             w.set_local(TMP2); w.store_reg(r,TMP2);
                         } else {
-                            if (r == 15) w.i32_const(insn_addr + 8); else w.load_reg(r);
+                            if (r == 15) w.i32_const(insn_addr + 8);
+                            else if (early_writeback && r == rn) w.get_local(ADDR_TMP);
+                            else w.load_reg(r);
                             guest_memory_op(w,op_i32_store,2,offset);
                             w.memory_write = true;
                         }
@@ -1853,6 +1900,7 @@ namespace eka2l1::arm::aot {
                         w.store_reg(r, TMP2);
                     } else {
                         if (r == 15) w.i32_const(insn_addr + 8);
+                        else if (early_writeback && r == rn) w.get_local(ADDR_TMP);
                         else w.load_reg(r);
                         w.set_local(TMP2);
                         w.state_ptr();
@@ -1866,7 +1914,7 @@ namespace eka2l1::arm::aot {
 
                 if (span_fast_path && !proved_span) w.op(op_end);
 
-                if (writeback) {
+                if (writeback && !early_writeback) {
                     w.load_reg(rn);
                     if (up) {
                         w.i32_const(count * 4);
@@ -1941,6 +1989,30 @@ namespace eka2l1::arm::aot {
                                   !((inst >> 20) & 1) && // TST/TEQ/CMP/CMN have S=1
                                   !((inst >> 25) & 1) &&
                                   ((inst >> 4) & 0xF) == 0;
+
+                if ((inst & 0x0ff0f090u) == 0x01600080u || (inst & 0x0ff00090u) == 0x01000080u) {
+                    const unsigned rd = (inst >> 16) & 15, rs = (inst >> 8) & 15, rm = inst & 15;
+                    // SMULxy selects and sign-extends a halfword from each source.
+                    for (auto operand : {std::pair<unsigned, bool>{rm, bool(inst & 32)}, {rs, bool(inst & 64)}}) {
+                        w.load_reg(operand.first);
+                        if (!operand.second) { w.i32_const(16); w.op(op_i32_shl); }
+                        w.i32_const(16); w.op(op_i32_shr_s);
+                    }
+                    w.op(op_i32_mul); w.set_local(TMP1);
+                    if ((inst & 0x0ff00090u) == 0x01000080u) {
+                        w.load_reg((inst >> 12) & 15); w.set_local(TMP2);
+                        w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_add); w.set_local(TMP3);
+                        w.get_local(TMP1); w.get_local(TMP3); w.op(op_i32_xor);
+                        w.get_local(TMP2); w.get_local(TMP3); w.op(op_i32_xor); w.op(op_i32_and);
+                        w.i32_const(0); w.op(op_i32_lt_s); w.op(op_if); w.op(type_void);
+                        w.load_i32(S::CPSR); w.i32_const(1 << 27); w.op(op_i32_or); w.set_local(TMP4);
+                        w.store_i32(S::CPSR, TMP4); w.op(op_end);
+                        w.store_reg(rd, TMP3);
+                    } else w.store_reg(rd, TMP1);
+                    if (cond_opened) w.op(op_end);
+                    ++insn_idx; decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                    continue;
+                }
 
                 if (is_multiply) {
                     // MUL: Rd = Rm * Rs (bits [21]=0)
@@ -2025,7 +2097,7 @@ namespace eka2l1::arm::aot {
                     bool imm_offset = (inst >> 22) & 1;
                     std::uint32_t sh = (inst >> 5) & 3;
 
-                    if (bounded && !load && sh != 1) {
+                    if (bounded && !load && sh != 1 && rd >= 15) {
                         // LDRD/STRD share this encoding space, not STRH.
                         w.bail_unsupported(insn_addr, insn_idx);
                         if (cond_opened) w.op(op_end);
@@ -2068,6 +2140,22 @@ namespace eka2l1::arm::aot {
                     }
                     w.set_local(ADDR_TMP);
                     if (!preindex) w.store_reg(rn, TMP4); // DynCom updates the base before the access.
+
+                    if (!load && sh >= 2) {
+                        // ARMv5 doubleword transfers perform two ordered word accesses.
+                        const bool load_double = sh == 2;
+                        for (unsigned word = 0; word < 2; ++word) {
+                            w.state_ptr(); w.get_local(ADDR_TMP);
+                            if (word) { w.i32_const(4); w.op(op_i32_add); }
+                            if (load_double) {
+                                w.call(0); w.set_local(TMP1); w.store_reg(rd + word, TMP1);
+                            } else { w.load_reg(rd + word); w.call(1); }
+                        }
+                        if (preindex && writeback) w.store_reg(rn, ADDR_TMP);
+                        if (cond_opened) w.op(op_end);
+                        ++insn_idx; decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                        continue;
+                    }
 
                     if (load) {
                         w.state_ptr();

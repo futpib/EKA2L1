@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <deque>
 #include <map>
+#include <memory>
 #include <unordered_map>
 
 namespace eka2l1::arm::aot {
@@ -43,6 +44,8 @@ namespace eka2l1::arm::aot {
             bool unloaded = false;
             std::uint64_t mapping_generation = 0;
             const std::atomic<std::uint64_t> *mapping_source = nullptr;
+            unsigned policy = 0;
+            std::shared_ptr<unsigned char> function_lifetime;
         };
 
         static std::uint64_t key(std::uint32_t space, std::uint32_t pc_mode) {
@@ -134,7 +137,7 @@ namespace eka2l1::arm::aot {
         block *find_original(std::uint32_t pc_mode, core &cpu);
 
     public:
-        block &insert(std::uint32_t pc_mode, const core::code_mapping &view, std::size_t size) {
+        block &insert(std::uint32_t pc_mode, const core::code_mapping &view, std::size_t size, unsigned policy = 0) {
             const auto k = key(view.address_space, pc_mode);
             forget_dispatch(k);
             auto old = current_.find(k);
@@ -143,10 +146,48 @@ namespace eka2l1::arm::aot {
             versions_.push_back({k, version, view.bytes, {view.bytes, view.bytes + size}});
             current_[k] = version;
             auto &entry = versions_.back();
+            entry.policy = policy;
             entry.guard_begin = reinterpret_cast<std::uintptr_t>(view.bytes);
             entry.guard_end = entry.guard_begin + size;
             index_span(entry.version, pc_mode & ~1u, size);
             return entry;
+        }
+
+        // Reuse code at the same guest PC across processes only when both the
+        // executable bytes and every folded code dependency are identical.
+        // Each process retains its own mapping/lifetime guards. Validation
+        // happens at compilation, never on the hot path.
+        aot_func share(std::uint32_t pc_mode, const core::code_mapping &view, core &cpu, unsigned policy = 0) {
+            const auto found = shared_entries_.find(pc_mode);
+            if (found == shared_entries_.end()) return nullptr;
+            for (auto version : found->second) {
+                auto &source = versions_[version];
+                if (!source.live || !source.function || source.policy != policy || !view.bytes
+                        || source.code.size() > view.size
+                        || !equal_code_bytes(view.bytes, source.code.data(), source.code.size())) continue;
+                bool valid = true;
+                std::vector<const std::uint8_t *> dependencies;
+                dependencies.reserve(source.dependencies.size());
+                for (const auto &dependency : source.dependencies) {
+                    core::code_mapping mapped;
+                    if (!cpu.resolve_code || !cpu.resolve_code(dependency.address, mapped)
+                            || mapped.address_space != view.address_space
+                            || !mapped.bytes || mapped.size < dependency.code.size()
+                            || !equal_code_bytes(mapped.bytes, dependency.code.data(), dependency.code.size())) { valid = false; break; }
+                    dependencies.push_back(mapped.bytes);
+                }
+                if (!valid) continue;
+                if (!source.function_lifetime) source.function_lifetime = std::make_shared<unsigned char>(0);
+                auto &entry = insert(pc_mode, view, source.code.size(), policy);
+                entry.function_lifetime = source.function_lifetime;
+                for (std::size_t i = 0; i < source.dependencies.size(); ++i) {
+                    const auto &dependency = source.dependencies[i];
+                    add_dependency(entry, dependency.address, dependencies[i], dependency.code);
+                }
+                attach(entry.version, source.function);
+                return entry.function;
+            }
+            return nullptr;
         }
 
         void add_dependency(block &entry, std::uint32_t address,
@@ -173,6 +214,8 @@ namespace eka2l1::arm::aot {
             if (version < versions_.size() && versions_[version].live) {
                 forget_dispatch(versions_[version].key);
                 versions_[version].function = function;
+                auto &shared = shared_entries_[static_cast<std::uint32_t>(versions_[version].key)];
+                if (shared.empty() || shared.back() != version) shared.push_back(version);
                 return true;
             }
             return false;
@@ -196,11 +239,17 @@ namespace eka2l1::arm::aot {
 
         bool has_retired() const { return !retired_versions_.empty(); }
 
+        aot_func function_for_version(std::uint32_t version) const {
+            return version < versions_.size() && versions_[version].live
+                ? versions_[version].function : nullptr;
+        }
+
         // Only call after generated code has returned. Version IDs remain
         // tombstones so a late staged module cannot attach to a replacement.
         std::vector<aot_func> collect_retired() {
             std::vector<aot_func> functions;
             std::vector<std::uint32_t> pages;
+            std::vector<std::uint32_t> pcs;
             const auto span = [&](std::uint32_t address, std::size_t size) {
                 if (!size) return;
                 const auto end = std::uint64_t(address) + std::min<std::uint64_t>(size, 0x100000000ull - address);
@@ -209,7 +258,10 @@ namespace eka2l1::arm::aot {
             };
             for (auto version : retired_versions_) {
                 auto &entry = versions_[version];
-                if (entry.function) functions.push_back(entry.function);
+                if (entry.function && (!entry.function_lifetime || entry.function_lifetime.use_count() == 1))
+                    functions.push_back(entry.function);
+                entry.function_lifetime.reset();
+                pcs.push_back(static_cast<std::uint32_t>(entry.key));
                 span(static_cast<std::uint32_t>(entry.key) & ~1u, entry.code.size());
                 for (const auto &dependency : entry.dependencies) span(dependency.address, dependency.code.size());
                 std::vector<std::uint8_t>{}.swap(entry.code);
@@ -221,6 +273,16 @@ namespace eka2l1::arm::aot {
                 entry.guard_begin = entry.guard_end = 0;
             }
             retired_versions_.clear();
+            std::sort(pcs.begin(), pcs.end());
+            pcs.erase(std::unique(pcs.begin(), pcs.end()), pcs.end());
+            for (auto pc : pcs) {
+                const auto found = shared_entries_.find(pc);
+                if (found == shared_entries_.end()) continue;
+                auto &versions = found->second;
+                versions.erase(std::remove_if(versions.begin(), versions.end(),
+                    [&](auto version) { return versions_[version].unloaded; }), versions.end());
+                if (versions.empty()) shared_entries_.erase(found);
+            }
             std::sort(pages.begin(), pages.end());
             pages.erase(std::unique(pages.begin(), pages.end()), pages.end());
             for (auto page : pages) {
@@ -299,6 +361,7 @@ namespace eka2l1::arm::aot {
         std::deque<block> versions_;
         std::vector<std::uint32_t> retired_versions_;
         std::unordered_map<std::uint64_t, std::uint32_t> current_;
+        std::unordered_map<std::uint32_t, std::vector<std::uint32_t>> shared_entries_;
         // Reclamation removes dead versions from the touched page buckets.
         std::map<std::uint32_t, std::vector<std::uint32_t>> invalidation_pages_;
     };
