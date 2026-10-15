@@ -383,7 +383,9 @@ namespace eka2l1 {
                 return true;
             }
 
-            LOG_ERROR(KERNEL, "Access violation {} address 0x{:X} in thread {}", (exception_type == arm::exception_type_access_violation_read) ? "reading" : "writing", exception_data, crr_thread()->name());
+            LOG_ERROR(KERNEL, "Access violation {} address 0x{:X} in thread {} (PC=0x{:08X}, LR=0x{:08X}, SP=0x{:08X}, CPSR=0x{:08X})",
+                (exception_type == arm::exception_type_access_violation_read) ? "reading" : "writing", exception_data,
+                crr_thread()->name(), core->get_pc(), core->get_lr(), core->get_sp(), core->get_cpsr());
             eka2l1::arm::aot::dump_history();
             break;
 
