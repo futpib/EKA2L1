@@ -1,14 +1,10 @@
 {
   "snakes": [
-    "(async()=>{await step(24000000);await press(167);return shot('select')})()",
-    "(async()=>{await press(167,7000000);return shot('level-ready')})()",
-    "(async()=>{await press(167,7000000);return shot('playing')})()",
-    "(async()=>{await step(8000000);return shot('active')})()",
-    "(async()=>{await go();const r=await measure('opening-level-valid',5);return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+    "(async()=>{await step(24000000);await ensureGameplay();return shot('playing')})()",
+    "(async()=>{await step(8000000);await go();const r=await measure('opening-level-valid',5);return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
   ],
   "sky-force": [
-    "(async()=>{await step(30000000);for(let i=0;i<4;i++)await press(167,3000000);return shot('menu')})()",
-    "(async()=>{await step(6000000);return shot('stage')})()",
+    "(async()=>{await step(30000000);await ensureGameplay();return shot('stage')})()",
     "(async()=>{await step(4000000);await go();const r=await measure('stage-1',2);return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
   ],
   "k-rally": [
@@ -19,7 +15,7 @@
     "(async()=>{await page.evaluate(()=>{Module._eka2l1_key_state(52,1);Module._eka2l1_key_state(15,1)});await go();const r=await measure('tutorial-driving',3);return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
   ],
   "asphalt-2": [
-    "(async()=>{await step(20000000);return shot('initial')})()",
+    "(async()=>{await awaitAsphaltSound();return shot('initial')})()",
     "(async()=>{await press(164);await press(167);await press(17);await press(167);await press(167);return shot('golf')})()",
     "(async()=>{await press(167);await shot('track');await press(167,60000000);return shot('barrier')})()",
     "(async()=>{await go();const r=await measure('golf-san-francisco-barrier',10);return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
@@ -55,9 +51,9 @@
     "(async()=>{await step(30000000);await press(167,3000000);await press(167,3000000);return await shot('menu')})()",
     "(async()=>{await press(167,1000000);await press(167,1000000);return await shot('mode')})()",
     "(async()=>{await step(15000000);return await shot('level')})()",
-    "(async()=>{await press(14,100000);await go();const r=await measure('challenge-level-1',5);return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+    "(async()=>{await ensureMiners();await press(14,100000);await go();const r=await measure('challenge-level-1',5);return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
   ],
   "n-gage": [
-    "(async()=>{await step(30000000);await press(164,10000000);await press(165,10000000);await shot('client-home');await press(15,3000000);await shot('client-library');await page.evaluate(()=>Module._eka2l1_key_state(14,1));await step(200000);await page.evaluate(()=>Module._eka2l1_key_state(14,0));return await measure('client-idle',10)})()"
+    "(async()=>{await step(30000000);await awaitNgageClient();await press(164,10000000);await press(165,10000000);await shot('client-home');await press(15,3000000);await shot('client-library');await page.evaluate(()=>Module._eka2l1_key_state(14,1));await step(200000);await page.evaluate(()=>Module._eka2l1_key_state(14,0));return await measure('client-idle',10)})()"
   ]
 }

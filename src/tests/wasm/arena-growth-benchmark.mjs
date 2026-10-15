@@ -23,7 +23,7 @@ const browserMemorySamples=[];
 const browserMemory=async()=>{
  const rows=[];
  for(const proc of (await system.send('SystemInfo.getProcessInfo')).processInfo){
-  try{const text=fs.readFileSync(`/proc/${proc.id}/smaps_rollup`,'utf8');rows.push({type:proc.type,id:proc.id,pssKiB:Number(text.match(/^Pss:\s+(\d+)/m)?.[1]??0),rssKiB:Number(text.match(/^Rss:\s+(\d+)/m)?.[1]??0)});}catch{}
+  try{const text=fs.readFileSync(`/proc/${proc.id}/smaps_rollup`,'utf8');rows.push({type:proc.type,id:proc.id,cpuSeconds:proc.cpuTime,pssKiB:Number(text.match(/^Pss:\s+(\d+)/m)?.[1]??0),rssKiB:Number(text.match(/^Rss:\s+(\d+)/m)?.[1]??0)});}catch{}
  }
  return rows;
 };
@@ -34,14 +34,19 @@ if(process.argv[5]==='chrome-memory' || allocationProfile) {
  const {ChromeMemoryProfiler}=await import('./chrome-memory-profiler.mjs');
  memoryProfiler=new ChromeMemoryProfiler(page,out);await memoryProfiler.start();
 }
-page.on('console',m=>{log.write(m.text()+'\n');if(/Access violation|KERN-EXEC|ABORT:|panicked with category:/.test(m.text()))errors.push(m.text())});
+page.on('console',m=>{log.write(m.text()+'\n');if(/Access violation|KERN-EXEC|ABORT:|panicked with category:|AOT-only:|RuntimeError:|Aborted\(|Thread Main forcefully killed.*exit code: -/.test(m.text()))errors.push(m.text())});
 page.on('pageerror',e=>errors.push(String(e)));
+const guardedWait=async predicate=>{
+ const abort=new AbortController();
+ const timer=setInterval(()=>{if(errors.length)abort.abort(new Error(errors.join('\n')));},250);
+ try{return await page.waitForFunction(predicate,{signal:abort.signal});}finally{clearInterval(timer);}
+};
 await page.evaluateOnNewDocument(()=>{window.ekaTransientSession=true;});
 await page.goto(new URL('?game=custom',process.argv[4]).href,{waitUntil:'domcontentloaded'});
-if(allocationProfile)browserMemoryTimer=setInterval(async()=>{
+if(allocationProfile || process.env.EKA2L1_BROWSER_MEMORY==='1')browserMemoryTimer=setInterval(async()=>{
  try{const processes=await browserMemory();browserMemorySamples.push({ms:performance.now(),processes,pssKiB:processes.reduce((n,p)=>n+p.pssKiB,0)});}catch{}
 },1000);
-await page.waitForFunction(()=>window.Module?.calledRun);
+await guardedWait(()=>window.Module?.calledRun);
 assert.equal(await page.evaluate(t=>Module._eka2l1_route_configure(t),6000000),0);
 let installedImage;
 if(process.env.EKA2L1_BENCHMARK_PREPARED==='1') {
@@ -53,7 +58,7 @@ if(process.env.EKA2L1_BENCHMARK_PREPARED==='1') {
 }else for(const [selector,file] of [['#rom-file','SYM.ROM'],['#rpkg-file','SYM.RPKG'],['#sis-file',entry.ngage?.runtime.file ?? entry.file]])await(await page.$(selector)).uploadFile(path.join(assetDir,file));
 await page.$eval('#app-name',(e,v)=>e.value=v,entry.uid);
 await page.evaluate(({entryUrl,image})=>{window.measurementLaunch=startEmulator(entryUrl,image)},{entryUrl:!installedImage&&entry.ngage?'/preload/games/'+game+'/ngage':undefined,image:installedImage});
-await page.waitForFunction(()=>window._gameRunning);
+await guardedWait(()=>window._gameRunning);
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 const shot=async name=>{
  await page.screenshot({path:out+'/'+name+'.png'});
@@ -81,16 +86,40 @@ const shot=async name=>{
  return out+'/'+name+'.png';
 };
 status=()=>page.evaluate(()=>({ms:performance.now(),guest:Module._eka2l1_guest_time_us(),frames:Module._eka2l1_presentations(),phase:Module._eka2l1_route_phase(),diskScans:window.diskScans?.length||0,inputs:Module._eka2l1_input_consumed(),memory:JSON.parse(Module.ccall('eka2l1_memory_impl_stats','string',[],[])),policy:window.ekaCompilerPolicy,monitor:JSON.parse(Module.ccall('eka2l1_monitor_report','string',[],[]))}));
-const step=async(us)=>{const s=await status();assert.equal(s.phase,1);assert.equal(await page.evaluate(t=>Module._eka2l1_route_step_to(t),s.guest+us),0);await page.waitForFunction(()=>Module._eka2l1_route_phase()===1);return status()};
+const step=async(us)=>{const s=await status();assert.equal(s.phase,1);assert.equal(await page.evaluate(t=>Module._eka2l1_route_step_to(t),s.guest+us),0);await guardedWait(()=>Module._eka2l1_route_phase()===1);return status()};
 const requireBoatWithoutHelp=name=>{
  const png=PNG.sync.read(fs.readFileSync(out+'/'+name+'.png'));
  let pale=0;for(let y=600;y<750;y++)for(let x=100;x<800;x++){const i=(y*png.width+x)*4;if(png.data[i]>190&&png.data[i+1]>210&&png.data[i+2]>210)pale++;}
  assert(pale<30000,'Hooked On tutorial obscures the measured boat scene');
 };
+const skyHud=png=>{
+ const count=(x0,x1,y0,y1,test)=>{let n=0;for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){const i=(y*png.width+x)*4;if(test(...png.data.subarray(i,i+3)))n++;}return n;};
+ const black=(r,g,b)=>r<80&&g<80&&b<80;
+ const hud={health:count(185,310,43,57,(r,g,b)=>r>140&&g>35&&g<230&&b<90&&r>=g),score:count(350,550,0,36,black),percent:count(705,739,0,40,black),life:count(151,177,0,45,black)};
+ return {...hud,valid:hud.health>400&&hud.score>1000&&hud.percent>400&&hud.life>200};
+};
 const cpuFrequencies=()=>os.cpus().map((_,i)=>{try{return Number(fs.readFileSync('/sys/devices/system/cpu/cpu'+i+'/cpufreq/scaling_cur_freq','utf8'));}catch{return null;}});
 const measure=async(label,seconds=30)=>{
  await shot(label+'-start');
+ if(game==='sky-force')assert(skyHud(PNG.sync.read(fs.readFileSync(out+'/'+label+'-start.png'))).valid,'Sky Force must show health, score, percent and life HUD; reject logos and menus');
  if(label.startsWith('costa-rica-stationary-tutorial-dismissed'))requireBoatWithoutHelp(label+'-start');
+ if(game==='n-gage') {
+  const png=PNG.sync.read(fs.readFileSync(out+'/'+label+'-start.png'));
+  let mint=0;for(let y=450;y<700;y++)for(let x=180;x<720;x++){const i=(y*png.width+x)*4;if(png.data[i]>100&&png.data[i+1]>170&&png.data[i+1]>png.data[i]+10&&png.data[i+2]>png.data[i]+10)mint++;}
+  assert(mint>60000,'N-Gage must show its client UI; reject black screens and firmware wallpaper');
+ }
+ if(game==='super-miners') {
+  const png=PNG.sync.read(fs.readFileSync(out+'/'+label+'-start.png'));
+  let score=0,hearts=0;
+  for(let y=0;y<80;y++)for(let x=150;x<550;x++){const i=(y*png.width+x)*4;if(y<50&&x>400&&png.data[i]>210&&png.data[i+1]>210&&png.data[i+2]>210)score++;if(x<330&&png.data[i]>170&&png.data[i+1]<110&&png.data[i+2]<110)hearts++;}
+  assert(score>1000&&hearts>250,'Super Miners must show score and heart HUD; reject loading screens and menus');
+ }
+ if(game==='asphalt-2') {
+  const png=PNG.sync.read(fs.readFileSync(out+'/'+label+'-start.png'));
+  const cyan=(x0,x1,y0,y1)=>{let n=0;for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){const i=(y*png.width+x)*4;if(png.data[i+1]>150&&png.data[i+2]>150&&png.data[i]<png.data[i+1]-20)n++;}return n;};
+  assert(cyan(580,745,60,95)>2000&&cyan(160,210,50,95)>500,'Asphalt 2 must show position and lap HUD; reject loading screens and menus');
+ }
+
  if(game==='asphalt-3') {
   const png=PNG.sync.read(fs.readFileSync(out+'/'+label+'-start.png'));
   const yellow=(x0,x1)=>{let n=0;for(let y=75;y<160;y++)for(let x=x0;x<x1;x++){const i=(y*png.width+x)*4;if(png.data[i]>180&&png.data[i+1]>100&&png.data[i+2]<80)n++;}return n;};
@@ -100,6 +129,7 @@ const measure=async(label,seconds=30)=>{
  }
 
  const clocksBefore=cpuFrequencies();
+ const processesBefore=await browserMemory();
  const samples=[await status()],start=performance.now();
  if(game==='n-gage') {await step(seconds*1000000);samples.push(await status());}
  else while(performance.now()-start<seconds*1000){await wait(500);samples.push(await status())}
@@ -109,12 +139,17 @@ const measure=async(label,seconds=30)=>{
  report.allocationProfiling=allocationProfile;
  report.preparedInstallation=!!installedImage;
  assert.ok(samples.every(s=>s.phase===(game==='n-gage'?1:0))); if(game!=='n-gage')assert.ok(report.frames>0);assert.equal(errors.length,0);assert.equal(b.monitor.instructions,0);
- report.browserMemory=[];for(const proc of (await system.send('SystemInfo.getProcessInfo')).processInfo){try{const text=fs.readFileSync(`/proc/${proc.id}/smaps_rollup`,'utf8');report.browserMemory.push({type:proc.type,id:proc.id,pssKiB:Number(text.match(/^Pss:\s+(\d+)/m)?.[1]??0),rssKiB:Number(text.match(/^Rss:\s+(\d+)/m)?.[1]??0)});}catch{}}report.browserPssKiB=report.browserMemory.reduce((n,p)=>n+p.pssKiB,0);report.wasmCapacity=await page.evaluate(()=>HEAPU8.buffer.byteLength);
+ report.browserMemory=await browserMemory();
+ if(process.env.EKA2L1_BROWSER_MEMORY==='1')for(const p of report.browserMemory){try{fs.writeFileSync(out+'/'+label+'-'+p.id+'.smaps',fs.readFileSync(`/proc/${p.id}/smaps`));}catch{}}
+ report.browserCpuSeconds=report.browserMemory.reduce((n,p)=>n+p.cpuSeconds-(processesBefore.find(b=>b.id===p.id)?.cpuSeconds??0),0);
+ report.browserCpuMsPerFrame=report.frames?report.browserCpuSeconds*1000/report.frames:null;
+ report.browserPssKiB=report.browserMemory.reduce((n,p)=>n+p.pssKiB,0);report.wasmCapacity=await page.evaluate(()=>HEAPU8.buffer.byteLength);
+ report.observedBrowserPeakPssKiB=Math.max(report.browserPssKiB,...browserMemorySamples.map(s=>s.pssKiB));
  fs.writeFileSync(out+'/'+label+'.json',JSON.stringify(report,null,2));await shot(label+'-end');
  if(label.startsWith('costa-rica-stationary-tutorial-dismissed'))requireBoatWithoutHelp(label+'-end');
  return {...report,samples:undefined};
 };
-await page.waitForFunction(()=>Module._eka2l1_route_phase()===1);
+await guardedWait(()=>Module._eka2l1_route_phase()===1);
 const press=async(code,us=1500000,hold=200000)=>{await page.evaluate(c=>Module._eka2l1_key_state(c,1),code);await step(hold);await page.evaluate(c=>Module._eka2l1_key_state(c,0),code);return step(us)};
 const go=async()=>page.evaluate(t=>Module._eka2l1_route_step_to(t),1800000000);
 const initialMemory=(await status()).memory;
@@ -125,6 +160,42 @@ assert.ok(initialMemory.arena_initialized_bytes<=initialMemory.arena_bytes);
 const regionCount=async(name,x0,x1,y0,y1,match)=>{
  await shot(name);const png=PNG.sync.read(fs.readFileSync(out+'/'+name+'.png'));
  let count=0;for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){const i=(y*png.width+x)*4;if(match(...png.data.subarray(i,i+3)))count++;}return count;
+};
+const ensureGameplay=async()=>{
+ for(let i=0;i<16;i++) {
+  const white=await regionCount('gameplay-ready-'+i,game==='snakes'?330:150,game==='snakes'?630:750,0,game==='snakes'?45:90,(r,g,b)=>r>200&&g>200&&b>200);
+  if(game==='snakes') {
+   const blue=await regionCount('gameplay-blue-'+i,330,630,43,56,(r,g,b)=>b>160&&r<100);
+   if(white>200&&blue>50)return shot('gameplay-ready');
+  } else if(skyHud(PNG.sync.read(fs.readFileSync(out+'/gameplay-ready-'+i+'.png'))).valid)return shot('gameplay-ready');
+  await press(167,10000000,200000);
+ }
+ throw Error(game+' did not reach its gameplay HUD');
+};
+const awaitNgageClient=async()=>{
+ for(let i=0;i<24;i++) {
+  const mint=await regionCount('client-ready-'+i,180,720,450,700,(r,g,b)=>r>100&&g>170&&g>r+10&&b>r+10);
+  if(mint>60000)return shot('client-ready');
+  await step(10000000);
+ }
+ throw Error('N-Gage did not reach its client UI');
+};
+const ensureMiners=async()=>{
+ for(let i=0;i<20;i++) {
+  const white=await regionCount('miners-ready-'+i,400,550,0,50,(r,g,b)=>r>210&&g>210&&b>210);
+  const hearts=await regionCount('miners-hearts-'+i,150,330,0,80,(r,g,b)=>r>170&&g<110&&b<110);
+  if(white>1000&&hearts>250)return shot('miners-ready');
+  await press(167,10000000);
+ }
+ throw Error('Super Miners did not reach its gameplay HUD');
+};
+const awaitAsphaltSound=async()=>{
+ for(let i=0;i<50;i++) {
+  const white=await regionCount('sound-ready-'+i,330,570,385,407,(r,g,b)=>r>210&&g>210&&b>210);
+  if(white>1700)return shot('sound-ready');
+  await step(5000000);
+ }
+ throw Error('Asphalt 2 did not reach its sound prompt');
 };
 const leaveLanguage=async()=>{
  for(let i=0;i<5;i++){
@@ -167,4 +238,5 @@ console.log('READY',game,JSON.stringify(await status()));
  for(const [i,line] of commands.entries()){fs.appendFileSync(out+'/steps.log',line+'\n');const r=await eval(line);console.log('STEP',game,i+1,JSON.stringify(r));}
 
 
-} catch (error) {fs.writeFileSync(out+'/failure.json',JSON.stringify({error:String(error),errors,status:await status().catch(()=>null)},null,2));throw error;} finally {clearInterval(browserMemoryTimer);try{if(memoryProfiler)await memoryProfiler.stop();if(allocationProfile){fs.writeFileSync(out+'/allocation-stages.json',JSON.stringify(allocationSnapshots,null,2));fs.writeFileSync(out+'/browser-memory-samples.json',JSON.stringify(browserMemorySamples,null,2));}}finally{await browser.close();log.end();}}
+
+} catch (error) {fs.writeFileSync(out+'/failure.json',JSON.stringify({error:String(error),errors,status:await status().catch(()=>null)},null,2));throw error;} finally {clearInterval(browserMemoryTimer);try{if(memoryProfiler)await memoryProfiler.stop();if(allocationProfile)fs.writeFileSync(out+'/allocation-stages.json',JSON.stringify(allocationSnapshots,null,2));if(browserMemorySamples.length)fs.writeFileSync(out+'/browser-memory-samples.json',JSON.stringify(browserMemorySamples,null,2));}finally{await browser.close();log.end();}}
