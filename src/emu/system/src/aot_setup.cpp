@@ -121,7 +121,8 @@ namespace eka2l1::arm::aot {
         }
 
         const std::uint32_t rom_base = romf->header.rom_base;
-        const std::uint32_t rom_size = romf->header.rom_size;
+        const auto rom_size = static_cast<std::uint32_t>(
+            std::min<std::uint64_t>(romf->header.rom_size, romf->file_size));
 
         fprintf(stderr, "AOT: scanning ROM at 0x%08X (%u bytes) for %zu target DLL(s)\n",
             rom_base, rom_size, targets.size());

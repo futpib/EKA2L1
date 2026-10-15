@@ -222,6 +222,8 @@ namespace eka2l1 {
         struct rom {
             rom_header header;
             rom_section_header section_header;
+            // The declared ROM extent can include padding absent from a dump.
+            std::uint64_t file_size = 0;
 
             root_dir_list root;
 

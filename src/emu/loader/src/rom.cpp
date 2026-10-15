@@ -280,6 +280,7 @@ namespace eka2l1::loader {
 
     std::optional<rom> load_rom(common::ro_stream *stream) {
         rom romf;
+        romf.file_size = stream->size();
         romf.header = read_rom_header(stream);
 
         // Seek to the first entry

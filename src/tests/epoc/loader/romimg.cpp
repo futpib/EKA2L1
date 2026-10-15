@@ -22,6 +22,7 @@
 #include <common/buffer.h>
 #include <config/config.h>
 #include <loader/romimage.h>
+#include <loader/rom.h>
 #include <mem/mem.h>
 
 #include <cstring>
@@ -83,4 +84,20 @@ TEST_CASE("rom_image_header_is_the_same_size_from_9_1_onwards", "loader") {
     REQUIRE(loader::rom_image_header_file_size(epocver::epoc10) == 120);
     REQUIRE(loader::rom_image_header_file_size(epocver::epoc80) == 100);
     REQUIRE(loader::rom_image_header_file_size(epocver::epoc81a) == 100);
+}
+
+TEST_CASE("rom_dump_extent_is_distinct_from_declared_padding", "loader") {
+    std::vector<std::uint8_t> image(0x400, 0);
+    put32(image, 0x8c, 0x80000000); // ROM base
+    put32(image, 0x90, 0x800);      // Header includes absent trailing padding.
+    put32(image, 0x94, 0x80000300);
+    put32(image, 0x300, 1);        // One root directory.
+    put32(image, 0x308, 0x80000340);
+    put32(image, 0x340, 4);        // Empty directory, including its size word.
+    common::ro_buf_stream stream(image.data(), image.size());
+    const auto parsed = loader::load_rom(&stream);
+    REQUIRE(parsed.has_value());
+    REQUIRE(parsed->file_size == image.size());
+    REQUIRE(parsed->header.rom_size == 0x800);
+    REQUIRE(parsed->root.root_dirs.size() == 1);
 }
