@@ -6,13 +6,16 @@ import os from 'node:os';
 import assert from 'node:assert/strict';
 import puppeteer from 'puppeteer';
 const game=process.argv[2], out=process.argv[3];
+const fullMemory=process.argv[5]==='full-memory';
 
 const games=JSON.parse(fs.readFileSync(new URL('./games.json',import.meta.url)));
 const entry=games.find(g=>g.id===game);
 if (!entry || !out || !process.argv[4]) throw Error('Usage: node arena-growth-benchmark.mjs GAME NEW_OUTPUT SERVER_URL');
 fs.mkdirSync(out);
 const assetDir=process.env.EKA2L1_ASSET_DIR || '/tmp/eka2l1-serve';
-const browser=await puppeteer.launch({executablePath:process.env.EKA2L1_CHROMIUM || '/usr/bin/chromium',headless:true,args:['--host-resolver-rules=MAP claude-laptop.lan 127.0.0.1','--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=vulkan','--enable-features=Vulkan','--enable-gpu','--ignore-gpu-blocklist','--disable-background-timer-throttling']});
+const browserArgs=['--host-resolver-rules=MAP claude-laptop.lan 127.0.0.1','--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=vulkan','--enable-features=Vulkan','--enable-gpu','--ignore-gpu-blocklist','--disable-background-timer-throttling'];
+if(fullMemory)browserArgs.push('--js-flags=--perf-basic-prof');
+const browser=await puppeteer.launch({executablePath:process.env.EKA2L1_CHROMIUM || '/usr/bin/chromium',headless:true,args:browserArgs});
 const system=await browser.target().createCDPSession();
 const errors=[],log=fs.createWriteStream(out+'/browser.log');
 let status=async()=>null;
@@ -31,7 +34,7 @@ const browserMemory=async()=>{
 let browserMemoryTimer;
 try {
 const page=await browser.newPage(); await page.setViewport({width:900,height:800});page.setDefaultTimeout(180000);
-if(process.argv[5]==='chrome-memory' || allocationProfile) {
+if(process.argv[5]==='chrome-memory' || allocationProfile || fullMemory) {
  const {ChromeMemoryProfiler}=await import('./chrome-memory-profiler.mjs');
  memoryProfiler=new ChromeMemoryProfiler(page,out);await memoryProfiler.start();
 }
@@ -44,7 +47,7 @@ const guardedWait=async predicate=>{
 };
 await page.evaluateOnNewDocument(()=>{window.ekaTransientSession=true;});
 await page.goto(new URL('?game=custom',process.argv[4]).href,{waitUntil:'domcontentloaded'});
-if(allocationProfile || process.env.EKA2L1_BROWSER_MEMORY==='1')browserMemoryTimer=setInterval(async()=>{
+if(allocationProfile || fullMemory || process.env.EKA2L1_BROWSER_MEMORY==='1')browserMemoryTimer=setInterval(async()=>{
  try{const processes=await browserMemory();browserMemorySamples.push({ms:performance.now(),processes,pssKiB:processes.reduce((n,p)=>n+p.pssKiB,0)});}catch{}
 },1000);
 await guardedWait(()=>window.Module?.calledRun);
@@ -145,12 +148,25 @@ const measure=async(label,seconds=30)=>{
  report.preparedInstallation=!!installedImage;
  assert.ok(samples.every(s=>s.phase===(game==='n-gage'?1:0))); if(game!=='n-gage')assert.ok(report.frames>0);assert.equal(errors.length,0);assert.equal(b.monitor.instructions,0);
  report.browserMemory=await browserMemory();
- if(process.env.EKA2L1_BROWSER_MEMORY==='1')for(const p of report.browserMemory){try{fs.writeFileSync(out+'/'+label+'-'+p.id+'.smaps',fs.readFileSync(`/proc/${p.id}/smaps`));}catch{}}
+ if(fullMemory || process.env.EKA2L1_BROWSER_MEMORY==='1')for(const p of report.browserMemory){try{fs.writeFileSync(out+'/'+label+'-'+p.id+'.smaps',fs.readFileSync(`/proc/${p.id}/smaps`));}catch{}}
  report.browserCpuSeconds=report.browserMemory.reduce((n,p)=>n+p.cpuSeconds-(processesBefore.find(b=>b.id===p.id)?.cpuSeconds??0),0);
  report.browserCpuMsPerFrame=report.frames?report.browserCpuSeconds*1000/report.frames:null;
  report.browserPssKiB=report.browserMemory.reduce((n,p)=>n+p.pssKiB,0);report.wasmCapacity=await page.evaluate(()=>HEAPU8.buffer.byteLength);
  report.observedBrowserPeakPssKiB=Math.max(report.browserPssKiB,...browserMemorySamples.map(s=>s.pssKiB));
  fs.writeFileSync(out+'/'+label+'.json',JSON.stringify(report,null,2));await shot(label+'-end');
+ if(fullMemory){
+  for(const process of report.browserMemory){
+   const source=`/tmp/perf-${process.id}.map`;
+   if(fs.existsSync(source))fs.copyFileSync(source,path.join(out,`${label}-${process.id}.perf.map`));
+  }
+  const renderer=report.browserMemory.filter(p=>p.type==='renderer').sort((a,b)=>b.pssKiB-a.pssKiB)[0];
+  const perfMap=path.join(out,`${label}-${renderer.id}.perf.map`);
+  const smaps=path.join(out,`${label}-${renderer.id}.smaps`);
+  if(fs.existsSync(perfMap)&&fs.existsSync(smaps)){
+   const {jitCodeResidency}=await import('./jit-code-residency.mjs');
+   fs.writeFileSync(path.join(out,`${label}.jit-code-residency.json`),JSON.stringify(jitCodeResidency(renderer.id,perfMap,smaps),null,2));
+  }
+ }
  if(label.startsWith('costa-rica-stationary-tutorial-dismissed'))requireBoatWithoutHelp(label+'-end');
  return {...report,samples:undefined};
 };

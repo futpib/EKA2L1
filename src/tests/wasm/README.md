@@ -349,3 +349,20 @@ reads actual decoded-buffer occupancy. `EKA2L1_BENCHMARK_PREPARED=1` selects the
 server's prepared installation for games that have one; this matters for Hooked
 On. Diagnostic FPS is not a performance result. Turn the allocation build option
 off afterward. See [the measurements and coverage limits](../benchmark/ALLOCATION_MEMORY_PROFILE_RESULTS.md).
+
+For a whole-browser memory profile of a real game route, use the normal served
+build and the `full-memory` mode. This records PSS and `smaps` for every Chrome
+process, sampled JavaScript and native allocations, and a V8 JIT perf map. On
+Linux, the profile also checks which labelled executable pages are resident.
+Keep the capture outside Git:
+
+```sh
+node src/tests/wasm/arena-growth-benchmark.mjs asphalt-3 /absolute/path/new-capture https://claude-laptop.lan:8188/ full-memory
+python3 src/tests/benchmark/summarize_browser_memory.py /absolute/path/new-capture --chromium-debug /absolute/path/to/matching/chromium.debug
+```
+
+The symbol file must match Chrome's build ID. The summary reconciles physical
+PSS across processes and mappings; sampled allocation stacks and JIT perf-map
+sizes are separate views and must not be added to PSS. See the
+[Asphalt 3 browser attribution](../benchmark/BROWSER_MEMORY_ATTRIBUTION_RESULTS.md)
+for measured ownership and limitations.
