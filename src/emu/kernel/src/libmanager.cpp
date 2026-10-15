@@ -30,6 +30,7 @@
 #include <kernel/common.h>
 #include <kernel/libmanager.h>
 #include <kernel/reg.h>
+#include <kernel/preserved_image.h>
 
 #include <common/configure.h>
 #include <config/config.h>
@@ -875,9 +876,45 @@ namespace eka2l1::hle {
         return rom_drv_;
     }
 
+    bool repair_preserved_resources(io_system &io, const std::u16string &executable) {
+        const auto drive = eka2l1::root_name(executable, true);
+        if (drive.empty()) {
+            return false;
+        }
+
+        const auto target = drive + u"\\Private\\2000AFE3\\A3\\trackobj.bar";
+        const auto source = target + u".ngdat";
+        if (io.exist(target)) {
+            return false;
+        }
+
+        auto file = io.open_file(source, READ_MODE | BIN_MODE);
+        if (!file || file->size() != 196585) {
+            return false;
+        }
+
+        std::vector<char> bytes(196585);
+        if (file->read_file(bytes.data(), 1, bytes.size()) != bytes.size()
+            || XXH64(bytes.data(), bytes.size(), 0) != 0x591c3c6b792964e2ULL) {
+            return false;
+        }
+
+        // This preserved asset is a plain BAR archive. The encrypted-file
+        // suffix makes the SDK reject its header and latch a game-wide error.
+        file.reset();
+        return io.rename(source, target);
+    }
+
     codeseg_ptr lib_manager::load_as_e32img(loader::e32img &img, const std::u16string &path) {
         if (auto seg = kern_->get_by_name<kernel::codeseg>(get_e32_codeseg_name_from_path(path))) {
             return seg;
+        }
+
+        if (repair_preserved_image(img)) {
+            LOG_INFO(KERNEL, "Restored official Asphalt 3 code for integrity checks");
+            if (repair_preserved_resources(*io_, path)) {
+                LOG_INFO(KERNEL, "Corrected the preserved Asphalt 3 plaintext archive name");
+            }
         }
 
         return import_e32img(&img, mem_, kern_, *this, path);
