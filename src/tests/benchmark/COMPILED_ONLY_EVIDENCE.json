@@ -1,5 +1,5 @@
 {
-  "status": "not adopted; cold installation, K-Rally driving attribution and Asphalt 3 startup stability remain unresolved",
+  "status": "build 106 adopted on public LAN; Asphalt 3 long-run trial prompt and exact throughput limits remain unresolved",
   "controlWasm": "a196638dd3770b4dbebee36b1139f616589a24fd4bdd41fac60b97f597302cf8",
   "catalogueCandidateWasm": "39238b5f6592fe5ef94349eb2b3c0bce23394482097be63e6bbc35d5fd68a5c9",
   "rows": [
@@ -571,13 +571,13 @@
       "status": "not adopted; focused screening only"
     }
   ],
-  "adopted": false,
-  "publicServiceChanged": false,
+  "adopted": true,
+  "publicServiceChanged": true,
   "followupCandidate58Wasm": "806198bb6886b2611c1e218a82ae0f4ee1aea9f2887bdb28f548c2672334c03a",
   "latestTestedCandidate": {
-    "candidate": 70,
-    "wasmSha256": "009e73917abee7208bfa386819970d40c6f4a2ebcf11dfe1d00dc1fffc281ccd",
-    "status": "private diagnostic build; not adopted"
+    "candidate": 106,
+    "wasmSha256": "d31435fa2b15ab989776f661ce7afc6bfb416b953474193adf992bc1f7a2f7dd",
+    "status": "adopted on public LAN from cfd78248b"
   },
   "focusedRounds68to70": [
     {
@@ -689,6 +689,14 @@
       {"number": 8, "game": "super-miners", "controlFinal": 1941, "candidateFinal": 1760, "controlPeak": 1941, "candidatePeak": 1972},
       {"number": 9, "game": "n-gage", "controlFinal": 2466, "candidateFinal": 2412, "controlPeak": 2516, "candidatePeak": 2450}
     ],
+    "publicSmoke": {
+      "url": "https://claude-laptop.lan:8188/",
+      "snakesFps": 89.03,
+      "asphalt3Fps": 107.37,
+      "asphalt3CacheStatus": 2,
+      "asphalt3RomRetranslations": 0,
+      "guestErrors": 0
+    },
     "limits": ["Unrelated Cheerp work overlapped FPS and startup runs", "One Super Miners candidate peak exceeded control; two repeats were lower", "Asphalt 3 full-version prompt in long candidate runs; cause unresolved"]
   }
 }

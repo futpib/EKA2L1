@@ -65,7 +65,7 @@ Direct links use `?game=sky-force`, `?game=snakes`, `?game=k-rally`, `?game=asph
 All browser execution uses the watchdog without instruction accounting.
 Legacy `counting` URL parameters are ignored and removed on Play.
 
-The compiled-only experiment can also use derived ROM translations. After a
+The compiled-only browser CPU can also use derived ROM translations. After a
 successful game route, generate a cache with:
 
 ```sh
@@ -87,8 +87,9 @@ deployment files, not game dependencies committed to Git.
 
 This stores optimized translated code. Guest RAM, installed files, clocks and
 running processes still start normally. Export happens after FPS and memory
-sampling and is excluded from their results. See the remaining adoption gates
-in [compiled-only results](../benchmark/COMPILED_ONLY_RESULTS.md).
+sampling and is excluded from their results. The public `.lan` release uses a
+build-matched Asphalt 3 cache; see its validation and remaining limitations in
+[compiled-only results](../benchmark/COMPILED_ONLY_RESULTS.md).
 
 An optional
 third command-line argument, such as `node serve.ts 8188 Snakes`, selects an

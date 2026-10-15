@@ -1,9 +1,9 @@
 # Compiled-only browser CPU
 
-Validation in progress, 2026-10-15. The public `.lan` service remains on the
-unchanged control until gameplay, throughput and total browser memory checks
-pass. Native execution and the offline WASM interpreter remain correctness
-references; normal browser execution never allocates interpreter decoded storage.
+Build 106 was adopted on the public `.lan` service on 2026-10-15, from commit
+`cfd78248b`. Native execution and the offline WASM interpreter remain
+correctness references; normal browser execution never allocates interpreter
+decoded storage. The release caveats below remain open.
 
 ## Implementation
 
@@ -134,7 +134,7 @@ rejected; source returned to build 52 at that point.
 The [machine-readable evidence](COMPILED_ONLY_EVIDENCE.json) identifies accepted
 captures, artifact hashes, exclusions and the remaining gates.
 
-## Memory-transfer follow-up and remaining gates
+## Memory-transfer follow-up and historical gates
 
 Build 54 also removes the unreachable scalar callback implementation after a
 successful deferred whole-span memory proof. Its SHA-256 is
@@ -299,7 +299,7 @@ Chrome's lazy-compilation events carry function indices without module identity,
 so that trace cannot itself identify the ROM share of lazy compilation.
 
 The new focused records are in `focusedRounds68to70` in the evidence JSON.
-Neither these screens nor the diagnostic counter split constitute adoption.
+Neither these screens nor the diagnostic counter split alone justified adoption.
 
 ## Build 106 release evaluation
 
@@ -353,3 +353,12 @@ fresh control launch failed earlier with N-Gage error -1000002. Full-version
 activation and the exact cause of the prompt remain unverified. Gameplay
 throughput and startup stability are therefore release caveats, not resolved
 correctness claims.
+
+The public HTTPS launcher serves the exact build-106 SHA from a stable local
+release directory. A fresh browser route reached Snakes gameplay at 89.0 FPS
+without guest errors. Another reached the Asphalt 3 race with sound enabled at
+107.4 FPS, cache status 2, zero ROM retranslations and no guest errors. The
+race screenshot shows active game graphics, not the N-Gage client or a menu.
+The `.lan` user service is persistent and enabled; its previous control setup
+is archived locally for rollback. No game packages or ROM cache blobs were
+committed to Git.
