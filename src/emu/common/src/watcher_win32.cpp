@@ -31,7 +31,7 @@ namespace eka2l1::common {
 
     directory_watcher_impl::directory_watcher_impl()
         : overlapped_ex_func_(nullptr) {
-        HMODULE kern32_module = LoadLibraryA(KERN32_MODULE_NAME);
+        HMODULE kern32_module = GetModuleHandleA(KERN32_MODULE_NAME);
 
         if (kern32_module) {
             overlapped_ex_func_ = reinterpret_cast<get_overlapped_result_ex_proc>(
@@ -209,6 +209,15 @@ namespace eka2l1::common {
         wait_thread_->join();
 
         // Close down all remaining events
+        for (HANDLE handle : container_) {
+            if (handle) {
+                FindCloseChangeNotification(handle);
+            }
+        }
+        for (HANDLE handle : dirs_) {
+            CloseHandle(handle);
+        }
+        CloseHandle(pending_read_.hEvent);
         CloseHandle(waits_[0]);
         CloseHandle(waits_[1]);
     }
@@ -357,6 +366,7 @@ namespace eka2l1::common {
 
             // Want to also erase the callback
             callbacks_.erase(callbacks_.begin() + index - 2);
+            CloseHandle(dirs_[index - 2]);
             dirs_.erase(dirs_.begin() + index - 2);
 
             if (removed_nof)
