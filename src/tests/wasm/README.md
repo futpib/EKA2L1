@@ -36,6 +36,13 @@ installation to reduce warm WASM heap use. Other device files use the existing
 in-memory filesystem and IndexedDB persistence. Firefox uses that existing
 path for the ROM as well. See the [OPFS measurements](../benchmark/OPFS_ROM_RESULTS.md).
 
+`?storage=readonly-opfs` additionally moves read-only Z-drive firmware files
+of at least 64 KiB to OPFS after installation. The choice is saved with the
+device; subsequent launches use the links even without the URL parameter.
+Smaller files and writable C/E drives remain in RAM. See the measured storage
+tradeoffs in
+[read-only firmware results](../benchmark/READONLY_FIRMWARE_RESULTS.md).
+
 Changes are saved asynchronously every ten seconds. **Save device** flushes
 file buffers and commits a fresh disk save; **Play** closes the current emulator
 and saves before switching games. The status in the game menu reports save

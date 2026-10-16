@@ -142,6 +142,37 @@ try {
         await open('device-A');
         assert.equal(await page.evaluate(target => FS.analyzePath(target).exists,rollback.target),false);
     }
+    if (browserName === 'chrome') {
+        const firmware = await page.evaluate(async () => {
+            const path = '/data/drives/z/rm-409/resource/large.rsc';
+            FS.mkdirTree('/data/drives/z/rm-409/resource');
+            if (Module.ccall('test_disk_large','number',['string'],[path])) throw Error('firmware write failed');
+            const checksum = Module.ccall('test_disk_checksum','number',['string'],[path]);
+            const modified = Module.ccall('test_disk_modified','number',['string'],[path]);
+            const mode = FS.stat(path).mode & 0o777;
+            disk.firmwareOffloadEnabled = true;
+            const moved = await disk.offloadRom();
+            await disk.save();
+            return {path, checksum, modified, mode, moved,
+                sameModified:Module.ccall('test_disk_modified','number',['string'],[path]) === modified,
+                sameMode:(FS.stat(path).mode & 0o777) === mode,
+                linked:(FS.lstat(path).mode & 0o170000) === 0o120000,
+                offloaded:disk.manifest.entries.find(entry => entry.path === path)?.offloaded};
+        });
+        assert.equal(firmware.moved, 5 * 1024 * 1024 + 31);
+        assert.deepEqual({linked:firmware.linked,offloaded:firmware.offloaded,
+            sameModified:firmware.sameModified,sameMode:firmware.sameMode},
+            {linked:true,offloaded:true,sameModified:true,sameMode:true});
+        await load(); await open('device-A');
+        assert.deepEqual(await page.evaluate(path => ({
+            checksum:Module.ccall('test_disk_checksum','number',['string'],[path]),
+            linked:(FS.lstat(path).mode & 0o170000) === 0o120000,
+            mode:FS.stat(path).mode & 0o777,
+            modified:Module.ccall('test_disk_modified','number',['string'],[path]),
+            complete:disk.manifest.firmwareOffloadDone
+        }),firmware.path),{checksum:firmware.checksum,linked:true,
+            mode:firmware.mode,modified:firmware.modified,complete:true});
+    }
     await page.evaluate(async () => {
         Module.ccall('test_disk_write','number',['string','string'],['/data/c/renamed','must not commit']);
         const original = disk.transaction.bind(disk);
@@ -155,5 +186,5 @@ try {
     await load(); await open('device-B');
     assert.equal(await page.evaluate(() => disk.manifest === null && !FS.analyzePath('/data/c/renamed').exists), true);
     assert.deepEqual(errors, []);
-    console.log('PASS native writes and libc buffers, reload, timestamps, empty/large files, ROM storage and reload, JS writes, rename, deletion, truncation, atomic failure, profile isolation and tab exclusion; OPFS=' + (rom.moved > 0));
+    console.log('PASS native writes and libc buffers, reload, timestamps, empty/large files, ROM and firmware offload/reload, JS writes, rename, deletion, truncation, atomic failure, profile isolation and tab exclusion; OPFS=' + (rom.moved > 0));
 } finally { await browser.close(); await new Promise(resolve => server.close(resolve)); }

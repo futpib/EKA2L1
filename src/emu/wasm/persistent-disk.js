@@ -49,6 +49,9 @@ globalThis.EkaDeviceDisk = class {
         this.timer = null;
         this.canSave = false;
         this.romOffloadRoot = null;
+        this.firmwareOffloadRoot = null;
+        this.firmwareOffloadDone = false;
+        this.firmwareOffloadEnabled = new URLSearchParams(location.search).get('storage') === 'readonly-opfs';
     }
     request(request) {
         return new Promise((resolve, reject) => {
@@ -70,9 +73,12 @@ globalThis.EkaDeviceDisk = class {
             && !path.includes('\0') && path.split('/').slice(1).every(part => part && part !== '.' && part !== '..');
     }
     validOffloadedPath(path) {
-        return /^\/data\/roms\/[a-z0-9_-]+\/SYM\.ROM$/i.test(path);
+        return /^\/data\/roms\/[a-z0-9_-]+\/SYM\.ROM$/i.test(path)
+            || (this.validPath(path) && /^\/data\/drives\/z\/[a-z0-9_-]+\/.+/i.test(path));
     }
     offloadTarget(path) {
+        if (path.startsWith('/data/drives/z/'))
+            return this.firmwareOffloadRoot + '/' + path.slice('/data/drives/z/'.length);
         return this.romOffloadRoot + '/' + path.split('/')[3] + '/SYM.ROM';
     }
     exists(path) {
@@ -82,12 +88,14 @@ globalThis.EkaDeviceDisk = class {
     async prepareRomOffload() {
         if (!this.exists('/opfs')) return;
         const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(this.id)));
-        this.romOffloadRoot = '/opfs/eka2l1-roms/'
-            + Array.from(digest, byte => byte.toString(16).padStart(2, '0')).join('');
+        const namespace = Array.from(digest, byte => byte.toString(16).padStart(2, '0')).join('');
+        this.romOffloadRoot = '/opfs/eka2l1-roms/' + namespace;
+        this.firmwareOffloadRoot = '/opfs/eka2l1-firmware/' + namespace;
     }
     collectOffloadedOrphans() {
         if (!this.romOffloadRoot || !this.exists(this.romOffloadRoot)) return;
-        const live = new Set((this.manifest?.entries || []).filter(entry => entry.offloaded)
+        const live = new Set((this.manifest?.entries || []).filter(entry => entry.offloaded
+                && entry.path.startsWith('/data/roms/'))
             .map(entry => this.offloadTarget(entry.path)));
         for (const name of this.filesystem.readdir(this.romOffloadRoot)) {
             if (!/^[a-z0-9_-]+$/i.test(name)) continue;
@@ -96,49 +104,74 @@ globalThis.EkaDeviceDisk = class {
                 console.warn('[device-disk] Could not remove unreferenced OPFS ROM:', target);
         }
     }
+    offloadFile(path, info, chunk) {
+        const target = this.offloadTarget(path);
+        const modified = this.module.ccall('eka2l1_disk_modified_ms', 'number', ['string'], [path]);
+        if (modified < 0) throw new Error('Could not read readonly file metadata');
+        this.filesystem.mkdirTree(target.slice(0, target.lastIndexOf('/')));
+        let input;
+        try {
+            const output = this.filesystem.open(target, 'w'); this.filesystem.close(output);
+            input = this.filesystem.open(path, 'r');
+            for (let offset = 0; offset < info.size;) {
+                const count = this.filesystem.read(input, chunk, 0, Math.min(chunk.length, info.size - offset), offset);
+                if (count <= 0) throw new Error('Short readonly file copy');
+                this.filesystem.writeFile(target, chunk.subarray(0, count));
+                offset += count;
+            }
+            if (this.filesystem.stat(target).size !== info.size) throw new Error('Short OPFS file copy');
+            if (this.module.ccall('eka2l1_disk_set_metadata', 'number', ['string','number','number'],
+                    [target, info.mode, modified]))
+                throw new Error('Could not preserve read-only file metadata');
+        } catch (error) {
+            try { this.filesystem.unlink(target); } catch {}
+            throw error;
+        } finally { if (input) this.filesystem.close(input); }
+        const backup = path + '.eka-opfs-pending';
+        this.filesystem.rename(path, backup);
+        let linked = false;
+        try {
+            this.filesystem.symlink(target, path);
+            linked = true;
+            this.filesystem.unlink(backup);
+        } catch (error) {
+            if (linked) this.filesystem.unlink(path);
+            this.filesystem.rename(backup, path);
+            try { this.filesystem.unlink(target); } catch {}
+            throw error;
+        }
+        return info.size;
+    }
     async offloadRom() {
-        if (!this.romOffloadRoot || !this.exists('/data/roms')) return 0;
+        if (!this.romOffloadRoot) return 0;
         let moved = 0;
-        for (const name of this.filesystem.readdir('/data/roms')) {
+        let chunk;
+        if (this.exists('/data/roms')) for (const name of this.filesystem.readdir('/data/roms')) {
             const path = '/data/roms/' + name + '/SYM.ROM';
             if (!this.validOffloadedPath(path) || !this.exists(path)) continue;
             const info = this.filesystem.lstat(path);
             if ((info.mode & 0o170000) === 0o120000 || info.size < 4 * 1024 * 1024) continue;
             this.module.setStatus?.('Moving installed ROM to browser storage...');
-            const target = this.offloadTarget(path);
-            this.filesystem.mkdirTree(target.slice(0, target.lastIndexOf('/')));
-            const chunk = new Uint8Array(4 * 1024 * 1024);
-            let input;
-            try {
-                const output = this.filesystem.open(target, 'w'); this.filesystem.close(output);
-                input = this.filesystem.open(path, 'r');
-                for (let offset = 0; offset < info.size;) {
-                    const count = this.filesystem.read(input, chunk, 0, Math.min(chunk.length, info.size - offset), offset);
-                    if (count <= 0) throw new Error('Short installed ROM read');
-                    this.filesystem.writeFile(target, chunk.subarray(0, count));
-                    offset += count;
-                }
-                if (this.filesystem.stat(target).size !== info.size) throw new Error('Short OPFS ROM copy');
-            } catch (error) {
-                try { this.filesystem.unlink(target); } catch {}
-                throw error;
-            } finally { if (input) this.filesystem.close(input); }
-            const backup = path + '.eka-opfs-pending';
-            this.filesystem.rename(path, backup);
-            let linked = false;
-            try {
-                this.filesystem.symlink(target, path);
-                linked = true;
-                this.filesystem.unlink(backup);
-            } catch (error) {
-                if (linked) this.filesystem.unlink(path);
-                this.filesystem.rename(backup, path);
-                try { this.filesystem.unlink(target); } catch {}
-                throw error;
-            }
-            moved += info.size;
+            moved += this.offloadFile(path, info, chunk ??= new Uint8Array(4 * 1024 * 1024));
         }
-        if (moved) console.log('[device-disk] Moved ' + moved + ' ROM bytes to OPFS');
+        if (this.firmwareOffloadEnabled && !this.firmwareOffloadDone && this.exists('/data/drives/z')) {
+            const stack = ['/data/drives/z'];
+            while (stack.length) {
+                const directory = stack.pop();
+                for (const name of this.filesystem.readdir(directory)) {
+                    if (name === '.' || name === '..') continue;
+                    const path = directory + '/' + name;
+                    const info = this.filesystem.lstat(path);
+                    if ((info.mode & 0o170000) === 0o040000) { stack.push(path); continue; }
+                    if (!this.validOffloadedPath(path) || (info.mode & 0o170000) !== 0o100000
+                            || info.size < 64 * 1024) continue;
+                    this.module.setStatus?.('Moving read-only firmware to browser storage...');
+                    moved += this.offloadFile(path, info, chunk ??= new Uint8Array(4 * 1024 * 1024));
+                }
+            }
+            this.firmwareOffloadDone = true;
+        }
+        if (moved) console.log('[device-disk] Moved ' + moved + ' read-only bytes to OPFS');
         return moved;
     }
     async load() {
@@ -146,6 +179,8 @@ globalThis.EkaDeviceDisk = class {
         this.manifest = await this.request(this.database.transaction('devices').objectStore('devices').get(this.id)) || null;
         if (!this.manifest) { this.collectOffloadedOrphans(); await this.collectOrphans(); return; }
         if (this.manifest.version !== 1 || !Array.isArray(this.manifest.entries)
+                || (this.manifest.firmwareOffloadDone !== undefined
+                    && typeof this.manifest.firmwareOffloadDone !== 'boolean')
                 || this.manifest.entries.some(entry => !this.validPath(entry.path)
                     || typeof entry.directory !== 'boolean' || !Number.isSafeInteger(entry.mode)
                     || !Number.isSafeInteger(entry.modified) || !Number.isSafeInteger(entry.size) || entry.size < 0
@@ -155,11 +190,12 @@ globalThis.EkaDeviceDisk = class {
             throw new Error('Invalid saved device');
         this.collectOffloadedOrphans();
         this.installed = {...this.manifest.installed};
+        this.firmwareOffloadDone = !!this.manifest.firmwareOffloadDone;
         this.filesystem.mkdirTree('/data');
         for (const entry of this.manifest.entries) if (entry.directory) this.filesystem.mkdirTree(entry.path);
         for (const entry of this.manifest.entries) if (entry.offloaded) {
             if (!this.romOffloadRoot || !this.exists(this.offloadTarget(entry.path)))
-                throw new Error('Saved OPFS ROM is unavailable');
+                throw new Error('Saved read-only OPFS file is unavailable');
             this.filesystem.symlink(this.offloadTarget(entry.path), entry.path);
         }
         const range = IDBKeyRange.bound([this.id], [this.id, []]);
@@ -249,7 +285,7 @@ globalThis.EkaDeviceDisk = class {
                 if (!this.validPath(entry.path)) throw new Error('Invalid device path');
                 if (entry.directory) { entries.push(entry); continue; }
                 if (entry.offloaded) {
-                    if (!this.validOffloadedPath(entry.path)) throw new Error('Invalid offloaded ROM path');
+                    if (!this.validOffloadedPath(entry.path)) throw new Error('Invalid offloaded path');
                     entries.push({...entry, offloaded:true}); continue;
                 }
                 if (!entry.changed && old.has(entry.path) && !old.get(entry.path).offloaded) {
@@ -265,6 +301,7 @@ globalThis.EkaDeviceDisk = class {
             }
             await flush();
             if (!staged.length && entries.length === old.size && this.manifest
+                    && this.firmwareOffloadDone === !!this.manifest.firmwareOffloadDone
                     && JSON.stringify(this.installed) === JSON.stringify(this.manifest.installed)
                     && entries.every(entry => old.has(entry.path) && entry.mode === old.get(entry.path).mode
                         && entry.directory === old.get(entry.path).directory && entry.modified === old.get(entry.path).modified
@@ -272,7 +309,8 @@ globalThis.EkaDeviceDisk = class {
                         && !!entry.offloaded === !!old.get(entry.path).offloaded)) {
                 accepted = true; this.notify('Device saved'); return;
             }
-            const manifest = {id:this.id, version:1, entries, installed:{...this.installed}, saved:Date.now()};
+            const manifest = {id:this.id, version:1, entries, installed:{...this.installed},
+                firmwareOffloadDone:this.firmwareOffloadDone, saved:Date.now()};
             await this.transaction(['devices'], tx => tx.objectStore('devices').put(manifest));
             this.manifest = manifest;
             accepted = true;

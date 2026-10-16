@@ -419,7 +419,7 @@
 
                 if (disk) {
                     try { await disk.offloadRom(); }
-                    catch (error) { console.warn('[device-disk] ROM offload unavailable:', error); }
+                    catch (error) { console.warn('[device-disk] Read-only offload unavailable:', error); }
                 }
 
                 // N-Gage registers and licenses games through its own importer.

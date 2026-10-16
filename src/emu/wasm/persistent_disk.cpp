@@ -70,9 +70,13 @@ namespace {
                 if (offloaded) {
                     char target[PATH_MAX]{};
                     const auto length = readlink(name.c_str(), target, sizeof(target) - 1);
-                    if (name.rfind("/data/roms/", 0) != 0
-                            || name.size() < 8 || name.substr(name.size() - 8) != "/SYM.ROM"
-                            || length <= 0 || std::string(target, length).rfind("/opfs/eka2l1-roms/", 0) != 0
+                    const std::string target_path(target, length > 0 ? length : 0);
+                    const bool rom = name.rfind("/data/roms/", 0) == 0
+                        && name.size() >= 8 && name.substr(name.size() - 8) == "/SYM.ROM"
+                        && target_path.rfind("/opfs/eka2l1-roms/", 0) == 0;
+                    const bool firmware = name.rfind("/data/drives/z/", 0) == 0
+                        && target_path.rfind("/opfs/eka2l1-firmware/", 0) == 0;
+                    if (length <= 0 || (!rom && !firmware)
                             || stat(name.c_str(), &info) != 0 || !S_ISREG(info.st_mode))
                         throw std::runtime_error("Unsupported device link: " + name);
                 }
@@ -166,6 +170,11 @@ EMSCRIPTEN_KEEPALIVE int eka2l1_disk_file_matches(const char *path) {
 EMSCRIPTEN_KEEPALIVE void eka2l1_disk_modified(const char *path) {
     struct stat info{};
     if (tracking.load(std::memory_order_acquire) && path && stat(path, &info) == 0) modified(info.st_ino);
+}
+EMSCRIPTEN_KEEPALIVE double eka2l1_disk_modified_ms(const char *path) {
+    struct stat info{};
+    if (!path || stat(path, &info) != 0) return -1;
+    return double(info.st_mtim.tv_sec) * 1000 + info.st_mtim.tv_nsec / 1000000;
 }
 EMSCRIPTEN_KEEPALIVE int eka2l1_disk_set_metadata(const char *path, unsigned mode, double modified) {
     const auto seconds = static_cast<std::int64_t>(std::floor(modified / 1000));
