@@ -91,6 +91,9 @@ The [persistent-device results](PERSISTENT_DEVICE_RESULTS.md) preserve browser
 installations, saves and OS files across reloads and game changes while retaining
 the in-memory WasmFS execution path. Cold-start tests explicitly use temporary
 disks to preserve their measurement definitions.
+The [selective OPFS results](OPFS_ROM_RESULTS.md) measure moving only the
+installed ROM copy out of that memory-backed filesystem, including warm-start
+cost and a real-playfield throughput comparison.
 
 - The native benchmark clock advances from executed instructions (one synthetic cycle per instruction, 484 MHz at the default clock), with at most 4,840 instructions per dispatch. This is a reproducible clock model, not a hardware cycle-accuracy claim.
 - When no guest thread is runnable, execution jumps to the next scheduled event. There is no real-time timer thread or host vsync pacing.

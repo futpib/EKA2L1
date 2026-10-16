@@ -184,6 +184,7 @@
         }
         async function prepareDeviceStorage(game) {
             if (window.ekaTransientSession || Module._eka2l1_route_phase() !== -1) return null;
+            while (!Module._eka2l1_opfs_status?.()) await new Promise(resolve => setTimeout(resolve, 10));
             var rom = assetHash('/preload/rom');
             var rpkg = assetHash('/preload/rpkg');
             if (!game) {
@@ -414,6 +415,11 @@
                     } else if (disk && sisHash) {
                         disk.installed[sisHash] = true;
                     }
+                }
+
+                if (disk) {
+                    try { await disk.offloadRom(); }
+                    catch (error) { console.warn('[device-disk] ROM offload unavailable:', error); }
                 }
 
                 // N-Gage registers and licenses games through its own importer.

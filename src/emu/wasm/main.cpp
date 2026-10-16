@@ -70,10 +70,12 @@
 #include <emscripten/html5.h>
 #include <emscripten/console.h>
 #include <emscripten/threading.h>
+#include <emscripten/wasmfs.h>
 #include <pthread.h>
 #include <GLES3/gl3.h>
 
 #include <malloc.h>
+#include <atomic>
 #include <sstream>
 #include <set>
 #include <memory>
@@ -83,6 +85,12 @@
 #include <drivers/input/common.h>
 
 using namespace eka2l1;
+
+static std::atomic<int> opfs_status{0};
+
+extern "C" EMSCRIPTEN_KEEPALIVE int eka2l1_opfs_status() {
+    return opfs_status.load(std::memory_order_acquire);
+}
 
 namespace {
     struct wasm_state {
@@ -1028,6 +1036,15 @@ void eka2l1_shutdown() {
 } // extern "C"
 
 int main() {
+    // WasmFS's OPFS backend must be created off the browser main thread.
+    // This SDK's Firefox OPFS path stalls reopening a file after page reload.
+    // PROXY_TO_PTHREAD runs main here before the launcher opens a device.
+    if (emscripten_run_script_int("typeof navigator !== 'undefined' && !navigator.userAgent.includes('Firefox/') && !!navigator.storage?.getDirectory && typeof FileSystemFileHandle !== 'undefined' && !!FileSystemFileHandle.prototype.createSyncAccessHandle")) {
+        const auto opfs = wasmfs_create_opfs_backend();
+        if (wasmfs_create_directory("/opfs", 0777, opfs) != 0)
+            emscripten_console_error("Could not mount OPFS device storage");
+    }
+    opfs_status.store(1, std::memory_order_release);
     emscripten_exit_with_live_runtime();
     return 0;
 }

@@ -31,6 +31,10 @@ registries and OS files. Reloading restores that device before initialization;
 already installed packages are skipped. Different firmware has separate data.
 The prepared image seeds an empty device once and never replaces an existing
 phone's files.
+On supported Chromium builds, the installed ROM copy is stored in OPFS after
+installation to reduce warm WASM heap use. Other device files use the existing
+in-memory filesystem and IndexedDB persistence. Firefox uses that existing
+path for the ROM as well. See the [OPFS measurements](../benchmark/OPFS_ROM_RESULTS.md).
 
 Changes are saved asynchronously every ten seconds. **Save device** flushes
 file buffers and commits a fresh disk save; **Play** closes the current emulator

@@ -1,10 +1,17 @@
 #include <emscripten/emscripten.h>
+#include <emscripten/wasmfs.h>
 #include <cstdio>
 #include <cstring>
 #include <cstdint>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <atomic>
+
+static std::atomic<int> opfs_status{0};
+extern "C" EMSCRIPTEN_KEEPALIVE int eka2l1_opfs_status() {
+    return opfs_status.load(std::memory_order_acquire);
+}
 
 extern "C" {
 EMSCRIPTEN_KEEPALIVE int test_disk_write(const char *path, const char *text) {
@@ -56,4 +63,11 @@ EMSCRIPTEN_KEEPALIVE int test_disk_buffered() {
     return file && fputs("buffered native write", file) >= 0 ? 0 : -1;
 }
 }
-int main() { emscripten_exit_with_live_runtime(); }
+int main() {
+    if (emscripten_run_script_int("typeof navigator !== 'undefined' && !navigator.userAgent.includes('Firefox/') && !!navigator.storage?.getDirectory && typeof FileSystemFileHandle !== 'undefined' && !!FileSystemFileHandle.prototype.createSyncAccessHandle")) {
+        const auto opfs = wasmfs_create_opfs_backend();
+        if (wasmfs_create_directory("/opfs", 0777, opfs) != 0) return 1;
+    }
+    opfs_status.store(1, std::memory_order_release);
+    emscripten_exit_with_live_runtime();
+}

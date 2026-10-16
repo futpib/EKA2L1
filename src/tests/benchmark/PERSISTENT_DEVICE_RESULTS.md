@@ -41,8 +41,10 @@ writing the same phone.
 The SDK's `FS.readFile` retains a native allocation. Production capture uses
 bounded `FS.read` chunks, which release those temporary allocations, rather
 than leaking a second device's worth of contents into the 2 GiB WASM heap.
-Unchanged saves perform no file-data or manifest writes. All file contents still
-occupy the existing in-memory filesystem and heap limit.
+Unchanged saves perform no file-data or manifest writes. This original
+measurement used an entirely in-memory filesystem. The Chromium launcher in
+this source revision [moves the installed ROM copy to OPFS](OPFS_ROM_RESULTS.md);
+other files retain the measured in-memory path.
 
 ## Verification
 

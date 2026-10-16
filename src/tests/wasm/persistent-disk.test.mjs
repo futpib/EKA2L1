@@ -22,12 +22,14 @@ const browserName = process.env.EKA_TEST_BROWSER || 'chrome';
 const browser = await puppeteer.launch({browser:browserName,
     executablePath:browserName === 'firefox' ? '/usr/bin/firefox' : '/usr/bin/chromium',headless:true,
     args:browserName === 'firefox' ? [] : ['--no-sandbox','--disable-dev-shm-usage']});
-const errors = [], url = `http://127.0.0.1:${port}/test_device_disk.html`;
+const errors = [], logs = [], url = `http://127.0.0.1:${port}/test_device_disk.html`;
 const page = await browser.newPage();
 page.on('pageerror', error => errors.push(String(error)));
+page.on('console', message => { logs.push(message.text()); if (logs.length > 20) logs.shift(); });
 const load = async () => {
     await page.goto(url);
-    await page.waitForFunction(() => Module.calledRun);
+    try { await page.waitForFunction(() => Module.calledRun && Module._eka2l1_opfs_status?.() === 1,{timeout:90000}); }
+    catch (error) { throw new Error('Fixture startup timed out: ' + errors.join(' | ') + ' ' + logs.join(' | '),{cause:error}); }
 };
 const open = id => page.evaluate(async id => {
     window.disk = await EkaDeviceDisk.open(id, FS, Module);
@@ -84,6 +86,62 @@ try {
     });
     await load(); await open('device-A');
     assert.equal(await page.evaluate(() => FS.readFile('/data/c/renamed',{encoding:'utf8'})), 'JS saved text');
+    const rom = await page.evaluate(async () => {
+        FS.mkdirTree('/data/roms/rm-409');
+        const path = '/data/roms/rm-409/SYM.ROM';
+        if (Module.ccall('test_disk_large','number',['string'],[path])) throw Error('ROM fixture write failed');
+        const checksum = Module.ccall('test_disk_checksum','number',['string'],[path]);
+        await disk.save();
+        const moved = await disk.offloadRom();
+        await disk.save();
+        const entry = disk.manifest.entries.find(value => value.path === path);
+        const keys = await disk.request(disk.database.transaction('files').objectStore('files').getAllKeys());
+        return {checksum,moved,offloaded:!!entry.offloaded,
+            linked:(FS.lstat(path).mode & 0o170000) === 0o120000,
+            stored:keys.some(key => key[2] === path)};
+    });
+    assert.equal(rom.moved > 0, browserName === 'chrome');
+    if (rom.moved) {
+        assert.equal(rom.moved, 5 * 1024 * 1024 + 31);
+        assert.deepEqual({offloaded:rom.offloaded,linked:rom.linked,stored:rom.stored},
+            {offloaded:true,linked:true,stored:false});
+    } else {
+        assert.deepEqual({offloaded:rom.offloaded,linked:rom.linked,stored:rom.stored},
+            {offloaded:false,linked:false,stored:true});
+    }
+    await load(); await open('device-A');
+    assert.deepEqual(await page.evaluate(() => {
+        const path = '/data/roms/rm-409/SYM.ROM';
+        return {checksum:Module.ccall('test_disk_checksum','number',['string'],[path]),
+            linked:(FS.lstat(path).mode & 0o170000) === 0o120000,
+            offloaded:!!disk.manifest.entries.find(value => value.path === path).offloaded};
+    }),{checksum:rom.checksum,linked:rom.linked,offloaded:rom.offloaded});
+    if (rom.moved) {
+        const rollback = await page.evaluate(async () => {
+            FS.mkdirTree('/data/roms/rm-500');
+            const path = '/data/roms/rm-500/SYM.ROM';
+            if (Module.ccall('test_disk_large','number',['string'],[path])) throw Error('rollback fixture write failed');
+            const checksum = Module.ccall('test_disk_checksum','number',['string'],[path]);
+            const symlink = FS.symlink;
+            FS.symlink = () => { throw Error('Injected symlink failure'); };
+            try {
+                await disk.offloadRom();
+                throw Error('ROM offload should have failed');
+            } catch (error) {
+                if (!/Injected symlink failure/.test(error.message)) throw error;
+            } finally { FS.symlink = symlink; }
+            const target = disk.offloadTarget(path);
+            const preserved = {regular:(FS.lstat(path).mode & 0o170000) === 0o100000,
+                checksum:Module.ccall('test_disk_checksum','number',['string'],[path]) === checksum};
+            FS.unlink(path);
+            return {target,...preserved};
+        });
+        assert.deepEqual({regular:rollback.regular,checksum:rollback.checksum},
+            {regular:true,checksum:true});
+        await load();
+        await open('device-A');
+        assert.equal(await page.evaluate(target => FS.analyzePath(target).exists,rollback.target),false);
+    }
     await page.evaluate(async () => {
         Module.ccall('test_disk_write','number',['string','string'],['/data/c/renamed','must not commit']);
         const original = disk.transaction.bind(disk);
@@ -97,5 +155,5 @@ try {
     await load(); await open('device-B');
     assert.equal(await page.evaluate(() => disk.manifest === null && !FS.analyzePath('/data/c/renamed').exists), true);
     assert.deepEqual(errors, []);
-    console.log('PASS native writes and libc buffers, reload, timestamps, empty/large files, same-size edits with preserved mtime, JS writes, rename, deletion, truncation, atomic failure, profile isolation and tab exclusion');
+    console.log('PASS native writes and libc buffers, reload, timestamps, empty/large files, ROM storage and reload, JS writes, rename, deletion, truncation, atomic failure, profile isolation and tab exclusion; OPFS=' + (rom.moved > 0));
 } finally { await browser.close(); await new Promise(resolve => server.close(resolve)); }

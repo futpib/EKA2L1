@@ -16,6 +16,7 @@
 #include <wasi/api.h>
 #include <cmath>
 #include <fcntl.h>
+#include <limits.h>
 
 namespace {
     std::atomic<bool> tracking{false};
@@ -36,10 +37,12 @@ namespace {
         std::int64_t seconds, nanos;
         unsigned mode;
         bool unstable;
+        bool offloaded = false;
         std::uint64_t write_version = 0;
         bool same(const fingerprint &other) const {
             return inode == other.inode && size == other.size && seconds == other.seconds
-                && nanos == other.nanos && mode == other.mode && write_version == other.write_version;
+                && nanos == other.nanos && mode == other.mode && offloaded == other.offloaded
+                && write_version == other.write_version;
         }
     };
     // Only the scan worker writes a pending batch. The main thread acknowledges
@@ -63,11 +66,21 @@ namespace {
                 const auto name = path + "/" + entry->d_name;
                 struct stat info{};
                 if (lstat(name.c_str(), &info) != 0) throw std::runtime_error("File changed during scan: " + name);
+                const bool offloaded = S_ISLNK(info.st_mode);
+                if (offloaded) {
+                    char target[PATH_MAX]{};
+                    const auto length = readlink(name.c_str(), target, sizeof(target) - 1);
+                    if (name.rfind("/data/roms/", 0) != 0
+                            || name.size() < 8 || name.substr(name.size() - 8) != "/SYM.ROM"
+                            || length <= 0 || std::string(target, length).rfind("/opfs/eka2l1-roms/", 0) != 0
+                            || stat(name.c_str(), &info) != 0 || !S_ISREG(info.st_mode))
+                        throw std::runtime_error("Unsupported device link: " + name);
+                }
                 const bool dir = S_ISDIR(info.st_mode);
                 if (!dir && !S_ISREG(info.st_mode)) throw std::runtime_error("Unsupported device file: " + name);
                 const auto modified = std::int64_t(info.st_mtim.tv_sec) * 1000 + info.st_mtim.tv_nsec / 1000000;
                 fingerprint stamp{std::uint64_t(info.st_ino), std::uint64_t(info.st_size),
-                    info.st_mtim.tv_sec, info.st_mtim.tv_nsec, unsigned(info.st_mode), modified >= host_millis() - 2};
+                    info.st_mtim.tv_sec, info.st_mtim.tv_nsec, unsigned(info.st_mode), modified >= host_millis() - 2, offloaded};
                 stamp.write_version = revision(stamp.inode);
                 const auto old = committed.find(name);
                 const bool changed = old == committed.end() || old->second.unstable || !stamp.same(old->second);
@@ -81,6 +94,7 @@ namespace {
                 writer.Key("modified"); writer.Int64(modified);
                 writer.Key("mode"); writer.Uint(stamp.mode);
                 writer.Key("changed"); writer.Bool(changed);
+                writer.Key("offloaded"); writer.Bool(offloaded);
                 writer.EndObject();
                 if (dir) inventory(name, writer);
             }
@@ -143,9 +157,9 @@ EMSCRIPTEN_KEEPALIVE int eka2l1_disk_file_matches(const char *path) {
     if (phase.load(std::memory_order_acquire) != 2 || !path) return 0;
     const auto entry = pending.find(path);
     struct stat info{};
-    if (entry == pending.end() || lstat(path, &info)) return 0;
+    if (entry == pending.end() || stat(path, &info)) return 0;
     fingerprint current{std::uint64_t(info.st_ino), std::uint64_t(info.st_size),
-        info.st_mtim.tv_sec, info.st_mtim.tv_nsec, unsigned(info.st_mode), false};
+        info.st_mtim.tv_sec, info.st_mtim.tv_nsec, unsigned(info.st_mode), false, entry->second.offloaded};
     current.write_version = revision(current.inode);
     return current.same(entry->second);
 }
