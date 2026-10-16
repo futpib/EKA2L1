@@ -154,3 +154,12 @@ headless Snakes check could not reach guest execution: its WebGL2 context
 creation failed during graphics initialization. It supplies no Firefox
 gameplay validation; Chromium supplied the real-browser gameplay validation
 above.
+
+The release was also exercised through the live HTTPS `.lan` launcher after
+deployment. Its Snakes picker path reached gameplay, produced 528 presentations
+in 32.97 host seconds (16.01 presentations/s), accepted keyboard and
+simultaneous touch input, and passed browser-audio checks with no reported
+errors. The browser served the candidate WASM hash above. One earlier fresh
+Chromium launch waited indefinitely for the OPFS-ready signal; a later fresh
+launch and the complete picker test succeeded. The earlier stall is an
+intermittent startup observation, not evidence of a memory or throughput gain.
