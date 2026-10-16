@@ -29,6 +29,7 @@
 #include <common/vecx.h>
 
 #include <cstdint>
+#include <map>
 #include <memory>
 #include <optional>
 #include <stack>
@@ -132,6 +133,13 @@ namespace eka2l1::dispatch {
         bool auto_regen_mipmap_;
         bool mipmap_gened_;
 
+        struct image_info {
+            eka2l1::vec2 size;
+            std::uint32_t format;
+            bool compressed;
+            float scale;
+        };
+        std::map<std::pair<std::uint32_t, std::int32_t>, image_info> images_;
         eka2l1::vec2 size_;
         gles_driver_texture_type texture_type_;
 
@@ -192,9 +200,12 @@ namespace eka2l1::dispatch {
             auto_regen_mipmap_ = opt;
         }
 
-        void set_mipmap_generated(const bool opt) {
-            mipmap_gened_ = opt;
-        }
+        void set_mipmap_generated(const bool opt);
+        void define_image(std::uint32_t target, std::int32_t level, const eka2l1::vec2 &size,
+            std::uint32_t format, bool compressed = false);
+        std::uint32_t copy_sub_image(egl_controller &controller, drivers::graphics_driver *driver,
+            std::uint32_t target, std::int32_t level, const eka2l1::vec2 &offset,
+            const eka2l1::vec2 &source_pos, const eka2l1::vec2 &size);
 
         const bool is_mipmap_generated() const {
             return mipmap_gened_;
@@ -394,7 +405,7 @@ namespace eka2l1::dispatch {
         virtual void flush_to_driver(egl_controller &controller, drivers::graphics_driver *driver, const bool is_frame_swap_flush = false) override;
         virtual void destroy(drivers::graphics_driver *driver, drivers::graphics_command_builder &builder) override;
         virtual bool prepare_for_draw(drivers::graphics_driver *driver, egl_controller &controller, kernel::process *crr_process,
-            const std::int32_t first_index, const std::uint32_t vcount) = 0;
+            const std::int32_t first_index, const std::uint32_t vcount, const drivers::graphics_primitive_mode primitive_mode) = 0;
         virtual bool prepare_for_clear(drivers::graphics_driver *driver, egl_controller &controller);
         virtual bool enable(const std::uint32_t feature);
         virtual bool disable(const std::uint32_t feature);

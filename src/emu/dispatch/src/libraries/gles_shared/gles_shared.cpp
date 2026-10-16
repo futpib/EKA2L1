@@ -21,6 +21,7 @@
 #include <dispatch/libraries/gles_shared/utils.h>
 #include <dispatch/libraries/gles_shared/gles_shared.h>
 #include <dispatch/libraries/gles2/consts.h>
+#include <dispatch/libraries/gles2/def.h>
 #include <services/window/screen.h>
 
 #include <dispatch/dispatcher.h>
@@ -29,7 +30,7 @@
 #include <kernel/kernel.h>
 
 namespace eka2l1::dispatch {
-    static bool decompress_palette_data(std::vector<std::uint8_t> &dest, std::vector<std::size_t> &out_size, std::uint8_t *source, std::int32_t width,
+    bool decompress_palette_data(std::vector<std::uint8_t> &dest, std::vector<std::size_t> &out_size, const std::uint8_t *source, std::size_t source_size, std::int32_t width,
         std::int32_t height, std::uint32_t source_format, std::int32_t mip_count, drivers::texture_format &dest_format,
         drivers::texture_data_type &dest_data_type, std::uint32_t &dest_format_gl) {
         std::uint8_t bytes_per_pixel = 0;
@@ -88,34 +89,52 @@ namespace eka2l1::dispatch {
             palette_bits = 4;
         }
 
-        while ((mip_count > 0) && (height > 0) && (width > 0)) {
+        if (!source || width < 0 || height < 0 || width > GLES_EMU_MAX_TEXTURE_SIZE
+            || height > GLES_EMU_MAX_TEXTURE_SIZE || mip_count <= 0) {
+            return false;
+        }
+        std::int32_t max_mips = 1;
+        for (std::int32_t size = GLES_EMU_MAX_TEXTURE_SIZE; size > 1; size /= 2) {
+            ++max_mips;
+        }
+        if (mip_count > max_mips) {
+            return false;
+        }
+
+        const std::size_t palette_size = (1 << palette_bits) * bytes_per_pixel;
+        std::size_t required_size = palette_size;
+        auto mip_width = width;
+        auto mip_height = height;
+        for (std::int32_t mip = 0; mip < mip_count; ++mip) {
+            required_size += (static_cast<std::size_t>(mip_width) * mip_height * palette_bits + 7) / 8;
+            mip_width = mip_width ? std::max(1, mip_width / 2) : 0;
+            mip_height = mip_height ? std::max(1, mip_height / 2) : 0;
+        }
+        if (source_size != required_size) {
+            return false;
+        }
+
+        const std::uint8_t *indices = source + palette_size;
+        while (mip_count > 0) {
+            const std::size_t pixel_count = static_cast<std::size_t>(width) * height;
             const std::size_t prev_size = dest.size();
-            const std::size_t calculated_size = width * height * bytes_per_pixel;
+            const std::size_t calculated_size = pixel_count * bytes_per_pixel;
 
             out_size.push_back(calculated_size);
-            dest.resize(dest.size() + calculated_size);
-            
-            std::uint8_t *current_dest = dest.data() + prev_size;
+            dest.resize(prev_size + calculated_size);
 
-            std::uint8_t *source_start = source + (1 << palette_bits) * bytes_per_pixel;
-            for (std::int32_t y = 0; y < height; y++) {
-                for (std::int32_t x = 0; x < width / (8 / palette_bits); x++) {
-                    const std::int32_t current_pixel_idx = y * width + x;
-                    const std::int32_t current_ptr_pixel_idx = current_pixel_idx * bytes_per_pixel;
-                    const std::uint8_t indicies = source_start[current_pixel_idx];
-
-                    if (palette_bits == 8) {
-                        std::memcpy(current_dest + current_ptr_pixel_idx, source + indicies * bytes_per_pixel, bytes_per_pixel);
-                    } else {
-                        std::memcpy(current_dest + current_ptr_pixel_idx * 2, source + (indicies & 0xF) * bytes_per_pixel, bytes_per_pixel);
-                        std::memcpy(current_dest + current_ptr_pixel_idx * 2 + bytes_per_pixel, source + ((indicies & 0xF0) >> 4) * bytes_per_pixel, bytes_per_pixel);
-                    }
-                }
+            for (std::size_t pixel = 0; pixel < pixel_count; ++pixel) {
+                const std::uint8_t index = palette_bits == 8
+                    ? indices[pixel]
+                    : (indices[pixel / 2] >> ((pixel % 2 == 0) ? 4 : 0)) & 0xF;
+                std::memcpy(dest.data() + prev_size + pixel * bytes_per_pixel,
+                    source + index * bytes_per_pixel, bytes_per_pixel);
             }
 
-            mip_count--;
-            width /= 2;
-            height /= 2;
+            indices += (pixel_count * palette_bits + 7) / 8;
+            --mip_count;
+            width = width ? std::max(1, width / 2) : 0;
+            height = height ? std::max(1, height / 2) : 0;
         }
 
         return true;
@@ -963,6 +982,7 @@ namespace eka2l1::dispatch {
         , mipmap_gened_(false)
         , texture_type_(GLES_DRIVER_TEXTURE_TYPE_NONE)
         , max_anisotrophy_(-1.0f)
+        , current_scale_(1.0f)
         , change_flags_(0) {
     }
 
@@ -1104,6 +1124,11 @@ namespace eka2l1::dispatch {
         }
 
         current_scale_ = scale;
+        for (auto &[key, image] : images_) {
+            if (key.second == 0) {
+                image.scale = scale;
+            }
+        }
 
         drivers::texture_format internal_format_driver;
         drivers::texture_format format_driver;
@@ -1602,11 +1627,6 @@ namespace eka2l1::dispatch {
             params[1] = static_cast<T>(1);
             break;
 
-        case GL_POINT_SIZE_MIN_EMU:
-        case GL_POINT_SIZE_MAX_EMU:
-            *params = static_cast<T>(1);
-            break;
-
         case GL_MAX_TEXTURE_MAX_ANISOTROPHY_EMU: {
             float query_val = 1.0f;
             if (!drv->support_extension(drivers::graphics_driver_extension_anisotrophy_filtering)) {
@@ -1912,6 +1932,17 @@ namespace eka2l1::dispatch {
         }
 
         for (std::int32_t i = 0; i < n; i++) {
+            // Deleting a bound buffer reverts that binding to zero, even for a name never generated.
+            if (obj_type == GLES_OBJECT_BUFFER) {
+                if (ctx->binded_array_buffer_handle_ == names[i]) {
+                    ctx->binded_array_buffer_handle_ = 0;
+                }
+
+                if (ctx->binded_element_array_buffer_handle_ == names[i]) {
+                    ctx->binded_element_array_buffer_handle_ = 0;
+                }
+            }
+
             auto *obj = ctx->objects_.get(names[i]);
             if (obj && *obj && ((*obj)->object_type() == obj_type)) {
                 ctx->objects_.remove(names[i]);
@@ -2021,6 +2052,7 @@ namespace eka2l1::dispatch {
 
         if ((width < 0) || (height < 0) || (width > GLES_EMU_MAX_TEXTURE_SIZE) || (height > GLES_EMU_MAX_TEXTURE_SIZE) || !data_pixels) {
             controller.push_error(ctx, GL_INVALID_VALUE);
+            return;
         }
 
         gles_driver_texture *tex = ctx->binded_texture();
@@ -2049,16 +2081,20 @@ namespace eka2l1::dispatch {
         std::uint8_t dimension = (target == GL_TEXTURE_2D_EMU) ? 2 : static_cast<std::uint8_t>(target - GL_TEXTURE_CUBE_MAP_POSITIVE_X_EMU + 4);
         drivers::channel_swizzles swizz = { drivers::channel_swizzle::red, drivers::channel_swizzle::green, drivers::channel_swizzle::blue, drivers::channel_swizzle::alpha };
 
-        if ((internal_format >= GL_PALETTE4_RGBA8_OES_EMU) && (internal_format <= GL_PALETTE8_RGB5_A1_OES_EMU)) {
-            if (level > 0) {
-                controller.push_error(ctx, GL_INVALID_ENUM);
-            } else {
-                level = (-level) + 1;
-
-                if (level > GLES_EMU_MAX_TEXTURE_MIP_LEVEL) {
-                    controller.push_error(ctx, GL_INVALID_VALUE);
-                }
+        if ((internal_format >= GL_PALETTE4_RGB8_OES_EMU) && (internal_format <= GL_PALETTE8_RGB5_A1_OES_EMU)) {
+            std::int32_t max_mips = 1;
+            for (std::int32_t size = GLES_EMU_MAX_TEXTURE_SIZE; size > 1; size /= 2) {
+                ++max_mips;
             }
+            if (level > 0 || level <= -max_mips) {
+                controller.push_error(ctx, GL_INVALID_VALUE);
+                return;
+            }
+            if (border != 0) {
+                controller.push_error(ctx, GL_INVALID_OPERATION);
+                return;
+            }
+            level = 1 - level;
 
             std::vector<std::uint8_t> decompressed_data;
             std::vector<std::size_t> out_size;
@@ -2066,15 +2102,14 @@ namespace eka2l1::dispatch {
             std::uint32_t format_gl = 0;
             drivers::texture_data_type dtype;
 
-            if (!decompress_palette_data(decompressed_data, out_size, reinterpret_cast<std::uint8_t*>(data_pixels), width, height, internal_format,
+            if (!decompress_palette_data(decompressed_data, out_size, reinterpret_cast<const std::uint8_t*>(data_pixels), image_size, width, height, internal_format,
                 level, internal_format_driver, dtype, format_gl)) {
-                controller.push_error(ctx, GL_INVALID_ENUM);
+                controller.push_error(ctx, GL_INVALID_VALUE);
                 return;
             }
 
             std::uint8_t *data_to_pass = decompressed_data.data();
 
-            // TODO: border is ignored!
             if (!tex->handle_value()) {
                 need_set_params = true;
 
@@ -2088,7 +2123,7 @@ namespace eka2l1::dispatch {
                     drivers::graphics_driver *drv = sys->get_graphics_driver();
                     drivers::handle new_h = drivers::create_texture(drv, dimension, 0, internal_format_driver,
                         internal_format_driver, dtype, data_to_pass, out_size[0], eka2l1::vec3(width, height, 0),
-                        0, ctx->unpack_alignment_);
+                        0, 1);
 
                     if (!new_h) {
                         controller.push_error(ctx, GL_INVALID_OPERATION);
@@ -2103,21 +2138,24 @@ namespace eka2l1::dispatch {
             if (need_reinstantiate) {
                 ctx->cmd_builder_.recreate_texture(tex->handle_value(), dimension, 0, internal_format_driver,
                     internal_format_driver, dtype, data_to_pass, out_size[0], eka2l1::vec3(width, height, 0),
-                    0, ctx->unpack_alignment_);
+                    0, 1);
             }
 
             if (need_set_params) {
                 tex->sync_parameters_with_driver();
             }
 
-            data_to_pass += out_size[0];
+            tex->define_image(target, 0, eka2l1::vec2(width, height), internal_format, true);
+            if (out_size[0]) data_to_pass += out_size[0];
 
             for (std::size_t i = 1; i < out_size.size(); i++) {
-                width /= 2;
-                height /= 2;
+                width = width ? std::max(1, width / 2) : 0;
+                height = height ? std::max(1, height / 2) : 0;
 
                 ctx->cmd_builder_.recreate_texture(tex->handle_value(), dimension, static_cast<std::uint8_t>(i), internal_format_driver,
-                    internal_format_driver, dtype, data_to_pass, out_size[i], eka2l1::vec3(width, height, 0), 0, ctx->unpack_alignment_);            
+                    internal_format_driver, dtype, data_to_pass, out_size[i], eka2l1::vec3(width, height, 0), 0, 1);
+                tex->define_image(target, static_cast<std::int32_t>(i), eka2l1::vec2(width, height), internal_format, true);
+                if (out_size[i]) data_to_pass += out_size[i];
             }
         } else {
             // Pass to driver as normal
@@ -2192,6 +2230,7 @@ namespace eka2l1::dispatch {
             if (need_set_params) {
                 tex->sync_parameters_with_driver();
             }
+            tex->define_image(target, level, eka2l1::vec2(width, height), internal_format, true);
         }
 
         tex->set_internal_format(internal_format);
@@ -2220,6 +2259,7 @@ namespace eka2l1::dispatch {
         if ((level < 0) || (level > GLES_EMU_MAX_TEXTURE_MIP_LEVEL) || (width < 0) || (height < 0) || (width > GLES_EMU_MAX_TEXTURE_SIZE)
             || (height > GLES_EMU_MAX_TEXTURE_SIZE)) {
             controller.push_error(ctx, GL_INVALID_VALUE);
+            return;
         }
 
         if (internal_format != format) {
@@ -2299,6 +2339,7 @@ namespace eka2l1::dispatch {
             tex->sync_parameters_with_driver();
         }
 
+        tex->define_image(target, level, eka2l1::vec2(width, height), format);
         tex->set_internal_format(format);
         tex->set_size(eka2l1::vec2(width, height));
         tex->set_mipmap_generated(false);
@@ -2377,6 +2418,125 @@ namespace eka2l1::dispatch {
         if (tex->auto_regenerate_mipmap()) {
             ctx->cmd_builder_.regenerate_mips(tex->handle_value());
             tex->set_mipmap_generated(true);
+        }
+    }
+
+    void gles_driver_texture::define_image(std::uint32_t target, std::int32_t level,
+        const eka2l1::vec2 &size, std::uint32_t format, bool compressed) {
+        images_[{target, level}] = {size, format, compressed, 1.0f};
+        if (level == 0) {
+            current_scale_ = 1.0f;
+        }
+    }
+
+    void gles_driver_texture::set_mipmap_generated(const bool opt) {
+        mipmap_gened_ = opt;
+        if (!opt) {
+            return;
+        }
+        for (const auto &[key, base] : images_) {
+            if (key.second != 0) {
+                continue;
+            }
+            auto size = base.size;
+            for (int level = 1; size.x > 1 || size.y > 1; ++level) {
+                size = eka2l1::vec2(std::max(1, size.x / 2), std::max(1, size.y / 2));
+                define_image(key.first, level, size, base.format, base.compressed);
+                images_[{key.first, level}].scale = base.scale;
+            }
+        }
+    }
+
+    std::uint32_t gles_driver_texture::copy_sub_image(egl_controller &controller, drivers::graphics_driver *driver,
+        std::uint32_t target, std::int32_t level, const eka2l1::vec2 &offset,
+        const eka2l1::vec2 &source_pos, const eka2l1::vec2 &size) {
+        auto &ctx = context_;
+        const bool cube_face = target >= GL_TEXTURE_CUBE_MAP_POSITIVE_X_EMU && target <= GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_EMU;
+        if (target != GL_TEXTURE_2D_EMU && !(cube_face && ctx.context_type() == EGL_GLES2_CONTEXT)) {
+            return GL_INVALID_ENUM;
+        }
+        const auto target_error = target_matched(cube_face ? GL_TEXTURE_CUBE_MAP_EMU : target);
+        if (target_error) {
+            return target_error;
+        }
+        if (level < 0 || level > 31 || (GLES_EMU_MAX_TEXTURE_SIZE >> level) == 0
+            || size.x < 0 || size.y < 0 || offset.x < 0 || offset.y < 0) {
+            return GL_INVALID_VALUE;
+        }
+        const auto image = images_.find({target, level});
+        if (!handle_value() || image == images_.end() || image->second.compressed) {
+            return GL_INVALID_OPERATION;
+        }
+        const auto &info = image->second;
+        if (offset.x > info.size.x || offset.y > info.size.y
+            || size.x > info.size.x - offset.x || size.y > info.size.y - offset.y) {
+            return GL_INVALID_VALUE;
+        }
+        const bool needs_alpha = info.format == GL_ALPHA_EMU || info.format == GL_LUMINANCE_ALPHA_EMU
+            || info.format == GL_RGBA_EMU || info.format == GL_BGRA_EXT_EMU;
+        bool source_has_alpha = ctx.read_surface_->config_.alpha_bits() != 0;
+        drivers::handle source = ctx.read_surface_->handle_;
+        float scale = ctx.read_surface_->current_scale_;
+        if (ctx.context_type() == EGL_GLES2_CONTEXT) {
+            auto &es2 = static_cast<egl_context_es2 &>(ctx);
+            if (es2.binded_framebuffer_) {
+                auto *obj = es2.objects_.get(es2.binded_framebuffer_);
+                if (!obj || !*obj || (*obj)->object_type() != GLES_OBJECT_FRAMEBUFFER) {
+                    return GL_INVALID_FRAMEBUFFER_OPERATION;
+                }
+                auto *fb = static_cast<gles_framebuffer_object *>(obj->get());
+                std::uint32_t format, type;
+                if (fb->completed() != GL_FRAMEBUFFER_COMPLETE_EMU || !fb->get_pair_read_specs(format, type)
+                    || fb->ready_for_draw(controller, driver) != 0) {
+                    return GL_INVALID_FRAMEBUFFER_OPERATION;
+                }
+                source_has_alpha = format == GL_RGBA_EMU;
+                source = fb->handle_value();
+                scale = ctx.draw_surface_->backed_screen_->display_scale_factor;
+            }
+        }
+        if (needs_alpha && !source_has_alpha) {
+            return GL_INVALID_OPERATION;
+        }
+        if (!size.x || !size.y) {
+            return 0;
+        }
+        const double scaled_x = static_cast<float>(source_pos.x) * scale;
+        const double scaled_y = static_cast<float>(source_pos.y) * scale;
+        const double scaled_width = static_cast<float>(size.x) * scale;
+        const double scaled_height = static_cast<float>(size.y) * scale;
+        if (scaled_x < std::numeric_limits<int>::min() || scaled_y < std::numeric_limits<int>::min()
+            || scaled_x + scaled_width > std::numeric_limits<int>::max()
+            || scaled_y + scaled_height > std::numeric_limits<int>::max()) {
+            return 0;
+        }
+        eka2l1::rect source_rect(source_pos, size);
+        eka2l1::rect dest_rect(offset, size);
+        source_rect.scale(scale);
+        dest_rect.scale(info.scale);
+        const auto dimension = cube_face ? target - GL_TEXTURE_CUBE_MAP_POSITIVE_X_EMU + 4 : 2;
+        ctx.cmd_builder_.copy_framebuffer_to_texture(source, handle_value(), dimension, level, source_rect, dest_rect,
+            info.format == GL_ALPHA_EMU || info.format == GL_LUMINANCE_ALPHA_EMU);
+        set_mipmap_generated(false);
+        if (auto_regenerate_mipmap() && level == 0) {
+            ctx.cmd_builder_.regenerate_mips(handle_value());
+            set_mipmap_generated(true);
+        }
+        return 0;
+    }
+
+    BRIDGE_FUNC_LIBRARY(void, gl_copy_tex_sub_image_2d_emu, std::uint32_t target, std::int32_t level,
+        std::int32_t xoffset, std::int32_t yoffset, std::int32_t x, std::int32_t y, std::int32_t width, std::int32_t height) {
+        auto *ctx = get_es_shared_active_context(sys);
+        if (!ctx) {
+            return;
+        }
+        auto &controller = sys->get_dispatcher()->get_egl_controller();
+        auto *tex = ctx->binded_texture();
+        const auto error = tex ? tex->copy_sub_image(controller, sys->get_graphics_driver(), target, level,
+            eka2l1::vec2(xoffset, yoffset), eka2l1::vec2(x, y), eka2l1::vec2(width, height)) : GL_INVALID_OPERATION;
+        if (error) {
+            controller.push_error(ctx, error);
         }
     }
 
@@ -3044,22 +3204,6 @@ namespace eka2l1::dispatch {
         *param = static_cast<gl_fixed>(value_real);
     }
     
-    BRIDGE_FUNC_LIBRARY(void, gl_point_size_emu, float size) {
-        // Empty
-    }
-
-    BRIDGE_FUNC_LIBRARY(void, gl_point_sizex_emu, gl_fixed size) {
-        // Empty
-    }
-    
-    BRIDGE_FUNC_LIBRARY(void, gl_point_parameter_f_emu, std::uint32_t pname, float param) {
-        // Empty
-    }
-
-    BRIDGE_FUNC_LIBRARY(void, gl_point_parameter_fv_emu, std::uint32_t pname, const float *param) {
-        // Empty
-    }
-
     BRIDGE_FUNC_LIBRARY(void, gl_draw_arrays_emu, std::uint32_t mode, std::int32_t first_index, std::int32_t count) {
         egl_context_es_shared *ctx = get_es_shared_active_context(sys);
         if (!ctx) {
@@ -3081,7 +3225,7 @@ namespace eka2l1::dispatch {
             return;
         }
 
-        if (!ctx->prepare_for_draw(drv, controller, sys->get_kernel_system()->crr_process(), first_index, count)) {
+        if (!ctx->prepare_for_draw(drv, controller, sys->get_kernel_system()->crr_process(), first_index, count, prim_mode_drv)) {
             LOG_ERROR(HLE_DISPATCHER, "Error while preparing GLES draw. This should not happen!");
             return;
         }
@@ -3214,7 +3358,7 @@ namespace eka2l1::dispatch {
             ctx->cmd_builder_.set_index_buffer(binded_elem_buffer_managed->handle_value());
         }
 
-        if (!ctx->prepare_for_draw(drv, controller, sys->get_kernel_system()->crr_process(), min_vert_index, total_vert)) {
+        if (!ctx->prepare_for_draw(drv, controller, sys->get_kernel_system()->crr_process(), min_vert_index, total_vert, prim_mode_drv)) {
             LOG_ERROR(HLE_DISPATCHER, "Error while preparing GLES draw. This should not happen!");
             return;
         }

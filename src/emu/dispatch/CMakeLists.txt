@@ -66,6 +66,7 @@ add_library(epocdispatch
         include/dispatch/register.h
         include/dispatch/screen.h
         include/dispatch/tls.h
+        include/dispatch/tone.h
         include/dispatch/video.h
         src/libraries/egl/def.cpp
         src/libraries/egl/egl.cpp
@@ -87,6 +88,7 @@ add_library(epocdispatch
         src/register.cpp
         src/screen.cpp
         src/tls.cpp
+        src/tone.cpp
         src/video.cpp
         ${GNUVG_SOURCES})
 
