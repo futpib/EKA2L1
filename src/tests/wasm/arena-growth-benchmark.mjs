@@ -33,11 +33,13 @@ const browserMemory=async()=>{
  return rows;
 };
 let browserMemoryTimer;
+const profileAfterRuntime=process.env.EKA2L1_CHROME_PROFILE_AFTER_RUNTIME==='1';
 try {
 const page=await browser.newPage(); await page.setViewport({width:900,height:800});page.setDefaultTimeout(180000);
 if(process.argv[5]==='chrome-memory' || allocationProfile || fullMemory) {
  const {ChromeMemoryProfiler}=await import('./chrome-memory-profiler.mjs');
- memoryProfiler=new ChromeMemoryProfiler(page,out);await memoryProfiler.start();
+ memoryProfiler=new ChromeMemoryProfiler(page,out);
+ if(!profileAfterRuntime)await memoryProfiler.start();
 }
 page.on('console',m=>{log.write(m.text()+'\n');if(/Access violation|KERN-EXEC|ABORT:|panicked with category:|AOT-only:|RuntimeError:|Aborted\(|Thread Main forcefully killed.*exit code: -/.test(m.text()))errors.push(m.text())});
 page.on('pageerror',e=>errors.push(String(e)));
@@ -52,6 +54,7 @@ if(allocationProfile || fullMemory || process.env.EKA2L1_BROWSER_MEMORY==='1')br
  try{const processes=await browserMemory();browserMemorySamples.push({ms:performance.now(),processes,pssKiB:processes.reduce((n,p)=>n+p.pssKiB,0)});}catch{}
 },1000);
 await guardedWait(()=>window.Module?.calledRun);
+if(memoryProfiler && profileAfterRuntime)await memoryProfiler.start();
 assert.equal(await page.evaluate(t=>Module._eka2l1_route_configure(t),6000000),0);
 let installedImage;
 const html=await page.evaluate(async()=>await(await fetch('/')).text());

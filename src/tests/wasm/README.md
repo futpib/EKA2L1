@@ -376,8 +376,15 @@ node src/tests/wasm/arena-growth-benchmark.mjs asphalt-3 /absolute/path/new-capt
 python3 src/tests/benchmark/summarize_browser_memory.py /absolute/path/new-capture --chromium-debug /absolute/path/to/matching/chromium.debug
 ```
 
+If Chrome's allocation samplers stall before `Module.calledRun`, set
+`EKA2L1_CHROME_PROFILE_AFTER_RUNTIME=1` for the capture. Sampling then starts
+after the WASM runtime is ready but before the game launch and derived-code
+installation. The process mappings and gameplay scene are still captured;
+native and JavaScript allocation samples omit the runtime's initial setup.
+
 The symbol file must match Chrome's build ID. The summary reconciles physical
 PSS across processes and mappings; sampled allocation stacks and JIT perf-map
 sizes are separate views and must not be added to PSS. See the
-[Asphalt 3 browser attribution](../benchmark/BROWSER_MEMORY_ATTRIBUTION_RESULTS.md)
-for measured ownership and limitations.
+[browser attribution method](../benchmark/BROWSER_MEMORY_ATTRIBUTION_RESULTS.md)
+and [current sparse-backing profile](../benchmark/ASPHALT3_SPARSE_MEMORY_PROFILE.md)
+for measured ownership and limitations on the deployed build.
