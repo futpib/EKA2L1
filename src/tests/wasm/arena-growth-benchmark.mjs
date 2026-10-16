@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import puppeteer from 'puppeteer';
 const game=process.argv[2], out=process.argv[3];
 const fullMemory=process.argv[5]==='full-memory';
+const persistentDisk=process.env.EKA2L1_BENCHMARK_PERSISTENT_DISK==='1';
 
 const games=JSON.parse(fs.readFileSync(new URL('./games.json',import.meta.url)));
 const entry=games.find(g=>g.id===game);
@@ -45,7 +46,7 @@ const guardedWait=async predicate=>{
  const timer=setInterval(()=>{if(errors.length)abort.abort(new Error(errors.join('\n')));},250);
  try{return await page.waitForFunction(predicate,{signal:abort.signal});}finally{clearInterval(timer);}
 };
-await page.evaluateOnNewDocument(()=>{window.ekaTransientSession=true;});
+await page.evaluateOnNewDocument(transient=>{window.ekaTransientSession=transient;},!persistentDisk);
 await page.goto(new URL('?game=custom',process.argv[4]).href,{waitUntil:'domcontentloaded'});
 if(allocationProfile || fullMemory || process.env.EKA2L1_BROWSER_MEMORY==='1')browserMemoryTimer=setInterval(async()=>{
  try{const processes=await browserMemory();browserMemorySamples.push({ms:performance.now(),processes,pssKiB:processes.reduce((n,p)=>n+p.pssKiB,0)});}catch{}
@@ -66,6 +67,7 @@ if(process.env.EKA2L1_BENCHMARK_PREPARED==='1') {
 await page.$eval('#app-name',(e,v)=>e.value=v,entry.uid);
 await page.evaluate(({entryUrl,image})=>{window.measurementLaunch=startEmulator(entryUrl,image)},{entryUrl:!installedImage&&entry.ngage?'/preload/games/'+game+'/ngage':undefined,image:installedImage});
 await guardedWait(()=>window._gameRunning);
+if(persistentDisk)assert.equal(await page.evaluate(()=>!!window.ekaDeviceDisk),true);
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 const shot=async name=>{
  await page.screenshot({path:out+'/'+name+'.png'});
@@ -142,6 +144,35 @@ const measure=async(label,seconds=30)=>{
  else while(performance.now()-start<seconds*1000){await wait(500);samples.push(await status())}
  const a=samples[0],b=samples.at(-1),wall=(b.ms-a.ms)/1000;
  const report={game,label,hostFrequencyKHz:{before:clocksBefore,after:cpuFrequencies()},edition:entry.version??'launcher default',url:page.url(),browser:await browser.version(),wasm:await page.evaluate(()=>performance.getEntriesByType('resource').find(x=>x.name.includes('.wasm'))?.name),cpu:os.cpus()[0].model,load:os.loadavg(),mode:game==='n-gage'?'bounded guest-time client route; not an FPS benchmark':'unpaced, continuous route with 1800s guest deadline, no pauses',sound:'browser muted; guest audio remains enabled',seconds:wall,frames:b.frames-a.frames,fps:game==='n-gage'?null:(b.frames-a.frames)/wall,guestSeconds:(b.guest-a.guest)/1e6,guestSpeed:(b.guest-a.guest)/1e6/wall,compiledFunctions:b.monitor.compiled_functions-a.monitor.compiled_functions,diskScans:b.diskScans-a.diskScans,compilationUs:Object.fromEntries(['aot_translation_us','aot_emission_us','aot_installation_us'].map(k=>[k,b.monitor[k]-a.monitor[k]])),errors:[...errors],samples};
+ report.persistentDisk=persistentDisk;
+ report.firmwareOffload=await page.evaluate(()=>{
+  const disk=window.ekaDeviceDisk;
+  if(!disk)return {done:false,files:0};
+  let files=0;
+  const stack=['/data/drives/z'];
+  while(stack.length){
+   const path=stack.pop();
+   for(const name of FS.readdir(path))if(name!=='.'&&name!=='..'){
+    const child=path+'/'+name,kind=FS.lstat(child).mode&0xf000;
+    if(kind===0x4000)stack.push(child);
+    else if(kind===0xa000)files++;
+   }
+  }
+  return {done:!!disk.firmwareOffloadDone,files};
+ });
+ if(process.env.EKA2L1_MEMORY_FILE_INVENTORY==='1')report.fileInventory=await page.evaluate(()=>{
+  const files=[],errors=[];
+  const visit=(path)=>{
+   const info=FS.lstat(path);
+   if((info.mode&0xf000)===0xa000)return;
+   if((info.mode&0xf000)===0x4000){
+    for(const name of FS.readdir(path))if(name!=='.'&&name!=='..')visit(path+'/'+name);
+   }else files.push({path,size:info.size});
+  };
+  for(const root of ['/data','/tmp'])try{visit(root);}catch(error){errors.push({path:root,error:String(error)});}
+  return {count:files.length,bytes:files.reduce((sum,file)=>sum+file.size,0),
+   top:files.sort((a,b)=>b.size-a.size).slice(0,60),errors};
+ });
  report.romCache=await page.evaluate(()=>({staging:window.ekaRomCacheStatus??null,status:Module._eka2l1_rom_cache_status?.()??null}));
  report.chromeMemoryProfiling=!!memoryProfiler;
  report.allocationProfiling=allocationProfile;

@@ -365,6 +365,10 @@ For a whole-browser memory profile of a real game route, use the normal served
 build and the `full-memory` mode. This records PSS and `smaps` for every Chrome
 process, sampled JavaScript and native allocations, and a V8 JIT perf map. On
 Linux, the profile also checks which labelled executable pages are resident.
+Set `EKA2L1_BENCHMARK_PERSISTENT_DISK=1` to include the saved device and its
+read-only firmware offload; the default transient benchmark bypasses both.
+Set `EKA2L1_MEMORY_FILE_INVENTORY=1` with a persistent run to record the live
+regular-file count, logical bytes, and largest files in the route report.
 Keep the capture outside Git:
 
 ```sh
