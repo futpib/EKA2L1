@@ -25,7 +25,7 @@ kernel page cache.
 
 | # | Browser memory owner | PSS, MiB | What the evidence identifies |
 |---:|---|---:|---|
-| 1 | Chromium PartitionAlloc mappings | 949.65 | Native browser/V8 allocation arenas; sampled call sites below, but no complete live-object split. |
+| 1 | Chromium PartitionAlloc mappings | 949.65 | Resident native allocator mappings across browser processes; sampled live allocation origins below, but no complete allocation-to-mapping split. |
 | 2 | WASM linear-memory backing | 843.40 | Resident pages containing emulator C++ and guest memory; separate diagnostic breakdown below. |
 | 3 | File-backed Chromium mappings | 428.84 | Shared libraries, browser binary, and mapped files across processes; not all private RAM or emulator-owned data. |
 | 4 | V8 executable code and trampolines | 426.86 | Native JIT code; a separate perf-map capture labels about 394 MiB of present renderer pages as generated guest code, with possible stale labels. |
@@ -97,17 +97,21 @@ have all their pages resident. It is not yet a proven 190 MiB saving.
 
 A separate production-build browser allocation capture in
 `/home/claude/.scratch/eka-memory-latest-tetris-full-20261016` sampled about
-322 MiB of native allocations at V8's
+322 MiB of still-tracked native allocations originating at V8's
 `GetAndCopyFirstArgumentAsBytes` while it consumes generated module bytes.
 The bridge at `src/emu/cpu/src/aot/aot_runtime.cpp:652-657` first copies
-those bytes into a `Uint8Array`, then calls `new WebAssembly.Module`.
-It sampled about 101 MiB at `WasmCode::WasmCode` and 64 MiB at trap-handler
-registration. These are **allocation-origin estimates, not live retained
-bytes**, and they cannot be added to PSS. That capture had 145,793 compiled
-functions and a 435.79 MiB executable mapping; approximately 393.93 MiB of
-present renderer code pages intersected guest-region labels in the append-only
-V8 perf map. That makes generated ARM-in-WASM code and its browser bookkeeping
-the largest identifiable non-guest-payload pressure, but it does not prove
-that the sampled byte-copy allocation remains live at the endpoint. The
-browser's PartitionAlloc mappings need a lifetime-aware retained-object
-profile before a precise avoidable-byte estimate is possible.
+those bytes into a `Uint8Array`, then calls `new WebAssembly.Module`, which
+makes its own native copy. The same sample had about 101 MiB originating at
+`WasmCode::WasmCode` and 64 MiB at trap-handler registration. Chromium's
+sampling heap profiler removes samples when their allocations are freed, so
+these are **estimates of allocations still tracked at the capture endpoint**,
+not cumulative allocation churn. Sampling began after browser startup, misses
+some allocations, and does not identify which virtual-memory mapping holds
+each sampled pointer; these estimates cannot be added to PSS or subtracted
+directly from the 949.65 MiB PartitionAlloc row. That capture had 145,793
+compiled functions and a 435.79 MiB executable mapping; approximately 393.93
+MiB of present renderer code pages intersected guest-region labels in the
+append-only V8 perf map. Generated ARM-in-WASM code and its browser
+bookkeeping are thus the largest identifiable non-guest-payload pressure, but
+the exact avoidable portion of PartitionAlloc still needs a pointer-to-mapping
+retained-allocation census.
