@@ -27,6 +27,7 @@
 
 #include <common/log.h>
 #include <cpu/arm_interface.h>
+#include <cstdlib>
 #include <cstring>
 
 namespace eka2l1::mem {
@@ -80,7 +81,9 @@ namespace eka2l1::mem {
             for (int poff = ps_off; poff < ps_off + page_num; poff++) {
                 // If the entry has not yet been committed.
                 if (pt->pages_[poff].host_addr == nullptr) {
-                    pt->pages_[poff].assign(reinterpret_cast<std::uint8_t *>(host_base_) + (poff << control_->page_size_bits_) + pt_base, permission_);
+                    auto *host_page = reinterpret_cast<std::uint8_t *>(host_base_) + (poff << control_->page_size_bits_) + pt_base;
+                    if (is_sparse_host) std::memset(host_page, 0, psize);
+                    pt->pages_[poff].assign(host_page, permission_);
 
                     // Increase committed size.
                     committed_ += psize;
@@ -377,7 +380,16 @@ namespace eka2l1::mem {
                 // A newly allocated chunk must not inherit a previous chunk's bytes.
                 std::memset(host_base_, 0, max_size_);
             } else {
+#ifdef __EMSCRIPTEN__
+                // Reserve a stable WASM address range without touching uncommitted guest pages.
+                // The page table still controls guest access; commit zeroes each new page.
+                constexpr std::size_t wasm_page_size = 65536;
+                const auto aligned_size = (max_size_ + wasm_page_size - 1) & ~(wasm_page_size - 1);
+                host_base_ = std::aligned_alloc(wasm_page_size, aligned_size);
+                is_sparse_host = host_base_ != nullptr;
+#else
                 host_base_ = common::map_memory(max_size_);
+#endif
             }
             is_external_host = false;
         }
@@ -421,7 +433,7 @@ namespace eka2l1::mem {
             base_, max_size_, committed_, is_local, is_direct_host);
 #endif
         // Decommit the whole things
-        decommit(0, max_size_);
+        if (!page_tabs_.empty()) decommit(0, max_size_);
 
         // Free the region that previously allocated from the allocator
         if (!(create_flags_ & MEM_MODEL_CHUNK_INTERNAL_FORCE_FILL)) {
@@ -440,7 +452,9 @@ namespace eka2l1::mem {
         }
 
         // Ignore the result, just unmap things
-        if (!is_external_host && !is_direct_host)
+        if (is_sparse_host)
+            std::free(host_base_);
+        else if (!is_external_host && !is_direct_host)
             common::unmap_memory(host_base_, max_size_);
     }
 }

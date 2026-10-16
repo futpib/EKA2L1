@@ -6301,6 +6301,62 @@ static bool test_growing_arenas() {
     return true;
 }
 
+static bool test_sparse_chunk_backing() {
+#ifdef __EMSCRIPTEN__
+    using namespace memory_experiment;
+    struct restore { unsigned old = mode; ~restore() { mode = old; } } saved;
+    mode = 2;
+    namespace mem = eka2l1::mem;
+    eka2l1::config::state conf;
+    r12l1::exclusive_monitor monitor(1);
+    mem::basic_page_table_allocator allocator;
+    mem::control_multiple control(&monitor, &allocator, &conf, 12, false);
+    auto first = std::make_unique<mem::multiple_mem_model_process>(&control);
+    auto second = std::make_unique<mem::multiple_mem_model_process>(&control);
+    mem::mem_model_chunk_creation_info info{};
+    info.size = 128 * 1024 * 1024;
+    info.addr = 0x01700000;
+    info.flags = mem::MEM_MODEL_CHUNK_REGION_USER_LOCAL | mem::MEM_MODEL_CHUNK_TYPE_NORMAL;
+    info.perm = prot_read_write;
+    mem::mem_model_chunk *local{};
+    if (first->create_chunk(local, info)) return false;
+    auto *local_impl = static_cast<mem::multiple_mem_model_chunk *>(local);
+    if (!local_impl->is_sparse_host || local_impl->is_direct_host) return false;
+    const auto local_base = local->base(first.get());
+    if (control.get_host_pointer(first->address_space_id(), local_base)) return false;
+    if (local->commit(0, 4096) != 4096) return false;
+    auto *held = static_cast<std::uint32_t *>(local->host_base());
+    if (held != control.get_host_pointer(first->address_space_id(), local_base)
+        || control.get_host_pointer(second->address_space_id(), local_base) || *held) return false;
+    *held = 0x12345678;
+    constexpr std::uint32_t far_offset = 120 * 1024 * 1024;
+    if (local->commit(far_offset, 4096) != 4096 || local->host_base() != held) return false;
+    auto *far = reinterpret_cast<std::uint32_t *>(static_cast<std::uint8_t *>(local->host_base()) + far_offset);
+    if (*far || *held != 0x12345678) return false;
+    *far = 0x87654321;
+    local->decommit(far_offset, 4096);
+    if (control.get_host_pointer(first->address_space_id(), local_base + far_offset)) return false;
+    if (local->commit(far_offset, 4096) != 4096 || *far || *held != 0x12345678) return false;
+
+    info.size = 96 * 1024 * 1024;
+    info.addr = 0x40400000;
+    info.flags = mem::MEM_MODEL_CHUNK_REGION_USER_GLOBAL | mem::MEM_MODEL_CHUNK_TYPE_NORMAL;
+    mem::mem_model_chunk *global{};
+    if (first->create_chunk(global, info) || global->commit(0, 4096) != 4096) return false;
+    auto *global_impl = static_cast<mem::multiple_mem_model_chunk *>(global);
+    if (!global_impl->is_sparse_host || global_impl->is_direct_host) return false;
+    const auto global_base = global->base(first.get());
+    auto *shared = static_cast<std::uint32_t *>(global->host_base());
+    *shared = 0xabcdef01;
+    if (control.get_host_pointer(first->address_space_id(), global_base) != shared
+        || control.get_host_pointer(second->address_space_id(), global_base) != shared
+        || *static_cast<std::uint32_t *>(control.get_host_pointer(second->address_space_id(), global_base)) != 0xabcdef01)
+        return false;
+    printf("PASS sparse chunk backing: stable pointers, demand zeroing, recommit and global sharing\n");
+#endif
+    return true;
+}
+
 static bool test_ram_function_retirement() {
 #ifdef __EMSCRIPTEN__
     struct restore {
@@ -6386,6 +6442,7 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--precompile-only") return test_precompile() && test_precompile_capacity()?0:1;
     if(argc==2 && std::string(argv[1])=="--ram-retirement-only") return test_ram_function_retirement()?0:1;
     if(argc==2 && std::string(argv[1])=="--arena-growth-only") return test_growing_arenas()?0:1;
+    if(argc==2 && std::string(argv[1])=="--sparse-chunks-only") return test_sparse_chunk_backing()?0:1;
     if(argc==2 && std::string(argv[1])=="--watchdog-only") return test_watchdog()?0:1;
     if(argc==2 && std::string(argv[1])=="--compiled-only") return test_compiled_only() && test_shared_compiled_code() && test_cold_module_lifetime() && test_rom_process_lifetime() && test_rom_translation_cache() && test_flat_precompile_entries()?0:1;
     if(argc==2 && std::string(argv[1])=="--thumb-finite-loops-only") return test_thumb_finite_loops()?0:1;
@@ -7243,6 +7300,7 @@ int main(int argc, char **argv) {
     if (test_region_fusion(false,true)) passed++; else failed++;
     if (test_ram_function_retirement()) passed++; else failed++;
     if (test_growing_arenas()) passed++; else failed++;
+    if (test_sparse_chunk_backing()) passed++; else failed++;
     if (test_compiled_only()) passed++; else failed++;
     if (test_shared_compiled_code()) passed++; else failed++;
     if (test_cold_module_lifetime()) passed++; else failed++;
