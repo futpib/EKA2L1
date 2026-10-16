@@ -652,8 +652,6 @@ template<bool Experimental> static void prof_write16(ARMul_State *s, std::uint32
 EM_JS(char*, js_instantiate_aot_module, (const uint8_t* bytes, int len, const std::uintptr_t *helpers, const std::uintptr_t *slots), {
     try {
         var wasmBytes = new Uint8Array(wasmMemory.buffer, bytes, len);
-        // Copy the bytes — the buffer may be detached during instantiation
-        wasmBytes = new Uint8Array(wasmBytes);
         var wasmModule = new WebAssembly.Module(wasmBytes);
 
         // wasmExports AND wasmTable.get can be JS abort wrappers. Native table
