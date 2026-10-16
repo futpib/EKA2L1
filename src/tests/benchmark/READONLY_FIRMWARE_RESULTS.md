@@ -1,11 +1,11 @@
-# Read-only firmware storage experiment
+# Read-only firmware storage results
 
 The installed RM-409 device has 8,989 Z-drive files totaling 120,214,537 bytes.
 Only 305 files are at least 64 KiB, but they account for 72,154,740 bytes.
 The hot firmware skin in the OPFS trace is about 29 KiB, so it remains in RAM.
 
-The browser's `?storage=readonly-opfs` option moves those large Z files to
-OPFS after device installation, using the same copy, size check, RAM-path
+The browser moves those large Z files to OPFS after device installation on
+supported Chromium builds, using the same copy, size check, RAM-path
 backup, and symlink protocol already used for `SYM.ROM`. It preserves the
 file's mode and millisecond modification time. The manifest records each
 offloaded path and its deterministic target; a reload restores the symlink
@@ -28,18 +28,25 @@ browser RSS.
 | 3 | Earlier cache diagnostic, K-Rally first car scene | 871.13 MiB | 785.44 MiB | Same screenshot, 13.05 vs 12.84 s |
 | 4 | Earlier cache diagnostic, K-Rally after 10 s of animation | 871.06 MiB | 879.31 MiB | 318 vs 319 frames; later game allocations erase the capacity difference |
 
-The warm offloaded profile reopened without the URL option, proving that the
-manifest and symlinks retain the layout. The browser persistence fixture
+The warm offloaded profile reopened, proving that the manifest and symlinks
+retain the layout. The browser persistence fixture
 checks a native-written firmware file across offload and reload, including
 checksum and exact modification time. The normal ROM save/reload, truncation,
 rename, deletion, rollback, and tab-exclusion checks still pass.
 
-A fresh opt-in Snakes install on the final build moved 142,102,132 read-only
+A fresh Snakes install with firmware offload moved 142,102,132 read-only
 bytes (ROM plus firmware) and reached a visible scene in 14.01 seconds. Its
 saved manifest has 305 offloaded Z files totaling 72,154,740 bytes and the
 completion marker. That first installation still grew WASM memory to
 1,035.88 MiB before the offload could release source buffers; the memory
 benefit appears on subsequent launches, not during the initial install.
+
+After removing the option, a fresh Chromium profile loaded Snakes without a
+storage parameter, moved the same 142,102,132 bytes, and reached its first
+visible scene in 14.26 seconds. Reopening that profile reached the scene in
+13.92 seconds; actual gameplay presented 162 frames in 10 seconds (16.19 FPS)
+and the WASM heap was 878.50 MiB. The browser persistence fixture also passed
+with firmware offload enabled by default.
 
 ## Cache and full-OPFS boundary
 

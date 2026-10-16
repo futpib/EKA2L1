@@ -51,7 +51,6 @@ globalThis.EkaDeviceDisk = class {
         this.romOffloadRoot = null;
         this.firmwareOffloadRoot = null;
         this.firmwareOffloadDone = false;
-        this.firmwareOffloadEnabled = new URLSearchParams(location.search).get('storage') === 'readonly-opfs';
     }
     request(request) {
         return new Promise((resolve, reject) => {
@@ -154,7 +153,7 @@ globalThis.EkaDeviceDisk = class {
             this.module.setStatus?.('Moving installed ROM to browser storage...');
             moved += this.offloadFile(path, info, chunk ??= new Uint8Array(4 * 1024 * 1024));
         }
-        if (this.firmwareOffloadEnabled && !this.firmwareOffloadDone && this.exists('/data/drives/z')) {
+        if (!this.firmwareOffloadDone && this.exists('/data/drives/z')) {
             const stack = ['/data/drives/z'];
             while (stack.length) {
                 const directory = stack.pop();

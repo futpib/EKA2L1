@@ -36,9 +36,9 @@ installation to reduce warm WASM heap use. Other device files use the existing
 in-memory filesystem and IndexedDB persistence. Firefox uses that existing
 path for the ROM as well. See the [OPFS measurements](../benchmark/OPFS_ROM_RESULTS.md).
 
-`?storage=readonly-opfs` additionally moves read-only Z-drive firmware files
-of at least 64 KiB to OPFS after installation. The choice is saved with the
-device; subsequent launches use the links even without the URL parameter.
+On supported Chromium builds, read-only Z-drive firmware files of at least
+64 KiB also move to OPFS after installation. The layout is saved with the
+device, and subsequent launches restore the links automatically.
 Smaller files and writable C/E drives remain in RAM. See the measured storage
 tradeoffs in
 [read-only firmware results](../benchmark/READONLY_FIRMWARE_RESULTS.md).

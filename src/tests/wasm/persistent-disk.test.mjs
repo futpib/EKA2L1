@@ -150,7 +150,6 @@ try {
             const checksum = Module.ccall('test_disk_checksum','number',['string'],[path]);
             const modified = Module.ccall('test_disk_modified','number',['string'],[path]);
             const mode = FS.stat(path).mode & 0o777;
-            disk.firmwareOffloadEnabled = true;
             const moved = await disk.offloadRom();
             await disk.save();
             return {path, checksum, modified, mode, moved,
