@@ -108,15 +108,21 @@ globalThis.EkaDeviceDisk = class {
         const modified = this.module.ccall('eka2l1_disk_modified_ms', 'number', ['string'], [path]);
         if (modified < 0) throw new Error('Could not read readonly file metadata');
         this.filesystem.mkdirTree(target.slice(0, target.lastIndexOf('/')));
-        let input;
         try {
-            const output = this.filesystem.open(target, 'w'); this.filesystem.close(output);
-            input = this.filesystem.open(path, 'r');
-            for (let offset = 0; offset < info.size;) {
-                const count = this.filesystem.read(input, chunk, 0, Math.min(chunk.length, info.size - offset), offset);
-                if (count <= 0) throw new Error('Short readonly file copy');
-                this.filesystem.writeFile(target, chunk.subarray(0, count));
-                offset += count;
+            let input, output;
+            try {
+                output = this.filesystem.open(target, 'w');
+                input = this.filesystem.open(path, 'r');
+                for (let offset = 0; offset < info.size;) {
+                    const count = this.filesystem.read(input, chunk, 0, Math.min(chunk.length, info.size - offset), offset);
+                    if (count <= 0) throw new Error('Short readonly file copy');
+                    if (this.filesystem.write(output, chunk, 0, count, offset) !== count)
+                        throw new Error('Short readonly file write');
+                    offset += count;
+                }
+            } finally {
+                if (input) this.filesystem.close(input);
+                if (output) this.filesystem.close(output);
             }
             if (this.filesystem.stat(target).size !== info.size) throw new Error('Short OPFS file copy');
             if (this.module.ccall('eka2l1_disk_set_metadata', 'number', ['string','number','number'],
@@ -125,7 +131,7 @@ globalThis.EkaDeviceDisk = class {
         } catch (error) {
             try { this.filesystem.unlink(target); } catch {}
             throw error;
-        } finally { if (input) this.filesystem.close(input); }
+        }
         const backup = path + '.eka-opfs-pending';
         this.filesystem.rename(path, backup);
         let linked = false;
