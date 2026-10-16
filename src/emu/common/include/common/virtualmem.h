@@ -87,8 +87,8 @@ namespace eka2l1::common {
      * \param file_name The name of the file.
      * \param perm The permission of mapped pages.
      * \param size Total size of the file to be mapped. Use 0 to map the whole file.
-     * \param is_private Use this so any write to the mapped regions are abadoned when the mapped file close.
-     *                   On Linux this is always private.
+     * \param is_private Use this so any write to the mapped region is not written back to the file.
+     *                   On POSIX platforms the mapping is always private.
      *
      * \returns A valid pointer to the mapped region on success.
     */
@@ -97,10 +97,11 @@ namespace eka2l1::common {
 
     /**
      * \brief Unmap a file mapped to memory
+     * \param size Size of the mapped region.
      *
      * \returns True on success.
     */
-    bool unmap_file(void *ptr);
+    bool unmap_file(void *ptr, const std::size_t size);
 
     /**
      * @param   Align address to host page size

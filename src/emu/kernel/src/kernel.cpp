@@ -87,6 +87,7 @@ namespace eka2l1 {
         , uid_counter_(0)
         , rom_map_(nullptr)
         , rom_map_size_(0)
+        , rom_map_is_file_(false)
         , kern_ver_(epocver::epoc94)
         , lang_(language::en)
         , global_data_chunk_(nullptr)
@@ -1376,7 +1377,8 @@ namespace eka2l1 {
 
         if (rebase_offset == 0) {
             rom_map_ = common::map_file(path, prot_read_write, 0, true);
-            rom_map_size_ = 0;
+            rom_map_size_ = rom_size;
+            rom_map_is_file_ = true;
 
             if (!rom_map_) {
                 return false;
@@ -1386,6 +1388,7 @@ namespace eka2l1 {
                 addr, rebase_offset, chunk_base);
 
             rom_map_size_ = rebase_offset + rom_size;
+            rom_map_is_file_ = false;
             rom_map_ = common::map_memory(rom_map_size_);
 
             if (!rom_map_) {
@@ -1406,7 +1409,7 @@ namespace eka2l1 {
             }
 
             std::memcpy(reinterpret_cast<std::uint8_t *>(rom_map_) + rebase_offset, rom_file_map, rom_size);
-            common::unmap_file(rom_file_map);
+            common::unmap_file(rom_file_map, rom_size);
         }
 
         LOG_TRACE(KERNEL, "Rom mapped to address: 0x{:x}", reinterpret_cast<std::uint64_t>(rom_map_));
@@ -1431,15 +1434,16 @@ namespace eka2l1 {
 
     void kernel_system::unmap_rom() {
         if (rom_map_) {
-            if (rom_map_size_) {
-                common::unmap_memory(rom_map_, rom_map_size_);
+            if (rom_map_is_file_) {
+                common::unmap_file(rom_map_, rom_map_size_);
             } else {
-                common::unmap_file(rom_map_);
+                common::unmap_memory(rom_map_, rom_map_size_);
             }
         }
 
         rom_map_ = nullptr;
         rom_map_size_ = 0;
+        rom_map_is_file_ = false;
     }
 
     void kernel_system::stop_cores_idling() {

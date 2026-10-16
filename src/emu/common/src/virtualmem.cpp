@@ -258,12 +258,14 @@ namespace eka2l1::common {
 
         HANDLE map_file_handle = CreateFileMappingW(file_handle, NULL, page_type,
             map_size >> 32, static_cast<DWORD>(map_size), NULL);
+        CloseHandle(file_handle);
 
         if (!map_file_handle || map_file_handle == INVALID_HANDLE_VALUE) {
             return nullptr;
         }
 
         auto map_ptr = MapViewOfFile(map_file_handle, map_type, 0, 0, 0);
+        CloseHandle(map_file_handle);
 #else
         int open_mode = 0;
         const int prot_mode = translate_protection(perm);
@@ -289,7 +291,7 @@ namespace eka2l1::common {
         }
         }
 
-        int file_handle = open(file_name.c_str(), open_mode, 0);
+        int file_handle = open(file_name.c_str(), open_mode, 0600);
 
         if (file_handle == -1) {
             return nullptr;
@@ -299,23 +301,32 @@ namespace eka2l1::common {
 
         if (perm == prot_read || (perm == prot_read_write && size == 0)) {
             struct stat file_stat;
-            stat(file_name.c_str(), &file_stat);
+            if (fstat(file_handle, &file_stat) == -1) {
+                close(file_handle);
+                return nullptr;
+            }
 
             map_size = file_stat.st_size;
         }
 
         auto map_ptr = mmap(nullptr, map_size, prot_mode, MAP_PRIVATE, file_handle, 0);
+        close(file_handle);
+
+        if (map_ptr == MAP_FAILED) {
+            return nullptr;
+        }
 #endif
 
         return map_ptr;
     }
 
-    bool unmap_file(void *ptr) {
+    bool unmap_file(void *ptr, const std::size_t size) {
 #if EKA2L1_PLATFORM(WIN32)
-        UnmapViewOfFile(ptr);
+        (void)size;
+        return UnmapViewOfFile(ptr) != 0;
+#else
+        return munmap(ptr, size) == 0;
 #endif
-
-        return true;
     }
 
     void *align_address_to_host_page(void *original) {

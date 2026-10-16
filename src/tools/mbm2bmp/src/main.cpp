@@ -41,6 +41,7 @@ int main(int argc, char **argv) {
     }
 
     const char *target_mbm = argv[1];
+    const auto mbm_size = eka2l1::common::file_size(target_mbm);
 
     // Map the file into memory as read-only
     std::uint8_t *mbm_ptr = reinterpret_cast<std::uint8_t *>(eka2l1::common::map_file(target_mbm));
@@ -50,11 +51,12 @@ int main(int argc, char **argv) {
         return -2;
     }
 
-    eka2l1::common::ro_buf_stream stream(mbm_ptr, eka2l1::common::file_size(target_mbm));
+    eka2l1::common::ro_buf_stream stream(mbm_ptr, mbm_size);
     eka2l1::loader::mbm_file mbmf(reinterpret_cast<eka2l1::common::ro_stream *>(&stream));
 
     if (!mbmf.do_read_headers()) {
         LOG_ERROR(eka2l1::SYSTEM, "Reading MBM header failed! At least one magic value doesn't match!");
+        eka2l1::common::unmap_file(mbm_ptr, mbm_size);
         return -3;
     }
 
@@ -66,5 +68,6 @@ int main(int argc, char **argv) {
         }
     }
 
+    eka2l1::common::unmap_file(mbm_ptr, mbm_size);
     return 0;
 }

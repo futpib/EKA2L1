@@ -324,10 +324,11 @@ namespace eka2l1::loader {
         stream.write(&dib_header, dib_header.header_size);
 
         if (!read_single_bitmap(index, stream.get_current(), uncompressed_size)) {
+            common::unmap_file(buf, bitmap_file_size);
             return false;
         }
 
-        common::unmap_file(buf);
+        common::unmap_file(buf, bitmap_file_size);
 
         return true;
     }

@@ -339,6 +339,7 @@ namespace eka2l1 {
         mutable std::atomic<kernel::uid> uid_counter_;
         void *rom_map_;
         std::size_t rom_map_size_;
+        bool rom_map_is_file_;
 
         std::uint64_t base_time_;
         std::uint32_t cpu_hz_;
