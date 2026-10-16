@@ -48,6 +48,49 @@ visible scene in 14.26 seconds. Reopening that profile reached the scene in
 and the WASM heap was 878.50 MiB. The browser persistence fixture also passed
 with firmware offload enabled by default.
 
+## Storage-only memory attribution
+
+The existing arena-growth benchmark runs a transient session, which bypasses
+`EkaDeviceDisk`; its earlier Asphalt 3 memory captures therefore cannot measure
+firmware offload. For this check, two isolated persistent Chromium profiles used
+the same WASM binary (`b3b320d8...e387ce`) and the same Snakes gameplay route.
+The control used the previous opt-in disk script without its URL switch. Both
+profiles reached the gameplay board and presented about 16 FPS. The offloaded
+profile had 305 Z-drive links covering 72,154,740 bytes (68.81 MiB).
+
+| # | Warm gameplay measure | RAM firmware | Offloaded firmware | Difference |
+| ---: | --- | ---: | ---: | ---: |
+| 1 | WASM linear-memory capacity | 943.69 MiB | 874.69 MiB | -69.00 MiB |
+| 2 | Resident WASM backing, from Linux `smaps` | 599.34 MiB | 526.89 MiB | -72.45 MiB |
+| 3 | Ten-second presented frame rate | 16.19 FPS | 15.99 FPS | -0.20 FPS |
+| 4 | All-process browser PSS | 1746.17 MiB | 1554.08 MiB | -192.09 MiB |
+
+Only the WASM-memory reduction is securely attributable to the offload in this
+pair. Other Chrome mapping categories changed substantially, including 133 MiB
+less file-backed PSS, so the 192 MiB whole-browser difference must not be
+reported as a firmware saving. The small FPS difference is within run noise.
+
+A separate source-mapped allocator build replayed the same two warm Snakes
+routes with zero dropped records, unknown frees or truncated stacks. The
+instrumentation changes absolute memory use, so compare its two runs with each
+other, not with the production browser figures above:
+
+| # | Live C++ allocator owner | RAM firmware | Offloaded firmware | Difference |
+| ---: | --- | ---: | ---: | ---: |
+| 1 | WASMFS file storage | 70.63 MiB | 1.82 MiB | -68.81 MiB |
+| 2 | Process arenas | 320.00 MiB | 320.00 MiB | 0 |
+| 3 | Guest chunk backing | 246.00 MiB | 246.00 MiB | 0 |
+| 4 | ROM and mapped files | 66.71 MiB | 66.71 MiB | 0 |
+| 5 | All live C++ allocations | 839.05 MiB | 771.02 MiB | -68.03 MiB |
+
+The WASMFS decrease matches the 68.81 MiB of offloaded Z files. Its difference
+from the total C++ decrease comes mostly from small allocations, whose stacks
+are not unwound. The production pair's resident-page decrease is slightly
+larger because the live allocator totals and page residency are different
+measures. Raw screenshots, process maps and allocator reports are in
+`/home/claude/.scratch/eka-fresh-storage-{current,control}/` and the matching
+`eka-fresh-storage-diagnostic-*` directories.
+
 ## Cache and full-OPFS boundary
 
 A diagnostic 256 KiB page cache in the OPFS proxy worker served 3,345 K-Rally
