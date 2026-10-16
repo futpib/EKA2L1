@@ -42,8 +42,48 @@
 #include <config/config.h>
 
 #include <cstring>
+#ifdef __EMSCRIPTEN__
+#include <unistd.h>
+#include <mutex>
+#include <vector>
+#endif
 
 namespace eka2l1 {
+#ifdef __EMSCRIPTEN__
+    namespace {
+        struct large_backing_entry {
+            void *base;
+            std::size_t size;
+        };
+
+        std::mutex large_backing_lock;
+        std::vector<large_backing_entry> reusable_large_backings;
+
+        void *acquire_large_backing(std::size_t size) {
+            const std::lock_guard<std::mutex> guard(large_backing_lock);
+            for (auto it = reusable_large_backings.begin(); it != reusable_large_backings.end(); ++it) {
+                if (it->size == size) {
+                    void *base = it->base;
+                    reusable_large_backings.erase(it);
+                    return base;
+                }
+            }
+            // sbrk claims fresh, untouched WASM pages. malloc may recycle pages
+            // dirtied during installation, making an uncommitted bitmap chunk
+            // resident before it contains a single guest bitmap.
+            constexpr std::uintptr_t alignment = 65536;
+            void *raw = sbrk(size + alignment - 1);
+            if (raw == reinterpret_cast<void *>(-1)) return nullptr;
+            return reinterpret_cast<void *>((reinterpret_cast<std::uintptr_t>(raw) + alignment - 1) & ~(alignment - 1));
+        }
+
+        void release_large_backing(void *base, std::size_t size) {
+            if (!base) return;
+            const std::lock_guard<std::mutex> guard(large_backing_lock);
+            reusable_large_backings.push_back({base, size});
+        }
+    }
+#endif
     namespace epoc {
         bool does_client_use_pointer_instead_of_offset(fbscli *cli) {
             const epocver current_sys_ver = cli->server<fbs_server>()->get_system()->get_symbian_version_use();
@@ -359,6 +399,11 @@ namespace eka2l1 {
                                kernel::chunk_attrib::none)
                            .second;
 
+        const auto large_size = (kern->get_epoc_version() >= epocver::epoc95) ? 0x08000000 : 0x06000000;
+#ifdef __EMSCRIPTEN__
+        large_chunk_backing_ = acquire_large_backing(large_size);
+        if (large_chunk_backing_) large_chunk_backing_size_ = large_size;
+#endif
         large_chunk = kern->create_and_add<kernel::chunk>(
                               kernel::owner_type::kernel,
                               kern->get_memory_system(),
@@ -366,14 +411,28 @@ namespace eka2l1 {
                               "FbsLargeChunk",
                               0,
                               0,
-                              (kern->get_epoc_version() >= epocver::epoc95) ? 0x08000000 : 0x06000000,
+                              large_size,
                               prot_read_write,
                               kernel::chunk_type::normal,
                               kernel::chunk_access::global,
-                              kernel::chunk_attrib::none)
-                          .second;
+                              kernel::chunk_attrib::none,
+                              0, false, 0, large_chunk_backing_, large_chunk_backing_ != nullptr)
+                           .second;
 
         if (!shared_chunk || !large_chunk) {
+            if (large_chunk) {
+                kern->destroy(large_chunk);
+                large_chunk = nullptr;
+            }
+            if (shared_chunk) {
+                kern->destroy(shared_chunk);
+                shared_chunk = nullptr;
+            }
+#ifdef __EMSCRIPTEN__
+            release_large_backing(large_chunk_backing_, large_chunk_backing_size_);
+#endif
+            large_chunk_backing_ = nullptr;
+            large_chunk_backing_size_ = 0;
             LOG_CRITICAL(SERVICE_FBS, "Can't create shared chunk and large chunk of FBS, exiting");
             return;
         }
@@ -556,6 +615,9 @@ namespace eka2l1 {
 
         if (large_chunk)
             kern->destroy(large_chunk);
+#ifdef __EMSCRIPTEN__
+        release_large_backing(large_chunk_backing_, large_chunk_backing_size_);
+#endif
     }
 
     drivers::graphics_driver *fbs_server::get_graphics_driver() {

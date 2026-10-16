@@ -357,6 +357,8 @@ namespace eka2l1 {
 
         chunk_ptr shared_chunk;
         chunk_ptr large_chunk;
+        void *large_chunk_backing_ = nullptr;
+        std::size_t large_chunk_backing_size_ = 0;
 
         mutex_ptr large_bitmap_access_mutex;
 

@@ -67,6 +67,13 @@ namespace eka2l1::mem {
             std::uint8_t *host_commit_ptr = reinterpret_cast<std::uint8_t *>(host_base_) + (ps_off << control_->page_size_bits_) + pt_base;
             const std::size_t host_commit_size = page_num << control_->page_size_bits_;
 
+            std::uint32_t previous_direct_capacity = 0;
+            if (is_direct_host) {
+                auto *process = static_cast<multiple_mem_model_process *>(own_process_);
+                previous_direct_capacity = process->direct_capacity_;
+                process->initialize_direct_range(base_ + running_offset, host_commit_size);
+            }
+
             // Commit the memory to the host
             if (!is_external_host && !common::commit(host_commit_ptr, host_commit_size, permission_)) {
                 return running_offset - offset;
@@ -82,7 +89,10 @@ namespace eka2l1::mem {
                 // If the entry has not yet been committed.
                 if (pt->pages_[poff].host_addr == nullptr) {
                     auto *host_page = reinterpret_cast<std::uint8_t *>(host_base_) + (poff << control_->page_size_bits_) + pt_base;
-                    if (is_sparse_host) std::memset(host_page, 0, psize);
+                    if (is_sparse_host || clear_external_host_on_commit_ || (is_direct_host &&
+                        base_ + (poff << control_->page_size_bits_) + pt_base
+                            - arm::aot::memory_experiment::direct_begin < previous_direct_capacity))
+                        std::memset(host_page, 0, psize);
                     pt->pages_[poff].assign(host_page, permission_);
 
                     // Increase committed size.
@@ -367,6 +377,7 @@ namespace eka2l1::mem {
 
         base_ = addr;
         committed_ = 0;
+        clear_external_host_on_commit_ = create_info.clear_host_on_commit;
 
         // Map host base memory
         if (create_info.host_map) {
@@ -377,8 +388,12 @@ namespace eka2l1::mem {
                 host_base_ = static_cast<multiple_mem_model_process *>(own_process_)->direct_local_backing(base_, max_size_);
             is_direct_host = host_base_ != nullptr;
             if (is_direct_host) {
-                // A newly allocated chunk must not inherit a previous chunk's bytes.
-                std::memset(host_base_, 0, max_size_);
+                // The published prefix is reachable without a page-table lookup.
+                // Clear only its overlap; commit initializes future pages on demand.
+                const auto initialized = static_cast<multiple_mem_model_process *>(own_process_)->direct_capacity_;
+                const auto offset = base_ - arm::aot::memory_experiment::direct_begin;
+                if (initialized > offset)
+                    std::memset(host_base_, 0, std::min<std::size_t>(max_size_, initialized - offset));
             } else {
 #ifdef __EMSCRIPTEN__
                 // Reserve a stable WASM address range without touching uncommitted guest pages.

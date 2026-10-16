@@ -46,7 +46,6 @@ namespace eka2l1::mem {
         using namespace arm::aot::memory_experiment;
         if (!size || mode != 2 || addr_space_id_ <= 0 || addr_space_id_ > 255 || address < direct_begin || std::uint64_t(address) + size > direct_begin + direct_size)
             return nullptr;
-        const auto required = std::uint64_t(address) + size - direct_begin;
         if (!direct_local_) {
             // Reserve the maximum contiguous range without touching its tail.
             // Native objects and retained pointers keep this base for life.
@@ -57,9 +56,19 @@ namespace eka2l1::mem {
             arm::aot::memory_access_profile::event("arena", addr_space_id_, direct_begin, direct_size, 0, true, true);
 #endif
         }
+        return static_cast<std::uint8_t *>(direct_local_) + address - direct_begin;
+#else
+        return nullptr;
+#endif
+    }
+
+    void multiple_mem_model_process::initialize_direct_range(vm_address address, std::size_t size) {
+#ifdef __EMSCRIPTEN__
+        using namespace arm::aot::memory_experiment;
+        const auto required = std::uint64_t(address) + size - direct_begin;
         if (required > direct_capacity_) {
             auto capacity = std::max(direct_capacity_, 4u * 1024 * 1024);
-            while (required > capacity) capacity *= 2;
+            while (required > capacity) capacity = std::min(capacity * 2, direct_size);
             std::memset(static_cast<std::uint8_t *>(direct_local_) + direct_capacity_, 0, capacity - direct_capacity_);
             stats.arena_initialized_bytes += capacity - direct_capacity_;
             ++stats.arena_growths;
@@ -68,9 +77,6 @@ namespace eka2l1::mem {
                 static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(direct_local_)), 3};
             mapping_changed();
         }
-        return static_cast<std::uint8_t *>(direct_local_) + address - direct_begin;
-#else
-        return nullptr;
 #endif
     }
 

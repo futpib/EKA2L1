@@ -12,8 +12,10 @@ fs.mkdirSync(output);
 const report: any = {url, started: new Date().toISOString(), games: [], checks: [], errors: []};
 const save = () => fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify(report, null, 2));
 const log = fs.createWriteStream(path.join(output, 'browser.log'));
+const browserHost = process.env.EKA2L1_BROWSER_HOST_MAP;
 const browser = await puppeteer.launch({executablePath: '/usr/bin/chromium', headless: true,
   ignoreDefaultArgs: ['--mute-audio'], args: ['--no-sandbox', '--disable-dev-shm-usage',
+    ...(browserHost ? [`--host-resolver-rules=MAP ${new URL(url).hostname} ${browserHost}`] : []),
     // Chromium 153's legacy CDP touch injector loses events after same-origin
     // navigation, including on blank pages. Use its OS-like gesture route.
     '--use-gl=angle', '--use-angle=vulkan', '--enable-features=Vulkan,SyntheticPointerActions', '--enable-gpu', '--ignore-gpu-blocklist']});

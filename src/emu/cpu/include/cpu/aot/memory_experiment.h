@@ -24,7 +24,7 @@ namespace eka2l1::arm::aot::memory_experiment {
     struct page { std::uint32_t read, write; };
     // A bounded local-address arena shares the runtime's primary WASM memory.
     // Other addresses use the page table, including physical aliases.
-    inline constexpr std::uint32_t direct_begin = 0x00400000, direct_size = 64 * 1024 * 1024;
+    inline constexpr std::uint32_t direct_begin = 0x00400000, direct_size = 48 * 1024 * 1024;
     struct direct_view {
         std::uint32_t begin, size, host, pages;
         std::uint32_t bias = 0;

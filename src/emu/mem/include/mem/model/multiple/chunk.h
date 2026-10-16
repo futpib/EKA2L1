@@ -61,6 +61,7 @@ namespace eka2l1::mem {
         bool is_external_host{ false };
         bool is_direct_host{ false };
         bool is_sparse_host{ false };
+        bool clear_external_host_on_commit_{ false };
 
         explicit multiple_mem_model_chunk(control_base *control, const asid id)
             : mem_model_chunk(control, id) {

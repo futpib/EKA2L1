@@ -38,7 +38,7 @@ namespace eka2l1 {
         chunk::chunk(kernel_system *kern, memory_system *mem, kernel::process *own_process, std::string name,
             address bottom, const address top, const size_t max_size, prot protection, chunk_type type, chunk_access chnk_access,
             chunk_attrib attrib, const std::uint8_t clear_byte, const bool is_heap, const address force_addr,
-            void *force_host_map)
+            void *force_host_map, bool clear_host_on_commit)
             : kernel_obj(kern, name, own_process, access_type::local_access)
             , mem(mem)
             , is_heap(is_heap)
@@ -108,6 +108,7 @@ namespace eka2l1 {
 
             create_info.addr = force_addr;
             create_info.host_map = force_host_map;
+            create_info.clear_host_on_commit = clear_host_on_commit;
 
             mmc_impl_ = nullptr;
             mem::mem_model_process *mmp = nullptr;

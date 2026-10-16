@@ -6192,7 +6192,9 @@ static bool test_growing_arenas() {
     struct destroy_object { native_map *object; ~destroy_object() { if (object) object->~native_map(); } } owned{object};
     object->emplace(7,91);
     info.size = 0x800000;
-    if (first->create_chunk(large, info) || large->commit(0,4096) != 4096) return false;
+    if (first->create_chunk(large, info) || control.direct_arena(first->address_space_id()).size != 4 * 1024 * 1024
+        || large->commit(0,4096) != 4096) return false;
+    if (large->commit(7 * 1024 * 1024, 4096) != 4096) return false;
     if (small->host_base() != held || held[64] != 0x12345678 || object->at(7) != 91) return false;
     info.size = 0x100000;
     if (second->create_chunk(isolated, info) || isolated->commit(0,4096) != 4096) return false;
@@ -6283,7 +6285,7 @@ static bool test_growing_arenas() {
     }
     // Native objects remain valid after prefix growth and alias refresh.
     if (object->at(7)!=91 || held[64]!=0x12345678) return false;
-    info.addr = direct_begin + 60 * 1024 * 1024;
+    info.addr = direct_begin + 44 * 1024 * 1024;
     mem::mem_model_chunk *upper{}, *outside{};
     if (first->create_chunk(upper, info) || upper->commit(0,4096) != 4096) return false;
     direct = control.direct_arena(first->address_space_id());
@@ -6352,7 +6354,24 @@ static bool test_sparse_chunk_backing() {
         || control.get_host_pointer(second->address_space_id(), global_base) != shared
         || *static_cast<std::uint32_t *>(control.get_host_pointer(second->address_space_id(), global_base)) != 0xabcdef01)
         return false;
-    printf("PASS sparse chunk backing: stable pointers, demand zeroing, recommit and global sharing\n");
+
+    std::unique_ptr<void, decltype(&std::free)> external(std::aligned_alloc(65536, 65536), &std::free);
+    if (!external) return false;
+    std::memset(external.get(), 0xa5, 65536);
+    info.size = 65536;
+    info.addr = 0x50000000;
+    info.host_map = external.get();
+    info.clear_host_on_commit = true;
+    mem::mem_model_chunk *external_chunk{};
+    if (first->create_chunk(external_chunk, info) || external_chunk->commit(0, 4096) != 4096
+        || *static_cast<std::uint8_t *>(external.get()) != 0) return false;
+    *static_cast<std::uint8_t *>(external.get()) = 0x7f;
+    external_chunk->decommit(0, 4096);
+    std::memset(external.get(), 0xa5, 4096);
+    if (external_chunk->commit(0, 4096) != 4096 || *static_cast<std::uint8_t *>(external.get()) != 0)
+        return false;
+    first->delete_chunk(external_chunk);
+    printf("PASS sparse chunk backing: stable pointers, demand zeroing, recommit, external backing and global sharing\n");
 #endif
     return true;
 }

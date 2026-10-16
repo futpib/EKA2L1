@@ -61,5 +61,6 @@ namespace eka2l1::mem {
         // Use non-zero value to force the address. Use at your own risk, since this is not checked for overlapping.
         vm_address addr{ 0 };
         void *host_map{ nullptr }; ///< Allow custom host memory mapping to guest.
+        bool clear_host_on_commit{ false };
     };
 }
