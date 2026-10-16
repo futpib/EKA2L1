@@ -9,6 +9,7 @@ const game=process.argv[2], out=process.argv[3];
 const games=JSON.parse(fs.readFileSync(new URL('./games.json',import.meta.url)));
 const entry=games.find(g=>g.id===game);
 if (!entry || !out || !process.argv[4]) throw Error('Usage: node memory-access-profile.mjs GAME NEW_OUTPUT PROFILE_SERVER_URL');
+const persistentDisk=process.env.EKA2L1_BENCHMARK_PERSISTENT_DISK==='1';
 fs.mkdirSync(out);
 const assetDir=process.env.EKA2L1_ASSET_DIR || '/tmp/eka2l1-serve';
 const browser=await puppeteer.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--host-resolver-rules=MAP claude-laptop.lan 127.0.0.1','--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=vulkan','--enable-features=Vulkan','--enable-gpu','--ignore-gpu-blocklist','--disable-background-timer-throttling']});
@@ -18,7 +19,7 @@ try {
 const page=await browser.newPage(); await page.setViewport({width:900,height:800});page.setDefaultTimeout(600000);
 page.on('console',m=>{log.write(m.text()+'\n');if(/Access violation|KERN-EXEC|ABORT:|panicked with category:/.test(m.text()))errors.push(m.text())});
 page.on('pageerror',e=>errors.push(String(e)));
-await page.evaluateOnNewDocument(()=>{window.ekaTransientSession=true;});
+await page.evaluateOnNewDocument(transient=>{window.ekaTransientSession=transient;},!persistentDisk);
 await page.goto(new URL('?game=custom',process.argv[4]).href,{waitUntil:'domcontentloaded'});
 await page.waitForFunction(()=>window.Module?.calledRun);
 assert.equal(await page.evaluate(()=>typeof Module._eka2l1_memory_access_profile_report),'function',
@@ -28,6 +29,7 @@ for(const [selector,file] of [['#rom-file','SYM.ROM'],['#rpkg-file','SYM.RPKG'],
 await page.$eval('#app-name',(e,v)=>e.value=v,entry.uid);
 await page.evaluate(entryUrl=>{window.measurementLaunch=startEmulator(entryUrl)},entry.ngage?'/preload/games/'+game+'/ngage':undefined);
 await page.waitForFunction(()=>window._gameRunning);
+if(persistentDisk)assert.equal(await page.evaluate(()=>!!window.ekaDeviceDisk),true);
 const shot=async name=>{await page.screenshot({path:out+'/'+name+'.png'});fs.appendFileSync(out+'/route-times.jsonl',JSON.stringify({name,...await status()})+'\n');fs.writeFileSync(out+'/'+name+'-profile.json',JSON.stringify(await profile()));return out+'/'+name+'.png'};
 status=()=>page.evaluate(()=>({ms:performance.now(),guest:Module._eka2l1_guest_time_us(),frames:Module._eka2l1_presentations(),phase:Module._eka2l1_route_phase(),diskScans:window.diskScans?.length||0,inputs:Module._eka2l1_input_consumed(),monitor:JSON.parse(Module.ccall('eka2l1_monitor_report','string',[],[]))}));
 const step=async(us)=>{const s=await status();assert.equal(s.phase,1);assert.equal(await page.evaluate(t=>Module._eka2l1_route_step_to(t),s.guest+us),0);await page.waitForFunction(()=>Module._eka2l1_route_phase()===1);return status()};
