@@ -52,6 +52,12 @@
 #include <ctime>
 #include <utils/err.h>
 
+#ifdef EKA2L1_WASM_FS_TRACE
+namespace eka2l1::service {
+    extern thread_local bool fs_trace_guest_sync_send;
+}
+#endif
+
 namespace eka2l1::epoc {
     static security_policy server_exclamation_point_name_policy({ cap_prot_serv });
     static security_policy kill_process_policy({ cap_power_mgmt });
@@ -1369,7 +1375,14 @@ namespace eka2l1::epoc {
 
         if (ss->get_server()->is_hle()) {
             // Process it right away.
+#ifdef EKA2L1_WASM_FS_TRACE
+            const bool previous_sync = service::fs_trace_guest_sync_send;
+            service::fs_trace_guest_sync_send = sync;
+#endif
             ss->get_server()->process_accepted_msg();
+#ifdef EKA2L1_WASM_FS_TRACE
+            service::fs_trace_guest_sync_send = previous_sync;
+#endif
         }
 
         return result;

@@ -378,6 +378,11 @@ target_link_libraries(epocservs PRIVATE
         re2::re2
         mbedcrypto)
 
+if(EMSCRIPTEN AND EKA2L1_WASM_FS_TRACE)
+        target_sources(epocservs PRIVATE src/fs/fs_trace.cpp)
+        set_source_files_properties(src/fs/fs.cpp PROPERTIES COMPILE_DEFINITIONS EKA2L1_WASM_FS_TRACE=1)
+endif()
+
 if (WIN32)
         target_link_libraries(epocservs PRIVATE Ws2_32.lib)
 endif()

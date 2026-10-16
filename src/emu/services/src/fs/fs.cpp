@@ -22,6 +22,9 @@
 #include <services/fs/op.h>
 #include <services/fs/parser.h>
 #include <services/fs/std.h>
+#ifdef EKA2L1_WASM_FS_TRACE
+#include <services/fs/fs_trace.h>
+#endif
 
 #include <utils/des.h>
 
@@ -185,6 +188,9 @@ namespace eka2l1 {
     }
 
     void fs_server_client::fetch(service::ipc_context *ctx) {
+#ifdef EKA2L1_WASM_FS_TRACE
+        const std::uint32_t raw_trace_op = ctx->msg->function;
+#endif
         const epocver version = server<fs_server>()->sys->get_symbian_version_use();
 
         if (version < epocver::eka2) {
@@ -242,6 +248,9 @@ namespace eka2l1 {
             }
         }
 
+#ifdef EKA2L1_WASM_FS_TRACE
+        service::fs_trace_scope trace_scope(*this, *ctx, raw_trace_op);
+#endif
         switch (ctx->msg->function & 0xFF) {
 // For debug purpose, uncomment the log
 #define HANDLE_CLIENT_IPC(name, op, debug_func_str)                    \

@@ -17,6 +17,7 @@ endif()
 set(EKA2L1_IOS_DEPLOYMENT_TARGET "16.0" CACHE STRING "Minimum iOS version to target")
 
 option(EKA2L1_WASM_DIAGNOSTICS "Compile guest census, crash history and detailed timers into WASM" OFF)
+option(EKA2L1_WASM_FS_TRACE "Record guest file-server calls in a diagnostic browser build" OFF)
 option(EKA2L1_WASM_CPP_SOURCE_MAPS "Keep optimized C/C++ line tables for native WASM attribution" OFF)
 if(EMSCRIPTEN AND EKA2L1_WASM_CPP_SOURCE_MAPS)
     add_compile_options(-gline-tables-only)

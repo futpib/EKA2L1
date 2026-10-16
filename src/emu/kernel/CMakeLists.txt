@@ -76,6 +76,9 @@ add_library(epockern
 
 target_include_directories(epoctiming PUBLIC include)
 target_include_directories(epockern PUBLIC include)
+if(EMSCRIPTEN AND EKA2L1_WASM_FS_TRACE)
+        set_source_files_properties(src/svc.cpp PROPERTIES COMPILE_DEFINITIONS EKA2L1_WASM_FS_TRACE=1)
+endif()
 
 target_link_libraries(epoctiming PUBLIC
         common)
