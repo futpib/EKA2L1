@@ -406,9 +406,11 @@
                         ret = await Module.ccall('eka2l1_install_device', 'number', ['string', 'string', 'string'],
                             [romPath, rpkgPath, disk?.romOffloadRoot || ''], {async: true});
                     } finally {
-                        // Installation consumes the ROM input and extracts the RPKG before returning.
+                        // WasmFS analyzePath reads the whole file; unlink directly after installation.
                         for (var uploaded of new Set([romPath, rpkgPath])) {
-                            if (uploaded && FS.analyzePath(uploaded).exists) FS.unlink(uploaded);
+                            if (!uploaded) continue;
+                            try { FS.unlink(uploaded); }
+                            catch (error) { if (error.errno !== 44) throw error; }
                         }
                     }
                     if (ret !== 0) {
