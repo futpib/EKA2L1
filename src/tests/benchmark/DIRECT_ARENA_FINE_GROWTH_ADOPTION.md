@@ -55,3 +55,18 @@ Raw captures are in `/home/claude/.scratch/arena-memory-20261017/` under
 `control-asphalt-http`, `candidate-asphalt`, `control-asphalt-repeat`,
 `candidate-asphalt-repeat`, `control-snakes` and `candidate-snakes`. Each
 contains the route report, HUD screenshot, browser log and process `smaps`.
+
+## Live release
+
+The release at `https://claude-laptop.lan:8188/` serves the same candidate
+WASM SHA-256. A fresh Asphalt 3 ROM translation cache was exported for that
+exact binary; its 34,458,040-byte blob has SHA-256
+`ebc91cbcbdf5464a14a8d460827cccac67ce52b5e7680f2a964c876790da9cb6`.
+The isolated release server accepted its manifest, and a browser run loaded
+72,004 cached ROM functions, reached the race HUD, produced 463 frames in its
+five-second unpaced window, and reported no guest errors. The live HTTPS
+Snakes route reached gameplay, produced 356 frames in five seconds, reported
+no guest errors, and retained a 30 MiB arena prefix. The downloaded live WASM
+hash matched the release file, and the user service remained active after the
+switch. Live-route captures are `release-cache-smoke` and `live-snakes` beside
+the paired measurements.
