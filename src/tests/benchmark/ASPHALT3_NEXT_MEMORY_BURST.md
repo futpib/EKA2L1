@@ -58,6 +58,10 @@ verification and staging. During OPFS RPKG upload, Chrome also held roughly
 60–90 MiB of sampled `ArrayBuffer` chunks; these are transient and should
 not be confused with the larger install-phase WASM rise.
 
+Follow-up: [direct ROM installation results](DIRECT_ROM_INSTALL_RESULTS.md)
+measure the ROM leg of this proposed change. The firmware-extraction leg was
+not part of that implementation.
+
 Raw captures are under `/home/claude/.scratch/eka-next-burst-20261017`,
 `/home/claude/.scratch/eka-device-install-cumulative-20261017`,
 `/home/claude/.scratch/eka-device-install-residency-20261017`, and

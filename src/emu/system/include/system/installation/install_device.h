@@ -22,8 +22,10 @@ namespace eka2l1 {
         std::string storage;
         std::string rom_path;
         std::string rpkg_path;
+        std::string rom_offload_root;
         std::string vpl_path;
         bool isolate_drives = false;
+        bool consume_rom_source = false;
     };
 
     device_installation_error install_device(device_manager *dvcmngr, const device_install_params &params,

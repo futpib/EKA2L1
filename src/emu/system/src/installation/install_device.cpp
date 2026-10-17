@@ -7,6 +7,10 @@
 #include <common/log.h>
 #include <common/path.h>
 
+#ifdef __EMSCRIPTEN__
+#include <unistd.h>
+#endif
+
 namespace eka2l1 {
     device_installation_error install_device(device_manager *dvcmngr, const device_install_params &params,
         device_firmware_choose_variant_callback variant_cb, progress_changed_callback progress_cb,
@@ -31,7 +35,28 @@ namespace eka2l1 {
 
             const std::string rom_directory = add_path(params.storage, add_path("roms", firmware_code + "\\"));
             common::create_directories(rom_directory);
-            common::copy_file(params.rom_path, add_path(rom_directory, "SYM.ROM"), true);
+            const std::string installed_rom = add_path(rom_directory, "SYM.ROM");
+            bool rom_installed = false;
+            if (params.rom_offload_root.empty()) {
+                rom_installed = params.consume_rom_source
+                    ? common::move_file(params.rom_path, installed_rom)
+                    : common::copy_file(params.rom_path, installed_rom, true);
+            } else {
+#ifdef __EMSCRIPTEN__
+                const std::string offload_directory = add_path(params.rom_offload_root, firmware_code);
+                const std::string offloaded_rom = add_path(offload_directory, "SYM.ROM");
+                common::create_directories(offload_directory);
+                if (common::move_file(params.rom_path, offloaded_rom)) {
+                    rom_installed = symlink(offloaded_rom.c_str(), installed_rom.c_str()) == 0;
+                    if (!rom_installed) common::move_file(offloaded_rom, params.rom_path);
+                }
+#endif
+            }
+            if (!rom_installed) {
+                dvcmngr->delete_device(firmware_code);
+                delete_device_storage(params.storage, firmware_code);
+                return device_installation_rom_fail_to_copy;
+            }
             break;
         }
 

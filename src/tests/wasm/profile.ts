@@ -178,10 +178,13 @@ try {
       if (!response.ok) throw new Error(`Asset HTTP ${response.status()}`);
       g.FS.writeFile(name === 'input' ? '/benchmark.input' : `/tmp/${name}`, new Uint8Array(await response.arrayBuffer()));
     }
-    call('eka2l1_install_device', ['string', 'string'], ['/tmp/SYM.ROM', '/tmp/SYM.RPKG']);
+    call('eka2l1_install_device', ['string', 'string', 'string'], ['/tmp/SYM.ROM', '/tmp/SYM.RPKG', '']);
     call('eka2l1_install_sis', ['string'], ['/tmp/Snakes.sis']);
     // Match the live launcher's storage lifetime after synchronous installation.
-    for (const name of ['SYM.ROM', 'SYM.RPKG', 'Snakes.sis']) g.FS.unlink(`/tmp/${name}`);
+    for (const name of ['SYM.ROM', 'SYM.RPKG', 'Snakes.sis']) {
+      const input = `/tmp/${name}`;
+      if (g.FS.analyzePath(input).exists) g.FS.unlink(input);
+    }
     g.FS.mkdir('/frames');
     g.Module.ccall('eka2l1_start_frame_dump', null, ['string', 'number'], ['/frames', count]);
     if (g.Module._eka2l1_prepare_graphics) {

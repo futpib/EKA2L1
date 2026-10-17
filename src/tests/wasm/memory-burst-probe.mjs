@@ -17,6 +17,7 @@ const anchors = process.env.EKA2L1_BURST_ANCHORS?.split(',') ??
   (manualLive ? ['asset-load', 'game-launch', 'device-install'] : ['page-navigation', 'game-launch']);
 const cumulative = process.env.EKA2L1_BURST_CUMULATIVE === '1';
 const minimumKiB = Number(process.env.EKA2L1_BURST_MIN_MIB ?? 32) * 1024;
+const runningWaitMs = Number(process.env.EKA2L1_BURST_RUNNING_WAIT_MS ?? 1000);
 
 const browser = await puppeteer.launch({
   executablePath: process.env.EKA2L1_CHROMIUM || '/usr/bin/chromium', headless: true,
@@ -130,6 +131,13 @@ try {
   } else {
     await page.waitForFunction(() => window.Module?.calledRun);
     mark('wasm-ready');
+    if (process.env.EKA2L1_BURST_DISABLE_DIRECT_ROM === '1') await page.evaluate(() => {
+      const ccall = Module.ccall;
+      Module.ccall = function(name, result, types, args, options) {
+        if (name === 'eka2l1_install_device') args = [...args.slice(0, 2), ''];
+        return ccall.call(this, name, result, types, args, options);
+      };
+    });
     if (profiler && manualLive) await profiler.start();
     if (livePath) {
       await page.waitForFunction(() => window._gameRunning ||
@@ -208,7 +216,13 @@ try {
       }
     }
     mark('game-running');
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, runningWaitMs));
+    if (process.env.EKA2L1_BURST_COLLECT_GC === '1') {
+      const client = await page.createCDPSession();
+      await client.send('HeapProfiler.collectGarbage');
+      await client.detach();
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
     const row = await readMemory();
     const renderer = row.processes.filter(proc => proc.type === 'renderer')
       .sort((left, right) => right.pssKiB - left.pssKiB)[0];

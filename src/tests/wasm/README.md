@@ -31,10 +31,13 @@ registries and OS files. Reloading restores that device before initialization;
 already installed packages are skipped. Different firmware has separate data.
 The prepared image seeds an empty device once and never replaces an existing
 phone's files.
-On supported Chromium builds, the installed ROM copy is stored in OPFS after
-installation to reduce warm WASM heap use. Other device files use the existing
-in-memory filesystem and IndexedDB persistence. Firefox uses that existing
-path for the ROM as well. See the [OPFS measurements](../benchmark/OPFS_ROM_RESULTS.md).
+On supported Chromium builds, device installation moves its temporary ROM
+directly into OPFS and links it at the installed path, avoiding an installed
+WasmFS copy. If OPFS is unavailable, the temporary ROM moves into WasmFS;
+native installers still copy from the user's original file. Other device files
+use the existing in-memory filesystem and IndexedDB persistence. Firefox uses
+that existing path for the ROM as well. See the [direct-install measurements](../benchmark/DIRECT_ROM_INSTALL_RESULTS.md)
+and earlier [OPFS measurements](../benchmark/OPFS_ROM_RESULTS.md).
 
 On supported Chromium builds, read-only Z-drive firmware files of at least
 64 KiB also move to OPFS after installation. The layout is saved with the

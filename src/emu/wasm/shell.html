@@ -403,11 +403,12 @@
                             rpkgPath = await uploadFile(rpkgInput.files[0], '/tmp/' + rpkgInput.files[0].name, true);
                         }
                         Module.setStatus('Installing device...');
-                        ret = await Module.ccall('eka2l1_install_device', 'number', ['string', 'string'], [romPath, rpkgPath], {async: true});
+                        ret = await Module.ccall('eka2l1_install_device', 'number', ['string', 'string', 'string'],
+                            [romPath, rpkgPath, disk?.romOffloadRoot || ''], {async: true});
                     } finally {
-                        // Installation copies/extracts into storage before returning.
+                        // Installation consumes the ROM input and extracts the RPKG before returning.
                         for (var uploaded of new Set([romPath, rpkgPath])) {
-                            if (uploaded) FS.unlink(uploaded);
+                            if (uploaded && FS.analyzePath(uploaded).exists) FS.unlink(uploaded);
                         }
                     }
                     if (ret !== 0) {

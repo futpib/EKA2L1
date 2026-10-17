@@ -1,5 +1,5 @@
-// The running device keeps hot WasmFS files in memory. The installed ROM copy
-// can live in OPFS after installation and before the game launches.
+// The running device keeps hot WasmFS files in memory. The installed ROM can
+// live in OPFS during installation, or be offloaded before the game launches.
 // Browser transactions save changed files and their manifest atomically.
 globalThis.EkaDeviceDisk = class {
     static async open(id, filesystem, module, notify = () => {}) {

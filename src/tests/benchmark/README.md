@@ -98,6 +98,9 @@ disks to preserve their measurement definitions.
 The [selective OPFS results](OPFS_ROM_RESULTS.md) measure moving only the
 installed ROM copy out of that memory-backed filesystem, including warm-start
 cost and a real-playfield throughput comparison.
+The [direct ROM installation results](DIRECT_ROM_INSTALL_RESULTS.md) measure
+placing the temporary ROM at its final location during installation and
+compare cold-install memory with a WasmFS-then-offload path.
 
 - The native benchmark clock advances from executed instructions (one synthetic cycle per instruction, 484 MHz at the default clock), with at most 4,840 instructions per dispatch. This is a reproducible clock model, not a hardware cycle-accuracy claim.
 - When no guest thread is runnable, execution jumps to the next scheduled event. There is no real-time timer thread or host vsync pacing.
