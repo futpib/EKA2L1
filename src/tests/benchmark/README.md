@@ -101,6 +101,9 @@ cost and a real-playfield throughput comparison.
 The [direct ROM installation results](DIRECT_ROM_INSTALL_RESULTS.md) measure
 placing the temporary ROM at its final location during installation and
 compare cold-install memory with a WasmFS-then-offload path.
+The [response-streaming experiment](RESPONSE_STREAMING_RESULTS.md) compares
+removing the game picker's Blob/File handoff with the current browser path;
+neither tested streaming policy demonstrated a cold-launch memory or time gain.
 
 - The native benchmark clock advances from executed instructions (one synthetic cycle per instruction, 484 MHz at the default clock), with at most 4,840 instructions per dispatch. This is a reproducible clock model, not a hardware cycle-accuracy claim.
 - When no guest thread is runnable, execution jumps to the next scheduled event. There is no real-time timer thread or host vsync pacing.
