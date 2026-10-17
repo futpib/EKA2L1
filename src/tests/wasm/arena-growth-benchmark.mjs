@@ -87,9 +87,13 @@ const shot=async name=>{
    snapshot.interpreter={...runtimeLayout,pointer:candidates[0].pointer,decoded_used:await page.evaluate(({pointer,offset})=>HEAPU32[(pointer+offset)>>>2],{pointer:candidates[0].pointer,offset:runtimeLayout.decoded_used_offset})};
    assert(snapshot.interpreter.decoded_used<=runtimeLayout.decoded_capacity);
   }
-  if(name.endsWith('-end') && profile.large_allocations){
+  if((name.endsWith('-end') || name===process.env.EKA2L1_ARENA_RESIDENCY_SHOT) && profile.large_allocations){
    const {allocationResidency}=await import('./allocation-residency.mjs');
    try{snapshot.residency=await allocationResidency(page,processes,snapshot.wasmCapacity,profile.large_allocations);}catch(error){snapshot.residency={error:String(error)};}
+   if(await page.evaluate(()=>typeof Module._eka2l1_memory_access_profile_report==='function')){
+    const guestMemory=await page.evaluate(()=>JSON.parse(Module.ccall('eka2l1_memory_access_profile_report','string',[],[])));
+    fs.writeFileSync(out+'/'+name+'.guest-memory.json',JSON.stringify(guestMemory));
+   }
   }
   fs.writeFileSync(out+'/'+name+'.allocations.json',JSON.stringify(snapshot,null,2));
   allocationSnapshots.push({name,live_bytes:profile.live_bytes,peak_bytes:profile.peak_bytes,mallinfo_allocated_bytes:profile.mallinfo_allocated_bytes,dropped:profile.dropped,unknown_frees:profile.unknown_frees});

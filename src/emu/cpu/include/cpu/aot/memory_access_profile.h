@@ -14,7 +14,8 @@ namespace eka2l1::arm::aot::memory_access_profile {
     }
     void process(unsigned space, const std::string &name);
     void event(const char *kind, unsigned space, std::uint32_t address,
-        std::uint64_t size, std::uint64_t committed, bool local, bool direct);
+        std::uint64_t size, std::uint64_t committed, bool local, bool direct,
+        std::uintptr_t host = 0);
     std::string report();
 #endif
 }

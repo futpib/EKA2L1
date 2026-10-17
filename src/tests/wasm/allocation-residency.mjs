@@ -31,12 +31,22 @@ export async function allocationResidency(page, processes, capacity, allocations
    const count=Math.max(0,end-first),bytes=Buffer.alloc(count*8);
    assert.equal(fs.readSync(pagemap,bytes,0,bytes.length,first*8),bytes.length,'Short pagemap read');
    let resident=0,swapped=0;
+   const residentByMiB=allocation.requested===48*1048576?Array(48).fill(0):null;
    for(let i=0;i<count;i++){
     const bits=bytes.readBigUInt64LE(i*8);
-    if(bits&(1n<<63n))resident++;
+    if(bits&(1n<<63n)){
+     resident++;
+     if(residentByMiB){
+      const offset=(first+i)*4096-mapping.begin-allocation.pointer;
+      const bucket=Math.floor(offset/1048576);
+      assert(bucket>=0&&bucket<residentByMiB.length,'Resident page lies outside its tracked allocation');
+      residentByMiB[bucket]++;
+     }
+    }
     if(bits&(1n<<62n))swapped++;
    }
-   rows.push({...allocation,whole_page_resident_bytes:resident*4096,whole_page_swapped_bytes:swapped*4096,whole_page_count:count});
+   rows.push({...allocation,whole_page_resident_bytes:resident*4096,whole_page_swapped_bytes:swapped*4096,
+    whole_page_count:count,...(residentByMiB?{resident_page_counts_by_mib:residentByMiB}:{})});
   }
   return {renderer_pid:renderer.id,mapping,marker_verified:true,page_bytes:4096,
    scope:'Whole pages wholly inside requested allocations; boundary pages excluded, live guest is not globally frozen',allocations:rows};

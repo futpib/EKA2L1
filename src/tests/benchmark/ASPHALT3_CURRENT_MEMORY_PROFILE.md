@@ -99,11 +99,13 @@ has explicitly cleared and published 160 MiB of prefixes. The guest event
 trace found 85 active direct chunks with 137 MiB maximum size but only
 **10.13 MiB currently committed**. Thus prefix clearing touches far more
 memory than the current guest commitment, while arena residency exceeds even
-the cleared prefix by 180 MiB. Previously touched allocator pages may be
-reused for a newly reserved arena, and the trace does not distinguish that
-from later host writes. The 340-versus-10 MiB gap is a measured
-host-to-guest mismatch, **not** a safe 330 MiB saving: current commitment
-does not cover earlier writes or direct-pointer and zero-fill semantics.
+the cleared prefix by 180 MiB. A [same-run arena follow-up](DIRECT_ARENA_RESIDENCY.md)
+now matches arena pointers to earlier large allocation owners: the first five
+arenas' full address ranges were previously held by freed WasmFS file-write
+buffers. The 340-versus-10 MiB gap is a measured host-to-guest mismatch,
+**not** a safe 330 MiB saving: current commitment does not cover earlier
+writes or direct-pointer and zero-fill semantics. Finer arena growth reduced
+resident pages inside arenas but did not measurably lower whole-WASM memory.
 
 The largest sparse guest request is the `AknIconSrv` local chunk: **128 MiB
 maximum, 4 KiB guest committed and 2 MiB resident** in its individual

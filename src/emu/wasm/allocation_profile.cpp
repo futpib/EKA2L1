@@ -7,23 +7,28 @@
 #include <malloc.h>
 
 // This file is linked only into an explicitly selected diagnostic build.
-// Count every allocator lifetime, unwinding only allocations >= 64 KiB.
+// Count every allocator lifetime, unwinding allocations >= 64 KiB and
+// retaining recent releases >= 1 MiB to identify reused address ranges.
 // Static storage and nonallocating reporting avoid recursion in malloc hooks.
 namespace {
 constexpr unsigned minimum_stack_bytes = 65536;
 constexpr unsigned slot_count = 1 << 16;
 constexpr unsigned group_count = 2048;
 constexpr unsigned stack_bytes = 4096;
-struct allocation { unsigned pointer, requested, usable, group; };
+constexpr unsigned release_count = 8192;
+constexpr unsigned minimum_release_bytes = 1024 * 1024;
+struct allocation { unsigned pointer, requested, usable, group; std::uint64_t sequence; };
+struct release { unsigned pointer, usable, group; std::uint64_t allocated_sequence, sequence; };
 struct group {
     char stack[stack_bytes];
     std::uint64_t live_bytes, peak_bytes, allocated_bytes, live_count, allocations;
 };
 allocation slots[slot_count];
+release releases[release_count];
 group groups[group_count];
 unsigned used_groups = 1;
 unsigned large_count;
-std::uint64_t live_bytes, peak_bytes, live_count, allocations, dropped, unknown_frees, truncated_stacks;
+std::uint64_t live_bytes, peak_bytes, live_count, allocations, dropped, unknown_frees, truncated_stacks, event_sequence, release_total;
 std::atomic_flag mutex = ATOMIC_FLAG_INIT;
 thread_local unsigned allocator_depth;
 struct allocator_call {
@@ -68,7 +73,7 @@ void record(void *pointer, std::size_t requested) {
         }
     }
     const unsigned p = reinterpret_cast<std::uintptr_t>(pointer);
-    if (large) { slots[find(p)] = {p, static_cast<unsigned>(requested), static_cast<unsigned>(usable), id}; ++large_count; }
+    if (large) { slots[find(p)] = {p, static_cast<unsigned>(requested), static_cast<unsigned>(usable), id, ++event_sequence}; ++large_count; }
     auto &g = groups[id];
     g.live_bytes += usable; g.allocated_bytes += usable; ++g.live_count; ++g.allocations;
     if (g.live_bytes > g.peak_bytes) g.peak_bytes = g.live_bytes;
@@ -85,7 +90,7 @@ allocation forget(void *pointer) {
         auto &g = groups[0];
         g.live_bytes -= usable; --g.live_count;
         live_bytes -= usable; --live_count;
-        return {p, usable, usable, 0};
+        return {p, usable, usable, 0, 0};
     }
     unsigned gap = find(p);
     if (!slots[gap].pointer) { ++unknown_frees; return {}; }
@@ -105,6 +110,12 @@ allocation forget(void *pointer) {
     }
     slots[gap] = {};
     return old;
+}
+
+void record_release(const allocation &old) {
+    if (!old.pointer || old.usable < minimum_release_bytes) return;
+    lock guard;
+    releases[release_total++ % release_count] = {old.pointer, old.usable, old.group, old.sequence, ++event_sequence};
 }
 
 char report[24 * 1024 * 1024];
@@ -130,14 +141,17 @@ void *__real_emscripten_builtin_memalign(std::size_t, std::size_t);
 
 void *malloc(std::size_t n) { allocator_call call; auto *p = __real_emscripten_builtin_malloc(n); if (call.outer) record(p, n); return p; }
 void *calloc(std::size_t n, std::size_t size) { allocator_call call; auto *p = __real_emscripten_builtin_calloc(n, size); if (call.outer) record(p, n * size); return p; }
-void free(void *p) { allocator_call call; if (call.outer) forget(p); __real_emscripten_builtin_free(p); }
+void free(void *p) { allocator_call call; if (call.outer) record_release(forget(p)); __real_emscripten_builtin_free(p); }
 void *realloc(void *p, std::size_t n) {
     allocator_call call;
     if (!call.outer) return __real_emscripten_builtin_realloc(p, n);
     // Remove the old key before libc can release it to another worker.
     const auto old = forget(p);
     auto *result = __real_emscripten_builtin_realloc(p, n);
-    if (result || !n) record(result, n);
+    if (result || !n) {
+        if (result != p) record_release(old);
+        record(result, n);
+    }
     else if (old.pointer) {
         lock guard;
         if (old.usable >= minimum_stack_bytes) { slots[find(old.pointer)] = old; ++large_count; }
@@ -166,9 +180,10 @@ EMSCRIPTEN_KEEPALIVE const char *eka2l1_allocation_profile_report() {
     lock guard;
     cursor = report;
     cursor += std::sprintf(cursor,
-        "{\"threshold\":%u,\"profiler_static_bytes\":%zu,\"live_bytes\":%llu,\"peak_bytes\":%llu,\"live_count\":%llu,\"allocations\":%llu,\"dropped\":%llu,\"unknown_frees\":%llu,\"truncated_stacks\":%llu,\"mallinfo_allocated_bytes\":%zu,\"groups\":[",
-        minimum_stack_bytes, sizeof(slots) + sizeof(groups) + sizeof(report),
-        live_bytes, peak_bytes, live_count, allocations, dropped, unknown_frees, truncated_stacks, info.uordblks);
+        "{\"threshold\":%u,\"profiler_static_bytes\":%zu,\"live_bytes\":%llu,\"peak_bytes\":%llu,\"live_count\":%llu,\"allocations\":%llu,\"dropped\":%llu,\"unknown_frees\":%llu,\"truncated_stacks\":%llu,\"released_large_events\":%llu,\"released_large_capacity\":%u,\"mallinfo_allocated_bytes\":%zu,\"groups\":[",
+        minimum_stack_bytes, sizeof(slots) + sizeof(releases) + sizeof(groups) + sizeof(report),
+        live_bytes, peak_bytes, live_count, allocations, dropped, unknown_frees, truncated_stacks,
+        release_total, release_count, info.uordblks);
     for (unsigned id = 0; id < used_groups; ++id) {
         const auto &g = groups[id];
         cursor += std::sprintf(cursor,
@@ -179,8 +194,17 @@ EMSCRIPTEN_KEEPALIVE const char *eka2l1_allocation_profile_report() {
     cursor += std::sprintf(cursor, "],\"large_allocations\":[");
     bool first = true;
     for (const auto &slot : slots) if (slot.pointer) {
-        cursor += std::sprintf(cursor, "%s{\"pointer\":%u,\"requested\":%u,\"usable\":%u,\"group\":%u}",
-            first ? "" : ",", slot.pointer, slot.requested, slot.usable, slot.group);
+        cursor += std::sprintf(cursor, "%s{\"pointer\":%u,\"requested\":%u,\"usable\":%u,\"group\":%u,\"sequence\":%llu}",
+            first ? "" : ",", slot.pointer, slot.requested, slot.usable, slot.group, slot.sequence);
+        first = false;
+    }
+    cursor += std::sprintf(cursor, "],\"released_large_allocations\":[");
+    first = true;
+    for (std::uint64_t i = release_total > release_count ? release_total - release_count : 0; i < release_total; ++i) {
+        const auto &row = releases[i % release_count];
+        cursor += std::sprintf(cursor,
+            "%s{\"pointer\":%u,\"usable\":%u,\"group\":%u,\"allocated_sequence\":%llu,\"sequence\":%llu}",
+            first ? "" : ",", row.pointer, row.usable, row.group, row.allocated_sequence, row.sequence);
         first = false;
     }
     *cursor++ = ']'; *cursor++ = '}'; *cursor = 0;

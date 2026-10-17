@@ -17,6 +17,7 @@ namespace eka2l1::arm::aot::memory_access_profile {
         std::uint32_t address;
         std::uint64_t size, committed;
         bool local, direct;
+        std::uintptr_t host;
     };
     static std::vector<allocation_event> events;
 
@@ -26,9 +27,10 @@ namespace eka2l1::arm::aot::memory_access_profile {
     }
 
     void event(const char *kind, unsigned space, std::uint32_t address,
-            std::uint64_t size, std::uint64_t committed, bool local, bool direct) {
+            std::uint64_t size, std::uint64_t committed, bool local, bool direct,
+            std::uintptr_t host) {
         const std::lock_guard<std::mutex> lock(mutex);
-        events.push_back({kind, space, address, size, committed, local, direct});
+        events.push_back({kind, space, address, size, committed, local, direct, host});
     }
 
     std::string report() {
@@ -66,7 +68,7 @@ namespace eka2l1::arm::aot::memory_access_profile {
             out << "{\"kind\":\"" << e.kind << "\",\"asid\":" << e.space
                 << ",\"address\":" << e.address << ",\"size\":" << e.size
                 << ",\"committed\":" << e.committed << ",\"local\":" << e.local
-                << ",\"direct\":" << e.direct << '}';
+                << ",\"direct\":" << e.direct << ",\"host\":" << e.host << '}';
         }
         out << "]}";
         return out.str();

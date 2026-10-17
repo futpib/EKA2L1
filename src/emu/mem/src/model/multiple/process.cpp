@@ -53,7 +53,8 @@ namespace eka2l1::mem {
             if (!direct_local_) return nullptr;
             stats.arena_bytes += direct_size;
 #ifdef EKA2L1_MEMORY_ACCESS_PROFILE
-            arm::aot::memory_access_profile::event("arena", addr_space_id_, direct_begin, direct_size, 0, true, true);
+            arm::aot::memory_access_profile::event("arena", addr_space_id_, direct_begin, direct_size, 0, true, true,
+                reinterpret_cast<std::uintptr_t>(direct_local_));
 #endif
         }
         return static_cast<std::uint8_t *>(direct_local_) + address - direct_begin;
@@ -73,6 +74,10 @@ namespace eka2l1::mem {
             stats.arena_initialized_bytes += capacity - direct_capacity_;
             ++stats.arena_growths;
             direct_capacity_ = capacity;
+#ifdef EKA2L1_MEMORY_ACCESS_PROFILE
+            arm::aot::memory_access_profile::event("arena-grow", addr_space_id_, direct_begin, direct_size,
+                capacity, true, true, reinterpret_cast<std::uintptr_t>(direct_local_));
+#endif
             static_cast<control_multiple *>(control_)->direct_arenas_[addr_space_id_] = {direct_begin, capacity,
                 static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(direct_local_)), 3};
             mapping_changed();
@@ -82,7 +87,8 @@ namespace eka2l1::mem {
 
     multiple_mem_model_process::~multiple_mem_model_process() {
 #ifdef EKA2L1_MEMORY_ACCESS_PROFILE
-        arm::aot::memory_access_profile::event("process-destroy", addr_space_id_, 0, 0, 0, false, false);
+        arm::aot::memory_access_profile::event("process-destroy", addr_space_id_, 0, 0, 0, false, false,
+            reinterpret_cast<std::uintptr_t>(direct_local_));
 #endif
         // Chunks release their mappings before the shared arena is released.
         chunks_.clear();
