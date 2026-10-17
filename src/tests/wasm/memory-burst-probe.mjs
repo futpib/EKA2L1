@@ -13,6 +13,10 @@ const livePath = process.env.EKA2L1_BURST_LIVE_PATH === '1';
 const nativeProfiling = process.env.EKA2L1_BURST_NATIVE_PROFILE !== '0';
 const controlPage = process.env.EKA2L1_BURST_CONTROL_PAGE === '1';
 const manualLive = process.env.EKA2L1_BURST_MANUAL_LIVE === '1';
+const anchors = process.env.EKA2L1_BURST_ANCHORS?.split(',') ??
+  (manualLive ? ['asset-load', 'game-launch', 'device-install'] : ['page-navigation', 'game-launch']);
+const cumulative = process.env.EKA2L1_BURST_CUMULATIVE === '1';
+const minimumKiB = Number(process.env.EKA2L1_BURST_MIN_MIB ?? 32) * 1024;
 
 const browser = await puppeteer.launch({
   executablePath: process.env.EKA2L1_CHROMIUM || '/usr/bin/chromium', headless: true,
@@ -25,12 +29,24 @@ const page = await browser.newPage();
 page.setDefaultTimeout(180000);
 const system = await browser.target().createCDPSession();
 const profiler = nativeProfiling ? new ChromeMemoryProfiler(page, output) : null;
-const samples = [], marks = [];
-let stage = 'blank', sampling = false, closed = false;
+const samples = [], marks = [], phaseCaptures = [];
+let stage = 'blank', sampling = false, closed = false, lastStatus;
 const mark = name => { stage = name; marks.push({ms: performance.now(), name}); };
 page.on('console', message => {
   if (message.text() === '[memory-burst] game-launch') mark('game-launch');
   if (message.text().startsWith('[memory-burst] asset:')) mark(message.text().slice(21));
+  if (message.text().startsWith('[memory-burst] status:')) {
+    const status = message.text().slice('[memory-burst] status:'.length);
+    if (status !== lastStatus) {
+      lastStatus = status;
+      mark(`status:${status}`);
+      if (status === 'Installing device...') mark('device-install');
+      const phase = status === 'Installing device...' ? 'device-install-start' :
+        status === 'Uploading SIS...' ? 'device-install-end' : null;
+      if (phase) phaseCaptures.push(capturePhase(phase).catch(error =>
+        marks.push({ms: performance.now(), phase, error: String(error)})));
+    }
+  }
 });
 const readMemory = async () => {
   const processes = [];
@@ -45,22 +61,34 @@ const readMemory = async () => {
   return {ms: performance.now(), stage, processes,
     pssKiB: processes.reduce((sum, proc) => sum + proc.pssKiB, 0)};
 };
+const capturePhase = async phase => {
+  const row = await readMemory();
+  const renderer = row.processes.filter(proc => proc.type === 'renderer')
+    .sort((left, right) => right.pssKiB - left.pssKiB)[0];
+  if (renderer) fs.writeFileSync(path.join(output, `${phase}.smaps`),
+    fs.readFileSync(`/proc/${renderer.pid}/smaps`));
+  fs.writeFileSync(path.join(output, `${phase}.json`), JSON.stringify({
+    ...row, wasmCapacity: await page.evaluate(() => HEAPU8.buffer.byteLength), renderer
+  }));
+};
 const sample = async () => {
   if (sampling || closed) return;
   sampling = true;
   try {
     const row = await readMemory();
     samples.push(row);
-    for (const anchor of (manualLive ? ['asset-load'] : ['page-navigation', 'game-launch'])) {
+    for (const anchor of anchors) {
       if (marks.some(mark => mark.name === `${anchor}-burst`)) continue;
       const start = marks.find(mark => mark.name === anchor);
       if (!start || row.ms < start.ms) continue;
-      const prior = [...samples].reverse().find(sample => sample.ms <= row.ms - 200 && sample.ms >= start.ms);
-      if (!prior || row.pssKiB - prior.pssKiB < 32 * 1024) continue;
+      const eligible = sample => sample.ms <= row.ms - 200 && sample.ms >= start.ms;
+      const prior = cumulative ? samples.find(eligible) : [...samples].reverse().find(eligible);
+      if (!prior || row.pssKiB - prior.pssKiB < minimumKiB) continue;
       mark(`${anchor}-burst`);
       const renderer = row.processes.filter(proc => proc.type === 'renderer')
         .sort((left, right) => right.pssKiB - left.pssKiB)[0];
       const result = {anchor, from: prior, to: row};
+      result.wasmCapacity = await page.evaluate(() => HEAPU8.buffer.byteLength);
       if (renderer) {
         result.renderer = renderer;
         fs.writeFileSync(path.join(output, `${anchor}-burst.smaps`),
@@ -80,13 +108,14 @@ try {
   if (profiler && !manualLive) await profiler.start();
   await sample();
   await page.evaluateOnNewDocument(() => { window.ekaTransientSession = false; });
-  if (livePath) await page.evaluateOnNewDocument(() => {
+  if (livePath || manualLive) await page.evaluateOnNewDocument(() => {
     const timer = setInterval(() => {
       if (!window.Module?.setStatus) return;
       clearInterval(timer);
       const original = Module.setStatus;
       Module.setStatus = function(status) {
         if (status === 'Initializing...') console.log('[memory-burst] game-launch');
+        console.log('[memory-burst] status:' + status);
         return original.apply(this, arguments);
       };
     }, 1);
@@ -180,10 +209,19 @@ try {
     }
     mark('game-running');
     await new Promise(resolve => setTimeout(resolve, 1000));
+    const row = await readMemory();
+    const renderer = row.processes.filter(proc => proc.type === 'renderer')
+      .sort((left, right) => right.pssKiB - left.pssKiB)[0];
+    if (renderer) fs.writeFileSync(path.join(output, 'game-running.smaps'),
+      fs.readFileSync(`/proc/${renderer.pid}/smaps`));
+    fs.writeFileSync(path.join(output, 'game-running.json'), JSON.stringify({
+      ...row, wasmCapacity: await page.evaluate(() => HEAPU8.buffer.byteLength), renderer
+    }));
   }
 } finally {
   closed = true;
   clearInterval(timer);
+  await Promise.all(phaseCaptures);
   while (sampling) await new Promise(resolve => setTimeout(resolve, 20));
   fs.writeFileSync(path.join(output, 'timeline.json'), JSON.stringify({marks, samples}));
   if (profiler) await profiler.stop().catch(() => {});

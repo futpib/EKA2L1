@@ -386,10 +386,15 @@ To stop the investigation at the first large startup RAM rise, run the burst
 probe against a private or live server. `EKA2L1_BURST_MANUAL_LIVE=1` replays the
 normal game-picker download path after the core is ready; it captures the first
 32 MiB PSS increase over roughly 200–300 ms, the current native allocation
-profile and renderer mappings. Use `EKA2L1_BURST_NATIVE_PROFILE=0` for paired
+profile and renderer mappings. It also records launcher-status transitions,
+device-install start/end mappings, and a game-running mapping. Set
+`EKA2L1_BURST_ANCHORS=device-install`, `EKA2L1_BURST_CUMULATIVE=1`, and
+`EKA2L1_BURST_MIN_MIB=200` to capture the first 200 MiB rise from the start
+of device installation. Use `EKA2L1_BURST_NATIVE_PROFILE=0` for paired
 PSS runs without sampler overhead. The `clone` and `cache-cycle` values of
 `EKA2L1_BURST_CACHE_MODE` replay the old and new cache-miss handoffs without
-changing the server. See the [Asphalt 3 burst result](../benchmark/ASPHALT3_FIRST_MEMORY_BURST.md).
+changing the server. See the [first asset burst](../benchmark/ASPHALT3_FIRST_MEMORY_BURST.md)
+and [next installation burst](../benchmark/ASPHALT3_NEXT_MEMORY_BURST.md).
 
 ```sh
 EKA2L1_BURST_MANUAL_LIVE=1 node src/tests/wasm/memory-burst-probe.mjs asphalt-3 /absolute/path/new-capture http://127.0.0.1:8302/
