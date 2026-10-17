@@ -124,6 +124,10 @@ live through the race, but this capture does not prove they are unused by later
 frames. Sparse chunk maximum sizes are mostly nonresident and should not be
 ranked as RAM waste.
 
+A [later post-staging retest](DIRECT_ARENA_FINE_GROWTH_ADOPTION.md) found that
+1 MiB growth steps reduced WASM PSS by 26–40 MiB in paired Asphalt 3 runs.
+The 48 MiB reservations and their stable host pointers remain in place.
+
 Raw production captures are under
 `/home/claude/.scratch/eka-memory-20261017-after-staging/` in
 `asphalt-3/`, `tetris/`, `asphalt-3-full/`, `hooked-on-transient/`, and

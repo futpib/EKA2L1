@@ -68,8 +68,9 @@ namespace eka2l1::mem {
         using namespace arm::aot::memory_experiment;
         const auto required = std::uint64_t(address) + size - direct_begin;
         if (required > direct_capacity_) {
-            auto capacity = std::max(direct_capacity_, 4u * 1024 * 1024);
-            while (required > capacity) capacity = std::min(capacity * 2, direct_size);
+            constexpr std::uint32_t growth_step = 1024 * 1024;
+            const auto capacity = static_cast<std::uint32_t>(std::min<std::uint64_t>(
+                (required + growth_step - 1) & ~(std::uint64_t(growth_step) - 1), direct_size));
             std::memset(static_cast<std::uint8_t *>(direct_local_) + direct_capacity_, 0, capacity - direct_capacity_);
             stats.arena_initialized_bytes += capacity - direct_capacity_;
             ++stats.arena_growths;

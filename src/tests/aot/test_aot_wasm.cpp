@@ -5821,7 +5821,7 @@ static bool test_direct_memory_translation() {
             const auto direct=control.direct_arena(processes[i]->address_space_id());
             const auto pointer=mapping.enter(1,processes[i]->address_space_id(),resolve,direct);
             auto *descriptor=reinterpret_cast<direct_view*>(pointer);
-            if(descriptor->size!=4*1024*1024)return memory_failure(__LINE__);
+            if(descriptor->size!=1024*1024)return memory_failure(__LINE__);
             reinterpret_cast<page*>(descriptor->pages)[guest>>12]={};
             alignas(8)std::uint32_t state[256]{};
             state[0]=123+i;state[1]=guest;state[5]=0x90000000;state[15]=0x1000;
@@ -6185,25 +6185,27 @@ static bool test_growing_arenas() {
     mem::mem_model_chunk *small{}, *large{}, *isolated{};
     if (first->create_chunk(small, info) || small->commit(0,4096) != 4096) return false;
     auto *held = static_cast<std::uint32_t *>(small->host_base());
-    if (control.direct_arena(first->address_space_id()).size != 4 * 1024 * 1024) return false;
+    if (control.direct_arena(first->address_space_id()).size != 1024 * 1024) return false;
     held[64] = 0x12345678;
     using native_map = std::unordered_map<unsigned,unsigned>;
     auto *object = new (held + 128) native_map;
     struct destroy_object { native_map *object; ~destroy_object() { if (object) object->~native_map(); } } owned{object};
     object->emplace(7,91);
     info.size = 0x800000;
-    if (first->create_chunk(large, info) || control.direct_arena(first->address_space_id()).size != 4 * 1024 * 1024
+    if (first->create_chunk(large, info) || control.direct_arena(first->address_space_id()).size != 1024 * 1024
         || large->commit(0,4096) != 4096) return false;
     if (large->commit(7 * 1024 * 1024, 4096) != 4096) return false;
     if (small->host_base() != held || held[64] != 0x12345678 || object->at(7) != 91) return false;
     info.size = 0x100000;
     if (second->create_chunk(isolated, info) || isolated->commit(0,4096) != 4096) return false;
     static_cast<std::uint32_t *>(isolated->host_base())[64] = 0x87654321;
-    if (held[64] != 0x12345678 || stats.arena_bytes - bytes_before != 2 * direct_size
-        || stats.arena_initialized_bytes - initialized_before != 20 * 1024 * 1024) return false;
-    auto direct = control.direct_arena(first->address_space_id());
-    if (direct.host != reinterpret_cast<std::uintptr_t>(held) || direct.size != 16 * 1024 * 1024) return false;
     const auto guest = small->base(first.get()), target = large->base(first.get());
+    const auto first_capacity = ((target + 7 * 1024 * 1024 + 4096 - direct_begin + 1024 * 1024 - 1)
+        / (1024 * 1024)) * (1024 * 1024);
+    if (held[64] != 0x12345678 || stats.arena_bytes - bytes_before != 2 * direct_size
+        || stats.arena_initialized_bytes - initialized_before != first_capacity + 1024 * 1024) return false;
+    auto direct = control.direct_arena(first->address_space_id());
+    if (direct.host != reinterpret_cast<std::uintptr_t>(held) || direct.size != first_capacity) return false;
     if (reinterpret_cast<std::uintptr_t>(large->host_base()) != direct.host + target - guest
         || *(static_cast<std::uint8_t *>(small->host_base()) + direct.size - 1) != 0) return false;
     auto resolve = [&] {
@@ -6289,11 +6291,11 @@ static bool test_growing_arenas() {
     mem::mem_model_chunk *upper{}, *outside{};
     if (first->create_chunk(upper, info) || upper->commit(0,4096) != 4096) return false;
     direct = control.direct_arena(first->address_space_id());
-    if (direct.size != direct_size || direct.host != reinterpret_cast<std::uintptr_t>(held)
+    if (direct.size != 45 * 1024 * 1024 || direct.host != reinterpret_cast<std::uintptr_t>(held)
         || object->at(7)!=91 || held[64]!=0x12345678) return false;
     info.addr = direct_begin + direct_size;
     if (first->create_chunk(outside, info) || outside->commit(0,4096) != 4096) return false;
-    if (control.direct_arena(first->address_space_id()).size != direct_size
+    if (control.direct_arena(first->address_space_id()).size != 45 * 1024 * 1024
         || stats.arena_bytes - bytes_before != 2 * direct_size) return false;
     object->~native_map(); owned.object = nullptr;
     first.reset(); second.reset();

@@ -85,6 +85,10 @@ establish runtime parity for fine growth. It also produced 118 arena growth
 events by the race versus 34 for baseline. There is no demonstrated net RAM
 benefit to justify graduating it.
 
+This was measured before OPFS installer staging. The
+[post-staging retest](DIRECT_ARENA_FINE_GROWTH_ADOPTION.md) found lower WASM PSS
+and graduated 1 MiB growth steps.
+
 The next useful memory experiment is at the **temporary WasmFS file-write
 source**: reduce or avoid whole-file copies of the ROM/RPKG/SIS during
 installation, then compare whole WASM and browser PSS with the same gameplay
