@@ -382,6 +382,19 @@ after the WASM runtime is ready but before the game launch and derived-code
 installation. The process mappings and gameplay scene are still captured;
 native and JavaScript allocation samples omit the runtime's initial setup.
 
+To stop the investigation at the first large startup RAM rise, run the burst
+probe against a private or live server. `EKA2L1_BURST_MANUAL_LIVE=1` replays the
+normal game-picker download path after the core is ready; it captures the first
+32 MiB PSS increase over roughly 200–300 ms, the current native allocation
+profile and renderer mappings. Use `EKA2L1_BURST_NATIVE_PROFILE=0` for paired
+PSS runs without sampler overhead. The `clone` and `cache-cycle` values of
+`EKA2L1_BURST_CACHE_MODE` replay the old and new cache-miss handoffs without
+changing the server. See the [Asphalt 3 burst result](../benchmark/ASPHALT3_FIRST_MEMORY_BURST.md).
+
+```sh
+EKA2L1_BURST_MANUAL_LIVE=1 node src/tests/wasm/memory-burst-probe.mjs asphalt-3 /absolute/path/new-capture http://127.0.0.1:8302/
+```
+
 The symbol file must match Chrome's build ID. The summary reconciles physical
 PSS across processes and mappings; sampled allocation stacks and JIT perf-map
 sizes are separate views and must not be added to PSS. See the

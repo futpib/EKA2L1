@@ -40,13 +40,19 @@ window.ekaDownload = async function(endpoint) {
   const response = await fetch(url);
   if (response.ok && cache && window.ekaAssetUrls[endpoint]) {
     try {
-      await cache.put(url, response.clone());
+      // Consume the network body into Cache Storage before reading it back.
+      // A cloned response can buffer the entire unconsumed branch in RAM.
+      await cache.put(url, response);
+      const saved = await cache.match(url);
+      if (!saved) throw new Error('Stored download could not be reopened');
       // Retain the old copy until the replacement has been stored successfully.
       for (const key of await cache.keys()) {
         if (key.url !== url && new URL(key.url).pathname === new URL(url).pathname)
           await cache.delete(key);
       }
+      return saved;
     } catch (error) { console.info('Download could not be cached', String(error)); }
+    return response.bodyUsed ? fetch(url) : response;
   }
   return response;
 };

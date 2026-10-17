@@ -54,6 +54,15 @@ try {
     finally { Cache.prototype.put = original; }
   }), 'original-sis');
   assert.equal(await page.evaluate(async () => {
+    const original = Cache.prototype.put;
+    Cache.prototype.put = async (_request, response) => {
+      await response.text();
+      throw new DOMException('full after upload', 'QuotaExceededError');
+    };
+    try { return await (await (window as any).ekaDownload('/preload/sis')).text(); }
+    finally { Cache.prototype.put = original; }
+  }), 'original-sis');
+  assert.equal(await page.evaluate(async () => {
     const original = CacheStorage.prototype.open;
     CacheStorage.prototype.open = async () => { throw new Error('storage blocked'); };
     try { return await (await (window as any).ekaDownload('/preload/sis')).text(); }
