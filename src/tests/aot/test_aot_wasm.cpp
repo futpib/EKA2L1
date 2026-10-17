@@ -6429,7 +6429,13 @@ static bool test_ram_function_retirement() {
     invalidate_ram_code(address, sizeof(code));
     prepare_compiled_code(*cpu);
     if (retired_compiled_function_count() != before + 2) return false;
-    printf(" PASS RAM function retirement (deferred table removal, slot reuse and remapped execution)\n");
+    const auto process_owned = prepare();
+    if (!process_owned || !execute_single(state.get(), process_owned) || state->Reg[0] != 7) return false;
+    retire_process_code(17);
+    prepare_compiled_code(*cpu);
+    if (retired_compiled_function_count() != before + 3) return false;
+    if (!EM_ASM_INT({ return WebAssembly.Table.prototype.get.call(wasmTable, $0) === null; }, process_owned)) return false;
+    printf(" PASS RAM function retirement (deferred removal, slot reuse, remapping and process exit)\n");
 #endif
     return true;
 }

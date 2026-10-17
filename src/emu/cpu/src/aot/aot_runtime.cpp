@@ -931,6 +931,8 @@ static void release_process_code() {
         precompile_pending = std::any_of(precompile_images.begin(), precompile_images.end(), [](const auto &image) { return !image.entries.empty() || !image.flat_entries.empty(); });
     }
     for (const auto space : processes) {
+        ram_cache.retire_space(space);
+        single_cache.retire_space(space);
         for (auto it = cold_modules.begin(); it != cold_modules.end();)
             if (it->first != rom_lifetime && it->first >> 32 == space) it = cold_modules.erase(it);
             else ++it;

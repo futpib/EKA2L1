@@ -109,10 +109,7 @@ namespace eka2l1::arm::aot {
                 || view.bytes != entry->backing || view.size < entry->code.size();
             if (mapping_invalid || (!TrustBytes && !bytes_match(*entry))) {
                 if(exit_census::counting())++exit_census::invalidations[mapping_invalid?"mapping_or_extent":"exact_bytes"];
-                forget_dispatch(k);
-                entry->live = false;
-                current_.erase(k);
-                recent = nullptr;
+                retire(*entry);
                 ++invalidations;
                 return nullptr;
             }
@@ -141,7 +138,7 @@ namespace eka2l1::arm::aot {
             const auto k = key(view.address_space, pc_mode);
             forget_dispatch(k);
             auto old = current_.find(k);
-            if (old != current_.end()) versions_[old->second].live = false;
+            if (old != current_.end()) retire(versions_[old->second]);
             const auto version = static_cast<std::uint32_t>(versions_.size());
             versions_.push_back({k, version, view.bytes, {view.bytes, view.bytes + size}});
             current_[k] = version;
@@ -317,6 +314,13 @@ namespace eka2l1::arm::aot {
                     }
                 }
             }
+        }
+
+        void retire_space(std::uint32_t space) {
+            std::vector<std::uint32_t> versions;
+            for (const auto &[k, version] : current_)
+                if (k >> 32 == space) versions.push_back(version);
+            for (auto version : versions) retire(versions_[version]);
         }
 
         std::size_t versions() const { return versions_.size(); }

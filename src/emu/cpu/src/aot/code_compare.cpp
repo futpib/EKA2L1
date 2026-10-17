@@ -40,16 +40,14 @@ namespace eka2l1::arm::aot {
         if (generation && recent->mapping_source == cpu.code_mapping_generation
             && recent->mapping_generation == generation) {
             if (TrustBytes || bytes_match(*recent)) return recent;
-            recent->live = false;
-            current_.erase(k);
-            recent = nullptr;
+            retire(*recent);
             ++invalidations;
             if(exit_census::counting())++exit_census::invalidations["exact_bytes"];
             return nullptr;
         }
         core::code_mapping view;
         if (!cpu.resolve_code || !cpu.resolve_code(pc_mode & ~1u, view)) {
-            // No cached pointer may survive a failed mapping refresh.
+            // A failed refresh can be transient, but no cached pointer may be used meanwhile.
             if (recent && recent->key == k) recent->mapping_generation = 0;
             return nullptr;
         }

@@ -1037,7 +1037,7 @@ TEST_CASE("RAM retirement releases dead payloads without reusing identities", "[
     REQUIRE(cache.find(0x1000, view) == nullptr);
 }
 
-TEST_CASE("Superseded RAM translations are reclaimed when their code is unmapped", "[aot][cpu]") {
+TEST_CASE("Superseded RAM translations are reclaimed at the next CPU boundary", "[aot][cpu]") {
     using namespace eka2l1::arm;
     aot::validated_code_cache cache;
     std::array<std::uint8_t, 16> bytes{};
@@ -1046,17 +1046,52 @@ TEST_CASE("Superseded RAM translations are reclaimed when their code is unmapped
     auto &old = cache.insert(0x1000, view, 8);
     REQUIRE(cache.attach(old.version, function));
     auto &replacement = cache.insert(0x1000, view, 8);
-    REQUIRE(cache.collect_retired().empty());
-    REQUIRE_FALSE(cache.was_unloaded(old.version));
+    REQUIRE(cache.was_unloaded(old.version));
+    REQUIRE(cache.collect_retired() == std::vector<aot::aot_func>{function});
     REQUIRE(cache.find(0x1000, view) == &replacement);
     cache.invalidate(0x1000, 8);
     cache.invalidate(0x1000, 8);
     REQUIRE(cache.was_unloaded(old.version));
     REQUIRE(cache.was_unloaded(replacement.version));
-    REQUIRE(cache.collect_retired() == std::vector<aot::aot_func>{function});
+    REQUIRE(cache.collect_retired().empty());
     REQUIRE(replacement.code.capacity() == 0);
     REQUIRE(cache.find(0x1000, view) == nullptr);
     REQUIRE_FALSE(cache.has_retired());
+}
+
+TEST_CASE("Failed code validation releases its compiled table function", "[aot][cpu]") {
+    using namespace eka2l1::arm;
+    aot::validated_code_cache cache;
+    std::array<std::uint8_t, 16> bytes{};
+    core::code_mapping view{1, bytes.data(), bytes.size()};
+    auto function = +[](ARMul_State *) -> std::uint32_t { return 1; };
+    auto &entry = cache.insert(0x1000, view, 8);
+    REQUIRE(cache.attach(entry.version, function));
+    bytes[0] = 1;
+    REQUIRE(cache.find(0x1000, view) == nullptr);
+    REQUIRE(cache.has_retired());
+    REQUIRE(cache.collect_retired() == std::vector<aot::aot_func>{function});
+    REQUIRE(entry.code.capacity() == 0);
+}
+
+TEST_CASE("Process retirement releases only its compiled functions", "[aot][cpu]") {
+    using namespace eka2l1::arm;
+    aot::validated_code_cache cache;
+    std::array<std::uint8_t, 16> bytes{};
+    auto first = +[](ARMul_State *) -> std::uint32_t { return 1; };
+    auto second = +[](ARMul_State *) -> std::uint32_t { return 2; };
+    core::code_mapping view{1, bytes.data(), bytes.size()};
+    auto &retired = cache.insert(0x1000, view, 8);
+    REQUIRE(cache.attach(retired.version, first));
+    view.address_space = 2;
+    auto &remaining = cache.insert(0x1000, view, 8);
+    REQUIRE(cache.attach(remaining.version, second));
+    cache.retire_space(1);
+    REQUIRE(cache.collect_retired() == std::vector<aot::aot_func>{first});
+    REQUIRE(retired.code.capacity() == 0);
+    REQUIRE(cache.find(0x1000, view) == &remaining);
+    cache.retire_space(1);
+    REQUIRE(cache.collect_retired().empty());
 }
 
 TEST_CASE("RAM translation dependencies end after the first store", "[aot]") {
@@ -1192,12 +1227,15 @@ TEST_CASE("Generation guarded RAM lookup still validates host writes and address
     cpu->resolve_code = [&](address, core::code_mapping &out) {
         ++resolutions; out = view; out.address_space = cpu->code_address_space; return mapped;
     };
-    cache.insert(0x1000,view,8);
+    auto function = +[](ARMul_State *) -> std::uint32_t { return 1; };
+    const auto version = cache.insert(0x1000,view,8).version;
+    REQUIRE(cache.attach(version, function));
     REQUIRE(cache.find(0x1000,*cpu));
     REQUIRE(cache.find(0x1000,*cpu));
     CHECK(resolutions == 1);
     code[0] = 1; // Host/alias writes do not need a mapping notification.
     REQUIRE_FALSE(cache.find(0x1000,*cpu));
+    REQUIRE(cache.collect_retired() == std::vector<aot::aot_func>{function});
     cache.insert(0x1000,view,8);
     REQUIRE(cache.find(0x1000,*cpu));
     cpu->code_address_space = 2;
