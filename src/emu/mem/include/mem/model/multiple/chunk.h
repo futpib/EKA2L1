@@ -43,6 +43,8 @@ namespace eka2l1::mem {
 
         std::size_t committed_{ 0 };
         std::size_t max_size_{ 0 };
+        // The guest address allocator can reserve more than the chunk may commit.
+        std::size_t reserved_size_{ 0 };
 
         std::vector<std::uint32_t> page_tabs_;
         std::vector<asid> attached_asids_;
@@ -89,6 +91,7 @@ namespace eka2l1::mem {
 
         std::size_t commit(const vm_address offset, const std::size_t size, bool ignore_committed = true) override;
         void decommit(const vm_address offset, const std::size_t size) override;
+        bool adjust(const vm_address bottom, const vm_address top) override;
 
         std::int32_t allocate(const std::size_t size) override;
 

@@ -6357,6 +6357,21 @@ static bool test_sparse_chunk_backing() {
         || *static_cast<std::uint32_t *>(control.get_host_pointer(second->address_space_id(), global_base)) != 0xabcdef01)
         return false;
 
+    info.size = 0x4000;
+    info.addr = 0;
+    info.flags = mem::MEM_MODEL_CHUNK_REGION_USER_ROM | mem::MEM_MODEL_CHUNK_TYPE_NORMAL;
+    mem::mem_model_chunk *small{};
+    mem::mem_model_chunk *next{};
+    if (first->create_chunk(small, info) || first->create_chunk(next, info)) return false;
+    if (small->max() != info.size || next->base(first.get()) - small->base(first.get()) < 0x100000
+        || small->commit(0, info.size) != info.size || small->adjust(0, info.size + 4096)
+        || small->commit(info.size, 4096) != 0) return false;
+    std::memset(small->host_base(), 0x5a, info.size);
+    if (*static_cast<std::uint8_t *>(control.get_host_pointer(first->address_space_id(), small->base(first.get()))) != 0x5a)
+        return false;
+    first->delete_chunk(small);
+    first->delete_chunk(next);
+
     std::unique_ptr<void, decltype(&std::free)> external(std::aligned_alloc(65536, 65536), &std::free);
     if (!external) return false;
     std::memset(external.get(), 0xa5, 65536);

@@ -31,6 +31,12 @@
 #include <cstring>
 
 namespace eka2l1::mem {
+    bool multiple_mem_model_chunk::adjust(const vm_address bottom, const vm_address top) {
+        if (top > max_size_ || (bottom != 0xFFFFFFFF && bottom > max_size_))
+            return false;
+        return mem_model_chunk::adjust(bottom, top);
+    }
+
     std::size_t multiple_mem_model_chunk::commit(const vm_address offset, const std::size_t size, bool ignore_committed) {
         // Align the offset
         vm_address running_offset = offset;
@@ -375,6 +381,13 @@ namespace eka2l1::mem {
             create_flags_ |= MEM_MODEL_CHUNK_INTERNAL_FORCE_FILL;
         }
 
+        reserved_size_ = max_size_;
+#ifdef __EMSCRIPTEN__
+        // Guest address allocation needs a full page-table slot, but backing only
+        // needs the maximum size requested by the chunk's creator.
+        max_size_ = (create_info.size + control_->page_size() - 1) & ~(control_->page_size() - 1);
+#endif
+
         base_ = addr;
         committed_ = 0;
         clear_external_host_on_commit_ = create_info.clear_host_on_commit;
@@ -451,11 +464,11 @@ namespace eka2l1::mem {
         if (!page_tabs_.empty()) decommit(0, max_size_);
 
         // Free the region that previously allocated from the allocator
-        if (!(create_flags_ & MEM_MODEL_CHUNK_INTERNAL_FORCE_FILL)) {
+        if (reserved_size_ && !(create_flags_ & MEM_MODEL_CHUNK_INTERNAL_FORCE_FILL)) {
             linear_section *sec = get_section(create_flags_);
 
             if (sec)
-                sec->alloc_.deallocate((base_ - sec->beg_) >> control_->page_size_bits_, max_size_ >> control_->page_size_bits_);
+                sec->alloc_.deallocate((base_ - sec->beg_) >> control_->page_size_bits_, reserved_size_ >> control_->page_size_bits_);
         }
 
         if (is_code) {
