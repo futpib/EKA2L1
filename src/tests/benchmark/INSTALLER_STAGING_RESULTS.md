@@ -3,7 +3,7 @@
 The [arena residency capture](DIRECT_ARENA_RESIDENCY.md) found that pages
 formerly used by temporary WasmFS ROM/RPKG/SIS buffers remained resident after
 those files were unlinked. The allocator can reuse their addresses, but the
-browser does not reclaim dirty WASM linear-memory pages. This experiment
+browser does not reclaim dirty WASM linear-memory pages. The default browser path
 streams large installer inputs to the existing OPFS mount, then removes them
 after installation. The ROM and RPKG use OPFS when available; SIS/SISX uses it
 at 8 MiB or larger. Smaller packages retain the in-memory upload path. The
@@ -77,7 +77,14 @@ fallback uses `/tmp`. Files left by a browser crash during installation are
 not yet scavenged.
 
 Full captures and the frozen browser bundles are under
-`/home/claude/.scratch/eka-staging-experiment/`. The public `.lan` build was
-left unchanged while evaluating this memory/startup tradeoff. The Firefox
-path falls back to WasmFS because this repository does not mount OPFS there;
-the memory result was measured only on Chromium.
+`/home/claude/.scratch/eka-staging-experiment/`. On 2026-10-17, the tested
+bundle (WASM SHA-256
+`8812ae4b5646ff32ca5d50d683c02aae3388dfbfbec3d0572f2ae0801534d592`)
+became the only production staging policy on the `.lan` launcher. Its Asphalt 3
+ROM translation cache was regenerated for that exact build (SHA-256
+`d41cd25c233dc8275067d72e51b666c4e1bcb1636a7cf2b0a25ffc4b741cd786`).
+A fresh Chromium launch through the live HTTPS URL rendered Snakes with no
+guest errors; another completed the Asphalt 3 installation and fetched the
+matching cache. There is no staging experiment switch. The Firefox path falls
+back to WasmFS because this repository does not mount OPFS there; the memory
+result was measured only on Chromium.
