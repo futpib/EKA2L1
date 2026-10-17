@@ -42,7 +42,11 @@
 
 #include <algorithm>
 #include <functional>
+#include <thread>
+#include <utility>
 #include <utils/err.h>
+
+#include <BS_thread_pool.hpp>
 
 #include <config/config.h>
 
@@ -142,12 +146,29 @@ namespace eka2l1 {
         return true;
     }
 
+    template <typename F>
+    static void load_registry_paths(const std::size_t count, F &&load) {
+        const unsigned hardware_threads = std::thread::hardware_concurrency();
+        const unsigned workers = std::min(4u, hardware_threads);
+
+        // The stock ROM's roughly 200 registrations finish in under 100 ms serially.
+        if (count < 512 || workers < 2) {
+            for (std::size_t idx = 0; idx < count; ++idx) {
+                load(idx);
+            }
+            return;
+        }
+
+        BS::thread_pool pool(workers);
+        auto task = pool.submit_loop<std::size_t>(0, count, std::forward<F>(load));
+        task.wait();
+    }
+
     applist_server::applist_server(system *sys)
         : service::typical_server(sys, get_app_list_server_name_by_epocver(sys->get_symbian_version_use()))
         , drive_change_handle_(0)
         , fbsserv(nullptr)
-        , fsserv(nullptr)
-        , loading_thread_pool_(std::thread::hardware_concurrency() <= 0 ? 4 : std::thread::hardware_concurrency()) {
+        , fsserv(nullptr) {
     }
 
     applist_server::~applist_server() {
@@ -426,7 +447,7 @@ namespace eka2l1 {
                 rescan_registries_on_drive_newarch(io, drv, register_file_paths);
             }
 
-            auto load_registry_task = loading_thread_pool_.submit_loop<std::size_t>(0, register_file_paths.size(),
+            load_registry_paths(register_file_paths.size(),
                 [this, &register_file_paths, &modified, io, drv](std::size_t idx) {
                     bool entry_modified = false;
 
@@ -440,8 +461,6 @@ namespace eka2l1 {
                         modified = true;
                     }
                 });
-
-            load_registry_task.wait();
             break;
         }
 
@@ -544,7 +563,7 @@ namespace eka2l1 {
 
         auto current_lang = kern->get_current_language();
 
-        auto load_registry_task = loading_thread_pool_.submit_loop<std::size_t>(0, register_file_paths.size(),
+        load_registry_paths(register_file_paths.size(),
             [this, &register_file_paths, &global_modified, io, current_lang](std::size_t idx) {
                 bool modified = false;
 
@@ -561,8 +580,6 @@ namespace eka2l1 {
                     global_modified = true;
                 }
             });
-
-        load_registry_task.wait();
 
         if (global_modified) {
             sort_registry_list();

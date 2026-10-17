@@ -32,8 +32,6 @@
 #include <mutex>
 #include <vector>
 
-#include <BS_thread_pool.hpp>
-
 namespace eka2l1 {
     class io_system;
     class fbs_server;
@@ -224,8 +222,6 @@ namespace eka2l1 {
 
         fbs_server *fbsserv;
         fs_server *fsserv;
-
-        BS::thread_pool loading_thread_pool_;
 
         enum {
             AL_INITED = 0x1
