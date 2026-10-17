@@ -139,7 +139,27 @@
             if (data.length) FS.writeFile(path, data);
         }
 
-        function uploadFile(file, path) {
+        async function uploadFile(file, path, stageInOpfs = false) {
+            var opfsMounted = false;
+            if (stageInOpfs) {
+                try { opfsMounted = (FS.stat('/opfs').mode & 0o170000) === 0o040000; } catch (_) {}
+            }
+            if (opfsMounted && navigator.storage?.getDirectory) {
+                // Keep temporary firmware inputs outside the WASM heap.
+                var root = await navigator.storage.getDirectory();
+                var dot = file.name.lastIndexOf('.');
+                var name = 'eka2l1-stage-' + crypto.randomUUID() + (dot < 0 ? '' : file.name.slice(dot));
+                var handle = await root.getFileHandle(name, {create: true});
+                try {
+                    await file.stream().pipeTo(await handle.createWritable());
+                    var staged = '/opfs/' + name;
+                    if (FS.stat(staged).size !== file.size) throw new Error('Incomplete installer upload');
+                    return staged;
+                } catch (error) {
+                    await root.removeEntry(name).catch(() => {});
+                    throw error;
+                }
+            }
             return new Promise(function(resolve, reject) {
                 var reader = new FileReader();
                 reader.onload = function() {
@@ -374,16 +394,15 @@
 
                 // Install device if ROM provided
                 if (romInput.files.length > 0) {
-                    Module.setStatus('Uploading ROM...');
-                    var romPath = await uploadFile(romInput.files[0], '/tmp/' + romInput.files[0].name);
-                    var rpkgPath = '';
-                    if (rpkgInput.files.length > 0) {
-                        Module.setStatus('Uploading RPKG...');
-                        rpkgPath = await uploadFile(rpkgInput.files[0], '/tmp/' + rpkgInput.files[0].name);
-                    }
-                    Module.setStatus('Installing device...');
-                    var ret;
+                    var romPath = '', rpkgPath = '', ret;
                     try {
+                        Module.setStatus('Uploading ROM...');
+                        romPath = await uploadFile(romInput.files[0], '/tmp/' + romInput.files[0].name, true);
+                        if (rpkgInput.files.length > 0) {
+                            Module.setStatus('Uploading RPKG...');
+                            rpkgPath = await uploadFile(rpkgInput.files[0], '/tmp/' + rpkgInput.files[0].name, true);
+                        }
+                        Module.setStatus('Installing device...');
                         ret = await Module.ccall('eka2l1_install_device', 'number', ['string', 'string'], [romPath, rpkgPath], {async: true});
                     } finally {
                         // Installation copies/extracts into storage before returning.
@@ -400,7 +419,8 @@
                 // Install SIS if provided
                 if (sisInput.files.length > 0) {
                     Module.setStatus('Uploading SIS...');
-                    var sisPath = await uploadFile(sisInput.files[0], '/tmp/' + sisInput.files[0].name);
+                    var sisFile = sisInput.files[0];
+                    var sisPath = await uploadFile(sisFile, '/tmp/' + sisFile.name, sisFile.size >= 8 * 1024 * 1024);
                     Module.setStatus('Installing SIS...');
                     var ret;
                     try {

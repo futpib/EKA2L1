@@ -32,6 +32,7 @@
 #include <mutex>
 #include <stack>
 #include <utility>
+#include <vector>
 
 #if EKA2L1_PLATFORM(WIN32)
 #include <Windows.h>
@@ -614,8 +615,17 @@ namespace eka2l1::common {
         } else
 #endif
         {
-#define BSIZE 16384
-            char buffer[BSIZE];
+            char small_buffer[16384];
+            char *buffer = small_buffer;
+            std::size_t buffer_size = sizeof(small_buffer);
+#ifdef __EMSCRIPTEN__
+            std::vector<char> opfs_buffer;
+            if (target_file.rfind("/opfs/", 0) == 0) {
+                opfs_buffer.resize(1024 * 1024);
+                buffer = opfs_buffer.data();
+                buffer_size = opfs_buffer.size();
+            }
+#endif
 
             // Open input file
             FILE *input = open_c_file(target_file, "rb");
@@ -633,8 +643,8 @@ namespace eka2l1::common {
             // copy loop
             while (!feof(input)) {
                 // read input
-                int rnum = fread(buffer, sizeof(char), BSIZE, input);
-                if (rnum != BSIZE) {
+                std::size_t rnum = fread(buffer, sizeof(char), buffer_size, input);
+                if (rnum != buffer_size) {
                     if (ferror(input) != 0) {
                         fclose(input);
                         fclose(output);
@@ -643,7 +653,7 @@ namespace eka2l1::common {
                 }
 
                 // write output
-                int wnum = fwrite(buffer, sizeof(char), rnum, output);
+                std::size_t wnum = fwrite(buffer, sizeof(char), rnum, output);
                 if (wnum != rnum) {
                     fclose(input);
                     fclose(output);

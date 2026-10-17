@@ -262,6 +262,14 @@ namespace eka2l1::loader {
             return device_installation_not_exist;
         }
 
+#ifdef __EMSCRIPTEN__
+        std::vector<char> opfs_read_buffer;
+        if (path.rfind("/opfs/", 0) == 0) {
+            opfs_read_buffer.resize(1024 * 1024);
+            setvbuf(f, opfs_read_buffer.data(), _IOFBF, opfs_read_buffer.size());
+        }
+#endif
+
         fseek(f, 0, SEEK_END);
 
         // Total steps is 10. For progress reporting.
@@ -274,6 +282,7 @@ namespace eka2l1::loader {
         std::size_t total_read_size = 0;
 
         if (fread(&header.magic, 4, 4, f) != 4) {
+            fclose(f);
             return device_installation_insufficent;
         }
 
