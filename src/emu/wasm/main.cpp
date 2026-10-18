@@ -516,7 +516,8 @@ int eka2l1_init(const char *data_path) {
 }
 
 EMSCRIPTEN_KEEPALIVE
-int eka2l1_install_device(const char *rom_path, const char *rpkg_path, const char *rom_offload_root) {
+int eka2l1_install_device(const char *rom_path, const char *rpkg_path, const char *rom_offload_root,
+        const char *firmware_offload_root) {
     if (!g_state || !g_state->symsys) {
         return -1;
     }
@@ -524,6 +525,7 @@ int eka2l1_install_device(const char *rom_path, const char *rpkg_path, const cha
     device_install_params params;
     params.storage = g_state->conf.storage;
     if (rom_offload_root) params.rom_offload_root = rom_offload_root;
+    if (firmware_offload_root) params.firmware_offload_root = firmware_offload_root;
     params.consume_rom_source = true;
 
     if (rpkg_path && rpkg_path[0]) {

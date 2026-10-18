@@ -134,7 +134,7 @@ try {
     if (process.env.EKA2L1_BURST_DISABLE_DIRECT_ROM === '1') await page.evaluate(() => {
       const ccall = Module.ccall;
       Module.ccall = function(name, result, types, args, options) {
-        if (name === 'eka2l1_install_device') args = [...args.slice(0, 2), ''];
+        if (name === 'eka2l1_install_device') args = [...args.slice(0, 2), '', args[3]];
         return ccall.call(this, name, result, types, args, options);
       };
     });

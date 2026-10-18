@@ -437,8 +437,8 @@
                             rpkgPath = await uploadFile(rpkgInput.files[0], '/tmp/' + rpkgInput.files[0].name, true);
                         }
                         Module.setStatus('Installing device...');
-                        ret = await Module.ccall('eka2l1_install_device', 'number', ['string', 'string', 'string'],
-                            [romPath, rpkgPath, disk?.romOffloadRoot || ''], {async: true});
+                        ret = await Module.ccall('eka2l1_install_device', 'number', ['string', 'string', 'string', 'string'],
+                            [romPath, rpkgPath, disk?.romOffloadRoot || '', disk?.firmwareOffloadRoot || ''], {async: true});
                     } finally {
                         // WasmFS analyzePath reads the whole file; unlink directly after installation.
                         for (var uploaded of new Set([romPath, rpkgPath])) {

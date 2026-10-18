@@ -128,7 +128,7 @@ try {
       if (!response.ok) throw new Error(`Asset HTTP ${response.status()}`);
       g.FS.writeFile(name === 'input' ? '/benchmark.input' : `/tmp/${name}`, new Uint8Array(await response.arrayBuffer()));
     }
-    call('eka2l1_install_device', ['string', 'string', 'string'], ['/tmp/SYM.ROM', '/tmp/SYM.RPKG', '']);
+    call('eka2l1_install_device', ['string', 'string', 'string', 'string'], ['/tmp/SYM.ROM', '/tmp/SYM.RPKG', '', '']);
     call('eka2l1_install_sis', ['string'], ['/tmp/Snakes.sis']);
     // Match the live launcher's storage lifetime after synchronous installation.
     for (const name of ['SYM.ROM', 'SYM.RPKG', 'Snakes.sis']) {

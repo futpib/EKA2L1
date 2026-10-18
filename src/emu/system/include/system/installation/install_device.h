@@ -23,6 +23,7 @@ namespace eka2l1 {
         std::string rom_path;
         std::string rpkg_path;
         std::string rom_offload_root;
+        std::string firmware_offload_root;
         std::string vpl_path;
         bool isolate_drives = false;
         bool consume_rom_source = false;

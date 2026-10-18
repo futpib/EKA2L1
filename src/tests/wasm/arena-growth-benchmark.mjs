@@ -77,6 +77,13 @@ const shot=async name=>{
  await page.screenshot({path:out+'/'+name+'.png'});
  const current=await status();
  fs.appendFileSync(out+'/route-times.jsonl',JSON.stringify({name,...current})+'\n');
+ if(process.env.EKA2L1_BROWSER_MEMORY_PHASES==='1') {
+  const processes=await browserMemory();
+  fs.writeFileSync(out+'/'+name+'.browser-memory.json',JSON.stringify(processes));
+  for(const process of processes)if(process.type==='renderer') {
+   try{fs.writeFileSync(out+'/'+name+'-'+process.id+'.smaps',fs.readFileSync(`/proc/${process.id}/smaps`));}catch{}
+  }
+ }
  if(allocationProfile){
   const profile=await page.evaluate(()=>JSON.parse(Module.ccall('eka2l1_allocation_profile_report','string',[],[])));
   const processes=await browserMemory();
@@ -102,7 +109,7 @@ const shot=async name=>{
  }
  return out+'/'+name+'.png';
 };
-status=()=>page.evaluate(()=>({ms:performance.now(),guest:Module._eka2l1_guest_time_us(),frames:Module._eka2l1_presentations(),phase:Module._eka2l1_route_phase(),diskScans:window.diskScans?.length||0,inputs:Module._eka2l1_input_consumed(),memory:JSON.parse(Module.ccall('eka2l1_memory_impl_stats','string',[],[])),policy:window.ekaCompilerPolicy,monitor:JSON.parse(Module.ccall('eka2l1_monitor_report','string',[],[]))}));
+status=()=>page.evaluate(()=>({ms:performance.now(),guest:Module._eka2l1_guest_time_us(),frames:Module._eka2l1_presentations(),phase:Module._eka2l1_route_phase(),diskScans:window.diskScans?.length||0,inputs:Module._eka2l1_input_consumed(),memory:JSON.parse(Module.ccall('eka2l1_memory_impl_stats','string',[],[])),policy:window.ekaCompilerPolicy,workerPool:typeof PThread==='undefined'?null:{running:PThread.runningWorkers.length,unused:PThread.unusedWorkers.length},monitor:JSON.parse(Module.ccall('eka2l1_monitor_report','string',[],[]))}));
 const step=async(us)=>{const s=await status();assert.equal(s.phase,1);assert.equal(await page.evaluate(t=>Module._eka2l1_route_step_to(t),s.guest+us),0);await guardedWait(()=>Module._eka2l1_route_phase()===1);return status()};
 const requireBoatWithoutHelp=name=>{
  const png=PNG.sync.read(fs.readFileSync(out+'/'+name+'.png'));

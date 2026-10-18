@@ -27,7 +27,8 @@ namespace eka2l1 {
         case device_install_method_dump_rpkg: {
             LOG_INFO(eka2l1::SYSTEM, "Installing device from ROM dump: rom={}, rpkg={}, storage={}", params.rom_path, params.rpkg_path, params.storage);
             std::string firmware_code;
-            error = loader::install_rpkg(dvcmngr, params.rpkg_path, root_z_path, firmware_code, params.isolate_drives, progress_cb, cancel_cb);
+            error = loader::install_rpkg(dvcmngr, params.rpkg_path, root_z_path, firmware_code, params.isolate_drives, progress_cb, cancel_cb,
+                params.firmware_offload_root);
 
             if (error != device_installation_none) {
                 return error;

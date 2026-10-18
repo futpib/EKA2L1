@@ -40,11 +40,11 @@ that existing path for the ROM as well. See the [direct-install measurements](..
 and earlier [OPFS measurements](../benchmark/OPFS_ROM_RESULTS.md).
 
 On supported Chromium builds, read-only Z-drive firmware files of at least
-64 KiB also move to OPFS after installation. The layout is saved with the
-device, and subsequent launches restore the links automatically.
-Smaller files and writable C/E drives remain in RAM. See the measured storage
-tradeoffs in
-[read-only firmware results](../benchmark/READONLY_FIRMWARE_RESULTS.md).
+64 KiB extract directly into OPFS. The installed device links to those files,
+and subsequent launches restore the links automatically. Existing devices can
+still move their large firmware files after installation. Smaller files and
+writable C/E drives remain in RAM. See the [renderer-cap results](../benchmark/RENDERER_CAP_RESULTS.md)
+and earlier [read-only firmware results](../benchmark/READONLY_FIRMWARE_RESULTS.md).
 
 Fresh N-Gage `.n-gage` packages stream into a temporary OPFS file and appear
 under `E:/n-gage` through a symlink. The launcher removes both after the guest

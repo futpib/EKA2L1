@@ -36,9 +36,13 @@
 
 #include <algorithm>
 #include <array>
+#include <cerrno>
 #include <cctype>
 #include <unordered_set>
 #include <vector>
+#ifdef __EMSCRIPTEN__
+#include <unistd.h>
+#endif
 
 namespace eka2l1::loader {
     bool should_install_requires_additional_rpkg(const std::string &path) {
@@ -69,64 +73,73 @@ namespace eka2l1::loader {
 
     static bool extract_file(const std::string &devices_rom_path, FILE *parent, rpkg_entry &ent, const std::size_t total,
         std::unordered_set<std::string> &created_directories, progress_changed_callback progress_cb,
-        cancel_requested_callback cancel_cb) {
+        cancel_requested_callback cancel_cb, const std::string &firmware_offload_root,
+        std::vector<std::string> &offloaded_files) {
         std::string file_full_relative = common::ucs2_to_utf8(ent.path.substr(3));
         std::transform(file_full_relative.begin(), file_full_relative.end(), file_full_relative.begin(),
             ::tolower);
 
         std::string real_path = add_path(add_path(devices_rom_path, "/temp/"), file_full_relative);
+#ifdef __EMSCRIPTEN__
+        const bool offload = !firmware_offload_root.empty() && ent.data_size >= 64 * 1024;
+#else
+        const bool offload = false;
+#endif
+        const std::string output_path = offload
+            ? add_path(add_path(firmware_offload_root, "temp"), file_full_relative) : real_path;
 
         std::string dir = eka2l1::file_directory(real_path);
         const bool directory_is_cached = created_directories.find(dir) != created_directories.end();
         if (!directory_is_cached) {
             common::create_directories(dir);
         }
+        if (offload) common::create_directories(eka2l1::file_directory(output_path));
 
-        common::wo_std_file_stream wf(real_path, true);
+        bool failed = false;
+        {
+            common::wo_std_file_stream wf(output_path, true);
+            if (!wf.valid()) {
+                LOG_INFO(SYSTEM, "Skipping with real path: {}, dir: {}", output_path, dir);
+                return false;
+            }
 
-        if (!wf.valid()) {
-            LOG_INFO(SYSTEM, "Skipping with real path: {}, dir: {}", real_path, dir);
+            if (!directory_is_cached) {
+                // Opening the output proves the directory exists. Cache only after
+                // that succeeds so a transient creation failure can still be retried.
+                created_directories.emplace(dir);
+            }
+
+            int64_t left = ent.data_size;
+            const int64_t take_def = 0x10000;
+            std::array<char, 0x10000> temp;
+            while (left) {
+                if (progress_cb) progress_cb(ftell(parent), total);
+                if (cancel_cb && cancel_cb()) { failed = true; break; }
+
+                const int64_t take = left < take_def ? left : take_def;
+                if (fread(temp.data(), 1, take, parent) != take || wf.write(temp.data(), take) != take) {
+                    failed = true;
+                    break;
+                }
+
+                left -= take;
+            }
+        }
+        if (failed || (offload && common::file_size(output_path) != static_cast<std::int64_t>(ent.data_size))) {
+            if (offload) common::remove(output_path);
             return false;
         }
-
-        if (!directory_is_cached) {
-            // Opening the output proves the directory exists. Cache only after
-            // that succeeds so a transient creation failure can still be retried.
-            created_directories.emplace(dir);
+#ifdef __EMSCRIPTEN__
+        if (offload) {
+            if (common::exists(real_path)) common::remove(real_path);
+            if (symlink(output_path.c_str(), real_path.c_str()) != 0) {
+                common::remove(output_path);
+                return false;
+            }
+            offloaded_files.push_back(file_full_relative);
         }
-
-        int64_t left = ent.data_size;
-        int64_t take_def = 0x10000;
-
-        std::array<char, 0x10000> temp;
-        bool failed = false;
-
-        while (left) {
-            if (progress_cb) {
-                progress_cb(ftell(parent), total);
-            }
-
-            if (cancel_cb && cancel_cb()) {
-                failed = true;
-                break;
-            }
-
-            int64_t take = left < take_def ? left : take_def;
-
-            if (fread(temp.data(), 1, take, parent) != take) {
-                failed = true;
-                break;
-            }
-
-            if (wf.write(temp.data(), take) != take) {
-                failed = true;
-                break;
-            }
-
-            left -= take;
-        }
-
-        return !failed;
+#endif
+        return true;
     }
 
     device_installation_error install_rom(device_manager *dvcmngr, const std::string &path, const std::string &rom_resident_path, const std::string &drives_z_resident_path, const bool isolate_drives, progress_changed_callback progress_cb, cancel_requested_callback cancel_cb) {
@@ -255,7 +268,8 @@ namespace eka2l1::loader {
     }
 
     device_installation_error install_rpkg(device_manager *dvcmngr, const std::string &path, const std::string &devices_rom_path,
-        std::string &firmware_code_ret, const bool isolate_drives, progress_changed_callback progress_cb, cancel_requested_callback cancel_cb) {
+        std::string &firmware_code_ret, const bool isolate_drives, progress_changed_callback progress_cb,
+        cancel_requested_callback cancel_cb, const std::string &firmware_offload_root) {
         FILE *f = common::open_c_file(path.data(), "rb");
 
         if (!f) {
@@ -329,6 +343,11 @@ namespace eka2l1::loader {
         // cache local to one extraction so repeated entries do not stat the same
         // directory hierarchy again, without retaining stale filesystem state.
         std::unordered_set<std::string> created_directories;
+        std::vector<std::string> offloaded_files;
+        const std::string offload_staging = firmware_offload_root.empty() ? std::string{}
+            : add_path(firmware_offload_root, "temp");
+        if (!offload_staging.empty() && common::exists(offload_staging)) common::delete_folder(offload_staging);
+        bool extraction_failed = false;
 
         while (!feof(f)) {
             total_read_size = 0;
@@ -356,7 +375,9 @@ namespace eka2l1::loader {
 
             LOG_INFO(SYSTEM, "Extracting: {}", common::ucs2_to_utf8(entry.path));
 
-            if (!extract_file(devices_rom_path, f, entry, total_size, created_directories, progress_cb, cancel_cb)) {
+            if (!extract_file(devices_rom_path, f, entry, total_size, created_directories, progress_cb, cancel_cb,
+                    firmware_offload_root, offloaded_files)) {
+                extraction_failed = true;
                 break;
             }
 
@@ -369,8 +390,9 @@ namespace eka2l1::loader {
 
         const std::string folder_extracted = add_path(devices_rom_path, "temp\\");
 
-        if (cancel_cb && cancel_cb()) {
+        if (extraction_failed || (cancel_cb && cancel_cb())) {
             common::delete_folder(folder_extracted);
+            if (!offload_staging.empty()) common::delete_folder(offload_staging);
             return device_installation_general_failure;
         }
 
@@ -387,6 +409,7 @@ namespace eka2l1::loader {
         if (!determine_rpkg_product_info(folder_extracted, manufacturer, firmcode, model)) {
             LOG_ERROR(SYSTEM, "Revert all changes");
             common::delete_folder(folder_extracted);
+            if (!offload_staging.empty()) common::delete_folder(offload_staging);
 
             return device_installation_determine_product_failure;
         }
@@ -394,6 +417,7 @@ namespace eka2l1::loader {
         if (dvcmngr->get(firmcode)) {
             LOG_ERROR(SYSTEM, "The device already exists, revert all changes");
             common::delete_folder(folder_extracted);
+            if (!offload_staging.empty()) common::delete_folder(offload_staging);
 
             return device_installation_already_exist;
         }
@@ -402,12 +426,47 @@ namespace eka2l1::loader {
         firmware_code_ret = firmcode_low;
 
         // Rename temp folder to its product code
-        eka2l1::common::move_file(folder_extracted, add_path(devices_rom_path, firmcode_low + "\\"));
+        const std::string installed_folder = add_path(devices_rom_path, firmcode_low + "\\");
+        if (!eka2l1::common::move_file(folder_extracted, installed_folder)) {
+            LOG_ERROR(SYSTEM, "Could not finalize extracted firmware directory: {}", installed_folder);
+            common::delete_folder(folder_extracted);
+            if (!offload_staging.empty()) common::delete_folder(offload_staging);
+            return device_installation_general_failure;
+        }
+#ifdef __EMSCRIPTEN__
+        if (!offloaded_files.empty()) {
+            const std::string final_root = add_path(firmware_offload_root, firmcode_low);
+            for (const auto &relative : offloaded_files) {
+                const std::string link = add_path(installed_folder, relative);
+                const std::string target = add_path(final_root, relative);
+                const std::string staged = add_path(offload_staging, relative);
+                common::create_directories(eka2l1::file_directory(target));
+                if (!common::move_file(staged, target)) {
+                    LOG_ERROR(SYSTEM, "Could not move OPFS firmware file {} to {}: errno {}", staged, target, errno);
+                    common::delete_folder(installed_folder);
+                    common::delete_folder(offload_staging);
+                    common::delete_folder(final_root);
+                    return device_installation_general_failure;
+                }
+                if (unlink(link.c_str()) != 0 || symlink(target.c_str(), link.c_str()) != 0) {
+                    LOG_ERROR(SYSTEM, "Could not link firmware {} to {}: errno {}", link, target, errno);
+                    common::delete_folder(installed_folder);
+                    common::delete_folder(offload_staging);
+                    common::delete_folder(final_root);
+                    return device_installation_general_failure;
+                }
+            }
+            common::delete_folder(offload_staging);
+        }
+#endif
         const add_device_error err_adddvc = dvcmngr->add_new_device(firmcode, model, manufacturer, ver, header.machine_uid, isolate_drives);
 
         if (err_adddvc != add_device_none) {
             LOG_ERROR(SYSTEM, "This device ({}) failed to be install, revert all changes", firmcode);
-            common::delete_folder(add_path(devices_rom_path, firmcode_low + "\\"));
+            common::delete_folder(installed_folder);
+#ifdef __EMSCRIPTEN__
+            if (!offloaded_files.empty()) common::delete_folder(add_path(firmware_offload_root, firmcode_low));
+#endif
 
             return device_installation_general_failure;
         }

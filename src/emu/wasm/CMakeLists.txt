@@ -19,7 +19,7 @@ set_property(TARGET eka2l1_wasm APPEND PROPERTY LINK_DEPENDS
     "${PROJECT_SOURCE_DIR}/src/emu/drivers/resources/defaultbank.sf2"
     "${PROJECT_SOURCE_DIR}/src/emu/drivers/resources/defaultbank.hsb")
 
-set(EKA2L1_WASM_WORKER_POOL_SIZE 32 CACHE STRING "Number of prestarted browser workers")
+set(EKA2L1_WASM_WORKER_POOL_SIZE 4 CACHE STRING "Number of prestarted browser workers")
 if(NOT EKA2L1_WASM_WORKER_POOL_SIZE MATCHES "^[1-9][0-9]*$")
     message(FATAL_ERROR "EKA2L1_WASM_WORKER_POOL_SIZE must be a positive integer")
 endif()

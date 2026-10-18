@@ -35,7 +35,8 @@ namespace eka2l1 {
         bool should_install_requires_additional_rpkg(const std::string &path);
 
         device_installation_error install_rom(device_manager *dvc, const std::string &path, const std::string &rom_resident_path, const std::string &drives_z_resident_path, const bool isolate_drives, progress_changed_callback progress_cb, cancel_requested_callback cancel_cb);
-        device_installation_error install_rpkg(device_manager *dvc, const std::string &path, const std::string &devices_rom_path, std::string &firmware_code, const bool isolate_drives, progress_changed_callback progress_cb, cancel_requested_callback cancel_cb);
+        device_installation_error install_rpkg(device_manager *dvc, const std::string &path, const std::string &devices_rom_path, std::string &firmware_code, const bool isolate_drives, progress_changed_callback progress_cb, cancel_requested_callback cancel_cb,
+            const std::string &firmware_offload_root = {});
 
         /**
          * @brief Install a device from a raw ROM image, plus the RPKG that goes with it if one is needed.
