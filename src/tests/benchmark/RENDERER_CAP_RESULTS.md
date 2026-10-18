@@ -221,6 +221,7 @@ and the final game in one browser lifetime.
 | 2 | Tetris, Marathon board | OOM at 1,843 MiB | 1,733.0 | 110.0 | Pass |
 | 3 | Asphalt 3, racing HUD, run 1 | OOM at 1,843 MiB | 1,798.3 | 44.7 | Pass |
 | 4 | Asphalt 3, racing HUD, run 2 | OOM at 1,843 MiB | 1,724.6 | 118.4 | Pass |
+| 5 | Asphalt 3, racing HUD, deployed `.lan` | OOM at 1,843 MiB | 1,712.7 | 130.3 | Pass |
 
 The old fresh controls without a cap reached 2,066.7 MiB for Hooked On,
 1,964.6 MiB for Tetris and 1,938.2 MiB for Asphalt 3. These are historical
@@ -234,5 +235,8 @@ fresh install. Prepared-image launches do not use it.
 The raw final runs are under
 `/home/claude/.scratch/eka-fresh-under-1843/{hooked,tetris,asphalt}-two-handoffs-cap-r*/`.
 Earlier attempts and diagnostic captures remain in the same parent directory.
+The deployed HTTPS capture is `asphalt-lan-final-cap/` there. `.lan` serves
+the same WASM and JavaScript hashes listed above, plus the staged launcher and
+Blob-backed persistence from release `d4b9ca1f-ce1fdfbbf`.
 One diagnostic Asphalt run stalled before OPFS reported ready, at about 155 MiB
 renderer usage, and was stopped; it was not an OOM or an accepted install run.
