@@ -110,3 +110,89 @@ and `/home/claude/.scratch/eka-tab-ram-1843-914c07b83-GAME/`, except the
 Asphalt 3 capped run, which is under
 `/home/claude/.scratch/eka-tab-ram-1843-asphalt3-914c07b83/`. No benchmark
 cgroups remained active after the runs.
+
+## Installed-image launch under 1.8 GiB
+
+The ranking above forced a fresh N-Gage installation in each browser. The
+normal launcher already offered Hooked On a clean, source-hash-bound installed
+filesystem image, but that image was not used by the ranking harness. Fresh
+installation runs the N-Gage importer and compiles its guest code before
+launching the game. The installed-image path in
+[`shell.html`](../../emu/wasm/shell.html) restores the installed files before
+emulator initialization and skips that work; it does not restore a CPU or
+browser snapshot. The actual cold launcher selects the image when there is no
+saved device manifest. Tetris and Asphalt 3 now have matching installed images
+in `/home/claude/.local/share/eka2l1/preinstalled/`, outside Git. Hooked On's
+existing image is unchanged.
+
+A persistent-device Hooked On capture of the old installation path attributed
+the largest sampled browser-native allocations to V8
+`GetAndCopyFirstArgumentAsBytes` (360.5 MiB), `WasmCode` construction
+(104.7 MiB), and trap-handler registration (66.1 MiB). These are retained
+allocation *samples*, not additive PSS or directly avoidable byte counts.
+The first site receives generated modules through
+[`js_instantiate_aot_module`](../../emu/cpu/src/aot/aot_runtime.cpp). The
+unprepared Hooked On client screen reported 113,233 compiled functions;
+the prepared client screen reported 81,699 on the same WASM binary, 31,534
+fewer translations. Avoiding installer execution therefore removes a large
+source of V8 module/code allocations, as well as transient installer file
+work. The sampled attribution is at
+`/home/claude/.scratch/eka-hooked-1843-attribution-persistent/native-attribution.json`.
+
+The cap remained **1,843 MiB**, swap disabled, on Chromium 153 with a fresh
+profile per run. It applies to this test browser's renderer processes only.
+Every passing result below reached gameplay, completed a continuous unpaced
+window with guest sound enabled, and had zero kernel OOM events. The private
+server used the **exact** live WASM SHA-256
+`d4b9ca1f64cf9d3ac47443818be2589bfe9e7af3c4ea570bfa29662a44aec26c`;
+the deployed `.lan` service serves that same binary and now advertises all
+three image URLs.
+
+| # | Game and gameplay check | Fresh-install 4,096 MiB control peak | Prepared private peaks | Prepared `.lan` peaks | Result at 1,843 MiB |
+|---:|---|---:|---:|---:|---|
+| 1 | Hooked On, Costa Rica boat | 2,066.7 MiB | — | 1,796.0 / 1,752.8 MiB | Pass twice |
+| 2 | Tetris, Marathon board | 1,964.6 MiB | 1,815.6 / 1,742.9 MiB | 1,724.4 MiB | Pass three times |
+| 3 | Asphalt 3, racing HUD | 1,938.2 MiB | 1,825.6 / 1,817.5 MiB | 1,733.7 MiB | Pass three times |
+
+The fresh-install controls include importer work and are not a byte-for-byte
+attribution of the peak difference. Tetris's unpaced gameplay window was five
+host seconds in the accepted prepared runs; the old control used 15 seconds.
+In one rejected 15-second prepared attempt, the game reached the board under
+the cap but advanced guest time to the harness's 1,800-second ceiling before
+the wall-clock window ended. That was a benchmark route error, not an OOM or
+game fault. The accepted five-second windows kept the same Marathon board
+assertion and stayed below the guest-time ceiling. The Hooked On and Asphalt 3
+routes kept their original gameplay checks and window lengths.
+
+The new installed files were captured only after the importer exited
+successfully and the emulator closed its file handles. Tetris's image contains
+9,781 files, 202,033,712 unpacked bytes and 108,482,012 compressed bytes;
+its SHA-256 is `fc9fe5c169c49dcc98d43022a0b5a514b31eaf123fe93739653afeed2fa2ceae`.
+Asphalt 3's image contains 9,803 files, 212,669,850 unpacked bytes and
+117,994,255 compressed bytes; its SHA-256 is
+`6cee9472f55a0b4dae0054f7ef2eb5c99f79f084a72e7811b11316b37188681c`.
+The server checked both image manifests and hashes at startup. The normal
+paced `.lan` Start flow separately restored both new images and reached
+nontrivial screens without errors; the capped tests used the same restore code
+and reached each game's verified gameplay scene. `installed-image.test.ts`
+also passed its identity, exact-byte, invalid-path and truncation checks.
+
+The compiler alternatives tested before correcting the launch-path mismatch
+did not meet the cap: preloading a 24.4 MB compressed Hooked On ROM cache
+(1,204 modules, 231 MiB raw WASM), a 256-byte region window, an inline-site
+limit of four, and demand-successor batches of one, four and eight. The
+one-entry batch cut the Hooked On client count to 67,111 functions but still
+OOMed while instantiating many tiny modules. All experimental compiler
+edits were reverted; no compiler setting or runtime WASM changed for this
+result. The exact installed-image path is now the default for a new device in
+the three supported N-Gage games. A user who explicitly installs from source
+files instead of using an image can still exceed this cap.
+
+Raw capped results are in `/home/claude/.scratch/eka-1843-live-prepared-hooked-cap/`,
+`eka-1843-live-hooked-cap-r2/`, `eka-1843-prepared-tetris-5s-cap/`,
+`eka-1843-prepared-tetris-5s-cap-r2/`, `eka-1843-live-tetris-cap/`,
+`eka-1843-prepared-asphalt3-cap/`, `eka-1843-prepared-asphalt3-cap-r2/`, and
+`eka-1843-live-asphalt3-cap/`. Captures and hashes for the two new images are
+under `/home/claude/.scratch/eka-1843-{tetris,asphalt3}-prepared-capture/`.
+Normal launcher captures are `eka-1843-live-ui-{tetris,asphalt3}/` in the same
+scratch directory.
