@@ -386,6 +386,30 @@ node src/tests/wasm/arena-growth-benchmark.mjs asphalt-3 /absolute/path/new-capt
 python3 src/tests/benchmark/summarize_browser_memory.py /absolute/path/new-capture --chromium-debug /absolute/path/to/matching/chromium.debug
 ```
 
+For a hard memory pass/fail target on the game tab's renderer processes, run
+the same persistent-device gameplay route under a renderer-only cgroup:
+
+```sh
+node src/tests/wasm/renderer-memory-limit.mjs asphalt-3 2048 /absolute/path/new-budget-run https://claude-laptop.lan:8188/
+```
+
+This requires a Linux cgroup-v2 user manager and Chromium's
+`--renderer-cmd-prefix` support. The route launches a fresh Chromium profile
+with one game tab. The prefix moves its renderer processes into a fresh
+`MemoryMax` cgroup before Chromium starts them; the browser, GPU and test runner
+remain outside the limit. `MemorySwapMax=0` prevents swap from hiding a RAM
+failure. Exit 0 means the game's route assertions passed and there was no
+cgroup OOM; for Asphalt 3 that includes the racing HUD and a five-second
+gameplay sample. Exit 2 means the kernel reported a renderer OOM. Other
+failures are reported separately. `result.json`
+records `memory.peak` and OOM counters, while `memory-samples.json` records
+the run. Keep the limit, Chromium version, game route and served build fixed
+when comparing optimizations. Chromium may create auxiliary renderers even for
+one tab, so this caps the dedicated browser's renderer set rather than a
+perfectly attributable per-tab total. The cgroup charge includes renderer-owned
+cache and a roughly 1 MiB helper process; it is not whole-browser PSS or a pure
+JavaScript/WASM heap size.
+
 If Chrome's allocation samplers stall before `Module.calledRun`, set
 `EKA2L1_CHROME_PROFILE_AFTER_RUNTIME=1` for the capture. Sampling then starts
 after the WASM runtime is ready but before the game launch and derived-code

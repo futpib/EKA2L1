@@ -15,6 +15,7 @@ if (!entry || !out || !process.argv[4]) throw Error('Usage: node arena-growth-be
 fs.mkdirSync(out);
 const assetDir=process.env.EKA2L1_ASSET_DIR || '/tmp/eka2l1-serve';
 const browserArgs=['--host-resolver-rules=MAP claude-laptop.lan 127.0.0.1','--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=vulkan','--enable-features=Vulkan','--enable-gpu','--ignore-gpu-blocklist','--disable-background-timer-throttling'];
+if(process.env.EKA2L1_RENDERER_CGROUP_PREFIX)browserArgs.push('--renderer-cmd-prefix='+process.env.EKA2L1_RENDERER_CGROUP_PREFIX);
 if(fullMemory)browserArgs.push('--js-flags=--perf-basic-prof');
 const browser=await puppeteer.launch({executablePath:process.env.EKA2L1_CHROMIUM || '/usr/bin/chromium',headless:true,args:browserArgs});
 const system=await browser.target().createCDPSession();
@@ -35,7 +36,7 @@ const browserMemory=async()=>{
 let browserMemoryTimer;
 const profileAfterRuntime=process.env.EKA2L1_CHROME_PROFILE_AFTER_RUNTIME==='1';
 try {
-const page=await browser.newPage(); await page.setViewport({width:900,height:800});page.setDefaultTimeout(180000);
+const page=process.env.EKA2L1_RENDERER_CGROUP_PREFIX?(await browser.pages())[0]??await browser.newPage():await browser.newPage(); await page.setViewport({width:900,height:800});page.setDefaultTimeout(180000);
 if(process.argv[5]==='chrome-memory' || allocationProfile || fullMemory) {
  const {ChromeMemoryProfiler}=await import('./chrome-memory-profiler.mjs');
  memoryProfiler=new ChromeMemoryProfiler(page,out);
