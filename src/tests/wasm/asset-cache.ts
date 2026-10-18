@@ -29,7 +29,7 @@ if (!Module.locateFile) Module.locateFile = function(name, prefix) {
   const url = new URL(name, prefix || location.href);
   return window.ekaAssetUrls[url.pathname] || url.href;
 };
-window.ekaDownload = async function(endpoint) {
+window.ekaDownload = async function(endpoint, options) {
   const url = new URL(window.ekaAssetUrls[endpoint] || endpoint, location.href).href;
   let cache;
   try {
@@ -38,6 +38,7 @@ window.ekaDownload = async function(endpoint) {
     if (saved) return saved;
   } catch (error) { console.info('Download cache unavailable; using network', String(error)); }
   const response = await fetch(url);
+  if (options?.stream) return response;
   if (response.ok && cache && window.ekaAssetUrls[endpoint]) {
     try {
       // Consume the network body into Cache Storage before reading it back.

@@ -108,6 +108,20 @@ try {
       name:x.name, start:x.startTime, end:x.responseEnd, transfer:x.transferSize})),
     assets:window.ekaAssetUrls, policy:window.ekaCompilerPolicy}));
   if (entry.ngage && !report.preinstalled && !report.installationComplete) throw Error('Installer did not complete before timeout');
+  if (entry.ngage && !report.preinstalled) {
+    report.staging = await page.evaluate(async () => {
+      if (!navigator.storage?.getDirectory) return null;
+      const root = await navigator.storage.getDirectory(), files = [];
+      for await (const name of root.keys())
+        if (name.startsWith('eka2l1-stage-') && name.endsWith('.n-gage')) files.push(name);
+      let guestMissing = false;
+      try { FS.lstat('/data/drives/e/n-gage/game.n-gage'); }
+      catch (error) { guestMissing = error.errno === 44; }
+      return {files, guestMissing};
+    });
+    if (report.staging && (report.staging.files.length || !report.staging.guestMissing))
+      throw Error('N-Gage staging was not removed after installation');
+  }
   if ((!entry.ngage || report.preinstalled) && !report.nontrivial) throw Error('No nontrivial guest image before timeout');
   if (report.errors.length) throw Error('Browser or guest error; inspect report.json');
 } catch (e) {

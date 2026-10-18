@@ -46,6 +46,13 @@ Smaller files and writable C/E drives remain in RAM. See the measured storage
 tradeoffs in
 [read-only firmware results](../benchmark/READONLY_FIRMWARE_RESULTS.md).
 
+Fresh N-Gage `.n-gage` packages stream into a temporary OPFS file and appear
+under `E:/n-gage` through a symlink. The launcher removes both after the guest
+installer exits, then saves the installed device. This avoids retaining another
+package-sized WasmFS file or growing the WASM heap solely to stage the package.
+Browsers without the OPFS mount use the previous in-memory upload path. See
+the [N-Gage staging measurements](../benchmark/NGAGE_STREAM_STAGING_RESULTS.md).
+
 Changes are saved asynchronously every ten seconds. **Save device** flushes
 file buffers and commits a fresh disk save; **Play** closes the current emulator
 and saves before switching games. The status in the game menu reports save

@@ -139,26 +139,57 @@
             if (data.length) FS.writeFile(path, data);
         }
 
-        async function uploadFile(file, path, stageInOpfs = false) {
-            var opfsMounted = false;
-            if (stageInOpfs) {
-                try { opfsMounted = (FS.stat('/opfs').mode & 0o170000) === 0o040000; } catch (_) {}
-            }
-            if (opfsMounted && navigator.storage?.getDirectory) {
-                // Keep temporary firmware inputs outside the WASM heap.
-                var root = await navigator.storage.getDirectory();
-                var dot = file.name.lastIndexOf('.');
-                var name = 'eka2l1-stage-' + crypto.randomUUID() + (dot < 0 ? '' : file.name.slice(dot));
-                var handle = await root.getFileHandle(name, {create: true});
-                try {
-                    await file.stream().pipeTo(await handle.createWritable());
-                    var staged = '/opfs/' + name;
-                    if (FS.stat(staged).size !== file.size) throw new Error('Incomplete installer upload');
-                    return staged;
-                } catch (error) {
-                    await root.removeEntry(name).catch(() => {});
-                    throw error;
+        function canStageInOpfs() {
+            if (!navigator.storage?.getDirectory) return false;
+            try { return (FS.stat('/opfs').mode & 0o170000) === 0o040000; }
+            catch (_) { return false; }
+        }
+
+        async function stageStreamInOpfs(name, expectedSize, getStream, boundedWrites = false) {
+            if (!canStageInOpfs()) return null;
+            var stream = getStream();
+            if (!stream) return null;
+            var root = await navigator.storage.getDirectory();
+            var dot = name.lastIndexOf('.');
+            var stagedName = 'eka2l1-stage-' + crypto.randomUUID() + (dot < 0 ? '' : name.slice(dot));
+            var handle = await root.getFileHandle(stagedName, {create: true});
+            try {
+                var staged = '/opfs/' + stagedName;
+                var receivedSize = 0;
+                if (boundedWrites) {
+                    var writable = await handle.createWritable();
+                    var reader = stream.getReader();
+                    try {
+                        while (true) {
+                            var chunk = await reader.read();
+                            if (chunk.done) break;
+                            receivedSize += chunk.value.length;
+                            for (var offset = 0; offset < chunk.value.length; offset += 64 * 1024)
+                                await writable.write(chunk.value.subarray(offset, offset + 64 * 1024));
+                        }
+                        await writable.close();
+                    } catch (error) {
+                        await writable.abort().catch(() => {});
+                        await reader.cancel(error).catch(() => {});
+                        throw error;
+                    } finally { reader.releaseLock(); }
+                } else {
+                    await stream.pipeTo(await handle.createWritable());
                 }
+                if ((expectedSize !== null || boundedWrites)
+                        && FS.stat(staged).size !== (expectedSize ?? receivedSize))
+                    throw new Error('Incomplete staged upload');
+                return staged;
+            } catch (error) {
+                await root.removeEntry(stagedName).catch(() => {});
+                throw error;
+            }
+        }
+
+        async function uploadFile(file, path, stageInOpfs = false) {
+            if (stageInOpfs) {
+                var staged = await stageStreamInOpfs(file.name, file.size, () => file.stream());
+                if (staged) return staged;
             }
             return new Promise(function(resolve, reject) {
                 var reader = new FileReader();
@@ -301,6 +332,7 @@
                 // Reload releases the previous workers, audio and guest memory.
                 try {
                     if (window.ekaDeviceDisk) await window.ekaDeviceDisk.stop();
+                    await window.ekaNgageCleanup?.();
                     location.assign(url.href);
                 } catch (error) { deviceStatus('Device not saved: ' + error.message); }
             });
@@ -352,6 +384,8 @@
             var btn = document.getElementById('btn-start');
             btn.disabled = true;
             Module.setStatus('Initializing...');
+            var cleanupNgageStaging = null;
+            var ngageTimer = null;
 
             try {
                 var romInput = document.getElementById('rom-file');
@@ -447,25 +481,58 @@
 
                 // N-Gage registers and licenses games through its own importer.
                 if (ngagePackage) {
-                    if (disk) {
-                        window.ekaPendingNgage = assetHash(ngagePackage);
-                        if (Module.ccall('eka2l1_watch_ngage_installer', 'number', [], []) !== 0)
-                            throw new Error('Could not track game installation');
-                        disk.installTimer = setInterval(function() {
-                            var result = Module._eka2l1_ngage_installation_status();
-                            if (result === -1) return;
-                            clearInterval(disk.installTimer); disk.installTimer = null;
-                            if (result !== 1) { deviceStatus('Game installation failed; device has not been saved'); return; }
+                    Module.setStatus('Preparing N-Gage game...');
+                    var streamToOpfs = canStageInOpfs();
+                    var packageResponse = await window.ekaDownload(ngagePackage,
+                        streamToOpfs ? {stream: true} : undefined);
+                    if (!packageResponse.ok) throw new Error('N-Gage download failed: HTTP ' + packageResponse.status);
+                    var guestPackage = '/data/drives/e/n-gage/game.n-gage';
+                    var contentLength = packageResponse.headers.get('Content-Length');
+                    var expectedSize = contentLength === null ? null : Number(contentLength);
+                    if (expectedSize !== null && (!Number.isSafeInteger(expectedSize) || expectedSize < 0))
+                        throw new Error('Invalid N-Gage package size');
+                    var stagedPackage = streamToOpfs
+                        ? await stageStreamInOpfs('game.n-gage', expectedSize, () => packageResponse.body, true)
+                        : null;
+                    FS.mkdirTree('/data/drives/e/n-gage');
+                    if (stagedPackage) {
+                        cleanupNgageStaging = async function() {
+                            try {
+                                if ((FS.lstat(guestPackage).mode & 0o170000) === 0o120000
+                                        && FS.readlink(guestPackage) === stagedPackage)
+                                    FS.unlink(guestPackage);
+                            } catch (error) { if (error.errno !== 44) throw error; }
+                            FS.unlink(stagedPackage);
+                            try { await (await navigator.storage.getDirectory()).removeEntry(stagedPackage.slice(6)); }
+                            catch (error) { if (error.name !== 'NotFoundError') throw error; }
+                            cleanupNgageStaging = null;
+                            window.ekaNgageCleanup = null;
+                        };
+                        window.ekaNgageCleanup = cleanupNgageStaging;
+                        try { FS.unlink(guestPackage); }
+                        catch (error) { if (error.errno !== 44) throw error; }
+                        FS.symlink(stagedPackage, guestPackage);
+                    } else {
+                        writeGuestFile(guestPackage, new Uint8Array(await packageResponse.arrayBuffer()));
+                    }
+                    if (disk) window.ekaPendingNgage = assetHash(ngagePackage);
+                    if (Module.ccall('eka2l1_watch_ngage_installer', 'number', [], []) !== 0)
+                        throw new Error('Could not track game installation');
+                    ngageTimer = setInterval(async function() {
+                        var result = Module._eka2l1_ngage_installation_status();
+                        if (result === -1) return;
+                        clearInterval(ngageTimer);
+                        if (disk) disk.installTimer = null;
+                        try { await cleanupNgageStaging?.(); }
+                        catch (error) { deviceStatus('Could not remove N-Gage staging: ' + error.message); return; }
+                        if (result !== 1) { deviceStatus('Game installation failed; device has not been saved'); return; }
+                        if (disk) {
                             disk.installed[window.ekaPendingNgage] = true;
                             window.ekaPendingNgage = null;
                             enableDeviceSaving();
-                        }, 250);
-                    }
-                    Module.setStatus('Preparing N-Gage game...');
-                    var packageResponse = await window.ekaDownload(ngagePackage);
-                    if (!packageResponse.ok) throw new Error('N-Gage download failed: HTTP ' + packageResponse.status);
-                    FS.mkdirTree('/data/drives/e/n-gage');
-                    writeGuestFile('/data/drives/e/n-gage/game.n-gage', new Uint8Array(await packageResponse.arrayBuffer()));
+                        }
+                    }, 250);
+                    if (disk) disk.installTimer = ngageTimer;
                 }
 
                 // Transfer/initialize WebGL without blocking the browser event loop.
@@ -494,6 +561,9 @@
                 }
                 if (!window.ekaPendingNgage) enableDeviceSaving();
             } catch(e) {
+                if (ngageTimer) clearInterval(ngageTimer);
+                if (disk) disk.installTimer = null;
+                try { await cleanupNgageStaging?.(); } catch (error) { Module.printErr(String(error)); }
                 Module.setStatus('Error: ' + e.message);
                 Module.printErr(e.toString());
                 btn.disabled = false;
