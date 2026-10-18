@@ -390,9 +390,12 @@ For a hard memory pass/fail target on the game tab's renderer processes, run
 the same persistent-device gameplay route under a renderer-only cgroup:
 
 ```sh
-node src/tests/wasm/renderer-memory-limit.mjs asphalt-3 2048 /absolute/path/new-budget-run https://claude-laptop.lan:8188/
+node src/tests/wasm/renderer-memory-limit.mjs asphalt-3 1843 /absolute/path/new-budget-run https://claude-laptop.lan:8188/
 ```
 
+The 1.8 GiB target is rounded down to 1843 MiB. The
+released build still OOMs at this limit in Asphalt 3, Tetris, and Hooked On;
+see `src/tests/benchmark/RENDERER_CAP_RESULTS.md` for matched game results.
 This requires a Linux cgroup-v2 user manager and Chromium's
 `--renderer-cmd-prefix` support. The route launches a fresh Chromium profile
 with one game tab. The prefix moves its renderer processes into a fresh
