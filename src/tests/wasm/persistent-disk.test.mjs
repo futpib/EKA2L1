@@ -184,6 +184,18 @@ try {
     assert.equal(await page.evaluate(() => FS.readFile('/data/c/renamed',{encoding:'utf8'})), 'JS saved text');
     await load(); await open('device-B');
     assert.equal(await page.evaluate(() => disk.manifest === null && !FS.analyzePath('/data/c/renamed').exists), true);
+    await page.evaluate(async () => {
+        FS.mkdirTree('/data/c');
+        if (Module.ccall('test_disk_write','number',['string','string'],['/data/c/installed','installed before play']))
+            throw Error('native install write failed');
+        disk.installed.game = true;
+        await disk.stop(true);
+    });
+    await load(); await open('device-B');
+    assert.deepEqual(await page.evaluate(() => ({
+        installed:disk.installed.game,
+        file:FS.readFile('/data/c/installed',{encoding:'utf8'})
+    })),{installed:true,file:'installed before play'});
     assert.deepEqual(errors, []);
-    console.log('PASS native writes and libc buffers, reload, timestamps, empty/large files, ROM and firmware offload/reload, JS writes, rename, deletion, truncation, atomic failure, profile isolation and tab exclusion; OPFS=' + (rom.moved > 0));
+    console.log('PASS native writes and libc buffers, reload, timestamps, empty/large files, ROM and firmware offload/reload, JS writes, rename, deletion, truncation, forced install save, atomic failure, profile isolation and tab exclusion; OPFS=' + (rom.moved > 0));
 } finally { await browser.close(); await new Promise(resolve => server.close(resolve)); }

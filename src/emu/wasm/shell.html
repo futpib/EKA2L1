@@ -347,9 +347,12 @@
                 _selectedGame = selected;
                 window.ekaRomCachePreparation = EkaRomCache.prepare(selected.romCache);
                 var disk = await prepareDeviceStorage(selected);
-                var useImage = selected.image && !disk?.manifest;
+                var useImage = selected.image && !disk?.manifest && !window.ekaForceFreshInstall;
                 var needsSis = !disk?.installed[assetHash(selected.sis)];
                 var needsNgage = selected.ngage && !disk?.installed[assetHash(selected.ngage)];
+                if (window.ekaBenchmarkRouteUs && !needsNgage
+                        && Module._eka2l1_route_configure(window.ekaBenchmarkRouteUs) !== 0)
+                    throw new Error('Benchmark route configuration failed');
                 for (var [endpoint, selector, name] of (useImage ? [] : [
                     ['/preload/rom', 'rom-file', 'SYM.ROM'],
                     ['/preload/rpkg', 'rpkg-file', 'SYM.RPKG'],
@@ -394,6 +397,7 @@
                 var appName = document.getElementById('app-name').value;
                 var disk = window.ekaDeviceDisk || await prepareDeviceStorage(_selectedGame);
                 var sisHash = _selectedGame ? assetHash(_selectedGame.sis) : '';
+                var installedDeviceThisRun = false, installedSisThisRun = false;
                 if (disk && !_selectedGame) {
                     if (disk.manifest) { romInput.value = ''; rpkgInput.value = ''; }
                     if (sisInput.files[0]) {
@@ -450,6 +454,7 @@
                     if (ret !== 0) {
                         throw new Error('Device installation failed: ' + ret);
                     }
+                    installedDeviceThisRun = true;
                     romInput.value = ''; rpkgInput.value = '';
                 }
 
@@ -471,12 +476,22 @@
                         Module.printErr('SIS install returned ' + ret + ' (may already be in ROM)');
                     } else if (disk && sisHash) {
                         disk.installed[sisHash] = true;
+                        installedSisThisRun = true;
                     }
                 }
 
                 if (disk) {
                     try { await disk.offloadRom(); }
                     catch (error) { console.warn('[device-disk] Read-only offload unavailable:', error); }
+                }
+
+                if (ngagePackage && disk && _selectedGame && (installedDeviceThisRun || installedSisThisRun)) {
+                    Module.setStatus('Saving device before N-Gage installation...');
+                    await disk.stop(true);
+                    window.ekaDeviceDisk = null;
+                    if (typeof PThread !== 'undefined') PThread.terminateAllThreads();
+                    location.replace('/install-handoff' + location.search);
+                    return;
                 }
 
                 // N-Gage registers and licenses games through its own importer.
@@ -529,7 +544,18 @@
                         if (disk) {
                             disk.installed[window.ekaPendingNgage] = true;
                             window.ekaPendingNgage = null;
-                            enableDeviceSaving();
+                            if (_selectedGame) {
+                                Module.setStatus('Saving installed game and restarting...');
+                                try {
+                                    await disk.stop(true);
+                                    window.ekaDeviceDisk = null;
+                                    if (typeof PThread !== 'undefined') PThread.terminateAllThreads();
+                                    location.replace('/install-handoff' + location.search);
+                                } catch (error) {
+                                    deviceStatus('Could not save installed game: ' + error.message);
+                                    enableDeviceSaving();
+                                }
+                            } else enableDeviceSaving();
                         }
                     }, 250);
                     if (disk) disk.installTimer = ngageTimer;

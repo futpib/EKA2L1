@@ -185,8 +185,8 @@ one-entry batch cut the Hooked On client count to 67,111 functions but still
 OOMed while instantiating many tiny modules. All experimental compiler
 edits were reverted; no compiler setting or runtime WASM changed for this
 result. The exact installed-image path is now the default for a new device in
-the three supported N-Gage games. A user who explicitly installs from source
-files instead of using an image can still exceed this cap.
+the three supported N-Gage games. At this point in the work, a source install
+still exceeded the cap; the staged source-install result follows below.
 
 Raw capped results are in `/home/claude/.scratch/eka-1843-live-prepared-hooked-cap/`,
 `eka-1843-live-hooked-cap-r2/`, `eka-1843-prepared-tetris-5s-cap/`,
@@ -196,3 +196,43 @@ Raw capped results are in `/home/claude/.scratch/eka-1843-live-prepared-hooked-c
 under `/home/claude/.scratch/eka-1843-{tetris,asphalt3}-prepared-capture/`.
 Normal launcher captures are `eka-1843-live-ui-{tetris,asphalt3}/` in the same
 scratch directory.
+
+## Fresh installation under the same cap
+
+The prepared images above remain the fastest normal first-launch path. A
+source install now saves the device after firmware and runtime SIS installation,
+opens a small three-second handoff page, runs the N-Gage importer in a fresh
+emulator page, then saves and uses the same handoff before starting the game.
+The handoffs terminate the old Emscripten workers and let Chromium release the
+old WASM page before loading the next one. Large saved files use Blob-backed
+IndexedDB records and stream back into WasmFS in chunks. No game files or
+firmware were replaced with a prepared image during these runs.
+
+The tests used the same `d4b9ca1f` WASM binary, a fresh Chromium profile per
+run, the normal selected-game launcher with prepared images forced off, and a
+renderer-only 1,843 MiB cgroup with no swap. Each pass includes the importer
+exit and the gameplay assertion. Tetris uses the five-second Marathon window;
+the other gameplay windows are unchanged. Peaks include all install stages
+and the final game in one browser lifetime.
+
+| # | Game and gameplay check | Old one-page fresh result | Staged fresh peak MiB | Headroom MiB | Result |
+|---:|---|---|---:|---:|---|
+| 1 | Hooked On, Costa Rica fishing | OOM at 1,843 MiB | 1,794.1 | 48.9 | Pass |
+| 2 | Tetris, Marathon board | OOM at 1,843 MiB | 1,733.0 | 110.0 | Pass |
+| 3 | Asphalt 3, racing HUD, run 1 | OOM at 1,843 MiB | 1,798.3 | 44.7 | Pass |
+| 4 | Asphalt 3, racing HUD, run 2 | OOM at 1,843 MiB | 1,724.6 | 118.4 | Pass |
+
+The old fresh controls without a cap reached 2,066.7 MiB for Hooked On,
+1,964.6 MiB for Tetris and 1,938.2 MiB for Asphalt 3. These are historical
+runs, so the peak differences above are not a byte-exact attribution to any
+single change. In the new Asphalt runs, sampled importer peaks were about
+1,703 and 1,714 MiB. A single-handoff trial reached 1,822.3 MiB, leaving
+only 20.7 MiB of headroom; the first handoff reduced the importer peak in the
+subsequent runs. The new path adds six seconds of interstitial time only to a
+fresh install. Prepared-image launches do not use it.
+
+The raw final runs are under
+`/home/claude/.scratch/eka-fresh-under-1843/{hooked,tetris,asphalt}-two-handoffs-cap-r*/`.
+Earlier attempts and diagnostic captures remain in the same parent directory.
+One diagnostic Asphalt run stalled before OPFS reported ready, at about 155 MiB
+renderer usage, and was stopped; it was not an OOM or an accepted install run.

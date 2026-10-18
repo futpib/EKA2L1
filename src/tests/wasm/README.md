@@ -393,9 +393,19 @@ the same persistent-device gameplay route under a renderer-only cgroup:
 node src/tests/wasm/renderer-memory-limit.mjs asphalt-3 1843 /absolute/path/new-budget-run https://claude-laptop.lan:8188/
 ```
 
-The 1.8 GiB target is rounded down to 1843 MiB. The
-released build still OOMs at this limit in Asphalt 3, Tetris, and Hooked On;
-see `src/tests/benchmark/RENDERER_CAP_RESULTS.md` for matched game results.
+The 1.8 GiB target is rounded down to 1843 MiB. To measure the complete
+fresh-install path, including the browser launcher's two install handoffs,
+use a fresh profile and force source installation even when a prepared image
+is available:
+
+```sh
+EKA2L1_BENCHMARK_PERSISTENT_DISK=1 EKA2L1_BENCHMARK_FRESH_LAUNCHER=1 \
+  node src/tests/wasm/renderer-memory-limit.mjs asphalt-3 1843 /absolute/path/new-fresh-run https://claude-laptop.lan:8188/
+```
+
+See `src/tests/benchmark/RENDERER_CAP_RESULTS.md` for the measured fresh and
+prepared routes. The Tetris Marathon measurement uses a five-second playable
+window so it stays inside the harness's guest-time ceiling.
 This requires a Linux cgroup-v2 user manager and Chromium's
 `--renderer-cmd-prefix` support. The route launches a fresh Chromium profile
 with one game tab. The prefix moves its renderer processes into a fresh

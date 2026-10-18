@@ -45,7 +45,7 @@
     "(async()=>{await press(164,60000000);await press(165,2000000);await press(167,10000000);return await shot('start')})()",
     "(async()=>{await press(167,1000000);await press(167,1000000);await press(167,10000000);return await shot('marathon')})()",
     "(async()=>{for(let i=0;i<4;i++)await press(164,500000);await press(167,1000000);return await shot('board')})()",
-    "(async()=>{await press(14,100000);await press(16,100000);await step(3000000);await go();const r=await measure('marathon-level-1-long',15);return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
+    "(async()=>{await press(14,100000);await press(16,100000);await step(3000000);await go();const r=await measure('marathon-level-1-long',5);return {fps:r.fps,frames:r.frames,seconds:r.seconds,errors:r.errors}})()"
   ],
   "super-miners": [
     "(async()=>{await step(30000000);await press(167,3000000);await press(167,3000000);return await shot('menu')})()",

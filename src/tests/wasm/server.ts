@@ -164,6 +164,12 @@ export async function startServer(
       }
       const requestUrl = new URL(req.url || '/', 'http://localhost');
       let urlPath = requestUrl.pathname;
+      if (urlPath === '/install-handoff') {
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.setHeader('Cache-Control', 'no-store');
+        res.end('<!doctype html><title>Finishing installation</title><p>Finishing installation...</p><script>setTimeout(() => location.replace("/" + location.search), 3000)</script>');
+        return;
+      }
       if (urlPath === '/') urlPath = '/eka2l1.html';
       if (urlPath === '/watchdog.js') {
         await sendFile(path.join(__dirname, 'watchdog.js')); return;

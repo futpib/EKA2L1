@@ -207,6 +207,7 @@ globalThis.EkaDeviceDisk = class {
         const expected = new Map(this.manifest.entries.filter(entry => !entry.directory && !entry.offloaded)
             .map(entry => [entry.path, entry]));
         let restored = 0;
+        const streamed = [];
         await new Promise((resolve, reject) => {
             const tx = this.database.transaction('files');
             tx.oncomplete = resolve;
@@ -220,15 +221,26 @@ globalThis.EkaDeviceDisk = class {
                     const file = cursor.value;
                     const entry = expected.get(file.path);
                     if (!entry || file.revision !== entry.revision) { cursor.continue(); return; }
-                    if (file.bytes.length !== entry.size)
+                    const size = file.bytes instanceof Blob ? file.bytes.size : file.bytes.length;
+                    if (size !== entry.size)
                         throw new Error('Saved device file is missing or invalid');
-                    const stream = this.filesystem.open(file.path, 'w'); this.filesystem.close(stream);
-                    if (file.bytes.length) this.filesystem.writeFile(file.path, file.bytes);
-                    ++restored;
+                    if (file.bytes instanceof Blob) streamed.push(file);
+                    else {
+                        const stream = this.filesystem.open(file.path, 'w'); this.filesystem.close(stream);
+                        if (file.bytes.length) this.filesystem.writeFile(file.path, file.bytes);
+                        ++restored;
+                    }
                     cursor.continue();
                 } catch (error) { tx.abort(); reject(error); }
             };
         });
+        for (const file of streamed) {
+            const stream = this.filesystem.open(file.path, 'w'); this.filesystem.close(stream);
+            for await (const chunk of file.bytes.stream()) this.filesystem.writeFile(file.path, chunk);
+            if (this.filesystem.stat(file.path).size !== file.bytes.size)
+                throw new Error('Saved device file is incomplete');
+            ++restored;
+        }
         if (restored !== expected.size) throw new Error('Saved device files are missing');
         for (const entry of [...this.manifest.entries].reverse())
             if (this.module.ccall('eka2l1_disk_set_metadata', 'number', ['string','number','number'], [entry.path, entry.mode, entry.modified]))
@@ -254,15 +266,20 @@ globalThis.EkaDeviceDisk = class {
     readFile(entry) {
         // The SDK's FS.readFile retains its native allocation. FS.read frees
         // each temporary chunk, keeping large ROM saves inside the heap limit.
-        const bytes = new Uint8Array(entry.size), stream = this.filesystem.open(entry.path, 'r');
+        const streamed = entry.size >= 64 * 1024;
+        const bytes = streamed ? [] : new Uint8Array(entry.size);
+        const stream = this.filesystem.open(entry.path, 'r');
         try {
-            for (let offset = 0; offset < bytes.length;) {
-                const count = this.filesystem.read(stream, bytes, offset, Math.min(4 * 1024 * 1024, bytes.length - offset), offset);
+            for (let offset = 0; offset < entry.size;) {
+                const chunk = streamed ? new Uint8Array(Math.min(1024 * 1024, entry.size - offset)) : bytes;
+                const count = this.filesystem.read(stream, chunk, streamed ? 0 : offset,
+                    streamed ? chunk.length : Math.min(4 * 1024 * 1024, entry.size - offset), offset);
                 if (count <= 0) throw new Error('Short device file read');
+                if (streamed) bytes.push(new Blob([chunk.subarray(0, count)]));
                 offset += count;
             }
         } finally { this.filesystem.close(stream); }
-        return bytes;
+        return streamed ? new Blob(bytes) : bytes;
     }
     async scan(baseline = false) {
         if (this.module.ccall('eka2l1_disk_scan', 'number', [], []) !== 0) throw new Error('Device scan already running');
@@ -300,7 +317,7 @@ globalThis.EkaDeviceDisk = class {
                 const bytes = this.readFile(entry);
                 if (!this.sameFile(entry)) throw new Error('Device file changed while saving; retrying');
                 writes.push({device:this.id, revision, path:entry.path, bytes});
-                buffered += bytes.length;
+                buffered += bytes instanceof Blob ? bytes.size : bytes.length;
                 if (buffered >= 4 * 1024 * 1024 || writes.length >= 128) await flush();
                 entries.push({...entry, revision});
             }
@@ -348,10 +365,10 @@ globalThis.EkaDeviceDisk = class {
         }, 10000);
         return this.save();
     }
-    async stop() {
+    async stop(forceSave = false) {
         clearInterval(this.timer); this.timer = null;
         clearInterval(this.installTimer); this.installTimer = null;
-        const saveAllowed = this.canSave;
+        const saveAllowed = this.canSave || forceSave;
         this.canSave = false;
         try {
             if (this.active) await this.active.catch(() => {});

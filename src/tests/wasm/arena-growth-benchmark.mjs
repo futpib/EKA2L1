@@ -8,10 +8,13 @@ import puppeteer from 'puppeteer';
 const game=process.argv[2], out=process.argv[3];
 const fullMemory=process.argv[5]==='full-memory';
 const persistentDisk=process.env.EKA2L1_BENCHMARK_PERSISTENT_DISK==='1';
+const freshLauncher=process.env.EKA2L1_BENCHMARK_FRESH_LAUNCHER==='1';
+if(freshLauncher&&!persistentDisk)throw Error('Fresh launcher requires persistent disk');
 
 const games=JSON.parse(fs.readFileSync(new URL('./games.json',import.meta.url)));
 const entry=games.find(g=>g.id===game);
 if (!entry || !out || !process.argv[4]) throw Error('Usage: node arena-growth-benchmark.mjs GAME NEW_OUTPUT SERVER_URL');
+if(freshLauncher&&!entry.ngage)throw Error('Fresh launcher route requires an N-Gage game');
 fs.mkdirSync(out);
 const assetDir=process.env.EKA2L1_ASSET_DIR || '/tmp/eka2l1-serve';
 const browserArgs=['--host-resolver-rules=MAP claude-laptop.lan 127.0.0.1','--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=vulkan','--enable-features=Vulkan','--enable-gpu','--ignore-gpu-blocklist','--disable-background-timer-throttling'];
@@ -37,6 +40,11 @@ let browserMemoryTimer;
 const profileAfterRuntime=process.env.EKA2L1_CHROME_PROFILE_AFTER_RUNTIME==='1';
 try {
 const page=process.env.EKA2L1_RENDERER_CGROUP_PREFIX?(await browser.pages())[0]??await browser.newPage():await browser.newPage(); await page.setViewport({width:900,height:800});page.setDefaultTimeout(180000);
+let mainNavigations=0;
+page.on('framenavigated',frame=>{if(frame===page.mainFrame()){
+ mainNavigations++;
+ fs.appendFileSync(out+'/navigations.jsonl',JSON.stringify({ms:Date.now(),count:mainNavigations,url:frame.url()})+'\n');
+}});
 if(process.argv[5]==='chrome-memory' || allocationProfile || fullMemory) {
  const {ChromeMemoryProfiler}=await import('./chrome-memory-profiler.mjs');
  memoryProfiler=new ChromeMemoryProfiler(page,out);
@@ -49,14 +57,18 @@ const guardedWait=async predicate=>{
  const timer=setInterval(()=>{if(errors.length)abort.abort(new Error(errors.join('\n')));},250);
  try{return await page.waitForFunction(predicate,{signal:abort.signal});}finally{clearInterval(timer);}
 };
-await page.evaluateOnNewDocument(transient=>{window.ekaTransientSession=transient;},!persistentDisk);
-await page.goto(new URL('?game=custom',process.argv[4]).href,{waitUntil:'domcontentloaded'});
+await page.evaluateOnNewDocument((transient,fresh)=>{
+ window.ekaTransientSession=transient;
+ window.ekaForceFreshInstall=fresh;
+ if(fresh)window.ekaBenchmarkRouteUs=6000000;
+},!persistentDisk,freshLauncher);
+await page.goto(new URL('?game='+(freshLauncher?game:'custom'),process.argv[4]).href,{waitUntil:'domcontentloaded'});
 if(allocationProfile || fullMemory || process.env.EKA2L1_BROWSER_MEMORY==='1')browserMemoryTimer=setInterval(async()=>{
  try{const processes=await browserMemory();browserMemorySamples.push({ms:performance.now(),processes,pssKiB:processes.reduce((n,p)=>n+p.pssKiB,0)});}catch{}
 },1000);
 await guardedWait(()=>window.Module?.calledRun);
 if(memoryProfiler && profileAfterRuntime)await memoryProfiler.start();
-assert.equal(await page.evaluate(t=>Module._eka2l1_route_configure(t),6000000),0);
+if(!freshLauncher)assert.equal(await page.evaluate(t=>Module._eka2l1_route_configure(t),6000000),0);
 let installedImage;
 const html=await page.evaluate(async()=>await(await fetch('/')).text());
 const launch=html.match(/<script>configureGameLauncher\((\[.*\]), [^;]+\);<\/script>/);
@@ -64,13 +76,30 @@ assert(launch,'Missing launcher configuration');
 const launchGame=JSON.parse(launch[1]).find(g=>g.id===game);
 if(process.env.EKA2L1_ROM_CACHE_CAPTURE==='1')await configureRomCacheCapture(page);
 else if(launchGame?.romCache)await page.evaluate(cache=>EkaRomCache.prepare(cache),launchGame.romCache);
-if(process.env.EKA2L1_BENCHMARK_PREPARED==='1') {
+if(freshLauncher) {
+ assert.equal(process.env.EKA2L1_BENCHMARK_PREPARED,undefined);
+}else if(process.env.EKA2L1_BENCHMARK_PREPARED==='1') {
  installedImage=launchGame?.image;
  assert(installedImage,'This game has no prepared installation on this server');
 }else for(const [selector,file] of [['#rom-file','SYM.ROM'],['#rpkg-file','SYM.RPKG'],['#sis-file',entry.ngage?.runtime.file ?? entry.file]])await(await page.$(selector)).uploadFile(path.join(assetDir,file));
-await page.$eval('#app-name',(e,v)=>e.value=v,entry.uid);
-await page.evaluate(({entryUrl,image})=>{window.measurementLaunch=startEmulator(entryUrl,image)},{entryUrl:!installedImage&&entry.ngage?'/preload/games/'+game+'/ngage':undefined,image:installedImage});
-await guardedWait(()=>window._gameRunning);
+if(!freshLauncher){
+ await page.$eval('#app-name',(e,v)=>e.value=v,entry.uid);
+ await page.evaluate(({entryUrl,image})=>{window.measurementLaunch=startEmulator(entryUrl,image)},{entryUrl:!installedImage&&entry.ngage?'/preload/games/'+game+'/ngage':undefined,image:installedImage});
+ await guardedWait(()=>window._gameRunning);
+}else{
+ const deadline=Date.now()+600000;
+ let nextProgress=0;
+ while(Date.now()<deadline){
+  if(errors.length)throw Error(errors.join('\n'));
+  if(Date.now()>=nextProgress){
+   fs.appendFileSync(out+'/fresh-launch-progress.jsonl',JSON.stringify({ms:Date.now(),mainNavigations,url:page.url()})+'\n');
+   nextProgress=Date.now()+5000;
+  }
+  try{if(mainNavigations>=5&&await page.evaluate(()=>Module.calledRun&&window._gameRunning&&window.ekaDeviceDisk?.manifest))break;}catch{}
+  await new Promise(resolve=>setTimeout(resolve,250));
+ }
+ assert(Date.now()<deadline,'Fresh launcher did not reach the running game');
+}
 if(persistentDisk)assert.equal(await page.evaluate(()=>!!window.ekaDeviceDisk),true);
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 const shot=async name=>{
@@ -109,7 +138,7 @@ const shot=async name=>{
  }
  return out+'/'+name+'.png';
 };
-status=()=>page.evaluate(()=>({ms:performance.now(),guest:Module._eka2l1_guest_time_us(),frames:Module._eka2l1_presentations(),phase:Module._eka2l1_route_phase(),diskScans:window.diskScans?.length||0,inputs:Module._eka2l1_input_consumed(),memory:JSON.parse(Module.ccall('eka2l1_memory_impl_stats','string',[],[])),policy:window.ekaCompilerPolicy,workerPool:typeof PThread==='undefined'?null:{running:PThread.runningWorkers.length,unused:PThread.unusedWorkers.length},monitor:JSON.parse(Module.ccall('eka2l1_monitor_report','string',[],[]))}));
+status=()=>page.evaluate(()=>({ms:performance.now(),guest:Module._eka2l1_guest_time_us(),frames:Module._eka2l1_presentations(),phase:Module._eka2l1_route_phase(),wasmCapacity:HEAPU8.buffer.byteLength,diskScans:window.diskScans?.length||0,inputs:Module._eka2l1_input_consumed(),memory:JSON.parse(Module.ccall('eka2l1_memory_impl_stats','string',[],[])),policy:window.ekaCompilerPolicy,workerPool:typeof PThread==='undefined'?null:{running:PThread.runningWorkers.length,unused:PThread.unusedWorkers.length},monitor:JSON.parse(Module.ccall('eka2l1_monitor_report','string',[],[]))}));
 const step=async(us)=>{const s=await status();assert.equal(s.phase,1);assert.equal(await page.evaluate(t=>Module._eka2l1_route_step_to(t),s.guest+us),0);await guardedWait(()=>Module._eka2l1_route_phase()===1);return status()};
 const requireBoatWithoutHelp=name=>{
  const png=PNG.sync.read(fs.readFileSync(out+'/'+name+'.png'));
