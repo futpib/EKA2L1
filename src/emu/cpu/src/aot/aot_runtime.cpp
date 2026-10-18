@@ -978,6 +978,15 @@ bool instantiate_staged_modules() {
     return true;
 }
 
+void discard_worker_compiled_code() {
+    global_registry().clear();
+    const auto *rom = hot_rom;
+    const auto base = hot_rom_base, size = hot_rom_size;
+    const auto enabled = hot_compilation_enabled;
+    configure_hot_rom(rom, base, size, enabled);
+    g_staged_modules.clear();
+}
+
 #else
 
 void stage_aot_module(
@@ -988,6 +997,9 @@ void stage_aot_module(
 
 bool instantiate_staged_modules() {
     return false;
+}
+
+void discard_worker_compiled_code() {
 }
 
 #endif // __EMSCRIPTEN__

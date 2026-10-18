@@ -36,6 +36,7 @@
 #include <system/consts.h>
 #include <system/epoc.h>
 #include <cpu/aot/watchdog.h>
+#include <cpu/aot/aot_runtime.h>
 #include <system/hal.h>
 
 #include <utils/panic.h>
@@ -831,6 +832,7 @@ namespace eka2l1 {
         const bool paced_clock = common::benchmark::paced;
         if (paced_clock) timing_->start_host_clock();
         bool pending_watchdog = false;
+        const auto compiled_before = arm::aot::compiled_function_count();
 #endif
         if (to_run != nullptr) {
             common::performance::scope run_scope(common::performance::cpu_run);
@@ -863,6 +865,7 @@ namespace eka2l1 {
 #ifdef __EMSCRIPTEN__
             {
                 const bool preempted = arm::aot::watchdog::request.exchange(0, std::memory_order_relaxed);
+                const bool compiled_during_slice = arm::aot::compiled_function_count() != compiled_before;
                 if (paced_clock) {
                     // A yield request controls execution, not the amount of
                     // guest time consumed. Sample host time only at watchdog
@@ -874,6 +877,8 @@ namespace eka2l1 {
                             to_run->get_remaining_screenticks(),
                             (timing_->microseconds() - now) * kern_->capped_cpu_hz() / 1000000)));
                     }
+                } else if (to_run && compiled_during_slice) {
+                    to_run->add_ticks(to_run->get_remaining_screenticks());
                 } else if (!to_run || (preempted && cpu->guest_code_dispatched)) {
                     // Unpaced execution retains virtual CPU slices and skips
                     // idle waits without tying guest time to the host clock.

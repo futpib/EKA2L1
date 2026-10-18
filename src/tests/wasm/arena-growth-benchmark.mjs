@@ -9,6 +9,7 @@ const game=process.argv[2], out=process.argv[3];
 const fullMemory=process.argv[5]==='full-memory';
 const persistentDisk=process.env.EKA2L1_BENCHMARK_PERSISTENT_DISK==='1';
 const freshLauncher=process.env.EKA2L1_BENCHMARK_FRESH_LAUNCHER==='1';
+const skipCpuRecycle=process.env.EKA2L1_BENCHMARK_SKIP_CPU_RECYCLE==='1';
 if(freshLauncher&&!persistentDisk)throw Error('Fresh launcher requires persistent disk');
 
 const games=JSON.parse(fs.readFileSync(new URL('./games.json',import.meta.url)));
@@ -57,11 +58,12 @@ const guardedWait=async predicate=>{
  const timer=setInterval(()=>{if(errors.length)abort.abort(new Error(errors.join('\n')));},250);
  try{return await page.waitForFunction(predicate,{signal:abort.signal});}finally{clearInterval(timer);}
 };
-await page.evaluateOnNewDocument((transient,fresh)=>{
+await page.evaluateOnNewDocument((transient,fresh,skipRecycle)=>{
  window.ekaTransientSession=transient;
  window.ekaForceFreshInstall=fresh;
- if(fresh)window.ekaBenchmarkRouteUs=6000000;
-},!persistentDisk,freshLauncher);
+ window.ekaBenchmarkSkipCpuRecycle=skipRecycle;
+ if(fresh)window.ekaBenchmarkRouteUs=1000000000000;
+},!persistentDisk,freshLauncher,skipCpuRecycle);
 await page.goto(new URL('?game='+(freshLauncher?game:'custom'),process.argv[4]).href,{waitUntil:'domcontentloaded'});
 if(allocationProfile || fullMemory || process.env.EKA2L1_BROWSER_MEMORY==='1')browserMemoryTimer=setInterval(async()=>{
  try{const processes=await browserMemory();browserMemorySamples.push({ms:performance.now(),processes,pssKiB:processes.reduce((n,p)=>n+p.pssKiB,0)});}catch{}
@@ -92,10 +94,21 @@ if(!freshLauncher){
  while(Date.now()<deadline){
   if(errors.length)throw Error(errors.join('\n'));
   if(Date.now()>=nextProgress){
-   fs.appendFileSync(out+'/fresh-launch-progress.jsonl',JSON.stringify({ms:Date.now(),mainNavigations,url:page.url()})+'\n');
+   const progress={ms:Date.now(),mainNavigations,url:page.url()};
+   if(process.env.EKA2L1_BENCHMARK_FRESH_TRACE==='1'){
+    try{Object.assign(progress,await page.evaluate(()=>({
+     wasmCapacity:HEAPU8.buffer.byteLength,
+     compiledFunctions:JSON.parse(Module.ccall('eka2l1_monitor_report','string',[],[])).compiled_functions,
+     pendingNgage:!!window.ekaPendingNgage,
+     cpuRecyclePending:!!window.ekaCpuRecyclePending
+    })));}catch{}
+   }
+   fs.appendFileSync(out+'/fresh-launch-progress.jsonl',JSON.stringify(progress)+'\n');
    nextProgress=Date.now()+5000;
   }
-  try{if(mainNavigations>=5&&await page.evaluate(()=>Module.calledRun&&window._gameRunning&&window.ekaDeviceDisk?.manifest))break;}catch{}
+  try{if(mainNavigations>=1&&await page.evaluate(()=>
+   Module.calledRun&&window._gameRunning&&window.ekaDeviceDisk?.manifest
+   &&!window.ekaPendingNgage&&!window.ekaCpuRecyclePending&&window.ekaDeviceDisk.canSave))break;}catch{}
   await new Promise(resolve=>setTimeout(resolve,250));
  }
  assert(Date.now()<deadline,'Fresh launcher did not reach the running game');
@@ -139,7 +152,9 @@ const shot=async name=>{
  return out+'/'+name+'.png';
 };
 status=()=>page.evaluate(()=>({ms:performance.now(),guest:Module._eka2l1_guest_time_us(),frames:Module._eka2l1_presentations(),phase:Module._eka2l1_route_phase(),wasmCapacity:HEAPU8.buffer.byteLength,diskScans:window.diskScans?.length||0,inputs:Module._eka2l1_input_consumed(),memory:JSON.parse(Module.ccall('eka2l1_memory_impl_stats','string',[],[])),policy:window.ekaCompilerPolicy,workerPool:typeof PThread==='undefined'?null:{running:PThread.runningWorkers.length,unused:PThread.unusedWorkers.length},monitor:JSON.parse(Module.ccall('eka2l1_monitor_report','string',[],[]))}));
-const step=async(us)=>{const s=await status();assert.equal(s.phase,1);assert.equal(await page.evaluate(t=>Module._eka2l1_route_step_to(t),s.guest+us),0);await guardedWait(()=>Module._eka2l1_route_phase()===1);return status()};
+const step=async(us)=>{const s=await status();assert.equal(s.phase,1);assert.equal(await page.evaluate(({target,long})=>long
+ ? Module._eka2l1_route_step_to_64(target>>>0,Math.floor(target/4294967296))
+ : Module._eka2l1_route_step_to(target),{target:s.guest+us,long:freshLauncher}),0);await guardedWait(()=>Module._eka2l1_route_phase()===1);return status()};
 const requireBoatWithoutHelp=name=>{
  const png=PNG.sync.read(fs.readFileSync(out+'/'+name+'.png'));
  let pale=0;for(let y=600;y<750;y++)for(let x=100;x<800;x++){const i=(y*png.width+x)*4;if(png.data[i]>190&&png.data[i+1]>210&&png.data[i+2]>210)pale++;}
@@ -247,7 +262,9 @@ const measure=async(label,seconds=30)=>{
 };
 await guardedWait(()=>Module._eka2l1_route_phase()===1);
 const press=async(code,us=1500000,hold=200000)=>{await page.evaluate(c=>Module._eka2l1_key_state(c,1),code);await step(hold);await page.evaluate(c=>Module._eka2l1_key_state(c,0),code);return step(us)};
-const go=async()=>page.evaluate(t=>Module._eka2l1_route_step_to(t),1800000000);
+const go=async()=>page.evaluate(long=>long
+ ? Module._eka2l1_route_step_to_64(999999999999>>>0,Math.floor(999999999999/4294967296))
+ : Module._eka2l1_route_step_to(1800000000),freshLauncher);
 const initialMemory=(await status()).memory;
 if(allocationProfile)assert.equal(await page.evaluate(()=>typeof Module._eka2l1_allocation_profile_report),'function');
 assert.equal(initialMemory.mode,2);

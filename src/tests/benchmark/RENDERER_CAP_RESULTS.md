@@ -240,3 +240,62 @@ the same WASM and JavaScript hashes listed above, plus the staged launcher and
 Blob-backed persistence from release `d4b9ca1f-ce1fdfbbf`.
 One diagnostic Asphalt run stalled before OPFS reported ready, at about 155 MiB
 renderer usage, and was stopped; it was not an OOM or an accepted install run.
+
+## Reclaim installer code while the guest keeps running
+
+The two page handoffs above freed browser memory by destroying the entire
+emulator page. The current source-install path keeps the page, guest kernel,
+processes, and filesystem alive. At a CPU batch boundary it clears compiled
+function indexes, exits and destroys only the CPU Web Worker, then starts a new
+worker against the same guest state. This releases V8 code owned by the old
+worker. Hooked On does this once during its unusually large importer, after
+50,000 compiled functions, and again when the importer exits. Tetris and
+Asphalt 3 recycle once at importer exit. A compiled slice no longer advances
+unpaced guest time solely because translation occurred, which prevents the
+importer's guest timeout while the new worker warms its code.
+
+Chrome 153 ran the same fresh source-install and gameplay routes with sound
+enabled, a fresh profile per run, a renderer-only 1,843 MiB limit and no swap.
+The no-recycle controls used this WASM binary with the benchmark's recycle
+switch disabled and a 4,096 MiB limit. All passing in-page runs had exactly
+one main-page navigation, zero OOM events, and their usual gameplay assertion.
+
+| # | Game | No-recycle peak, MiB | Old page-handoff peak, MiB | In-page peak, MiB | Gameplay |
+|---:|---|---:|---:|---:|---|
+| 1 | Hooked On | 2,087.3 | 1,794.1 | 1,676.7 / 1,643.4 / 1,629.9 / 1,676.1 | Costa Rica boat, four passes |
+| 2 | Tetris | 2,089.1 | 1,733.0 | 1,737.0 | Marathon board, pass |
+| 3 | Asphalt 3 | 1,973.1 | 1,712.7 | 1,692.8 | Racing HUD, pass |
+
+The old page-handoff numbers came from the previous build and are a historical
+comparison, not paired allocation savings. The in-page Hooked On runs have
+166.3 to 213.1 MiB of headroom. A trial that recycled only after its importer
+passed gameplay but touched the cap twice, so the earlier recycle is necessary
+for a reliable margin. The no-recycle controls reached the same gameplay
+scenes. Their measured unpaced FPS versus the in-page runs was 213.6 versus
+214.4 for Hooked On, 128.2 versus 153.9 for Tetris, and 122.4 versus 117.7
+for Asphalt 3. CPU frequency varied; these single windows do not establish a
+speedup or a material steady-play regression. The post-install compile cache
+must warm again, so first launch can still take longer than a no-recycle run.
+
+From first navigation to comparable scenes, the in-page runs reached the
+Tetris board in 76.6 s, Asphalt 3's warm race in 87.8 s, and Hooked On's boat
+in 147.2 s. The old two-handoff captures took 89.7 s, 104.3 s, and 150.4 s,
+respectively. These are one-off startup timings with host-load variation, but
+they show no obvious loss against the former memory-saving path. Prepared-image
+launches bypass the importer and do not recycle the CPU worker.
+
+The raw results are under `/home/claude/.scratch/eka-no-reboot-20261018/`:
+`tetris-integrated-cap/`, `asphalt3-integrated-cap/`,
+`hooked-early-recycle-cap{,-r2}/`, `hooked-final-cap/`, `hooked-release-cap/`, and the matching `*-matched-control/`
+directories (Asphalt 3 uses `asphalt3-matched-control-r2/`; the Hooked On
+control is `hooked-final-control/`). The latter preceded only an unused
+failure-cleanup edit and a status-line correction in the final JavaScript. Each route's
+`navigations.jsonl`, `result.json`, screenshots and browser log are retained.
+The released WASM SHA-256 is
+`fa0634ef6f34e1e50bdf46a54494cfa7672a33267ecba4960764cde940e5701c`;
+the released JavaScript SHA-256 is
+`d090419cf22739b2697a03724852f3de68ebad571a9593bce2661bbac68c5f13`.
+The live `.lan` service served those exact hashes. A forced fresh Tetris install
+on the released build completed with one page navigation, two installed
+entries, an active save timer, and the Running status after CPU worker recycle;
+the browser reported no page errors.

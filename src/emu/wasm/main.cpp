@@ -102,6 +102,8 @@ namespace {
         config::state conf;
         window_server *winserv = nullptr;
         std::atomic<bool> running{false};
+        std::atomic<bool> recycle_cpu{false};
+        std::atomic<bool> cpu_recycle_done{false};
         std::atomic<int> ngage_installation{0};
         std::atomic<bool> benchmark_done{false};
         std::atomic<int> benchmark_captured{0};
@@ -132,6 +134,7 @@ namespace {
     };
 
     wasm_state *g_state = nullptr;
+    int (*g_cpu_batch)(void *) = nullptr;
 
     // Diagnostic route exploration only. Park between system-loop iterations;
     // never rewrite guest time or enter the game's own pause menu.
@@ -200,6 +203,16 @@ EM_JS(void, start_emulator_tasks, (std::uintptr_t callback), {
     };
     tasks.port2.postMessage(0);
 });
+
+static int spawn_cpu_thread() {
+    const auto error = pthread_create(&g_state->emu_thread, nullptr, [](void *callback) -> void * {
+        LOG_INFO(FRONTEND_CMDLINE, "Emulator thread started");
+        start_emulator_tasks(reinterpret_cast<std::uintptr_t>(callback));
+        emscripten_exit_with_live_runtime();
+    }, reinterpret_cast<void *>(g_cpu_batch));
+    g_state->emu_thread_started = error == 0;
+    return error;
+}
 
 extern "C" {
 
@@ -344,6 +357,26 @@ int eka2l1_route_configure(int stop_us) {
 }
 
 EMSCRIPTEN_KEEPALIVE
+int eka2l1_route_configure_64(std::uint32_t low, std::uint32_t high) {
+    if (g_state) return -1;
+    const auto target = (std::uint64_t(high) << 32) | low;
+    if (target > 1000000000000ull) return -1;
+    g_route.enabled = true;
+    common::benchmark::paced = false;
+    g_route.target_us = target;
+    g_route.paused = false;
+    return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_route_pause_here() {
+    const std::lock_guard<std::mutex> lock(g_route.mutex);
+    if (!g_route.enabled || !g_state || !g_state->running) return -1;
+    g_route.target_us = common::benchmark::virtual_us.load();
+    return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
 int eka2l1_route_phase() {
     if (!g_route.enabled || !g_state || !g_state->running) return -1;
     return g_route.paused ? 1 : 0;
@@ -356,6 +389,18 @@ int eka2l1_route_step_to(int stop_us) {
     if (stop_us < 0 || stop_us > 1800000000
         || static_cast<std::uint64_t>(stop_us) <= common::benchmark::virtual_us.load()) return -2;
     g_route.target_us = stop_us;
+    g_route.paused = false;
+    g_route.changed.notify_one();
+    return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_route_step_to_64(std::uint32_t low, std::uint32_t high) {
+    const std::lock_guard<std::mutex> lock(g_route.mutex);
+    const auto target = (std::uint64_t(high) << 32) | low;
+    if (!g_route.enabled || !g_state || !g_state->running || !g_route.paused) return -1;
+    if (target > 1000000000000ull || target <= common::benchmark::virtual_us.load()) return -2;
+    g_route.target_us = target;
     g_route.paused = false;
     g_route.changed.notify_one();
     return 0;
@@ -584,6 +629,38 @@ int eka2l1_watch_ngage_installer() {
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_ngage_installation_status() {
     return g_state ? g_state->ngage_installation.load() : 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_request_cpu_recycle() {
+    if (!g_state || !g_state->running || !g_state->emu_thread_started || g_state->recycle_cpu)
+        return -1;
+    g_state->cpu_recycle_done = false;
+    g_state->recycle_cpu = true;
+    return static_cast<int>(g_state->emu_thread);
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_cpu_recycle_ready() {
+    return g_state && g_state->cpu_recycle_done ? 1 : 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_join_cpu_recycle() {
+    if (!g_state || !g_state->running || !g_state->emu_thread_started || !g_state->cpu_recycle_done)
+        return -1;
+    const auto joined = pthread_join(g_state->emu_thread, nullptr);
+    if (joined) return joined;
+    g_state->emu_thread_started = false;
+    return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_resume_cpu_recycle() {
+    if (!g_state || !g_state->running || g_state->emu_thread_started || !g_state->cpu_recycle_done)
+        return -1;
+    g_state->cpu_recycle_done = false;
+    return spawn_cpu_thread();
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -904,12 +981,17 @@ int eka2l1_run(const char *app_name) {
 
     // Return from each bounded batch so browser tasks and collection can run
     // on the CPU worker as they already do on the graphics worker.
-    const auto run_batch = +[](void *) -> int {
+    g_cpu_batch = +[](void *) -> int {
         static unsigned iterations = 0;
         const auto deadline = emscripten_get_now() + 4;
         do {
             if (!g_state || !g_state->running) {
                 LOG_INFO(FRONTEND_CMDLINE, "Emulator loop exited after {} iterations", iterations);
+                pthread_exit(nullptr);
+            }
+            if (g_state->recycle_cpu.exchange(false)) {
+                arm::aot::discard_worker_compiled_code();
+                g_state->cpu_recycle_done = true;
                 pthread_exit(nullptr);
             }
             if (g_route.enabled) {
@@ -944,11 +1026,7 @@ int eka2l1_run(const char *app_name) {
         } while (emscripten_get_now() < deadline);
         return 1;
     };
-    const auto thread_error = pthread_create(&g_state->emu_thread, nullptr, [](void *callback) -> void * {
-        LOG_INFO(FRONTEND_CMDLINE, "Emulator thread started");
-        start_emulator_tasks(reinterpret_cast<std::uintptr_t>(callback));
-        emscripten_exit_with_live_runtime();
-    }, reinterpret_cast<void *>(run_batch));
+    const auto thread_error = spawn_cpu_thread();
     if (thread_error) {
         g_state->running = false;
         LOG_ERROR(FRONTEND_CMDLINE, "Emulator thread creation failed: {}", thread_error);

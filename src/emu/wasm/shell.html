@@ -222,6 +222,28 @@
             document.getElementById('btn-save-device').disabled = false;
             window.ekaDeviceDisk.start().catch(error => Module.printErr(String(error)));
         }
+        async function recycleCpuWorker() {
+            var thread = Module._eka2l1_request_cpu_recycle();
+            if (thread < 0) throw new Error('Could not stop the CPU worker');
+            var worker = PThread.pthreads[thread];
+            if (!worker) throw new Error('CPU worker was not found');
+            var deadline = performance.now() + 30000;
+            while (!Module._eka2l1_cpu_recycle_ready()) {
+                if (performance.now() > deadline) throw new Error('CPU worker did not stop');
+                await new Promise(resolve => setTimeout(resolve, 10));
+            }
+            var joined = Module._eka2l1_join_cpu_recycle();
+            if (joined !== 0) throw new Error('Could not join CPU worker: ' + joined);
+            while (!PThread.unusedWorkers.includes(worker)) {
+                if (performance.now() > deadline) throw new Error('CPU worker was not released');
+                await new Promise(resolve => setTimeout(resolve, 10));
+            }
+            PThread.unusedWorkers.splice(PThread.unusedWorkers.indexOf(worker), 1);
+            terminateWorker(worker);
+            await new Promise(resolve => setTimeout(resolve, 200));
+            var resumed = Module._eka2l1_resume_cpu_recycle();
+            if (resumed !== 0) throw new Error('Could not resume CPU worker: ' + resumed);
+        }
         document.getElementById('btn-save-device').addEventListener('click', function() {
             window.ekaDeviceDisk?.save(true).catch(error => Module.printErr(String(error)));
         });
@@ -350,8 +372,10 @@
                 var useImage = selected.image && !disk?.manifest && !window.ekaForceFreshInstall;
                 var needsSis = !disk?.installed[assetHash(selected.sis)];
                 var needsNgage = selected.ngage && !disk?.installed[assetHash(selected.ngage)];
-                if (window.ekaBenchmarkRouteUs && !needsNgage
-                        && Module._eka2l1_route_configure(window.ekaBenchmarkRouteUs) !== 0)
+                if (window.ekaBenchmarkRouteUs && (needsNgage
+                        ? Module._eka2l1_route_configure_64(window.ekaBenchmarkRouteUs >>> 0,
+                            Math.floor(window.ekaBenchmarkRouteUs / 4294967296))
+                        : Module._eka2l1_route_configure(window.ekaBenchmarkRouteUs)) !== 0)
                     throw new Error('Benchmark route configuration failed');
                 for (var [endpoint, selector, name] of (useImage ? [] : [
                     ['/preload/rom', 'rom-file', 'SYM.ROM'],
@@ -397,7 +421,6 @@
                 var appName = document.getElementById('app-name').value;
                 var disk = window.ekaDeviceDisk || await prepareDeviceStorage(_selectedGame);
                 var sisHash = _selectedGame ? assetHash(_selectedGame.sis) : '';
-                var installedDeviceThisRun = false, installedSisThisRun = false;
                 if (disk && !_selectedGame) {
                     if (disk.manifest) { romInput.value = ''; rpkgInput.value = ''; }
                     if (sisInput.files[0]) {
@@ -454,7 +477,6 @@
                     if (ret !== 0) {
                         throw new Error('Device installation failed: ' + ret);
                     }
-                    installedDeviceThisRun = true;
                     romInput.value = ''; rpkgInput.value = '';
                 }
 
@@ -476,7 +498,6 @@
                         Module.printErr('SIS install returned ' + ret + ' (may already be in ROM)');
                     } else if (disk && sisHash) {
                         disk.installed[sisHash] = true;
-                        installedSisThisRun = true;
                     }
                 }
 
@@ -485,18 +506,10 @@
                     catch (error) { console.warn('[device-disk] Read-only offload unavailable:', error); }
                 }
 
-                if (ngagePackage && disk && _selectedGame && (installedDeviceThisRun || installedSisThisRun)) {
-                    Module.setStatus('Saving device before N-Gage installation...');
-                    await disk.stop(true);
-                    window.ekaDeviceDisk = null;
-                    if (typeof PThread !== 'undefined') PThread.terminateAllThreads();
-                    location.replace('/install-handoff' + location.search);
-                    return;
-                }
-
                 // N-Gage registers and licenses games through its own importer.
                 if (ngagePackage) {
                     Module.setStatus('Preparing N-Gage game...');
+                    var importPolls = 0, earlyRecycled = false, earlyRecycling = false;
                     var streamToOpfs = canStageInOpfs();
                     var packageResponse = await window.ekaDownload(ngagePackage,
                         streamToOpfs ? {stream: true} : undefined);
@@ -534,8 +547,40 @@
                     if (Module.ccall('eka2l1_watch_ngage_installer', 'number', [], []) !== 0)
                         throw new Error('Could not track game installation');
                     ngageTimer = setInterval(async function() {
+                        if (earlyRecycling) return;
                         var result = Module._eka2l1_ngage_installation_status();
-                        if (result === -1) return;
+                        if (result === -1) {
+                            // Hooked On's importer generates enough code to exceed the
+                            // renderer limit before its normal end-of-install cleanup.
+                            if (_selectedGame?.id === 'hooked-on' && !window.ekaBenchmarkSkipCpuRecycle
+                                    && sessionStorage.getItem('ekaSkipEarlyRecycle') !== '1'
+                                    && !earlyRecycled && ++importPolls % 4 === 0) {
+                                var compiled = JSON.parse(Module.ccall('eka2l1_monitor_report', 'string', [], []))
+                                    .compiled_functions;
+                                if (compiled >= 50000) {
+                                    earlyRecycling = true;
+                                    window.ekaCpuRecyclePending = true;
+                                    try {
+                                        await recycleCpuWorker();
+                                        earlyRecycled = true;
+                                    } catch (error) {
+                                        sessionStorage.setItem('ekaSkipEarlyRecycle', '1');
+                                        clearInterval(ngageTimer);
+                                        if (disk) disk.installTimer = null;
+                                        deviceStatus('Retrying game installation: ' + error.message);
+                                        if (typeof PThread !== 'undefined') PThread.terminateAllThreads();
+                                        try { await cleanupNgageStaging?.(); }
+                                        catch (cleanupError) { console.warn('[n-gage] Cleanup failed:', cleanupError); }
+                                        location.reload();
+                                        return;
+                                    } finally {
+                                        earlyRecycling = false;
+                                        window.ekaCpuRecyclePending = false;
+                                    }
+                                }
+                            }
+                            return;
+                        }
                         clearInterval(ngageTimer);
                         if (disk) disk.installTimer = null;
                         try { await cleanupNgageStaging?.(); }
@@ -545,17 +590,29 @@
                             disk.installed[window.ekaPendingNgage] = true;
                             window.ekaPendingNgage = null;
                             if (_selectedGame) {
-                                Module.setStatus('Saving installed game and restarting...');
+                                window.ekaCpuRecyclePending = true;
+                                Module.setStatus('Finishing game installation...');
                                 try {
-                                    await disk.stop(true);
-                                    window.ekaDeviceDisk = null;
-                                    if (typeof PThread !== 'undefined') PThread.terminateAllThreads();
-                                    location.replace('/install-handoff' + location.search);
-                                } catch (error) {
-                                    deviceStatus('Could not save installed game: ' + error.message);
+                                    if (window.ekaBenchmarkRouteUs) Module._eka2l1_route_pause_here();
+                                    if (!window.ekaBenchmarkSkipCpuRecycle) await recycleCpuWorker();
                                     enableDeviceSaving();
+                                    setRunningStatus(_selectedGame.title);
+                                } catch (error) {
+                                    deviceStatus('Could not resume game: ' + error.message);
+                                    try {
+                                        await disk.stop(true);
+                                        window.ekaDeviceDisk = null;
+                                        if (typeof PThread !== 'undefined') PThread.terminateAllThreads();
+                                        location.replace('/install-handoff' + location.search);
+                                    } catch (saveError) {
+                                        deviceStatus('Could not save installed game: ' + saveError.message);
+                                    }
+                                } finally {
+                                    window.ekaCpuRecyclePending = false;
                                 }
-                            } else enableDeviceSaving();
+                            } else {
+                                enableDeviceSaving();
+                            }
                         }
                     }, 250);
                     if (disk) disk.installTimer = ngageTimer;

@@ -54,6 +54,7 @@ namespace eka2l1::arm::aot {
     void run_compiled_step(ARMul_State *cpu);
     void invalidate_ram_code(std::uint32_t address, std::size_t size);
     void retire_process_code(std::uint32_t address_space);
+    void discard_worker_compiled_code();
     void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32_t size, bool enabled);
     void observe_hot_pc(ARMul_State *cpu);
     // Loader notifications contain relocated entry points, never retained guest
