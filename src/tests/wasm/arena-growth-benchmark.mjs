@@ -10,6 +10,10 @@ const fullMemory=process.argv[5]==='full-memory';
 const persistentDisk=process.env.EKA2L1_BENCHMARK_PERSISTENT_DISK==='1';
 const freshLauncher=process.env.EKA2L1_BENCHMARK_FRESH_LAUNCHER==='1';
 const skipCpuRecycle=process.env.EKA2L1_BENCHMARK_SKIP_CPU_RECYCLE==='1';
+const recycleCache=process.env.EKA2L1_BENCHMARK_RECYCLE_CACHE==='1';
+const recycleCacheMiB=Number(process.env.EKA2L1_BENCHMARK_RECYCLE_CACHE_MIB || 4);
+const recycleCacheFunctions=Number(process.env.EKA2L1_BENCHMARK_RECYCLE_CACHE_FUNCTIONS || 20000);
+const repeatCpuRecycle=Number(process.env.EKA2L1_BENCHMARK_REPEAT_CPU_RECYCLE_FUNCTIONS || 0);
 if(freshLauncher&&!persistentDisk)throw Error('Fresh launcher requires persistent disk');
 
 const games=JSON.parse(fs.readFileSync(new URL('./games.json',import.meta.url)));
@@ -58,12 +62,16 @@ const guardedWait=async predicate=>{
  const timer=setInterval(()=>{if(errors.length)abort.abort(new Error(errors.join('\n')));},250);
  try{return await page.waitForFunction(predicate,{signal:abort.signal});}finally{clearInterval(timer);}
 };
-await page.evaluateOnNewDocument((transient,fresh,skipRecycle)=>{
+await page.evaluateOnNewDocument((transient,fresh,skipRecycle,cache,cacheMiB,cacheFunctions,repeatRecycle)=>{
  window.ekaTransientSession=transient;
  window.ekaForceFreshInstall=fresh;
  window.ekaBenchmarkSkipCpuRecycle=skipRecycle;
+ window.ekaRecycleCacheExperiment=cache;
+ window.ekaRecycleCacheMaxMiB=cacheMiB;
+ window.ekaRecycleCacheFunctionsPerWorker=cacheFunctions;
+ window.ekaBenchmarkRepeatCpuRecycle=repeatRecycle;
  if(fresh)window.ekaBenchmarkRouteUs=1000000000000;
-},!persistentDisk,freshLauncher,skipCpuRecycle);
+},!persistentDisk,freshLauncher,skipCpuRecycle,recycleCache,recycleCacheMiB,recycleCacheFunctions,repeatCpuRecycle);
 await page.goto(new URL('?game='+(freshLauncher?game:'custom'),process.argv[4]).href,{waitUntil:'domcontentloaded'});
 if(allocationProfile || fullMemory || process.env.EKA2L1_BROWSER_MEMORY==='1')browserMemoryTimer=setInterval(async()=>{
  try{const processes=await browserMemory();browserMemorySamples.push({ms:performance.now(),processes,pssKiB:processes.reduce((n,p)=>n+p.pssKiB,0)});}catch{}
@@ -151,7 +159,7 @@ const shot=async name=>{
  }
  return out+'/'+name+'.png';
 };
-status=()=>page.evaluate(()=>({ms:performance.now(),guest:Module._eka2l1_guest_time_us(),frames:Module._eka2l1_presentations(),phase:Module._eka2l1_route_phase(),wasmCapacity:HEAPU8.buffer.byteLength,diskScans:window.diskScans?.length||0,inputs:Module._eka2l1_input_consumed(),memory:JSON.parse(Module.ccall('eka2l1_memory_impl_stats','string',[],[])),policy:window.ekaCompilerPolicy,workerPool:typeof PThread==='undefined'?null:{running:PThread.runningWorkers.length,unused:PThread.unusedWorkers.length},monitor:JSON.parse(Module.ccall('eka2l1_monitor_report','string',[],[]))}));
+status=()=>page.evaluate(()=>({ms:performance.now(),guest:Module._eka2l1_guest_time_us(),frames:Module._eka2l1_presentations(),phase:Module._eka2l1_route_phase(),wasmCapacity:HEAPU8.buffer.byteLength,diskScans:window.diskScans?.length||0,inputs:Module._eka2l1_input_consumed(),memory:JSON.parse(Module.ccall('eka2l1_memory_impl_stats','string',[],[])),policy:window.ekaCompilerPolicy,workerPool:typeof PThread==='undefined'?null:{running:PThread.runningWorkers.length,unused:PThread.unusedWorkers.length},recycleCache:{state:window.ekaRecycleCacheStatus??null,stats:Array.from({length:10},(_,index)=>Module._eka2l1_recycle_cache_stat(index))},monitor:JSON.parse(Module.ccall('eka2l1_monitor_report','string',[],[]))}));
 const step=async(us)=>{const s=await status();assert.equal(s.phase,1);assert.equal(await page.evaluate(({target,long})=>long
  ? Module._eka2l1_route_step_to_64(target>>>0,Math.floor(target/4294967296))
  : Module._eka2l1_route_step_to(target),{target:s.guest+us,long:freshLauncher}),0);await guardedWait(()=>Module._eka2l1_route_phase()===1);return status()};
@@ -233,6 +241,20 @@ const measure=async(label,seconds=30)=>{
    top:files.sort((a,b)=>b.size-a.size).slice(0,60),errors};
  });
  report.romCache=await page.evaluate(()=>({staging:window.ekaRomCacheStatus??null,status:Module._eka2l1_rom_cache_status?.()??null}));
+ report.recycleCache=await page.evaluate(()=>{
+  const state=window.ekaRecycleCacheStatus??null;
+  let fileBytes=null;
+  if(state?.status==='active') {
+   try { fileBytes=FS.stat(state.path).size; } catch {}
+  }
+  return {state,fileBytes,
+   stats:Array.from({length:10},(_,index)=>Module._eka2l1_recycle_cache_stat(index))};
+ });
+ if(report.recycleCache.state?.status==='active') {
+  assert.ok(report.recycleCache.stats[0]<=report.recycleCache.state.limitMiB*1048576);
+  assert.equal(report.recycleCache.fileBytes,report.recycleCache.stats[0]);
+  assert.equal(report.recycleCache.stats[6],0);
+ }
  report.chromeMemoryProfiling=!!memoryProfiler;
  report.allocationProfiling=allocationProfile;
  report.preparedInstallation=!!installedImage;

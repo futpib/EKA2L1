@@ -112,6 +112,7 @@ namespace {
         unsigned ngage_early_recycle_limit = 0;
         unsigned ngage_early_recycle_polls = 0;
         bool ngage_early_recycled = false;
+        bool ngage_recycle_repeating = false;
         std::atomic<bool> benchmark_done{false};
         std::atomic<int> benchmark_captured{0};
         bool system_started = false;
@@ -278,6 +279,17 @@ int eka2l1_rom_cache_export(const char *path) {
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_rom_cache_status() { return arm::aot::rom_cache_status(); }
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_recycle_cache_configure(const char *path, unsigned max_bytes) {
+    if (g_state || !path) return -1;
+    return arm::aot::configure_recycle_cache(path, max_bytes) ? 0 : -1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+double eka2l1_recycle_cache_stat(unsigned index) {
+    return static_cast<double>(arm::aot::recycle_cache_stat(index));
+}
 
 // Also start the watchdog for clients that use the raw frontend API. Launchers
 // may already have started one with a custom interval before initialization.
@@ -649,12 +661,14 @@ int eka2l1_install_device(const char *rom_path, const char *rpkg_path, const cha
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_watch_ngage_installer(int early_recycle_limit) {
-    if (!ensure_system_started() || g_state->running || early_recycle_limit < 0) return -1;
+    if (!ensure_system_started() || g_state->running) return -1;
     auto *state = g_state;
     state->ngage_installation = -1;
-    state->ngage_early_recycle_limit = static_cast<unsigned>(early_recycle_limit);
+    state->ngage_early_recycle_limit = static_cast<unsigned>(early_recycle_limit < 0
+        ? -static_cast<std::int64_t>(early_recycle_limit) : early_recycle_limit);
     state->ngage_early_recycle_polls = 0;
     state->ngage_early_recycled = false;
+    state->ngage_recycle_repeating = arm::aot::recycle_cache_enabled() || early_recycle_limit < 0;
     state->symsys->get_kernel_system()->register_thread_kill_callback(
         [state](kernel::thread *target, const std::string &, std::int32_t reason) {
             if (state->running && target->name() == "N-Gage Installer")
@@ -670,11 +684,16 @@ int eka2l1_ngage_installation_status() {
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_ngage_early_recycle_due() {
+    if (g_state && g_state->ngage_recycle_repeating && arm::aot::recycle_cache_stat(6)) {
+        g_state->ngage_recycle_repeating = false;
+        g_state->ngage_early_recycled = true;
+    }
     if (!g_state || g_state->ngage_installation != -1 || !g_state->ngage_early_recycle_limit
-            || g_state->ngage_early_recycled || ++g_state->ngage_early_recycle_polls % 4)
+            || (!g_state->ngage_recycle_repeating && g_state->ngage_early_recycled)
+            || ++g_state->ngage_early_recycle_polls % 4)
         return 0;
     if (arm::aot::compiled_function_count() < g_state->ngage_early_recycle_limit) return 0;
-    g_state->ngage_early_recycled = true;
+    if (!g_state->ngage_recycle_repeating) g_state->ngage_early_recycled = true;
     return 1;
 }
 
@@ -1169,6 +1188,7 @@ void eka2l1_shutdown() {
         delete g_state;
         g_state = nullptr;
     }
+    arm::aot::clear_recycle_cache();
 }
 
 } // extern "C"

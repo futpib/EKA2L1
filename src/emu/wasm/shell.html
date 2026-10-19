@@ -422,6 +422,7 @@
 
                 // The runtime defaults to immutable executable bytes (mode 3).
                 await window.ekaRomCachePreparation;
+                if (ngagePackage) await EkaRecycleCache.prepare(Module);
                 // A launcher can select compatibility mode 0 before initialization.
                 window.ekaUnsafeCode = Module.ccall('eka2l1_unsafe_code_report', 'number', [], []);
                 if (![0,1,2,3].includes(window.ekaUnsafeCode))
@@ -535,7 +536,11 @@
                     }
                     if (disk) window.ekaPendingNgage = assetHash(ngagePackage);
                     if (Module.ccall('eka2l1_watch_ngage_installer', 'number', ['number'],
-                            [_selectedGame?.earlyRecycleFunctions || 0]) !== 0)
+                            [window.ekaBenchmarkRepeatCpuRecycle
+                                ? -window.ekaBenchmarkRepeatCpuRecycle
+                                : window.ekaRecycleCacheStatus?.status === 'active'
+                                ? window.ekaRecycleCacheStatus.functionsPerWorker
+                                : (_selectedGame?.earlyRecycleFunctions || 0)]) !== 0)
                         throw new Error('Could not track game installation');
                     ngageTimer = setInterval(async function() {
                         if (earlyRecycling) return;
@@ -639,6 +644,7 @@
     </script>
     <script src="preinstalled-image.js"></script>
     <script src="rom-cache.js"></script>
+    <script src="recycle-cache.js"></script>
     <script src="persistent-disk.js"></script>
     <script src="touch-controls.js"></script>
     <script>

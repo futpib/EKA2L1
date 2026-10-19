@@ -42,6 +42,7 @@
 #include <mutex>
 #include <unordered_set>
 #include <fstream>
+#include <cstdio>
 #include <xxhash.h>
 #include <zlib.h>
 
@@ -99,12 +100,87 @@ static std::atomic<bool> precompile_pending{false};
 static std::string rom_cache_path, rom_cache_build, rom_cache_export_path;
 static std::atomic<int> rom_cache_state{0};
 #ifdef __EMSCRIPTEN__
+// Keep only offsets and guest keys in WASM memory. Module bytes stay in OPFS
+// for this page's lifetime and are compiled again only after a Worker recycle.
+struct recycle_module {
+    std::uint64_t offset = 0;
+    std::uint32_t length = 0;
+    std::vector<std::uint32_t> keys;
+    std::uint64_t loaded_epoch = 0;
+};
+struct recycle_cache_state {
+    std::string path;
+    std::FILE *file = nullptr;
+    std::uint64_t max_bytes = 0, bytes = 0, epoch = 1;
+    std::uint64_t loads = 0, loaded_bytes = 0, skipped_bytes = 0, failures = 0;
+    std::uint64_t collected_modules = 0, collected_bytes = 0;
+    bool created = false, failed = false;
+    std::vector<recycle_module> modules;
+    std::unordered_map<std::uint32_t, std::size_t> by_key;
+};
+static recycle_cache_state recycle_cache;
+static std::array<std::atomic<std::uint64_t>, 10> recycle_stats{};
+static void publish_recycle_stats() {
+    const std::uint64_t values[]{recycle_cache.bytes, recycle_cache.modules.size(),
+        recycle_cache.by_key.size(), recycle_cache.loads, recycle_cache.loaded_bytes,
+        recycle_cache.skipped_bytes, recycle_cache.failures, recycle_cache.epoch,
+        recycle_cache.collected_modules, recycle_cache.collected_bytes};
+    for (unsigned i = 0; i < std::size(values); ++i)
+        recycle_stats[i].store(values[i], std::memory_order_relaxed);
+}
+static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
+    const std::string &dll_name, const std::vector<std::uintptr_t> *slots = nullptr);
+static bool try_recycle_cache(std::uint32_t key);
+static void store_recycle_module(const std::vector<std::uint8_t> &bytes,
+    const std::vector<std::uint32_t> &keys);
+static void collect_recycle_cache();
 static void release_retired_functions();
 static void merge_cold_modules();
 static void release_process_code();
 static bool load_rom_cache(const std::string &path);
 static bool export_rom_cache(const std::string &path);
 #endif
+
+bool configure_recycle_cache(const std::string &path, std::uint32_t max_bytes) {
+#ifdef __EMSCRIPTEN__
+    if (path.rfind("/opfs/eka2l1-aot-recycle/", 0) != 0 || path.size() > 200
+            || max_bytes < 1024 * 1024 || max_bytes > 256 * 1024 * 1024) return false;
+    clear_recycle_cache();
+    recycle_cache.path = path;
+    recycle_cache.max_bytes = max_bytes;
+    publish_recycle_stats();
+    return true;
+#else
+    return false;
+#endif
+}
+
+bool recycle_cache_enabled() {
+#ifdef __EMSCRIPTEN__
+    return !recycle_cache.path.empty() && !recycle_cache.failed;
+#else
+    return false;
+#endif
+}
+
+void clear_recycle_cache() {
+#ifdef __EMSCRIPTEN__
+    if (recycle_cache.file) std::fclose(recycle_cache.file);
+    if (!recycle_cache.path.empty()) std::remove(recycle_cache.path.c_str());
+    if (!recycle_cache.path.empty()) std::remove((recycle_cache.path + ".gc").c_str());
+    recycle_cache = {};
+    publish_recycle_stats();
+#endif
+}
+
+std::uint64_t recycle_cache_stat(unsigned index) {
+#ifdef __EMSCRIPTEN__
+    return index < recycle_stats.size()
+        ? recycle_stats[index].load(std::memory_order_relaxed) : 0;
+#else
+    return 0;
+#endif
+}
 
 bool configure_rom_cache(const std::string &path, const std::string &build_id) {
     if (build_id.size() != 64 || std::any_of(build_id.begin(), build_id.end(),
@@ -154,6 +230,10 @@ static void flush_hot_blocks() {
 }
 
 void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32_t size, bool enabled) {
+#ifdef __EMSCRIPTEN__
+    if (recycle_cache.bytes && hot_rom && (hot_rom != host || hot_rom_base != base || hot_rom_size != size))
+        clear_recycle_cache();
+#endif
     hot_rom = host; hot_rom_base = base; hot_rom_size = size;
     global_registry().configure_rom_index(base, size, true);
     hot_compilation_enabled = enabled;
@@ -406,6 +486,10 @@ static void compile_at(core &cpu, std::uint32_t key, std::vector<std::uint32_t> 
     if (global_registry().lookup(key)) return;
     if (!immediate && hot_compiled >= 4096) return;
     if (!hot_counts.ready(key, immediate)) return;
+    if (try_recycle_cache(key)) {
+        if (!immediate) ++hot_compiled;
+        return;
+    }
     const auto offset = pc - hot_rom_base;
     const auto size = std::min(primary_window_bytes, hot_rom_size - offset);
     const code_window immutable_code{hot_rom, hot_rom_base, hot_rom_size};
@@ -742,7 +826,7 @@ void stage_aot_module(
 }
 
 static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
-    const std::string &dll_name, const std::vector<std::uintptr_t> *slots = nullptr)
+    const std::string &dll_name, const std::vector<std::uintptr_t> *slots)
 {
     if (wasm_bytes.empty()) return 0;
     compilation_timer timer{compilation.installation_us};
@@ -775,6 +859,12 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
 
     int count = 0;
     std::vector<aot_func> rejected;
+    const bool cache_enabled = !recycle_cache.path.empty() && !recycle_cache.failed
+        && dll_name != "recycle-cache";
+    const bool cacheable = cache_enabled && recycle_cache.bytes + sizeof(std::uint64_t) * 2
+        + wasm_bytes.size() <= recycle_cache.max_bytes;
+    bool only_rom = cache_enabled;
+    std::vector<std::uint32_t> rom_keys;
     registry &reg = global_registry();
 
     std::size_t pos = 0;
@@ -793,6 +883,7 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
 
         // Parse address from "f_<decimal_addr>"
         if (name.substr(0, 2) == "r_" || name.substr(0, 2) == "s_") {
+            only_rom = false;
             const auto function = reinterpret_cast<aot_func>(table_idx);
             const auto version = static_cast<std::uint32_t>(std::stoul(name.substr(2)));
             auto &cache = name[0] == 'r' ? ram_cache : single_cache;
@@ -801,20 +892,158 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
             ++count;
             continue;
         }
-        if (name.substr(0, 2) != "f_") continue;
+        if (name.substr(0, 2) != "f_") { only_rom = false; continue; }
         std::uint32_t addr = static_cast<std::uint32_t>(std::stoul(name.substr(2)));
 
         // Convert table index to function pointer
         auto func = reinterpret_cast<aot_func>(table_idx);
         reg.register_function(addr, func);
+        if (cacheable) rom_keys.push_back(addr);
         count++;
 
     }
 
     completed_function_count.fetch_add(count, std::memory_order_relaxed);
     release_functions(rejected);
-    if (dll_name != "hot-rom" && dll_name != "rom-cache") LOG_INFO(CPU_DYNCOM, "AOT: instantiated {} functions for {}", count, dll_name);
+    if (only_rom && count > 0) {
+        if (cacheable) store_recycle_module(wasm_bytes, rom_keys);
+        else {
+            recycle_cache.skipped_bytes += sizeof(std::uint64_t) * 2 + wasm_bytes.size();
+            publish_recycle_stats();
+        }
+    }
+    if (dll_name != "hot-rom" && dll_name != "rom-cache" && dll_name != "recycle-cache")
+        LOG_INFO(CPU_DYNCOM, "AOT: instantiated {} functions for {}", count, dll_name);
     return count;
+}
+
+static std::FILE *open_recycle_file() {
+    if (recycle_cache.path.empty() || recycle_cache.failed) return nullptr;
+    if (recycle_cache.file) return recycle_cache.file;
+    recycle_cache.file = std::fopen(recycle_cache.path.c_str(), recycle_cache.created ? "r+b" : "w+b");
+    if (recycle_cache.file) recycle_cache.created = true;
+    else ++recycle_cache.failures;
+    return recycle_cache.file;
+}
+
+static void store_recycle_module(const std::vector<std::uint8_t> &bytes,
+    const std::vector<std::uint32_t> &keys) {
+    if (keys.empty() || recycle_cache.failed || recycle_cache.path.empty()) return;
+    const std::uint64_t record_size = sizeof(std::uint64_t) * 2 + bytes.size();
+    if (record_size > recycle_cache.max_bytes) {
+        recycle_cache.skipped_bytes += record_size;
+        publish_recycle_stats();
+        return;
+    }
+    if (recycle_cache.bytes + record_size > recycle_cache.max_bytes) {
+        recycle_cache.skipped_bytes += record_size;
+        publish_recycle_stats();
+        return;
+    }
+    auto *file = open_recycle_file();
+    const std::uint64_t header[]{bytes.size(), XXH64(bytes.data(), bytes.size(), 0)};
+    if (!file || std::fseek(file, static_cast<long>(recycle_cache.bytes), SEEK_SET)
+            || std::fwrite(header, sizeof(header), 1, file) != 1
+            || std::fwrite(bytes.data(), 1, bytes.size(), file) != bytes.size()) {
+        ++recycle_cache.failures;
+        recycle_cache.failed = true;
+        if (file) std::fclose(file);
+        recycle_cache.file = nullptr;
+        recycle_cache.modules.clear(); recycle_cache.by_key.clear();
+        publish_recycle_stats();
+        return;
+    }
+    const auto index = recycle_cache.modules.size();
+    recycle_cache.modules.push_back({recycle_cache.bytes, static_cast<std::uint32_t>(bytes.size()), keys,
+        recycle_cache.epoch});
+    for (const auto key : keys) recycle_cache.by_key[key] = index;
+    recycle_cache.bytes += record_size;
+    publish_recycle_stats();
+}
+
+static bool try_recycle_cache(std::uint32_t key) {
+    if (recycle_cache.path.empty() || recycle_cache.failed) return false;
+    const auto found = recycle_cache.by_key.find(key);
+    if (found == recycle_cache.by_key.end()) return false;
+    auto &module = recycle_cache.modules[found->second];
+    if (module.loaded_epoch == recycle_cache.epoch) return false;
+    auto *file = open_recycle_file();
+    std::uint64_t header[2]{};
+    std::vector<std::uint8_t> bytes(module.length);
+    if (!file || std::fseek(file, static_cast<long>(module.offset), SEEK_SET)
+            || std::fread(header, sizeof(header), 1, file) != 1
+            || header[0] != module.length || !module.length
+            || std::fread(bytes.data(), 1, bytes.size(), file) != bytes.size()
+            || XXH64(bytes.data(), bytes.size(), 0) != header[1]
+            || do_instantiate(bytes, "recycle-cache", nullptr) != static_cast<int>(module.keys.size())) {
+        ++recycle_cache.failures;
+        for (const auto member : module.keys) recycle_cache.by_key.erase(member);
+        publish_recycle_stats();
+        return false;
+    }
+    module.loaded_epoch = recycle_cache.epoch;
+    ++recycle_cache.loads;
+    recycle_cache.loaded_bytes += bytes.size();
+    publish_recycle_stats();
+    return global_registry().lookup(key) != nullptr;
+}
+
+static void collect_recycle_cache() {
+    if (recycle_cache.epoch == 1 || recycle_cache.failed || !recycle_cache.created) return;
+    // A module not requested by the retiring Worker is cold across one full
+    // generation. Copy recently requested records into a bounded new file.
+    std::vector<recycle_module> live;
+    for (const auto &module : recycle_cache.modules)
+        if (module.loaded_epoch == recycle_cache.epoch) live.push_back(module);
+    if (live.size() == recycle_cache.modules.size()) return;
+    const auto removed = recycle_cache.modules.size() - live.size();
+    const auto old_bytes = recycle_cache.bytes;
+    if (live.empty()) {
+        if (auto *file = std::fopen(recycle_cache.path.c_str(), "wb")) {
+            std::fclose(file);
+            recycle_cache.modules.clear(); recycle_cache.by_key.clear(); recycle_cache.bytes = 0;
+            recycle_cache.collected_modules += removed;
+            recycle_cache.collected_bytes += old_bytes;
+        } else ++recycle_cache.failures;
+        publish_recycle_stats();
+        return;
+    }
+    auto *source = std::fopen(recycle_cache.path.c_str(), "rb");
+    const auto target_path = recycle_cache.path + ".gc";
+    auto *target = source ? std::fopen(target_path.c_str(), "wb") : nullptr;
+    std::vector<std::uint8_t> chunk(256 * 1024);
+    std::uint64_t next = 0;
+    bool ok = source && target;
+    for (auto &module : live) {
+        if (!ok) break;
+        const auto length = sizeof(std::uint64_t) * 2 + module.length;
+        if (std::fseek(source, static_cast<long>(module.offset), SEEK_SET)) { ok = false; break; }
+        for (std::uint64_t left = length; left;) {
+            const auto amount = static_cast<std::size_t>(std::min<std::uint64_t>(left, chunk.size()));
+            if (std::fread(chunk.data(), 1, amount, source) != amount
+                    || std::fwrite(chunk.data(), 1, amount, target) != amount) { ok = false; break; }
+            left -= amount;
+        }
+        module.offset = next;
+        next += length;
+    }
+    if (source) std::fclose(source);
+    if (target && std::fclose(target)) ok = false;
+    if (ok) ok = std::rename(target_path.c_str(), recycle_cache.path.c_str()) == 0;
+    if (!ok) {
+        std::remove(target_path.c_str());
+        ++recycle_cache.failures;
+        publish_recycle_stats();
+        return;
+    }
+    recycle_cache.modules = std::move(live);
+    recycle_cache.by_key.clear();
+    for (std::size_t index = 0; index < recycle_cache.modules.size(); ++index)
+        for (const auto key : recycle_cache.modules[index].keys) recycle_cache.by_key[key] = index;
+    recycle_cache.bytes = next;
+    recycle_cache.collected_modules += removed;
+    recycle_cache.collected_bytes += old_bytes - next;
+    publish_recycle_stats();
 }
 
 static std::array<std::uint64_t, 9> rom_cache_header() {
@@ -979,6 +1208,16 @@ bool instantiate_staged_modules() {
 }
 
 void discard_worker_compiled_code() {
+    if (!recycle_cache.path.empty()) {
+        if (recycle_cache.file) std::fclose(recycle_cache.file);
+        recycle_cache.file = nullptr;
+        collect_recycle_cache();
+        LOG_INFO(CPU_DYNCOM, "AOT recycle cache: {} modules, {} ROM entries, {} file bytes, {} replayed modules, {} failures",
+            recycle_cache.modules.size(), recycle_cache.by_key.size(), recycle_cache.bytes,
+            recycle_cache.loads, recycle_cache.failures);
+        ++recycle_cache.epoch;
+        publish_recycle_stats();
+    }
     global_registry().clear();
     const auto *rom = hot_rom;
     const auto base = hot_rom_base, size = hot_rom_size;
