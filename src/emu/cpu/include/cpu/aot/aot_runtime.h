@@ -78,12 +78,6 @@ namespace eka2l1::arm::aot {
     bool request_rom_cache_export(const std::string &path);
     int rom_cache_status();
 
-    // Experimental, session-local ROM module cache on the OPFS backend.
-    bool configure_recycle_cache(const std::string &path, std::uint32_t max_bytes);
-    bool recycle_cache_enabled();
-    void clear_recycle_cache();
-    std::uint64_t recycle_cache_stat(unsigned index);
-
     // Stage WASM module bytes for deferred instantiation.
     // The actual WebAssembly.Instance + addFunction calls happen on the
     // first AOT lookup, which runs on the emulator worker thread where

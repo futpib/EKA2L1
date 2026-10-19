@@ -86,15 +86,6 @@ Direct links use `?game=sky-force`, `?game=snakes`, `?game=k-rally`, `?game=asph
 All browser execution uses the watchdog without instruction accounting.
 Legacy `counting` URL parameters are ignored and removed on Play.
 
-`?recycleCache=1` opts into a CPU Worker recycle experiment for fresh N-Gage
-installation. It keeps at most 4 MiB of immutable generated ROM module bytes
-in the active page-local OPFS file; compaction briefly uses a second file.
-It replays modules on demand after a Worker restart and collects records not
-requested by the retiring Worker. The installer recycles
-after each 20,000 compiled functions while the cache is healthy; the default
-launcher behavior is unchanged. The file is removed on normal shutdown or the
-next load of the tab. See the [measured memory and startup tradeoff](../benchmark/WORKER_RECYCLE_CACHE_RESULTS.md).
-
 The compiled-only browser CPU can also use derived ROM translations. After a
 successful game route, generate a cache with:
 
