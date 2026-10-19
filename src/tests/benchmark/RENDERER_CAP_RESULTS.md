@@ -330,3 +330,43 @@ under `/home/claude/.scratch/eka-tab-ram-1536-efa163-GAME/`. The same three
 games also OOMed at 1,536 MiB on the preceding `fa0634ef` WASM, but their
 peaks are not mixed into this build-matched ranking. No benchmark cgroups
 remained active after the runs.
+
+## Fresh installation below 1.5 GiB without unpaced FPS loss
+
+The next browser build (`eka2l1.wasm` SHA-256
+`5553463c4ef2b20d05208ecdf3f1bcc566c6ef383037cfaff2221172b208e8a7`)
+was built with `EKA2L1_AOT_SOURCE_MAPS=OFF` (the repository default) and
+`EKA2L1_WASM_CPP_SOURCE_MAPS=ON`, and uses 8 MiB linear-memory growth steps.
+Guest-source-map profiling can use a separate mapped build. Fresh N-Gage
+installation recycles the CPU worker when each game's configured
+compiled-function threshold is reached;
+Tetris and Hooked On also recycle during startup warmup. For Asphalt 3, the
+launcher releases only Emscripten workers that have returned to its unused
+pool during a 30-second startup window. The four running workers remain
+attached, and the cleanup timer ends before the measured race. The game-load
+CPU-worker recycle experiment was rejected after a same-binary Asphalt 3
+comparison measured 99.9 versus 107.0 FPS.
+
+Each capped run below forced a fresh installation in a new Chromium profile,
+used guest audio, a renderer-only 1,536 MiB cgroup, and zero swap. Every route
+reached its verified gameplay scene with `oom=0`, `oom_kill=0`, and
+`memory.max=0`.
+
+| # | Game | Prior unrestricted peak, MiB | New capped peak, MiB | Unpaced gameplay FPS |
+|---:|---|---:|---:|---:|
+| 1 | Tetris | 1717.3 | 1439.0 | 136.1 (host fell from 3.6 to 3.0 GHz) |
+| 2 | Asphalt 3 | 1716.6 | 1474.0 / 1468.1 | 120.4 at 3.6 GHz / 94.2 while host rose from 3.2 to 3.6 GHz |
+| 3 | Hooked On | 1637.1 | 1324.7 | 225.1 (host clock varied) |
+
+For a controlled Tetris throughput check, the saved pre-change build and the
+new build ran the same prepared-image unpaced route in alternating order at a
+fixed 3.0 GHz. Their FPS were 165.3/163.2 and 164.1/165.5 respectively.
+These prepared-image measurements isolate steady gameplay; the capped rows
+above provide the separate fresh-install acceptance evidence. Hooked On's new
+225.1 FPS lies within its earlier 220.7–289.9 FPS range. Asphalt 3's new
+steady-clock 120.4 FPS exceeds the 108.0 FPS no-startup-cleanup control at
+3.6 GHz. Across these checks there is no measured unpaced FPS loss.
+
+The corresponding raw runs are under `/home/claude/.scratch/eka-1536-integrated-`
+for each game and Asphalt 3 repeat, and
+`/home/claude/.scratch/eka-tetris-fixed3g-{control,integrated}-r{1,2}/`.

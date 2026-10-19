@@ -19,6 +19,10 @@ type GameAsset = { file: string; cid: string; sha256: string };
 const games = JSON.parse(fs.readFileSync(new URL('./games.json', import.meta.url), 'utf8')) as (GameAsset & {
   id: string; title: string; uid: string;
   earlyRecycleFunctions?: number;
+  earlyRecycleMax?: number;
+  warmupRecycleFunctions?: number;
+  warmupRecycleMax?: number;
+  trimIdleStartupMs?: number;
   ngage?: GameAsset & { runtime: GameAsset };
 })[];
 const gameAssets = new Map(games.flatMap(game => [game, ...(game.ngage
@@ -119,8 +123,12 @@ const tls = certPath && keyPath
   : undefined;
 const { port: resolvedPort } = await startServer(port, preloadFiles, undefined, {
   host, tls, compilerPolicy: policy, defaultGame,
-  games: games.map(({id, title, uid, ngage, earlyRecycleFunctions}) => ({id, title, uid,
+  games: games.map(({id, title, uid, ngage, earlyRecycleFunctions, earlyRecycleMax, warmupRecycleFunctions, warmupRecycleMax, trimIdleStartupMs}) => ({id, title, uid,
     ...(earlyRecycleFunctions ? {earlyRecycleFunctions} : {}),
+    ...(earlyRecycleMax ? {earlyRecycleMax} : {}),
+    ...(warmupRecycleFunctions ? {warmupRecycleFunctions} : {}),
+    ...(warmupRecycleMax ? {warmupRecycleMax} : {}),
+    ...(trimIdleStartupMs ? {trimIdleStartupMs} : {}),
     ...(installedImages.has(id) ? {image:installedImages.get(id)} : {}),
     ...(romCaches.has(id) ? {romCache:romCaches.get(id)} : {}),
     sis: '/preload/games/' + id + (ngage ? '/runtime' : ''),

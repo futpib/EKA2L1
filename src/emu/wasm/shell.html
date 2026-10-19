@@ -534,8 +534,11 @@
                         writeGuestFile(guestPackage, new Uint8Array(await packageResponse.arrayBuffer()));
                     }
                     if (disk) window.ekaPendingNgage = assetHash(ngagePackage);
-                    if (Module.ccall('eka2l1_watch_ngage_installer', 'number', ['number'],
-                            [_selectedGame?.earlyRecycleFunctions || 0]) !== 0)
+                    if (Module.ccall('eka2l1_watch_ngage_installer', 'number', ['number', 'number', 'number', 'number'],
+                            [_selectedGame?.earlyRecycleFunctions || 0,
+                             _selectedGame?.earlyRecycleMax || 1,
+                             _selectedGame?.warmupRecycleFunctions || 0,
+                             _selectedGame?.warmupRecycleMax || 1]) !== 0)
                         throw new Error('Could not track game installation');
                     ngageTimer = setInterval(async function() {
                         if (earlyRecycling) return;
@@ -579,8 +582,47 @@
                                 try {
                                     if (window.ekaBenchmarkRouteUs) Module._eka2l1_route_pause_here();
                                     if (!window.ekaBenchmarkSkipCpuRecycle) await recycleCpuWorker();
+                                    window.ekaCpuRecyclePending = false;
                                     enableDeviceSaving();
                                     setRunningStatus(_selectedGame.title);
+                                    if (_selectedGame.trimIdleStartupMs && !window.ekaBenchmarkSkipCpuRecycle) {
+                                        var trimIdleWorkers = function() {
+                                            if (window.ekaCpuRecyclePending) return;
+                                            var count = Module._eka2l1_release_unused_workers();
+                                            if (count) console.info('[n-gage] released idle workers', count);
+                                        };
+                                        trimIdleWorkers();
+                                        var trimTimer = setInterval(trimIdleWorkers, 250);
+                                        setTimeout(() => clearInterval(trimTimer), _selectedGame.trimIdleStartupMs);
+                                    }
+                                    if (_selectedGame.warmupRecycleFunctions && !window.ekaBenchmarkSkipCpuRecycle) {
+                                        var warmupDeadline = performance.now() + 90000;
+                                        var warmupRecycles = 0;
+                                        var warmupTimer = setInterval(async function() {
+                                            if (earlyRecycling || window.ekaCpuRecyclePending) return;
+                                            if (performance.now() > warmupDeadline) {
+                                                clearInterval(warmupTimer);
+                                                return;
+                                            }
+                                            if (Module._eka2l1_route_phase() === 1) return;
+                                            if (!Module._eka2l1_ngage_warmup_recycle_due()) return;
+                                            earlyRecycling = true;
+                                            window.ekaCpuRecyclePending = true;
+                                            try {
+                                                await recycleCpuWorker();
+                                                console.info('[n-gage] startup CPU worker recycle', warmupRecycles + 1);
+                                                if (++warmupRecycles >= (_selectedGame.warmupRecycleMax || 1))
+                                                    clearInterval(warmupTimer);
+                                            } catch (error) {
+                                                clearInterval(warmupTimer);
+                                                deviceStatus('CPU worker recycle failed: ' + error.message);
+                                            }
+                                            finally {
+                                                earlyRecycling = false;
+                                                window.ekaCpuRecyclePending = false;
+                                            }
+                                        }, 250);
+                                    }
                                 } catch (error) {
                                     deviceStatus('Could not resume game: ' + error.message);
                                     try {

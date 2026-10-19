@@ -111,7 +111,11 @@ namespace {
         std::atomic<int> ngage_installation{0};
         unsigned ngage_early_recycle_limit = 0;
         unsigned ngage_early_recycle_polls = 0;
-        bool ngage_early_recycled = false;
+        unsigned ngage_early_recycle_max = 0;
+        unsigned ngage_early_recycle_count = 0;
+        unsigned ngage_warmup_recycle_limit = 0;
+        unsigned ngage_warmup_recycle_max = 0;
+        unsigned ngage_warmup_recycle_count = 0;
         std::atomic<bool> benchmark_done{false};
         std::atomic<int> benchmark_captured{0};
         bool system_started = false;
@@ -232,6 +236,12 @@ EM_JS(int, release_cpu_worker, (), {
         Module.ekaCpuRecycleWorker = null;
         return 1;
     } catch (error) { return -2; }
+});
+
+EM_JS(int, release_unused_workers, (), {
+    const workers = PThread.unusedWorkers.splice(0);
+    for (const worker of workers) terminateWorker(worker);
+    return workers.length;
 });
 
 EM_JS(void, stop_workers_for_reload, (), {
@@ -648,19 +658,30 @@ int eka2l1_install_device(const char *rom_path, const char *rpkg_path, const cha
 }
 
 EMSCRIPTEN_KEEPALIVE
-int eka2l1_watch_ngage_installer(int early_recycle_limit) {
-    if (!ensure_system_started() || g_state->running || early_recycle_limit < 0) return -1;
+int eka2l1_watch_ngage_installer(int early_recycle_limit, int early_recycle_max,
+        int warmup_recycle_limit, int warmup_recycle_max) {
+    if (!ensure_system_started() || g_state->running || early_recycle_limit < 0 || early_recycle_max < 0
+            || warmup_recycle_limit < 0 || warmup_recycle_max < 0) return -1;
     auto *state = g_state;
     state->ngage_installation = -1;
     state->ngage_early_recycle_limit = static_cast<unsigned>(early_recycle_limit);
     state->ngage_early_recycle_polls = 0;
-    state->ngage_early_recycled = false;
+    state->ngage_early_recycle_max = static_cast<unsigned>(early_recycle_max);
+    state->ngage_early_recycle_count = 0;
+    state->ngage_warmup_recycle_limit = static_cast<unsigned>(warmup_recycle_limit);
+    state->ngage_warmup_recycle_max = static_cast<unsigned>(warmup_recycle_max);
+    state->ngage_warmup_recycle_count = 0;
     state->symsys->get_kernel_system()->register_thread_kill_callback(
         [state](kernel::thread *target, const std::string &, std::int32_t reason) {
             if (state->running && target->name() == "N-Gage Installer")
                 state->ngage_installation = reason == 0 && target->get_exit_type() != kernel::entity_exit_type::panic ? 1 : -2;
         });
     return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_release_unused_workers() {
+    return release_unused_workers();
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -671,10 +692,22 @@ int eka2l1_ngage_installation_status() {
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_ngage_early_recycle_due() {
     if (!g_state || g_state->ngage_installation != -1 || !g_state->ngage_early_recycle_limit
-            || g_state->ngage_early_recycled || ++g_state->ngage_early_recycle_polls % 4)
+            || g_state->ngage_early_recycle_count >= g_state->ngage_early_recycle_max
+            || ++g_state->ngage_early_recycle_polls % 4)
         return 0;
     if (arm::aot::compiled_function_count() < g_state->ngage_early_recycle_limit) return 0;
-    g_state->ngage_early_recycled = true;
+    ++g_state->ngage_early_recycle_count;
+    return 1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_ngage_warmup_recycle_due() {
+    if (!g_state || g_state->ngage_installation != 1 || !g_state->ngage_warmup_recycle_limit
+            || g_state->ngage_warmup_recycle_count >= g_state->ngage_warmup_recycle_max
+            || ++g_state->ngage_early_recycle_polls % 4)
+        return 0;
+    if (arm::aot::compiled_function_count() < g_state->ngage_warmup_recycle_limit) return 0;
+    ++g_state->ngage_warmup_recycle_count;
     return 1;
 }
 
