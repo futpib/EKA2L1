@@ -299,3 +299,34 @@ The live `.lan` service served those exact hashes. A forced fresh Tetris install
 on the released build completed with one page navigation, two installed
 entries, an active save timer, and the Running status after CPU worker recycle;
 the browser reported no page errors.
+
+## 1.5 GiB target on the later live build
+
+On 2026-10-19, `.lan` served WASM SHA-256
+`efa1637fadf33a9bd6ff09eb2bb3a705870008a3110a998a07c012ccbee0be69`.
+The renderer-only cap was lowered to exactly 1,536 MiB, with swap disabled.
+The three games that had dominated earlier measurements were run through the
+forced fresh-install launcher in a new Chromium profile each time. A separate
+4,096 MiB run of each game reached its verified gameplay scene without hitting
+that higher cap; a 1,536 MiB run then checked the actual kernel outcome.
+
+| # | Game | 4,096 MiB control peak (MiB) | 1,536 MiB result |
+|---:|---|---:|---|
+| 1 | Tetris | 1717.3 | Kernel OOM before gameplay |
+| 2 | Asphalt 3 | 1716.6 | Kernel OOM before gameplay |
+| 3 | Hooked On | 1637.1 | Kernel OOM before gameplay |
+
+Tetris exceeded Asphalt 3 by only 0.7 MiB in these single cold runs. That is
+too small to establish a stable order; both are the leading memory workloads
+in this checked set. Hooked On was 79.5 MiB below Asphalt 3. The five games
+that were much lighter on the previous build were not rerun on this binary.
+Every capped run had `memory.events.oom_kill=1`; the 1,536 MiB peak is censored
+by the cap and is not an estimate of unrestricted demand. The cgroup includes
+the test browser's renderer processes, not its browser and GPU processes.
+
+The matched controls are under
+`/home/claude/.scratch/eka-tab-ram-rank-efa163-GAME/`, and the capped runs
+under `/home/claude/.scratch/eka-tab-ram-1536-efa163-GAME/`. The same three
+games also OOMed at 1,536 MiB on the preceding `fa0634ef` WASM, but their
+peaks are not mixed into this build-matched ranking. No benchmark cgroups
+remained active after the runs.

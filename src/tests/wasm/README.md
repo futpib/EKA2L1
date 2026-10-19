@@ -390,17 +390,19 @@ For a hard memory pass/fail target on the game tab's renderer processes, run
 the same persistent-device gameplay route under a renderer-only cgroup:
 
 ```sh
-node src/tests/wasm/renderer-memory-limit.mjs asphalt-3 1843 /absolute/path/new-budget-run https://claude-laptop.lan:8188/
+node src/tests/wasm/renderer-memory-limit.mjs asphalt-3 1536 /absolute/path/new-budget-run https://claude-laptop.lan:8188/
 ```
 
-The 1.8 GiB target is rounded down to 1843 MiB. To measure the complete
-fresh-install path, including the browser launcher's two install handoffs,
+The current target is 1.5 GiB (1536 MiB). The three historically heaviest
+fresh-install game routes still OOM at this cap; see
+`src/tests/benchmark/RENDERER_CAP_RESULTS.md`. To measure the complete
+fresh-install path, including the browser launcher's CPU Worker recycling,
 use a fresh profile and force source installation even when a prepared image
 is available:
 
 ```sh
 EKA2L1_BENCHMARK_PERSISTENT_DISK=1 EKA2L1_BENCHMARK_FRESH_LAUNCHER=1 \
-  node src/tests/wasm/renderer-memory-limit.mjs asphalt-3 1843 /absolute/path/new-fresh-run https://claude-laptop.lan:8188/
+  node src/tests/wasm/renderer-memory-limit.mjs asphalt-3 1536 /absolute/path/new-fresh-run https://claude-laptop.lan:8188/
 ```
 
 See `src/tests/benchmark/RENDERER_CAP_RESULTS.md` for the measured fresh and
