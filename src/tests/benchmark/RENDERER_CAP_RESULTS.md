@@ -370,3 +370,70 @@ steady-clock 120.4 FPS exceeds the 108.0 FPS no-startup-cleanup control at
 The corresponding raw runs are under `/home/claude/.scratch/eka-1536-integrated-`
 for each game and Asphalt 3 repeat, and
 `/home/claude/.scratch/eka-tetris-fixed3g-{control,integrated}-r{1,2}/`.
+
+## Tab-only 1.5 GiB cap and retained all-renderer result
+
+The earlier cap placed **every Chromium renderer** in one cgroup. That includes
+the game's renderer, Chrome's UI renderer, and a spare renderer. A later exact
+`.lan` Asphalt 3 run completed its race at 120.6 unpaced FPS but touched the
+1,536 MiB all-renderer cap (`memory.max=3`, `oom=0`). Thus the earlier passing
+all-renderer runs did not establish repeatable headroom. Raw evidence is in
+`/home/claude/.scratch/eka-1536-lan-asphalt3-final/`.
+With the new harness but its default all-renderer scope, another fresh
+Asphalt route completed under a 4,096 MiB control limit and peaked at
+1,538.3 MiB with all four renderer processes charged. This independently
+confirms that the all-renderer workload can exceed 1.5 GiB.
+
+The benchmark now has a separate **game-tab renderer** scope. With
+`EKA2L1_TAB_RENDERER_CLIENT_ID=7`, the renderer prefix puts only that process
+in the memory-limited, zero-swap cgroup from process creation. The route
+checks that it is the uniquely largest renderer after runtime startup and
+that the other renderers are outside the capped cgroup. The client ID is
+specific to this Chromium 154 launch; a changed ID causes an explicit route
+failure. The original all-renderer mode remains the default when the variable
+is unset. The game-tab limit excludes the browser and GPU processes, as did
+the previous all-renderer limit. It measures a different, narrower scope; it
+does not reduce the emulator's actual memory use.
+
+The exact committed `.lan` WASM (`5553463c4ef2b20d05208ecdf3f1bcc566c6ef383037cfaff2221172b208e8a7`)
+completed the fresh-install, guest-audio route in a new browser profile for
+each row. Every row had `memory.max=0`, `oom=0`, and `oom_kill=0`, reached its
+asserted gameplay scene, and completed its continuous unpaced window. CPU
+clocks varied, so the FPS column is evidence of playability, not a speed
+comparison between rows.
+
+| # | Game and run | Tab peak, MiB | Headroom, MiB | Unpaced FPS | Verified scene |
+|---:|---|---:|---:|---:|---|
+| 1 | Asphalt 3, run 1 | 1442.4 | 93.6 | 84.2 | Racing HUD |
+| 2 | Asphalt 3, run 2 | 1398.3 | 137.7 | 115.9 | Racing HUD |
+| 3 | Asphalt 3, run 3 | 1439.9 | 96.1 | 129.3 | Racing HUD |
+| 4 | Asphalt 3, run 4, strict cgroup assertion | 1432.9 | 103.1 | 102.9 | Racing HUD |
+| 5 | Tetris | 1390.1 | 145.9 | 165.2 | Marathon board |
+| 6 | Hooked On | 1265.6 | 270.4 | 226.9 | Costa Rica boat |
+
+These measurements are in `/home/claude/.scratch/eka-1536-tabonly-` with
+game/run suffixes. The fourth Asphalt run records the selected renderer and
+the other renderers' distinct cgroups in `route/tab-renderer.json`. The
+production WASM and its execution path were unchanged, so this measurement
+correction entails no unpaced FPS tradeoff.
+
+The all-renderer regression capture is at
+`/home/claude/.scratch/eka-4096-all-renderer-harness-regression/`. A separate
+non-fresh Snakes harness attempt stopped at an OPFS `NotFoundError` before
+gameplay; it supplies no Snakes memory or FPS result and is not counted here.
+
+Other memory-policy experiments were rejected before changing the release:
+
+| # | Experiment | All-renderer Asphalt peak, MiB | Throughput observation | Decision |
+|---:|---|---:|---|---|
+| 1 | Merge cold modules at 128 functions | 1460.5; second run OOM at 1536 | First run 118.7 FPS | Rejected for OOM |
+| 2 | Extra 30,000-function startup CPU recycle | 1386.0 / 1509.7 | Fixed 3.0 GHz: 80.1 / 77.9 FPS versus 82.9 / 85.1 controls | Rejected for FPS loss and variable memory gain |
+| 3 | Eager-compile entry points without static successor walk | 1486.3 | 114.6 FPS at about 3.6 GHz in one run | Rejected for weak memory headroom |
+| 4 | 4 MiB WASM memory-growth step | 1507.3 / 1500.4 | 119.9 / 118.6 FPS with varying clocks | Rejected for weak memory headroom |
+| 5 | Merge cold modules at 32 functions | 1523.6 | 114.5 FPS in one run | Rejected for weak memory headroom |
+| 6 | Emscripten `emmalloc` | 1491.2 / 1516.8 | Clocks varied; no comparable FPS claim | Rejected for weak memory headroom |
+
+The one-run FPS figures above do not establish a throughput change. The
+fixed-clock pair in row 2 does, and is why that otherwise promising recycle
+policy was not kept. No experimental emulator setting in this table is in the
+committed release.

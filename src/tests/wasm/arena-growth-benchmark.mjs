@@ -69,6 +69,25 @@ if(allocationProfile || fullMemory || process.env.EKA2L1_BROWSER_MEMORY==='1')br
  try{const processes=await browserMemory();browserMemorySamples.push({ms:performance.now(),processes,pssKiB:processes.reduce((n,p)=>n+p.pssKiB,0)});}catch{}
 },1000);
 await guardedWait(()=>window.Module?.calledRun);
+if(process.env.EKA2L1_TAB_RENDERER_CLIENT_ID){
+ const renderers=(await browserMemory()).filter(proc=>proc.type==='renderer')
+  .sort((a,b)=>b.pssKiB-a.pssKiB);
+ const clientId=process.env.EKA2L1_TAB_RENDERER_CLIENT_ID;
+ const candidates=renderers.map(proc=>{
+  try{return {...proc,clientId:fs.readFileSync(`/proc/${proc.id}/cmdline`,'utf8')
+   .match(/--renderer-client-id=(\d+)/)?.[1],
+   cgroup:fs.readFileSync(`/proc/${proc.id}/cgroup`,'utf8').trim()};}catch{return proc;}
+ });
+ fs.writeFileSync(out+'/tab-renderer-candidates.json',JSON.stringify(candidates,null,2));
+ const selected=candidates.find(proc=>proc.clientId===clientId);
+ const limitedGroup=process.env.EKA2L1_RENDERER_CGROUP.slice('/sys/fs/cgroup'.length);
+ assert(selected && selected.id===renderers[0]?.id &&
+  selected.pssKiB-(renderers[1]?.pssKiB??0)>64*1024,
+  'Capped renderer must be the unique game-tab renderer');
+ assert(candidates.every(proc=>proc.cgroup?.includes(limitedGroup)===(proc.id===selected.id)),
+  'The limited cgroup must contain only the game-tab renderer');
+ fs.writeFileSync(out+'/tab-renderer.json',JSON.stringify({clientId,pid:selected.id,renderers:candidates},null,2));
+}
 if(memoryProfiler && profileAfterRuntime)await memoryProfiler.start();
 if(!freshLauncher)assert.equal(await page.evaluate(t=>Module._eka2l1_route_configure(t),6000000),0);
 let installedImage;
