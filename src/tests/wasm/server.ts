@@ -67,6 +67,7 @@ export type CompilerPolicy = { watchdogUs?: number; unsafeCode?: number; memoryI
 
 export type LauncherGame = {
   id: string; title: string; uid: string; sis: string; ngage?: string;
+  earlyRecycleFunctions?: number;
   image?: { url: string; game: string; sources: Record<string, string> };
   romCache?: RomCache;
 };

@@ -75,7 +75,7 @@ target_link_options(eka2l1_wasm PRIVATE
     "SHELL:-s OFFSCREENCANVAS_SUPPORT=1"
     "SHELL:-s OFFSCREENCANVASES_TO_PTHREAD='\"\"'"
     "SHELL:-s EXPORTED_RUNTIME_METHODS=['ccall','cwrap','addFunction','removeFunction']"
-    "SHELL:-s EXPORTED_FUNCTIONS=['_main','_eka2l1_init','_eka2l1_install_device','_eka2l1_install_sis','_eka2l1_run','_eka2l1_shutdown','_eka2l1_request_cpu_recycle','_eka2l1_cpu_recycle_ready','_eka2l1_join_cpu_recycle','_eka2l1_resume_cpu_recycle','_eka2l1_route_configure_64','_eka2l1_route_pause_here','_eka2l1_route_step_to_64','_eka2l1_press_key','_eka2l1_get_distinct_colors','_eka2l1_start_frame_dump','_eka2l1_frame_dump_done','_eka2l1_frame_dump_captured','_aot_tlb_read32','_aot_tlb_write32','_aot_tlb_read8','_malloc','_free']"
+    "SHELL:-s EXPORTED_FUNCTIONS=['_main','_eka2l1_init','_eka2l1_install_device','_eka2l1_install_sis','_eka2l1_run','_eka2l1_shutdown','_eka2l1_ngage_early_recycle_due','_eka2l1_begin_cpu_recycle','_eka2l1_poll_cpu_recycle','_eka2l1_stop_workers_for_reload','_eka2l1_route_configure_64','_eka2l1_route_pause_here','_eka2l1_route_step_to_64','_eka2l1_press_key','_eka2l1_get_distinct_colors','_eka2l1_start_frame_dump','_eka2l1_frame_dump_done','_eka2l1_frame_dump_captured','_aot_tlb_read32','_aot_tlb_write32','_aot_tlb_read8','_malloc','_free']"
     "SHELL:-s ALLOW_TABLE_GROWTH=1"
     "SHELL:-s FORCE_FILESYSTEM=1"
     # Keep libc file operations on their calling worker instead of proxying

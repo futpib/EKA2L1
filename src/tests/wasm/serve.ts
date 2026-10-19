@@ -18,6 +18,7 @@ const RPKG_CID = "bafybeihjy4vjxb5cy7zxca4kedg5ncxf5xrbj5basirfefemqwru73aipu";
 type GameAsset = { file: string; cid: string; sha256: string };
 const games = JSON.parse(fs.readFileSync(new URL('./games.json', import.meta.url), 'utf8')) as (GameAsset & {
   id: string; title: string; uid: string;
+  earlyRecycleFunctions?: number;
   ngage?: GameAsset & { runtime: GameAsset };
 })[];
 const gameAssets = new Map(games.flatMap(game => [game, ...(game.ngage
@@ -118,7 +119,8 @@ const tls = certPath && keyPath
   : undefined;
 const { port: resolvedPort } = await startServer(port, preloadFiles, undefined, {
   host, tls, compilerPolicy: policy, defaultGame,
-  games: games.map(({id, title, uid, ngage}) => ({id, title, uid,
+  games: games.map(({id, title, uid, ngage, earlyRecycleFunctions}) => ({id, title, uid,
+    ...(earlyRecycleFunctions ? {earlyRecycleFunctions} : {}),
     ...(installedImages.has(id) ? {image:installedImages.get(id)} : {}),
     ...(romCaches.has(id) ? {romCache:romCaches.get(id)} : {}),
     sis: '/preload/games/' + id + (ngage ? '/runtime' : ''),

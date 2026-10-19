@@ -46,6 +46,7 @@
   {
     "id": "hooked-on",
     "title": "Hooked On: Creatures of the Deep",
+    "earlyRecycleFunctions": 50000,
     "uid": "0x20003b78",
     "file": "Hooked-On-0.74-BiNPDA.sis",
     "cid": "bafybeig3pdphcadg6mem3one5bcwx63bsledu2avtzfj7vsfrsq5vip26i",
