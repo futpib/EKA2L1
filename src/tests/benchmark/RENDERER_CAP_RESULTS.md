@@ -467,3 +467,62 @@ The new raw runs are under
 `/home/claude/.scratch/eka-tab-ram-1536-555346-tetris-r{2,3}/`.
 The preceding section lists the other uncensored tab-only captures. No
 benchmark cgroups remained active after the runs.
+
+## 1,331 MiB follow-up: bounded generated-code lifetime
+
+An uncapped Asphalt 3 fresh-install profile placed the game renderer at
+1,291.8 MiB PSS at the language screen and 1,394.7 MiB at race start. At the
+race, WASM backing accounted for 446.6 MiB PSS, Chromium PartitionAlloc
+mappings for 489.0 MiB, V8 executable mappings for 273.4 MiB, and other V8
+sandbox mappings for 82.8 MiB. Between these scenes, PartitionAlloc grew by
+59.2 MiB and V8 executable mappings by 24.3 MiB. A build-ID-matched native
+allocation profile attributed still-live sampled estimates of 170.7 MiB to
+`GetAndCopyFirstArgumentAsBytes` during generated-module creation, 49.9 MiB
+to `WasmCode`, and 31.1 MiB to trap-handler data. Sampled allocations are
+**not additive** to the PSS mapping totals. The phase and native profiles are
+under `/home/claude/.scratch/eka-1331-asphalt-{phase,native}-profile/`.
+
+The no-recycle prepared Asphalt control compiled 113,808 functions and peaked
+at 1,691.7 MiB. Limiting the compiler's static-successor walk from 16 to four
+compiled 93,351 functions and peaked at 1,656.8 MiB on a matched build. This
+alone did not meet the cap. CPU-worker recycling also retires V8's generated
+code mappings. The selected policy recycles Asphalt's prepared worker after
+four 25,000-function intervals and then up to three 15,000-function intervals.
+Fresh Asphalt installation uses up to three 20,000-function post-install
+recycles. Prepared Tetris and Hooked On use 15,000-function intervals; Tetris
+fresh installation uses up to two 30,000-function post-install recycles.
+Hooked On's fresh-install policy is unchanged. The final tested WASM SHA-256
+is `7a0400e2134c8ecc0174eefc71e09eb1b482b836aa1213d513f7721eeaac5ca8`.
+
+Each capped run used Chromium 154, a fresh browser profile, guest audio, zero
+swap, and one verified game-tab renderer in a 1,331 MiB cgroup. All passing
+runs recorded zero `memory.events.max`, `oom`, and `oom_kill` events.
+Prepared Tetris explicitly accepted the trial prompt and verified the
+playable Marathon board; an earlier menu-only result was rejected. Prepared
+Asphalt ran an additional 60 million guest microseconds before its FPS window.
+
+| # | Route and game | Tab peaks, MiB | Minimum headroom, MiB | Verified scene |
+|---:|---|---|---:|---|
+| 1 | Fresh install, Asphalt 3 | 1198.3, 1218.3 | 112.7 | Racing HUD |
+| 2 | Prepared install, Asphalt 3 | 1207.2, 1168.7 | 123.8 | Extended race |
+| 3 | Fresh install, Tetris | 1257.5 | 73.5 | Marathon board |
+| 4 | Prepared install, Tetris | 1148.2 | 182.8 | Marathon board |
+| 5 | Fresh install, Hooked On | 1272.0, 1303.5 | 27.5 | Costa Rica boat |
+| 6 | Prepared install, Hooked On | 1219.7 | 111.3 | Costa Rica boat |
+
+The matched-binary fixed 3.0 GHz Asphalt prepared panel measured 101.53 FPS
+with recycling versus 104.55 FPS without it, averaged across two five-second
+late-race windows. Race entry took 96.7 versus 52.7 seconds. Thus the
+1,331 MiB result carries a measured 2.9% unpaced-FPS cost and roughly
+44 seconds of extra prepared startup at this clock, and the Hooked On cold
+route still has only 27.5 MiB of demonstrated worst-case headroom. Fresh-route
+FPS samples were taken at varying clocks and cannot establish a throughput
+change. The five historically lighter games were not rerun at this cap.
+
+Final capped evidence is under
+`/home/claude/.scratch/eka-1331-successor4-{asphalt-fresh-20k3*,tetris-*,hooked-*}/`
+and `/home/claude/.scratch/eka-1331-asphalt-prepared-4successor-max7*/`.
+The fixed-clock pair is under
+`/home/claude/.scratch/eka-1331-asphalt-3-prepared-fixed-{candidate,control}-max7-{1,2}/`.
+The AOT WASM suite passed 197 tests and the browser suite passed with the
+system Chromium executable.

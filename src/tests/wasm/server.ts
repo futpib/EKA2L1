@@ -71,6 +71,10 @@ export type LauncherGame = {
   earlyRecycleMax?: number;
   warmupRecycleFunctions?: number;
   warmupRecycleMax?: number;
+  preparedRecycleFunctions?: number;
+  preparedRecycleEarlyFunctions?: number;
+  preparedRecycleEarlyMax?: number;
+  preparedRecycleMax?: number;
   trimIdleStartupMs?: number;
   image?: { url: string; game: string; sources: Record<string, string> };
   romCache?: RomCache;

@@ -9,8 +9,11 @@ const game=process.argv[2], out=process.argv[3];
 const fullMemory=process.argv[5]==='full-memory';
 const persistentDisk=process.env.EKA2L1_BENCHMARK_PERSISTENT_DISK==='1';
 const freshLauncher=process.env.EKA2L1_BENCHMARK_FRESH_LAUNCHER==='1';
+const preparedLauncher=process.env.EKA2L1_BENCHMARK_PREPARED_LAUNCHER==='1';
 const skipCpuRecycle=process.env.EKA2L1_BENCHMARK_SKIP_CPU_RECYCLE==='1';
 if(freshLauncher&&!persistentDisk)throw Error('Fresh launcher requires persistent disk');
+if(preparedLauncher&&(!persistentDisk||freshLauncher||process.env.EKA2L1_BENCHMARK_PREPARED!=='1'))
+ throw Error('Prepared launcher requires persistent disk and a prepared image');
 
 const games=JSON.parse(fs.readFileSync(new URL('./games.json',import.meta.url)));
 const entry=games.find(g=>g.id===game);
@@ -58,13 +61,14 @@ const guardedWait=async predicate=>{
  const timer=setInterval(()=>{if(errors.length)abort.abort(new Error(errors.join('\n')));},250);
  try{return await page.waitForFunction(predicate,{signal:abort.signal});}finally{clearInterval(timer);}
 };
-await page.evaluateOnNewDocument((transient,fresh,skipRecycle)=>{
+await page.evaluateOnNewDocument((transient,fresh,prepared,skipRecycle)=>{
  window.ekaTransientSession=transient;
  window.ekaForceFreshInstall=fresh;
  window.ekaBenchmarkSkipCpuRecycle=skipRecycle;
  if(fresh)window.ekaBenchmarkRouteUs=1000000000000;
-},!persistentDisk,freshLauncher,skipCpuRecycle);
-await page.goto(new URL('?game='+(freshLauncher?game:'custom'),process.argv[4]).href,{waitUntil:'domcontentloaded'});
+ if(prepared)window.ekaBenchmarkRouteUs=6000000;
+},!persistentDisk,freshLauncher,preparedLauncher,skipCpuRecycle);
+await page.goto(new URL('?game='+(freshLauncher||preparedLauncher?game:'custom'),process.argv[4]).href,{waitUntil:'domcontentloaded'});
 if(allocationProfile || fullMemory || process.env.EKA2L1_BROWSER_MEMORY==='1')browserMemoryTimer=setInterval(async()=>{
  try{const processes=await browserMemory();browserMemorySamples.push({ms:performance.now(),processes,pssKiB:processes.reduce((n,p)=>n+p.pssKiB,0)});}catch{}
 },1000);
@@ -89,21 +93,26 @@ if(process.env.EKA2L1_TAB_RENDERER_CLIENT_ID){
  fs.writeFileSync(out+'/tab-renderer.json',JSON.stringify({clientId,pid:selected.id,renderers:candidates},null,2));
 }
 if(memoryProfiler && profileAfterRuntime)await memoryProfiler.start();
-if(!freshLauncher)assert.equal(await page.evaluate(t=>Module._eka2l1_route_configure(t),6000000),0);
+if(!freshLauncher&&!preparedLauncher)assert.equal(await page.evaluate(t=>Module._eka2l1_route_configure(t),6000000),0);
 let installedImage;
 const html=await page.evaluate(async()=>await(await fetch('/')).text());
 const launch=html.match(/<script>configureGameLauncher\((\[.*\]), [^;]+\);<\/script>/);
 assert(launch,'Missing launcher configuration');
 const launchGame=JSON.parse(launch[1]).find(g=>g.id===game);
 if(process.env.EKA2L1_ROM_CACHE_CAPTURE==='1')await configureRomCacheCapture(page);
-else if(launchGame?.romCache)await page.evaluate(cache=>EkaRomCache.prepare(cache),launchGame.romCache);
+else if(!preparedLauncher&&launchGame?.romCache)await page.evaluate(cache=>EkaRomCache.prepare(cache),launchGame.romCache);
 if(freshLauncher) {
  assert.equal(process.env.EKA2L1_BENCHMARK_PREPARED,undefined);
+}else if(preparedLauncher) {
+ installedImage=launchGame?.image;
+ assert(installedImage,'This game has no prepared installation on this server');
 }else if(process.env.EKA2L1_BENCHMARK_PREPARED==='1') {
  installedImage=launchGame?.image;
  assert(installedImage,'This game has no prepared installation on this server');
 }else for(const [selector,file] of [['#rom-file','SYM.ROM'],['#rpkg-file','SYM.RPKG'],['#sis-file',entry.ngage?.runtime.file ?? entry.file]])await(await page.$(selector)).uploadFile(path.join(assetDir,file));
-if(!freshLauncher){
+if(preparedLauncher){
+ await guardedWait(()=>window._gameRunning);
+}else if(!freshLauncher){
  await page.$eval('#app-name',(e,v)=>e.value=v,entry.uid);
  await page.evaluate(({entryUrl,image})=>{window.measurementLaunch=startEmulator(entryUrl,image)},{entryUrl:!installedImage&&entry.ngage?'/preload/games/'+game+'/ngage':undefined,image:installedImage});
  await guardedWait(()=>window._gameRunning);
@@ -366,8 +375,19 @@ const ensureRace=async()=>{
  throw Error('Asphalt 3 did not reach its racing HUD');
 };
 console.log('READY',game,JSON.stringify(await status()));
- const commands=JSON.parse(fs.readFileSync(process.env.EKA2L1_BENCHMARK_ROUTES || new URL('./arena-growth-routes.json',import.meta.url)))[game];
+ const routes=JSON.parse(fs.readFileSync(process.env.EKA2L1_BENCHMARK_ROUTES || new URL('./arena-growth-routes.json',import.meta.url)));
+ const commands=routes[preparedLauncher&&routes[game+'-prepared']?game+'-prepared':game];
  for(const [i,line] of commands.entries()){fs.appendFileSync(out+'/steps.log',line+'\n');const r=await eval(line);console.log('STEP',game,i+1,JSON.stringify(r));}
+ if(preparedLauncher&&game==='tetris'){
+  const png=PNG.sync.read(fs.readFileSync(out+'/next.png'));
+  let black=0,total=0;
+  for(let x=350;x<550;x+=5)for(let y=220;y<600;y+=5){
+   const offset=(y*png.width+x)*4;
+   if(Math.max(...png.data.subarray(offset,offset+3))<20)black++;
+   total++;
+  }
+  assert(black/total>0.5,'Prepared Tetris route did not reach the game board');
+ }
  if(process.env.EKA2L1_ROM_CACHE_CAPTURE==='1') {
   clearInterval(browserMemoryTimer);browserMemoryTimer=undefined;
   await new Promise(resolve=>setTimeout(resolve,100));

@@ -667,6 +667,39 @@
                     document.getElementById('game-controls').hidden = false;
                     Module.canvas.focus();
                     setRunningStatus(appName);
+                    // Saved games bypass the installer watcher and its warmup timer.
+                    if (!ngagePackage && _selectedGame?.warmupRecycleFunctions
+                            && !window.ekaBenchmarkSkipCpuRecycle) {
+                        var preparedWarmupDeadline = performance.now() + 180000;
+                        var preparedWarmupRecycles = 0;
+                        var preparedWarmupTimer = setInterval(async function() {
+                            if (window.ekaCpuRecyclePending) return;
+                            if (performance.now() > preparedWarmupDeadline) {
+                                clearInterval(preparedWarmupTimer);
+                                return;
+                            }
+                            var compiled = JSON.parse(Module.ccall('eka2l1_monitor_report', 'string', [], []))
+                                .compiled_functions;
+                            var limit = _selectedGame.preparedRecycleEarlyFunctions
+                                    && preparedWarmupRecycles < (_selectedGame.preparedRecycleEarlyMax || 0)
+                                ? _selectedGame.preparedRecycleEarlyFunctions
+                                : (_selectedGame.preparedRecycleFunctions || _selectedGame.warmupRecycleFunctions);
+                            if (compiled < limit) return;
+                            window.ekaCpuRecyclePending = true;
+                            try {
+                                await recycleCpuWorker();
+                                console.info('[n-gage] prepared CPU worker recycle', preparedWarmupRecycles + 1);
+                                if (++preparedWarmupRecycles >= (_selectedGame.preparedRecycleMax
+                                        || _selectedGame.warmupRecycleMax || 1))
+                                    clearInterval(preparedWarmupTimer);
+                            } catch (error) {
+                                clearInterval(preparedWarmupTimer);
+                                deviceStatus('CPU worker recycle failed: ' + error.message);
+                            } finally {
+                                window.ekaCpuRecyclePending = false;
+                            }
+                        }, 250);
+                    }
                 }
                 if (!window.ekaPendingNgage) enableDeviceSaving();
             } catch(e) {

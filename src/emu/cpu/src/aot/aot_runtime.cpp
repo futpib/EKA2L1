@@ -517,7 +517,7 @@ aot_func compile_missing(ARMul_State *cpu) {
     // ROM groups are permanent; a RAM batch belongs to its loaded image.
     std::vector<std::uint32_t> pending{root};
     std::unordered_set<std::uint32_t> visited;
-    for (std::size_t i = 0; i < pending.size() && visited.size() < 16; ++i) {
+    for (std::size_t i = 0; i < pending.size() && visited.size() < 4; ++i) {
         const auto key = pending[i], pc = key & ~1u;
         if (!(key & 1) && (pc & 3)) continue;
         if (key != root && std::none_of(ranges.begin(), ranges.end(),
