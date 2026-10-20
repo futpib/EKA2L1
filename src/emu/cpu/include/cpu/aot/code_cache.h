@@ -8,7 +8,6 @@
 #include <cstring>
 #include <array>
 #include <algorithm>
-#include <deque>
 #include <map>
 #include <memory>
 #include <unordered_map>
@@ -90,7 +89,7 @@ namespace eka2l1::arm::aot {
             if (!entry || !entry->live || entry->key != k) {
                 auto it = current_.find(k);
                 if (it == current_.end()) return nullptr;
-                entry = &versions_[it->second];
+                entry = it->second;
                 recent = entry;
             }
             // Refresh every dependency before dereferencing cached backing.
@@ -138,11 +137,11 @@ namespace eka2l1::arm::aot {
             const auto k = key(view.address_space, pc_mode);
             forget_dispatch(k);
             auto old = current_.find(k);
-            if (old != current_.end()) retire(versions_[old->second]);
-            const auto version = static_cast<std::uint32_t>(versions_.size());
-            versions_.push_back({k, version, view.bytes, {view.bytes, view.bytes + size}});
-            current_[k] = version;
-            auto &entry = versions_.back();
+            if (old != current_.end()) retire(*old->second);
+            const auto version = next_version_++;
+            auto &entry = versions_.emplace(version, block{k, version, view.bytes,
+                {view.bytes, view.bytes + size}}).first->second;
+            current_[k] = &entry;
             entry.policy = policy;
             entry.guard_begin = reinterpret_cast<std::uintptr_t>(view.bytes);
             entry.guard_end = entry.guard_begin + size;
@@ -208,10 +207,12 @@ namespace eka2l1::arm::aot {
         }
 
         bool attach(std::uint32_t version, aot_func function) {
-            if (version < versions_.size() && versions_[version].live) {
-                forget_dispatch(versions_[version].key);
-                versions_[version].function = function;
-                auto &shared = shared_entries_[static_cast<std::uint32_t>(versions_[version].key)];
+            const auto found = versions_.find(version);
+            if (found != versions_.end() && found->second.live) {
+                auto &entry = found->second;
+                forget_dispatch(entry.key);
+                entry.function = function;
+                auto &shared = shared_entries_[static_cast<std::uint32_t>(entry.key)];
                 if (shared.empty() || shared.back() != version) shared.push_back(version);
                 return true;
             }
@@ -224,25 +225,26 @@ namespace eka2l1::arm::aot {
             auto &recent = recent_[recent_index(entry.key)];
             if (recent == &entry) recent = nullptr;
             const auto current = current_.find(entry.key);
-            if (current != current_.end() && current->second == entry.version) current_.erase(current);
+            if (current != current_.end() && current->second == &entry) current_.erase(current);
             entry.live = false;
             entry.unloaded = true;
             retired_versions_.push_back(entry.version);
         }
 
         bool was_unloaded(std::uint32_t version) const {
-            return version < versions_.size() && versions_[version].unloaded;
+            const auto found = versions_.find(version);
+            return version < next_version_ && (found == versions_.end() || found->second.unloaded);
         }
 
         bool has_retired() const { return !retired_versions_.empty(); }
 
         aot_func function_for_version(std::uint32_t version) const {
-            return version < versions_.size() && versions_[version].live
-                ? versions_[version].function : nullptr;
+            const auto found = versions_.find(version);
+            return found != versions_.end() && found->second.live ? found->second.function : nullptr;
         }
 
-        // Only call after generated code has returned. Version IDs remain
-        // tombstones so a late staged module cannot attach to a replacement.
+        // Only call after generated code has returned. IDs are monotonic, so a
+        // late staged module cannot attach to a replacement after deletion.
         std::vector<aot_func> collect_retired() {
             std::vector<aot_func> functions;
             std::vector<std::uint32_t> pages;
@@ -269,7 +271,6 @@ namespace eka2l1::arm::aot {
                 entry.mapping_generation = 0;
                 entry.guard_begin = entry.guard_end = 0;
             }
-            retired_versions_.clear();
             std::sort(pcs.begin(), pcs.end());
             pcs.erase(std::unique(pcs.begin(), pcs.end()), pcs.end());
             for (auto pc : pcs) {
@@ -290,6 +291,8 @@ namespace eka2l1::arm::aot {
                     [&](auto version) { return versions_[version].unloaded; }), versions.end());
                 if (versions.empty()) invalidation_pages_.erase(found);
             }
+            for (auto version : retired_versions_) versions_.erase(version);
+            retired_versions_.clear();
             return functions;
         }
 
@@ -318,9 +321,15 @@ namespace eka2l1::arm::aot {
 
         void retire_space(std::uint32_t space) {
             std::vector<std::uint32_t> versions;
-            for (const auto &[k, version] : current_)
-                if (k >> 32 == space) versions.push_back(version);
+            for (const auto &[k, entry] : current_)
+                if (k >> 32 == space) versions.push_back(entry->version);
             for (auto version : versions) retire(versions_[version]);
+        }
+
+        template<typename Predicate>
+        void retire_functions(Predicate selected) {
+            for (auto &[version, entry] : versions_)
+                if (entry.live && entry.function && selected(entry.function)) retire(entry);
         }
 
         std::size_t versions() const { return versions_.size(); }
@@ -353,7 +362,7 @@ namespace eka2l1::arm::aot {
             const auto pc_mode = static_cast<std::uint32_t>(k);
             return ((pc_mode >> 1) ^ (pc_mode << 7) ^ (k >> 32)) & 4095;
         }
-        // Deque identities stay stable; dead payloads are freed at a CPU boundary.
+        // Node addresses stay stable; retired nodes are freed at a CPU boundary.
         std::array<block *, 4096> recent_{};
         struct dispatch_entry {
             std::uint64_t key = 0, generation = 0;
@@ -362,9 +371,10 @@ namespace eka2l1::arm::aot {
         };
         std::vector<dispatch_entry> dispatch_ = std::vector<dispatch_entry>(4096);
         // Version IDs are never reused by a late module instantiation.
-        std::deque<block> versions_;
+        std::unordered_map<std::uint32_t, block> versions_;
+        std::uint32_t next_version_ = 0;
         std::vector<std::uint32_t> retired_versions_;
-        std::unordered_map<std::uint64_t, std::uint32_t> current_;
+        std::unordered_map<std::uint64_t, block *> current_;
         std::unordered_map<std::uint32_t, std::vector<std::uint32_t>> shared_entries_;
         // Reclamation removes dead versions from the touched page buckets.
         std::map<std::uint32_t, std::vector<std::uint32_t>> invalidation_pages_;

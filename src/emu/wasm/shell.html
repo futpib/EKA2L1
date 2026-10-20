@@ -222,18 +222,6 @@
             document.getElementById('btn-save-device').disabled = false;
             window.ekaDeviceDisk.start().catch(error => Module.printErr(String(error)));
         }
-        async function recycleCpuWorker() {
-            var started = Module._eka2l1_begin_cpu_recycle();
-            if (started !== 0) throw new Error('Could not start CPU worker recycling: ' + started);
-            var deadline = performance.now() + 30000;
-            while (true) {
-                var result = Module._eka2l1_poll_cpu_recycle();
-                if (result === 1) return;
-                if (result < 0) throw new Error('CPU worker recycling failed: ' + result);
-                if (performance.now() > deadline) throw new Error('CPU worker recycling timed out');
-                await new Promise(resolve => setTimeout(resolve, 10));
-            }
-        }
         document.getElementById('btn-save-device').addEventListener('click', function() {
             window.ekaDeviceDisk?.save(true).catch(error => Module.printErr(String(error)));
         });
@@ -499,7 +487,6 @@
                 // N-Gage registers and licenses games through its own importer.
                 if (ngagePackage) {
                     Module.setStatus('Preparing N-Gage game...');
-                    var earlyRecycling = false;
                     var streamToOpfs = canStageInOpfs();
                     var packageResponse = await window.ekaDownload(ngagePackage,
                         streamToOpfs ? {stream: true} : undefined);
@@ -534,40 +521,11 @@
                         writeGuestFile(guestPackage, new Uint8Array(await packageResponse.arrayBuffer()));
                     }
                     if (disk) window.ekaPendingNgage = assetHash(ngagePackage);
-                    if (Module.ccall('eka2l1_watch_ngage_installer', 'number', ['number', 'number', 'number', 'number'],
-                            [_selectedGame?.earlyRecycleFunctions || 0,
-                             _selectedGame?.earlyRecycleMax || 1,
-                             _selectedGame?.warmupRecycleFunctions || 0,
-                             _selectedGame?.warmupRecycleMax || 1]) !== 0)
+                    if (Module.ccall('eka2l1_watch_ngage_installer', 'number', [], []) !== 0)
                         throw new Error('Could not track game installation');
                     ngageTimer = setInterval(async function() {
-                        if (earlyRecycling) return;
                         var result = Module._eka2l1_ngage_installation_status();
-                        if (result === -1) {
-                            if (!window.ekaBenchmarkSkipCpuRecycle
-                                    && sessionStorage.getItem('ekaSkipEarlyRecycle') !== '1'
-                                    && Module._eka2l1_ngage_early_recycle_due()) {
-                                earlyRecycling = true;
-                                window.ekaCpuRecyclePending = true;
-                                try {
-                                    await recycleCpuWorker();
-                                } catch (error) {
-                                    sessionStorage.setItem('ekaSkipEarlyRecycle', '1');
-                                    clearInterval(ngageTimer);
-                                    if (disk) disk.installTimer = null;
-                                    deviceStatus('Retrying game installation: ' + error.message);
-                                    Module._eka2l1_stop_workers_for_reload();
-                                    try { await cleanupNgageStaging?.(); }
-                                    catch (cleanupError) { console.warn('[n-gage] Cleanup failed:', cleanupError); }
-                                    location.reload();
-                                    return;
-                                } finally {
-                                    earlyRecycling = false;
-                                    window.ekaCpuRecyclePending = false;
-                                }
-                            }
-                            return;
-                        }
+                        if (result === -1) return;
                         clearInterval(ngageTimer);
                         if (disk) disk.installTimer = null;
                         try { await cleanupNgageStaging?.(); }
@@ -576,68 +534,17 @@
                         if (disk) {
                             disk.installed[window.ekaPendingNgage] = true;
                             window.ekaPendingNgage = null;
-                            if (_selectedGame) {
-                                window.ekaCpuRecyclePending = true;
-                                Module.setStatus('Finishing game installation...');
-                                try {
-                                    if (window.ekaBenchmarkRouteUs) Module._eka2l1_route_pause_here();
-                                    if (!window.ekaBenchmarkSkipCpuRecycle) await recycleCpuWorker();
-                                    window.ekaCpuRecyclePending = false;
-                                    enableDeviceSaving();
-                                    setRunningStatus(_selectedGame.title);
-                                    if (_selectedGame.trimIdleStartupMs && !window.ekaBenchmarkSkipCpuRecycle) {
-                                        var trimIdleWorkers = function() {
-                                            if (window.ekaCpuRecyclePending) return;
-                                            var count = Module._eka2l1_release_unused_workers();
-                                            if (count) console.info('[n-gage] released idle workers', count);
-                                        };
-                                        trimIdleWorkers();
-                                        var trimTimer = setInterval(trimIdleWorkers, 250);
-                                        setTimeout(() => clearInterval(trimTimer), _selectedGame.trimIdleStartupMs);
-                                    }
-                                    if (_selectedGame.warmupRecycleFunctions && !window.ekaBenchmarkSkipCpuRecycle) {
-                                        var warmupDeadline = performance.now() + 90000;
-                                        var warmupRecycles = 0;
-                                        var warmupTimer = setInterval(async function() {
-                                            if (earlyRecycling || window.ekaCpuRecyclePending) return;
-                                            if (performance.now() > warmupDeadline) {
-                                                clearInterval(warmupTimer);
-                                                return;
-                                            }
-                                            if (Module._eka2l1_route_phase() === 1) return;
-                                            if (!Module._eka2l1_ngage_warmup_recycle_due()) return;
-                                            earlyRecycling = true;
-                                            window.ekaCpuRecyclePending = true;
-                                            try {
-                                                await recycleCpuWorker();
-                                                console.info('[n-gage] startup CPU worker recycle', warmupRecycles + 1);
-                                                if (++warmupRecycles >= (_selectedGame.warmupRecycleMax || 1))
-                                                    clearInterval(warmupTimer);
-                                            } catch (error) {
-                                                clearInterval(warmupTimer);
-                                                deviceStatus('CPU worker recycle failed: ' + error.message);
-                                            }
-                                            finally {
-                                                earlyRecycling = false;
-                                                window.ekaCpuRecyclePending = false;
-                                            }
-                                        }, 250);
-                                    }
-                                } catch (error) {
-                                    deviceStatus('Could not resume game: ' + error.message);
-                                    try {
-                                        await disk.stop(true);
-                                        window.ekaDeviceDisk = null;
-                                        Module._eka2l1_stop_workers_for_reload();
-                                        location.replace('/install-handoff' + location.search);
-                                    } catch (saveError) {
-                                        deviceStatus('Could not save installed game: ' + saveError.message);
-                                    }
-                                } finally {
-                                    window.ekaCpuRecyclePending = false;
-                                }
-                            } else {
-                                enableDeviceSaving();
+                            if (window.ekaBenchmarkRouteUs) Module._eka2l1_route_pause_here();
+                            enableDeviceSaving();
+                            if (_selectedGame) setRunningStatus(_selectedGame.title);
+                            if (_selectedGame?.trimIdleStartupMs) {
+                                var trimIdleWorkers = function() {
+                                    var count = Module._eka2l1_release_unused_workers();
+                                    if (count) console.info('[n-gage] released idle workers', count);
+                                };
+                                trimIdleWorkers();
+                                var trimTimer = setInterval(trimIdleWorkers, 250);
+                                setTimeout(() => clearInterval(trimTimer), _selectedGame.trimIdleStartupMs);
                             }
                         }
                     }, 250);
@@ -667,39 +574,6 @@
                     document.getElementById('game-controls').hidden = false;
                     Module.canvas.focus();
                     setRunningStatus(appName);
-                    // Saved games bypass the installer watcher and its warmup timer.
-                    if (!ngagePackage && _selectedGame?.warmupRecycleFunctions
-                            && !window.ekaBenchmarkSkipCpuRecycle) {
-                        var preparedWarmupDeadline = performance.now() + 180000;
-                        var preparedWarmupRecycles = 0;
-                        var preparedWarmupTimer = setInterval(async function() {
-                            if (window.ekaCpuRecyclePending) return;
-                            if (performance.now() > preparedWarmupDeadline) {
-                                clearInterval(preparedWarmupTimer);
-                                return;
-                            }
-                            var compiled = JSON.parse(Module.ccall('eka2l1_monitor_report', 'string', [], []))
-                                .compiled_functions;
-                            var limit = _selectedGame.preparedRecycleEarlyFunctions
-                                    && preparedWarmupRecycles < (_selectedGame.preparedRecycleEarlyMax || 0)
-                                ? _selectedGame.preparedRecycleEarlyFunctions
-                                : (_selectedGame.preparedRecycleFunctions || _selectedGame.warmupRecycleFunctions);
-                            if (compiled < limit) return;
-                            window.ekaCpuRecyclePending = true;
-                            try {
-                                await recycleCpuWorker();
-                                console.info('[n-gage] prepared CPU worker recycle', preparedWarmupRecycles + 1);
-                                if (++preparedWarmupRecycles >= (_selectedGame.preparedRecycleMax
-                                        || _selectedGame.warmupRecycleMax || 1))
-                                    clearInterval(preparedWarmupTimer);
-                            } catch (error) {
-                                clearInterval(preparedWarmupTimer);
-                                deviceStatus('CPU worker recycle failed: ' + error.message);
-                            } finally {
-                                window.ekaCpuRecyclePending = false;
-                            }
-                        }, 250);
-                    }
                 }
                 if (!window.ekaPendingNgage) enableDeviceSaving();
             } catch(e) {

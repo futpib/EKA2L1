@@ -31,6 +31,9 @@ struct ARMul_State;
 namespace eka2l1::arm { class core; }
 
 namespace eka2l1::arm::aot {
+    void finish_compiled_batch(double now_ms);
+    // Call only after all generated frames have returned.
+    void evict_compiled_modules(std::size_t target_bytes);
     // Generated SVC returns a pending trap to the outer loop for the kernel
     // callback. A trap returns zero to stop the compiled chain.
     inline constexpr std::uint32_t svc_pending = 0x80000000u;
@@ -54,7 +57,6 @@ namespace eka2l1::arm::aot {
     void run_compiled_step(ARMul_State *cpu);
     void invalidate_ram_code(std::uint32_t address, std::size_t size);
     void retire_process_code(std::uint32_t address_space);
-    void discard_worker_compiled_code();
     void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32_t size, bool enabled);
     void observe_hot_pc(ARMul_State *cpu);
     // Loader notifications contain relocated entry points, never retained guest

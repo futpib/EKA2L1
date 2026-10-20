@@ -93,8 +93,6 @@ extern "C" EMSCRIPTEN_KEEPALIVE int eka2l1_opfs_status() {
 }
 
 namespace {
-    enum class cpu_recycle_phase { idle, stopping, releasing, resuming };
-
     struct wasm_state {
         std::unique_ptr<eka2l1::system> symsys;
         std::unique_ptr<drivers::graphics_driver> graphics_driver;
@@ -104,18 +102,7 @@ namespace {
         config::state conf;
         window_server *winserv = nullptr;
         std::atomic<bool> running{false};
-        std::atomic<bool> recycle_cpu{false};
-        std::atomic<bool> cpu_recycle_done{false};
-        cpu_recycle_phase recycle_phase = cpu_recycle_phase::idle;
-        double recycle_resume_at = 0;
         std::atomic<int> ngage_installation{0};
-        unsigned ngage_early_recycle_limit = 0;
-        unsigned ngage_early_recycle_polls = 0;
-        unsigned ngage_early_recycle_max = 0;
-        unsigned ngage_early_recycle_count = 0;
-        unsigned ngage_warmup_recycle_limit = 0;
-        unsigned ngage_warmup_recycle_max = 0;
-        unsigned ngage_warmup_recycle_count = 0;
         std::atomic<bool> benchmark_done{false};
         std::atomic<int> benchmark_captured{0};
         bool system_started = false;
@@ -215,37 +202,10 @@ EM_JS(void, start_emulator_tasks, (std::uintptr_t callback), {
     tasks.port2.postMessage(0);
 });
 
-EM_JS(int, capture_cpu_worker, (int thread), {
-    try {
-        if (Module.ekaCpuRecycleWorker) return -1;
-        const worker = PThread.pthreads[thread];
-        if (!worker) return -2;
-        Module.ekaCpuRecycleWorker = worker;
-        return 0;
-    } catch (error) { return -3; }
-});
-
-EM_JS(int, release_cpu_worker, (), {
-    try {
-        const worker = Module.ekaCpuRecycleWorker;
-        if (!worker) return -1;
-        const index = PThread.unusedWorkers.indexOf(worker);
-        if (index < 0) return 0;
-        PThread.unusedWorkers.splice(index, 1);
-        terminateWorker(worker);
-        Module.ekaCpuRecycleWorker = null;
-        return 1;
-    } catch (error) { return -2; }
-});
-
 EM_JS(int, release_unused_workers, (), {
     const workers = PThread.unusedWorkers.splice(0);
     for (const worker of workers) terminateWorker(worker);
     return workers.length;
-});
-
-EM_JS(void, stop_workers_for_reload, (), {
-    PThread.terminateAllThreads();
 });
 
 static int spawn_cpu_thread() {
@@ -658,19 +618,10 @@ int eka2l1_install_device(const char *rom_path, const char *rpkg_path, const cha
 }
 
 EMSCRIPTEN_KEEPALIVE
-int eka2l1_watch_ngage_installer(int early_recycle_limit, int early_recycle_max,
-        int warmup_recycle_limit, int warmup_recycle_max) {
-    if (!ensure_system_started() || g_state->running || early_recycle_limit < 0 || early_recycle_max < 0
-            || warmup_recycle_limit < 0 || warmup_recycle_max < 0) return -1;
+int eka2l1_watch_ngage_installer() {
+    if (!ensure_system_started() || g_state->running) return -1;
     auto *state = g_state;
     state->ngage_installation = -1;
-    state->ngage_early_recycle_limit = static_cast<unsigned>(early_recycle_limit);
-    state->ngage_early_recycle_polls = 0;
-    state->ngage_early_recycle_max = static_cast<unsigned>(early_recycle_max);
-    state->ngage_early_recycle_count = 0;
-    state->ngage_warmup_recycle_limit = static_cast<unsigned>(warmup_recycle_limit);
-    state->ngage_warmup_recycle_max = static_cast<unsigned>(warmup_recycle_max);
-    state->ngage_warmup_recycle_count = 0;
     state->symsys->get_kernel_system()->register_thread_kill_callback(
         [state](kernel::thread *target, const std::string &, std::int32_t reason) {
             if (state->running && target->name() == "N-Gage Installer")
@@ -687,69 +638,6 @@ int eka2l1_release_unused_workers() {
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_ngage_installation_status() {
     return g_state ? g_state->ngage_installation.load() : 0;
-}
-
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_ngage_early_recycle_due() {
-    if (!g_state || g_state->ngage_installation != -1 || !g_state->ngage_early_recycle_limit
-            || g_state->ngage_early_recycle_count >= g_state->ngage_early_recycle_max
-            || ++g_state->ngage_early_recycle_polls % 4)
-        return 0;
-    if (arm::aot::compiled_function_count() < g_state->ngage_early_recycle_limit) return 0;
-    ++g_state->ngage_early_recycle_count;
-    return 1;
-}
-
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_ngage_warmup_recycle_due() {
-    if (!g_state || g_state->ngage_installation != 1 || !g_state->ngage_warmup_recycle_limit
-            || g_state->ngage_warmup_recycle_count >= g_state->ngage_warmup_recycle_max
-            || ++g_state->ngage_early_recycle_polls % 4)
-        return 0;
-    if (arm::aot::compiled_function_count() < g_state->ngage_warmup_recycle_limit) return 0;
-    ++g_state->ngage_warmup_recycle_count;
-    return 1;
-}
-
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_begin_cpu_recycle() {
-    if (!g_state || !g_state->running || !g_state->emu_thread_started
-            || g_state->recycle_phase != cpu_recycle_phase::idle || g_state->recycle_cpu)
-        return -1;
-    if (capture_cpu_worker(static_cast<int>(g_state->emu_thread)) != 0) return -2;
-    g_state->cpu_recycle_done = false;
-    g_state->recycle_cpu = true;
-    g_state->recycle_phase = cpu_recycle_phase::stopping;
-    return 0;
-}
-
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_poll_cpu_recycle() {
-    if (!g_state || !g_state->running || g_state->recycle_phase == cpu_recycle_phase::idle)
-        return -1;
-    if (g_state->recycle_phase == cpu_recycle_phase::stopping) {
-        if (!g_state->cpu_recycle_done) return 0;
-        if (pthread_join(g_state->emu_thread, nullptr)) return -2;
-        g_state->emu_thread_started = false;
-        g_state->recycle_phase = cpu_recycle_phase::releasing;
-    }
-    if (g_state->recycle_phase == cpu_recycle_phase::releasing) {
-        const auto released = release_cpu_worker();
-        if (released < 0) return -3;
-        if (!released) return 0;
-        g_state->recycle_resume_at = emscripten_get_now() + 200;
-        g_state->recycle_phase = cpu_recycle_phase::resuming;
-    }
-    if (emscripten_get_now() < g_state->recycle_resume_at) return 0;
-    g_state->cpu_recycle_done = false;
-    if (spawn_cpu_thread()) return -4;
-    g_state->recycle_phase = cpu_recycle_phase::idle;
-    return 1;
-}
-
-EMSCRIPTEN_KEEPALIVE
-void eka2l1_stop_workers_for_reload() {
-    stop_workers_for_reload();
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -1073,14 +961,10 @@ int eka2l1_run(const char *app_name) {
     g_cpu_batch = +[](void *) -> int {
         static unsigned iterations = 0;
         const auto deadline = emscripten_get_now() + 4;
+        arm::aot::finish_compiled_batch(deadline - 4);
         do {
             if (!g_state || !g_state->running) {
                 LOG_INFO(FRONTEND_CMDLINE, "Emulator loop exited after {} iterations", iterations);
-                pthread_exit(nullptr);
-            }
-            if (g_state->recycle_cpu.exchange(false)) {
-                arm::aot::discard_worker_compiled_code();
-                g_state->cpu_recycle_done = true;
                 pthread_exit(nullptr);
             }
             if (g_route.enabled) {

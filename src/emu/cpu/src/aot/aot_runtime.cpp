@@ -25,6 +25,7 @@
 #include <cpu/aot/exit_census.h>
 #include <cpu/aot/execution_limits.h>
 #include <cpu/aot/hot_entries.h>
+#include <cpu/aot/module_residency.h>
 #include <common/performance.h>
 #include <common/deterministic.h>
 #include <common/guest_profile.h>
@@ -78,6 +79,10 @@ common::diagnostics::flag diagnostics_enabled = false;
 bool hot_compilation_enabled = false;
 static validated_code_cache ram_cache;
 static validated_code_cache single_cache;
+static module_residency resident_modules;
+static void trim_compiled_modules();
+static bool record_module_usage = false;
+static double last_module_install_ms = 0;
 static std::uint32_t ram_hot_versions = 0;
 static std::unordered_map<std::uint64_t, unsigned> ram_counts;
 static const std::uint8_t *hot_rom = nullptr;
@@ -170,6 +175,7 @@ void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32
       retired_processes.clear(); process_retirement_pending = false; }
     hot_dispatches = 0; hot_compiled = 0; hot_counts.clear(); hot_pending.clear(); cold_modules.clear();
     ram_cache = {}; single_cache = {}; ram_hot_versions = 0; ram_counts.clear();
+    resident_modules = {};
 }
 
 void invalidate_ram_code(std::uint32_t address, std::size_t size) {
@@ -243,7 +249,7 @@ aot_func lookup_compiled(ARMul_State *cpu) {
     return lookup_compiled_impl<false>(cpu, global_registry());
 }
 
-template<bool TrustBytes, bool Direct>
+template<bool TrustBytes, bool Direct, bool RecordUsage = false>
 static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
     if constexpr (Direct) {
         if (cpu->parent()->experimental_memory) cpu->aot_tlb = cpu->parent()->experimental_pointer;
@@ -255,6 +261,8 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
     const auto &functions = global_registry();
     std::uint32_t progress = 0;
     while (function) {
+        if constexpr (RecordUsage)
+            resident_modules.touch(reinterpret_cast<std::uintptr_t>(function));
         cpu->aot_exit = 0;
         progress = function(cpu);
         if (!progress || !cpu->NumInstrsToExecute
@@ -267,9 +275,20 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
 }
 
 template<bool Direct> static compiled_run execute_chain_selected(ARMul_State *cpu, aot_func function) {
+    if (record_module_usage) {
+        if (common::code_tracking::skip_code_scans())
+            return execute_chain_impl<true, Direct, true>(cpu, function);
+        return execute_chain_impl<false, Direct, true>(cpu, function);
+    }
     if (common::code_tracking::skip_code_scans())
         return execute_chain_impl<true, Direct>(cpu, function);
     return execute_chain_impl<false, Direct>(cpu, function);
+}
+
+void finish_compiled_batch(double now_ms) {
+    // Usage is needed while the cache is changing. Once compilation settles,
+    // select the original inner runner without usage stores.
+    if (now_ms - last_module_install_ms > 20) record_module_usage = false;
 }
 
 compiled_run execute_chain(ARMul_State *cpu, aot_func function) {
@@ -277,6 +296,7 @@ compiled_run execute_chain(ARMul_State *cpu, aot_func function) {
 }
 
 std::uint32_t execute_single(ARMul_State *cpu, aot_func function) {
+    resident_modules.touch(reinterpret_cast<std::uintptr_t>(function));
     cpu->aot_exit = 0;
     return function(cpu);
 }
@@ -434,6 +454,7 @@ void prepare_compiled_code(core &cpu) {
     // Previous CPU runs have returned every generated frame. Unmap callbacks
     // only queued retirement, so no table slot is reused while it is executing.
     if (ram_cache.has_retired() || single_cache.has_retired()) release_retired_functions();
+    trim_compiled_modules();
     if (!hot_compilation_enabled || !precompile_pending.load(std::memory_order_acquire)) return;
     std::vector<precompile_image> images;
     std::string cache_path, export_path;
@@ -502,6 +523,7 @@ void observe_hot_pc(ARMul_State *cpu) {
 aot_func compile_missing(ARMul_State *cpu) {
 #ifdef __EMSCRIPTEN__
     flush_hot_blocks();
+    trim_compiled_modules();
     const auto root = cpu->Reg[15] | cpu->TFlag;
     const bool rom = cpu->Reg[15] - hot_rom_base < hot_rom_size;
     std::vector<std::pair<std::uint32_t, std::uint32_t>> ranges;
@@ -709,6 +731,8 @@ static void release_functions(const std::vector<aot_func> &functions) {
     if (functions.empty()) return;
     static_assert(sizeof(aot_func) == sizeof(std::uintptr_t));
     js_release_aot_functions(reinterpret_cast<const std::uintptr_t *>(functions.data()), functions.size());
+    for (auto function : functions)
+        resident_modules.release(reinterpret_cast<std::uintptr_t>(function));
     retired_function_count.fetch_add(functions.size(), std::memory_order_relaxed);
 }
 
@@ -718,8 +742,9 @@ static void release_retired_functions() {
     for (auto it = cold_modules.begin(); it != cold_modules.end();) {
         auto &pending = it->second;
         pending.erase(std::remove_if(pending.begin(), pending.end(), [](const auto &function) {
-            return function.export_name[0] == 'r' && !ram_cache.function_for_version(
-                static_cast<std::uint32_t>(std::stoul(function.export_name.substr(2))));
+            const auto key = static_cast<std::uint32_t>(std::stoul(function.export_name.substr(2)));
+            return function.export_name[0] == 'r' ? !ram_cache.function_for_version(key)
+                : !global_registry().lookup(key);
         }), pending.end());
         if (pending.empty()) it = cold_modules.erase(it);
         else ++it;
@@ -745,6 +770,7 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
     const std::string &dll_name, const std::vector<std::uintptr_t> *slots = nullptr)
 {
     if (wasm_bytes.empty()) return 0;
+    record_module_usage = true;
     compilation_timer timer{compilation.installation_us};
 
     const bool experimental = memory_experiment::mode != 0;
@@ -760,6 +786,7 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
     };
     char *result_str = js_instantiate_aot_module(wasm_bytes.data(),
         static_cast<int>(wasm_bytes.size()), helpers, slots ? slots->data() : nullptr);
+    last_module_install_ms = emscripten_get_now();
 
     if (!result_str || result_str[0] == '\0') {
         if (result_str) free(result_str);
@@ -767,7 +794,11 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
         return 0;
     }
 
-    if (slots) { free(result_str); return 0; }
+    if (slots) {
+        resident_modules.install(wasm_bytes.size(), *slots);
+        free(result_str);
+        return 0;
+    }
 
     // Parse "f_12345:42,f_67890:43,..."
     std::string results(result_str);
@@ -775,6 +806,7 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
 
     int count = 0;
     std::vector<aot_func> rejected;
+    std::vector<std::uintptr_t> installed_slots;
     registry &reg = global_registry();
 
     std::size_t pos = 0;
@@ -790,6 +822,7 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
 
         std::string name = entry.substr(0, colon);
         int table_idx = std::atoi(entry.substr(colon + 1).c_str());
+        installed_slots.push_back(table_idx);
 
         // Parse address from "f_<decimal_addr>"
         if (name.substr(0, 2) == "r_" || name.substr(0, 2) == "s_") {
@@ -812,9 +845,40 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
     }
 
     completed_function_count.fetch_add(count, std::memory_order_relaxed);
+    resident_modules.install(wasm_bytes.size(), installed_slots);
     release_functions(rejected);
     if (dll_name != "hot-rom" && dll_name != "rom-cache") LOG_INFO(CPU_DYNCOM, "AOT: instantiated {} functions for {}", count, dll_name);
     return count;
+}
+
+static void trim_compiled_modules() {
+    constexpr std::size_t limit = 32u * 1024 * 1024;
+    if (resident_modules.bytes() <= limit) return;
+    evict_compiled_modules(limit * 3 / 4);
+}
+
+void evict_compiled_modules(std::size_t target_bytes) {
+    // Only called after generated frames returned. Retire all guest owners
+    // before recycling table slots, including cross-process shared functions.
+    const auto slots = resident_modules.victims(target_bytes);
+    std::unordered_set<aot_func> selected;
+    for (auto slot : slots) selected.insert(reinterpret_cast<aot_func>(slot));
+    std::vector<aot_func> rom_functions;
+    auto &registry = global_registry();
+    for (auto pc : registry.addresses()) {
+        const auto function = registry.lookup(pc);
+        if (!selected.count(function)) continue;
+        registry.unregister_function(pc);
+        hot_counts.forget(pc);
+        rom_functions.push_back(function);
+    }
+    const auto matches = [&](aot_func function) { return selected.count(function); };
+    ram_cache.retire_functions(matches);
+    single_cache.retire_functions(matches);
+    release_functions(rom_functions);
+    release_retired_functions();
+    fprintf(stderr, "AOT: evicted %zu cold functions; retained %.1f MiB module bytes\n",
+        slots.size(), resident_modules.bytes() / 1048576.0);
 }
 
 static std::array<std::uint64_t, 9> rom_cache_header() {
@@ -978,16 +1042,11 @@ bool instantiate_staged_modules() {
     return true;
 }
 
-void discard_worker_compiled_code() {
-    global_registry().clear();
-    const auto *rom = hot_rom;
-    const auto base = hot_rom_base, size = hot_rom_size;
-    const auto enabled = hot_compilation_enabled;
-    configure_hot_rom(rom, base, size, enabled);
-    g_staged_modules.clear();
-}
 
 #else
+
+void evict_compiled_modules(std::size_t) {
+}
 
 void stage_aot_module(
     std::vector<std::uint8_t>,
@@ -999,8 +1058,6 @@ bool instantiate_staged_modules() {
     return false;
 }
 
-void discard_worker_compiled_code() {
-}
 
 #endif // __EMSCRIPTEN__
 

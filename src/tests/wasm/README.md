@@ -394,15 +394,14 @@ EKA2L1_TAB_RENDERER_CLIENT_ID=7 EKA2L1_BENCHMARK_FRESH_LAUNCHER=1 \
   node src/tests/wasm/renderer-memory-limit.mjs asphalt-3 1331 /absolute/path/new-budget-run https://claude-laptop.lan:8188/
 ```
 
-The 1.3 GiB target is rounded down to 1331 MiB. On the current build,
-Asphalt 3 and Tetris OOM at this limit, while Hooked On passed twice with at
-most 20 MiB of headroom; see `src/tests/benchmark/RENDERER_CAP_RESULTS.md`.
+The 1.3 GiB target is rounded down to 1331 MiB. Build-specific peaks, failures,
+and throughput comparisons are recorded in `src/tests/benchmark/RENDERER_CAP_RESULTS.md`.
 The client ID is specific to the tested Chromium 154 launch. The harness
 asserts that it selects the unique game-tab renderer; an incorrect ID fails
 the route. Omitting `EKA2L1_TAB_RENDERER_CLIENT_ID` instead caps all renderer
 processes, a different measurement. `EKA2L1_BENCHMARK_FRESH_LAUNCHER=1`
-forces an N-Gage source install, including CPU Worker recycling, even when a
-prepared image is available. The Tetris Marathon measurement uses a
+forces an N-Gage source install even when a prepared image is available.
+The Tetris Marathon measurement uses a
 five-second playable window so it stays inside the harness's guest-time ceiling.
 This requires a Linux cgroup-v2 user manager and Chromium's
 `--renderer-cmd-prefix` support. The route launches a fresh Chromium profile
@@ -417,6 +416,20 @@ records `memory.peak` and OOM counters, while `memory-samples.json` records
 the run. Keep the limit, Chromium version, game route and served build fixed
 when comparing optimizations. The selected cgroup charge is not whole-browser
 PSS or a pure JavaScript/WASM heap size.
+
+To check generated-module reachability, create a private diagnostic build:
+
+```sh
+node src/tests/wasm/module-residency-probe.mjs build-wasm/src/emu/wasm /absolute/path/new-probe-build
+```
+
+Serve that directory and set `EKA2L1_BENCHMARK_ROUTES` to its
+`collection-routes.json` when running the gameplay harness. The probe uses weak
+references, pauses guest execution after gameplay, requests two diagnostic GCs,
+and checks that retired instances and exported functions are unreachable.
+It writes `module-collection.json` with reachability and process PSS before/after,
+including how much normal GC had already collected.
+Forced GC and the probe's metadata are absent from production and cap/FPS runs.
 
 If Chrome's allocation samplers stall before `Module.calledRun`, set
 `EKA2L1_CHROME_PROFILE_AFTER_RUNTIME=1` for the capture. Sampling then starts

@@ -54,7 +54,7 @@ if(process.argv[5]==='chrome-memory' || allocationProfile || fullMemory) {
  memoryProfiler=new ChromeMemoryProfiler(page,out);
  if(!profileAfterRuntime)await memoryProfiler.start();
 }
-page.on('console',m=>{log.write(m.text()+'\n');if(/Access violation|KERN-EXEC|ABORT:|panicked with category:|AOT-only:|RuntimeError:|Aborted\(|Thread Main forcefully killed.*exit code: -/.test(m.text()))errors.push(m.text())});
+page.on('console',m=>{log.write(m.text()+'\n');if(/Access violation|KERN-EXEC|ABORT:|panicked with category:|AOT-only:|AOT instantiation failed:|RuntimeError:|Aborted\(|Thread Main forcefully killed.*exit code: -/.test(m.text()))errors.push(m.text())});
 page.on('pageerror',e=>errors.push(String(e)));
 const guardedWait=async predicate=>{
  const abort=new AbortController();
@@ -195,6 +195,13 @@ const skyHud=png=>{
  return {...hud,valid:hud.health>400&&hud.score>1000&&hud.percent>400&&hud.life>200};
 };
 const cpuFrequencies=()=>os.cpus().map((_,i)=>{try{return Number(fs.readFileSync('/sys/devices/system/cpu/cpu'+i+'/cpufreq/scaling_cur_freq','utf8'));}catch{return null;}});
+const requireAsphalt3Race=label=>{
+ const png=PNG.sync.read(fs.readFileSync(out+'/'+label+'.png'));
+ const yellow=(x0,x1)=>{let n=0;for(let y=75;y<160;y++)for(let x=x0;x<x1;x++){const i=(y*png.width+x)*4;if(png.data[i]>180&&png.data[i+1]>100&&png.data[i+2]<80)n++;}return n;};
+ const hud={position:yellow(20,175),lap:yellow(770,890)};
+ fs.writeFileSync(out+'/'+label+'-hud.json',JSON.stringify(hud));
+ assert(hud.position>400&&hud.lap>400,'Asphalt 3 is not showing the racing HUD; reject this route');
+};
 const measure=async(label,seconds=30)=>{
  await shot(label+'-start');
  if(game==='sky-force')assert(skyHud(PNG.sync.read(fs.readFileSync(out+'/'+label+'-start.png'))).valid,'Sky Force must show health, score, percent and life HUD; reject logos and menus');
@@ -216,13 +223,7 @@ const measure=async(label,seconds=30)=>{
   assert(cyan(580,745,60,95)>2000&&cyan(160,210,50,95)>500,'Asphalt 2 must show position and lap HUD; reject loading screens and menus');
  }
 
- if(game==='asphalt-3') {
-  const png=PNG.sync.read(fs.readFileSync(out+'/'+label+'-start.png'));
-  const yellow=(x0,x1)=>{let n=0;for(let y=75;y<160;y++)for(let x=x0;x<x1;x++){const i=(y*png.width+x)*4;if(png.data[i]>180&&png.data[i+1]>100&&png.data[i+2]<80)n++;}return n;};
-  const hud={position:yellow(20,175),lap:yellow(770,890)};
-  fs.writeFileSync(out+'/race-hud.json',JSON.stringify(hud));
-  assert(hud.position>400&&hud.lap>400,'Asphalt 3 is not showing the racing HUD; reject this route');
- }
+ if(game==='asphalt-3')requireAsphalt3Race(label+'-start');
 
  const clocksBefore=cpuFrequencies();
  const processesBefore=await browserMemory();
@@ -271,7 +272,9 @@ const measure=async(label,seconds=30)=>{
  report.browserCpuMsPerFrame=report.frames?report.browserCpuSeconds*1000/report.frames:null;
  report.browserPssKiB=report.browserMemory.reduce((n,p)=>n+p.pssKiB,0);report.wasmCapacity=await page.evaluate(()=>HEAPU8.buffer.byteLength);
  report.observedBrowserPeakPssKiB=Math.max(report.browserPssKiB,...browserMemorySamples.map(s=>s.pssKiB));
- fs.writeFileSync(out+'/'+label+'.json',JSON.stringify(report,null,2));await shot(label+'-end');
+ await shot(label+'-end');
+ if(game==='asphalt-3')requireAsphalt3Race(label+'-end');
+ fs.writeFileSync(out+'/'+label+'.json',JSON.stringify(report,null,2));
  if(fullMemory){
   for(const process of report.browserMemory){
    const source=`/tmp/perf-${process.id}.map`;

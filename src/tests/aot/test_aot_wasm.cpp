@@ -6085,6 +6085,41 @@ static bool test_precompile() {
     prepare_compiled_code(*cpu);state.Reg[15]=ram+4;
     fn=lookup_compiled(&state);if(!fn)return false;
     if(fn(&state)!=1 || state.Reg[0]!=9)return false;
+    const auto table_size = EM_ASM_INT({ return wasmTable.length; });
+    const auto retired = retired_compiled_function_count();
+    evict_compiled_modules(0);
+    if (global_registry().lookup(rom) || lookup_compiled(&state)
+        || retired_compiled_function_count() != retired + 7) return false;
+    // Eviction must clear the ROM one-attempt admission marker. Recover a
+    // complete region, and reuse the released table slots in the same worker.
+    state.Reg[15] = rom + 0x400; state.TFlag = 0; state.Reg[14] = 0x2000;
+    fn = compile_missing(&state);
+    if (!fn || fn(&state) != 1 || state.Reg[0] != 42) return false;
+    state.Reg[15] = ram + 4; state.TFlag = 1; state.Reg[14] = 0x2001;
+    fn = compile_missing(&state);
+    if (!fn || fn(&state) != 1 || state.Reg[0] != 9
+        || EM_ASM_INT({ return wasmTable.length; }) != table_size) return false;
+    // A retired ROM body must also leave the pending merge batch. Otherwise
+    // recompiling its PC produces duplicate exports and prevents consolidation.
+    evict_compiled_modules(0);
+    state.Reg[15] = rom + 0x400; state.TFlag = 0; state.Reg[14] = 0x2000;
+    fn = compile_missing(&state);
+    if (!fn) return false;
+    const auto first_slot = reinterpret_cast<std::uintptr_t>(fn);
+    EM_ASM({ globalThis.retirementTestFunction = WebAssembly.Table.prototype.get.call(wasmTable, $0); }, first_slot);
+    for (unsigned i = 0; i < 63; ++i) {
+        const auto pc = rom + 0x100 + i * 8;
+        mem.write32(pc, 0xe3a0002a); mem.write32(pc + 4, 0xe12fff1e);
+        state.Reg[15] = pc;
+        fn = compile_missing(&state);
+        if (!fn || fn(&state) != 1 || state.Reg[0] != 42) return false;
+    }
+    if (!EM_ASM_INT({
+        const replaced = retirementTestFunction !== WebAssembly.Table.prototype.get.call(wasmTable, $0);
+        delete globalThis.retirementTestFunction;
+        return replaced;
+    }, first_slot)) return false;
+    evict_compiled_modules(0);
     global_registry().clear();configure_hot_rom(nullptr,0,0,false);
     printf("PASS eager preparation: exits, literal veneers/callbacks, Thumb, process isolation, late loads, no guest execution\n");
     return true;
@@ -6130,7 +6165,7 @@ static bool test_precompile_capacity() {
         auto fn = lookup_compiled(state.get());
         if (!fn || fn(state.get()) != 1 || state->Reg[0] != 7 || state->Reg[15] != 0x30000) return false;
     }
-    // A new process reuses the address, but must get its own prepared function.
+    // A new process needs its own mapping guard, but can share identical code.
     cpu->code_address_space = 2; state->Reg[15] = ram;
     if (lookup_compiled(state.get())) return false;
     queue_precompile_image(2, ram, mem.data.data() + ram, 4, {ram | 1});
@@ -6141,13 +6176,13 @@ static bool test_precompile_capacity() {
     state->Reg[15] = hot;
     for (unsigned i = 0; i < 8192; ++i) observe_hot_pc(state.get());
     fn = lookup_compiled(state.get());
-    if (!fn || fn(state.get()) != 1 || state->Reg[0] != 9 || compiled_function_count() != entries + 2) return false;
+    if (!fn || fn(state.get()) != 1 || state->Reg[0] != 9 || compiled_function_count() != entries + 1) return false;
     // Hot discoveries still have a finite quota, independent of eager entries.
     for (unsigned i = 1; i < entries; ++i) {
         state->Reg[15] = hot + i * 4;
         for (unsigned hit = 0; hit < 256; ++hit) observe_hot_pc(state.get());
     }
-    if (lookup_compiled(state.get()) || compiled_function_count() != entries + 1 + 16384) return false;
+    if (lookup_compiled(state.get()) || compiled_function_count() != entries + 16384) return false;
     state->Reg[15] -= 4;
     if (!lookup_compiled(state.get())) return false;
     state->Reg[15] += 4;

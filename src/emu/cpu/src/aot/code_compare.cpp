@@ -35,7 +35,7 @@ namespace eka2l1::arm::aot {
         if (!recent || !recent->live || recent->key != k) {
             auto it = current_.find(k);
             if (it == current_.end()) return nullptr;
-            recent = &versions_[it->second];
+            recent = it->second;
         }
         if (generation && recent->mapping_source == cpu.code_mapping_generation
             && recent->mapping_generation == generation) {

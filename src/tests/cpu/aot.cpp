@@ -23,6 +23,7 @@
 #include <cpu/dyncom/arm_dyncom.h>
 #include <cpu/aot/aot_registry.h>
 #include <cpu/aot/code_cache.h>
+#include <cpu/aot/module_residency.h>
 #include <cpu/aot/hot_entries.h>
 #include <common/guest_profile.h>
 #include <cpu/dyncom/arm_dyncom_dec.h>
@@ -1007,6 +1008,7 @@ TEST_CASE("RAM retirement releases dead payloads without reusing identities", "[
     auto second = +[](ARMul_State *) -> std::uint32_t { return 2; };
     auto third = +[](ARMul_State *) -> std::uint32_t { return 3; };
     auto &old = cache.insert(0x1000, view, 8);
+    const auto old_version = old.version;
     REQUIRE(cache.attach(old.version, first));
     REQUIRE(cache.find(0x1000, view) == &old);
     cache.add_dependency(old, 0x2ffe, bytes.data(), {bytes.begin(), bytes.begin() + 8});
@@ -1019,13 +1021,11 @@ TEST_CASE("RAM retirement releases dead payloads without reusing identities", "[
     REQUIRE(cache.attach(replacement.version, second));
     const auto released = cache.collect_retired();
     REQUIRE(released == std::vector<aot::aot_func>{first});
-    REQUIRE(old.code.capacity() == 0);
-    REQUIRE(old.dependencies.capacity() == 0);
-    REQUIRE(old.function == nullptr);
-    REQUIRE(old.backing == nullptr);
+    REQUIRE(cache.function_for_version(old_version) == nullptr);
+    REQUIRE(cache.was_unloaded(old_version));
     REQUIRE(cache.find(0x1000, view) == &replacement);
-    REQUIRE_FALSE(cache.attach(old.version, third)); // Late compilation is rejected.
-    REQUIRE(cache.versions() == 2);
+    REQUIRE_FALSE(cache.attach(old_version, third)); // Late compilation is rejected.
+    REQUIRE(cache.versions() == 1);
     REQUIRE_FALSE(cache.has_retired());
     REQUIRE(cache.collect_retired().empty());
 
@@ -1044,19 +1044,97 @@ TEST_CASE("Superseded RAM translations are reclaimed at the next CPU boundary", 
     core::code_mapping view{9, bytes.data(), bytes.size()};
     auto function = +[](ARMul_State *) -> std::uint32_t { return 1; };
     auto &old = cache.insert(0x1000, view, 8);
+    const auto old_version = old.version;
     REQUIRE(cache.attach(old.version, function));
     auto &replacement = cache.insert(0x1000, view, 8);
-    REQUIRE(cache.was_unloaded(old.version));
+    REQUIRE(cache.was_unloaded(old_version));
     REQUIRE(cache.collect_retired() == std::vector<aot::aot_func>{function});
     REQUIRE(cache.find(0x1000, view) == &replacement);
     cache.invalidate(0x1000, 8);
     cache.invalidate(0x1000, 8);
-    REQUIRE(cache.was_unloaded(old.version));
+    REQUIRE(cache.was_unloaded(old_version));
     REQUIRE(cache.was_unloaded(replacement.version));
     REQUIRE(cache.collect_retired().empty());
-    REQUIRE(replacement.code.capacity() == 0);
+    REQUIRE(cache.versions() == 0);
     REQUIRE(cache.find(0x1000, view) == nullptr);
     REQUIRE_FALSE(cache.has_retired());
+}
+
+TEST_CASE("Repeated RAM eviction releases metadata and rejects late modules", "[aot][cpu]") {
+    using namespace eka2l1::arm;
+    aot::validated_code_cache cache;
+    std::array<std::uint8_t, 16> bytes{};
+    core::code_mapping view{9, bytes.data(), bytes.size()};
+    auto function = +[](ARMul_State *) -> std::uint32_t { return 1; };
+    for (unsigned round = 0; round < 1024; ++round) {
+        const auto version = cache.insert(0x1000, view, 8).version;
+        REQUIRE(version == round);
+        REQUIRE(cache.attach(version, function));
+        cache.retire_space(9);
+        REQUIRE(cache.collect_retired() == std::vector<aot::aot_func>{function});
+        REQUIRE(cache.versions() == 0);
+        REQUIRE(cache.was_unloaded(version));
+        REQUIRE_FALSE(cache.attach(version, function));
+    }
+    REQUIRE_FALSE(cache.was_unloaded(1024)); // Never issued.
+}
+
+TEST_CASE("Module eviction preserves hot code and tracks replaced exports", "[aot][cpu]") {
+    eka2l1::arm::aot::module_residency cache;
+    cache.install(100, {10, 11});
+    cache.install(200, {20, 21});
+    cache.touch(10);
+    cache.install(200, {20, 21}); // Merging cold code must not promote its recency.
+    REQUIRE(cache.victims(100) == std::vector<std::uintptr_t>{20, 21});
+    // A replacement owns its slot while the sibling still retains the old module.
+    cache.install(50, {10});
+    REQUIRE(cache.bytes() == 350);
+    cache.release(11);
+    REQUIRE(cache.bytes() == 250);
+    cache.release(11); // Repeated cleanup must not release a reused module ID.
+    cache.install(75, {11});
+    cache.touch(20);
+    REQUIRE(cache.victims(200) == std::vector<std::uintptr_t>{11, 10});
+    for (auto slot : cache.victims(0)) cache.release(slot);
+    REQUIRE(cache.bytes() == 0);
+    REQUIRE(cache.victims(0).empty());
+    cache.install(150, {10, 11, 20, 21});
+    REQUIRE(cache.bytes() == 150);
+    cache.install(125, {10, 11, 20, 21});
+    REQUIRE(cache.bytes() == 125);
+}
+
+TEST_CASE("A startup scan does not displace repeatedly used modules", "[aot][cpu]") {
+    eka2l1::arm::aot::module_residency cache;
+    cache.install(100, {10});
+    cache.touch(10);
+    cache.install(100, {20});
+    cache.touch(10);
+    cache.install(100, {30});
+    cache.touch(30);
+    REQUIRE(cache.victims(100) == std::vector<std::uintptr_t>{20, 30});
+}
+
+TEST_CASE("Cache eviction retires every shared owner before table reuse", "[aot][cpu]") {
+    using namespace eka2l1::arm;
+    aot::validated_code_cache cache;
+    std::array<std::uint8_t, 16> bytes{};
+    core::code_mapping first_view{1, bytes.data(), bytes.size()};
+    core::code_mapping second_view{2, bytes.data(), bytes.size()};
+    auto function = +[](ARMul_State *) -> std::uint32_t { return 1; };
+    auto &first = cache.insert(0x1000, first_view, 8);
+    cache.attach(first.version, function);
+    first.function_lifetime = std::make_shared<unsigned char>(0);
+    auto &second = cache.insert(0x1000, second_view, 8);
+    cache.attach(second.version, function);
+    second.function_lifetime = first.function_lifetime;
+    const auto first_version = first.version, second_version = second.version;
+    cache.retire_functions([&](auto candidate) { return candidate == function; });
+    REQUIRE(cache.find(0x1000, first_view) == nullptr);
+    REQUIRE(cache.find(0x1000, second_view) == nullptr);
+    REQUIRE(cache.collect_retired() == std::vector<aot::aot_func>{function});
+    REQUIRE_FALSE(cache.attach(first_version, function));
+    REQUIRE_FALSE(cache.attach(second_version, function));
 }
 
 TEST_CASE("Failed code validation releases its compiled table function", "[aot][cpu]") {
@@ -1071,7 +1149,7 @@ TEST_CASE("Failed code validation releases its compiled table function", "[aot][
     REQUIRE(cache.find(0x1000, view) == nullptr);
     REQUIRE(cache.has_retired());
     REQUIRE(cache.collect_retired() == std::vector<aot::aot_func>{function});
-    REQUIRE(entry.code.capacity() == 0);
+    REQUIRE(cache.versions() == 0);
 }
 
 TEST_CASE("Process retirement releases only its compiled functions", "[aot][cpu]") {
@@ -1088,7 +1166,7 @@ TEST_CASE("Process retirement releases only its compiled functions", "[aot][cpu]
     REQUIRE(cache.attach(remaining.version, second));
     cache.retire_space(1);
     REQUIRE(cache.collect_retired() == std::vector<aot::aot_func>{first});
-    REQUIRE(retired.code.capacity() == 0);
+    REQUIRE(cache.versions() == 1);
     REQUIRE(cache.find(0x1000, view) == &remaining);
     cache.retire_space(1);
     REQUIRE(cache.collect_retired().empty());

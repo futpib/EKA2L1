@@ -526,3 +526,22 @@ The fixed-clock pair is under
 `/home/claude/.scratch/eka-1331-asphalt-3-prepared-fixed-{candidate,control}-max7-{1,2}/`.
 The AOT WASM suite passed 197 tests and the browser suite passed with the
 system Chromium executable.
+
+## Same-worker reclamation supersedes CPU recycling
+
+The extended Asphalt FPS intervals above checked the racing HUD only at their
+start. Later endpoint inspection found the trial purchase screen. Their FPS
+figures, including the quoted 2.9% difference, therefore cannot establish a
+racing-throughput regression. The recorded memory peaks and race-entry times
+remain observations of those routes. The harness now validates both endpoints;
+new comparisons use the repository's normal shorter warmup.
+
+The worker-restart policy above is historical. The current implementation
+evicts cold generated modules at a CPU boundary, releases their table exports,
+and erases retired C++ cache records. It preserves the CPU worker and guest
+state, reuses callable slots and allocator storage, and lets V8 collect dead
+code normally. There is no production forced GC or per-game restart threshold.
+
+The exact final-build hashes, full-route cap checks, controlled throughput
+comparisons, exclusions, and weak-reference collection audit are in
+[GRACEFUL_CODE_RECLAMATION.md](GRACEFUL_CODE_RECLAMATION.md).
