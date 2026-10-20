@@ -437,3 +437,33 @@ The one-run FPS figures above do not establish a throughput change. The
 fixed-clock pair in row 2 does, and is why that otherwise promising recycle
 policy was not kept. No experimental emulator setting in this table is in the
 committed release.
+
+## 1.3 GiB game-tab target
+
+The exact same deployed `.lan` WASM SHA-256
+`5553463c4ef2b20d05208ecdf3f1bcc566c6ef383037cfaff2221172b208e8a7`
+was tested with the game-tab renderer limit reduced to 1,331 MiB (1.2998 GiB).
+Chromium 154 used `EKA2L1_TAB_RENDERER_CLIENT_ID=7`, a fresh profile per run,
+forced source installation for each N-Gage game, guest audio, and zero swap.
+The benchmark checked that only the unique game-tab renderer was in the capped
+cgroup. Every passing result reached its asserted gameplay scene.
+
+| # | Game | Uncensored tab peaks at 1,536 MiB (MiB) | 1,331 MiB result |
+|---:|---|---|---|
+| 1 | Asphalt 3 | 1398.3, 1432.9, 1439.9, 1442.4 | Kernel OOM before gameplay |
+| 2 | Tetris | 1390.1, 1393.1, 1403.3 | Kernel OOM before gameplay |
+| 3 | Hooked On | 1265.6 | Pass twice: 1311.2 and 1321.7 MiB peaks |
+
+Asphalt 3 had the highest observed peak. Its range overlaps Tetris's, so
+these runs do not establish a stable ordering between the two. The 1,331 MiB
+Asphalt 3 and Tetris runs each recorded `memory.events.oom_kill=1`; their
+peak is censored by the cap. Hooked On had zero OOM events in both runs but
+only 19.8 and 9.3 MiB of headroom. The five historically lighter games were
+not rerun on this release.
+
+The new raw runs are under
+`/home/claude/.scratch/eka-tab-ram-1331-555346-GAME/`,
+`/home/claude/.scratch/eka-tab-ram-1331-555346-hooked-on-r2/`, and
+`/home/claude/.scratch/eka-tab-ram-1536-555346-tetris-r{2,3}/`.
+The preceding section lists the other uncensored tab-only captures. No
+benchmark cgroups remained active after the runs.

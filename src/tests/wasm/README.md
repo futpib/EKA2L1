@@ -386,32 +386,28 @@ node src/tests/wasm/arena-growth-benchmark.mjs asphalt-3 /absolute/path/new-capt
 python3 src/tests/benchmark/summarize_browser_memory.py /absolute/path/new-capture --chromium-debug /absolute/path/to/matching/chromium.debug
 ```
 
-For a hard memory pass/fail target on the game tab's renderer processes, run
-the same persistent-device gameplay route under a renderer-only cgroup:
+For a hard memory pass/fail target on the game tab's renderer, run the
+persistent-device fresh-install gameplay route under a renderer-only cgroup:
 
 ```sh
-node src/tests/wasm/renderer-memory-limit.mjs asphalt-3 1536 /absolute/path/new-budget-run https://claude-laptop.lan:8188/
+EKA2L1_TAB_RENDERER_CLIENT_ID=7 EKA2L1_BENCHMARK_FRESH_LAUNCHER=1 \
+  node src/tests/wasm/renderer-memory-limit.mjs asphalt-3 1331 /absolute/path/new-budget-run https://claude-laptop.lan:8188/
 ```
 
-The current target is 1.5 GiB (1536 MiB). The three historically heaviest
-fresh-install game routes still OOM at this cap; see
-`src/tests/benchmark/RENDERER_CAP_RESULTS.md`. To measure the complete
-fresh-install path, including the browser launcher's CPU Worker recycling,
-use a fresh profile and force source installation even when a prepared image
-is available:
-
-```sh
-EKA2L1_BENCHMARK_PERSISTENT_DISK=1 EKA2L1_BENCHMARK_FRESH_LAUNCHER=1 \
-  node src/tests/wasm/renderer-memory-limit.mjs asphalt-3 1536 /absolute/path/new-fresh-run https://claude-laptop.lan:8188/
-```
-
-See `src/tests/benchmark/RENDERER_CAP_RESULTS.md` for the measured fresh and
-prepared routes. The Tetris Marathon measurement uses a five-second playable
-window so it stays inside the harness's guest-time ceiling.
+The 1.3 GiB target is rounded down to 1331 MiB. On the current build,
+Asphalt 3 and Tetris OOM at this limit, while Hooked On passed twice with at
+most 20 MiB of headroom; see `src/tests/benchmark/RENDERER_CAP_RESULTS.md`.
+The client ID is specific to the tested Chromium 154 launch. The harness
+asserts that it selects the unique game-tab renderer; an incorrect ID fails
+the route. Omitting `EKA2L1_TAB_RENDERER_CLIENT_ID` instead caps all renderer
+processes, a different measurement. `EKA2L1_BENCHMARK_FRESH_LAUNCHER=1`
+forces an N-Gage source install, including CPU Worker recycling, even when a
+prepared image is available. The Tetris Marathon measurement uses a
+five-second playable window so it stays inside the harness's guest-time ceiling.
 This requires a Linux cgroup-v2 user manager and Chromium's
 `--renderer-cmd-prefix` support. The route launches a fresh Chromium profile
-with one game tab. The prefix moves its renderer processes into a fresh
-`MemoryMax` cgroup before Chromium starts them; the browser, GPU and test runner
+with one game tab. The prefix moves the selected renderer into a fresh
+`MemoryMax` cgroup before Chromium starts it; the browser, GPU and test runner
 remain outside the limit. `MemorySwapMax=0` prevents swap from hiding a RAM
 failure. Exit 0 means the game's route assertions passed and there was no
 cgroup OOM; for Asphalt 3 that includes the racing HUD and a five-second
@@ -419,11 +415,8 @@ gameplay sample. Exit 2 means the kernel reported a renderer OOM. Other
 failures are reported separately. `result.json`
 records `memory.peak` and OOM counters, while `memory-samples.json` records
 the run. Keep the limit, Chromium version, game route and served build fixed
-when comparing optimizations. Chromium may create auxiliary renderers even for
-one tab, so this caps the dedicated browser's renderer set rather than a
-perfectly attributable per-tab total. The cgroup charge includes renderer-owned
-cache and a roughly 1 MiB helper process; it is not whole-browser PSS or a pure
-JavaScript/WASM heap size.
+when comparing optimizations. The selected cgroup charge is not whole-browser
+PSS or a pure JavaScript/WASM heap size.
 
 If Chrome's allocation samplers stall before `Module.calledRun`, set
 `EKA2L1_CHROME_PROFILE_AFTER_RUNTIME=1` for the capture. Sampling then starts
