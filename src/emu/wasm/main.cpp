@@ -235,6 +235,16 @@ int eka2l1_aot_configure(int mode) {
     return 0;
 }
 
+// Targeted cache experiments use one binary; the normal launcher keeps defaults.
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_code_cache_configure(int limit_mib, int target_mib) {
+    if (g_state || limit_mib < 0 || limit_mib > 512 || target_mib < 0
+        || (limit_mib == 0 ? target_mib != 0 : target_mib == 0 || target_mib >= limit_mib)) return -1;
+    setenv("EKA2L1_BENCHMARK_CODE_CACHE_LIMIT_MIB", std::to_string(limit_mib).c_str(), 1);
+    setenv("EKA2L1_BENCHMARK_CODE_CACHE_TARGET_MIB", std::to_string(target_mib).c_str(), 1);
+    return 0;
+}
+
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_rom_cache_configure(const char *path, const char *build_id) {
     if (g_state || !path || !build_id) return -1;

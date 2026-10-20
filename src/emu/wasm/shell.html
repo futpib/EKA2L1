@@ -343,6 +343,9 @@
             }
             try {
                 while (!Module.calledRun) await new Promise(resolve => setTimeout(resolve, 100));
+                if (window.ekaBenchmarkCodeCache && Module._eka2l1_code_cache_configure(
+                        ...window.ekaBenchmarkCodeCache) !== 0)
+                    throw new Error('Benchmark code-cache configuration failed');
                 Module.setStatus('Loading ' + selected.title + '...');
                 _selectedGame = selected;
                 window.ekaRomCachePreparation = EkaRomCache.prepare(selected.romCache);

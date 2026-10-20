@@ -193,6 +193,12 @@ async function runTests(): Promise<void> {
         throw Error('Invalid compiler mode accepted');
       for (const mode of [5]) if (m._eka2l1_aot_configure(mode) !== 0)
         throw Error('Compiler configuration failed');
+      for (const pair of [[-1,0], [513,1], [0,1], [32,0], [32,32], [32,33]])
+        if (m._eka2l1_code_cache_configure(...pair) !== -1)
+          throw Error('Invalid code-cache budget accepted');
+      for (const pair of [[0,0], [64,60], [32,24]])
+        if (m._eka2l1_code_cache_configure(...pair) !== 0)
+          throw Error('Code-cache benchmark configuration failed');
       for (const [name, expected, valid, invalid] of [
         ['unsafe_code', 3, [0,3], [-1,1,2,4]],
         ['memory_impl', 2, [0,2], [-1,1,3]],
@@ -222,7 +228,8 @@ async function runTests(): Promise<void> {
     await page.evaluate(() => {
       const m = (window as any).Module;
       if (m._eka2l1_aot_configure(0) !== -1 || m._eka2l1_unsafe_code_configure(0) !== -1
-          || m._eka2l1_memory_impl_configure(0) !== -1) throw Error('CPU configuration was not frozen');
+          || m._eka2l1_memory_impl_configure(0) !== -1
+          || m._eka2l1_code_cache_configure(64,60) !== -1) throw Error('CPU configuration was not frozen');
     });
     console.log("  PASS");
 

@@ -11,6 +11,12 @@ const persistentDisk=process.env.EKA2L1_BENCHMARK_PERSISTENT_DISK==='1';
 const freshLauncher=process.env.EKA2L1_BENCHMARK_FRESH_LAUNCHER==='1';
 const preparedLauncher=process.env.EKA2L1_BENCHMARK_PREPARED_LAUNCHER==='1';
 const skipCpuRecycle=process.env.EKA2L1_BENCHMARK_SKIP_CPU_RECYCLE==='1';
+const codeCacheText=process.env.EKA2L1_BENCHMARK_CODE_CACHE_MIB;
+const codeCache=codeCacheText?.split(':').map(Number);
+if(codeCacheText!==undefined&&(!/^\d+:\d+$/.test(codeCacheText)||codeCache.length!==2
+ ||codeCache.some(n=>!Number.isSafeInteger(n)||n<0||n>512)
+ ||(codeCache[0]===0?codeCache[1]!==0:codeCache[1]===0||codeCache[1]>=codeCache[0])))
+ throw Error('Code cache must be LIMIT:TARGET MiB, or 0:0 for unbounded');
 if(freshLauncher&&!persistentDisk)throw Error('Fresh launcher requires persistent disk');
 if(preparedLauncher&&(!persistentDisk||freshLauncher||process.env.EKA2L1_BENCHMARK_PREPARED!=='1'))
  throw Error('Prepared launcher requires persistent disk and a prepared image');
@@ -20,6 +26,7 @@ const entry=games.find(g=>g.id===game);
 if (!entry || !out || !process.argv[4]) throw Error('Usage: node arena-growth-benchmark.mjs GAME NEW_OUTPUT SERVER_URL');
 if(freshLauncher&&!entry.ngage)throw Error('Fresh launcher route requires an N-Gage game');
 fs.mkdirSync(out);
+if(codeCache)fs.writeFileSync(out+'/code-cache.json',JSON.stringify({limitMiB:codeCache[0],targetMiB:codeCache[1]})+'\n');
 const assetDir=process.env.EKA2L1_ASSET_DIR || '/tmp/eka2l1-serve';
 const browserArgs=['--host-resolver-rules=MAP claude-laptop.lan 127.0.0.1','--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=vulkan','--enable-features=Vulkan','--enable-gpu','--ignore-gpu-blocklist','--disable-background-timer-throttling'];
 if(process.env.EKA2L1_RENDERER_CGROUP_PREFIX)browserArgs.push('--renderer-cmd-prefix='+process.env.EKA2L1_RENDERER_CGROUP_PREFIX);
@@ -61,18 +68,21 @@ const guardedWait=async predicate=>{
  const timer=setInterval(()=>{if(errors.length)abort.abort(new Error(errors.join('\n')));},250);
  try{return await page.waitForFunction(predicate,{signal:abort.signal});}finally{clearInterval(timer);}
 };
-await page.evaluateOnNewDocument((transient,fresh,prepared,skipRecycle)=>{
+await page.evaluateOnNewDocument((transient,fresh,prepared,skipRecycle,cache)=>{
+ window.ekaBenchmarkCodeCache=cache;
  window.ekaTransientSession=transient;
  window.ekaForceFreshInstall=fresh;
  window.ekaBenchmarkSkipCpuRecycle=skipRecycle;
  if(fresh)window.ekaBenchmarkRouteUs=1000000000000;
  if(prepared)window.ekaBenchmarkRouteUs=6000000;
-},!persistentDisk,freshLauncher,preparedLauncher,skipCpuRecycle);
+},!persistentDisk,freshLauncher,preparedLauncher,skipCpuRecycle,codeCache);
 await page.goto(new URL('?game='+(freshLauncher||preparedLauncher?game:'custom'),process.argv[4]).href,{waitUntil:'domcontentloaded'});
 if(allocationProfile || fullMemory || process.env.EKA2L1_BROWSER_MEMORY==='1')browserMemoryTimer=setInterval(async()=>{
  try{const processes=await browserMemory();browserMemorySamples.push({ms:performance.now(),processes,pssKiB:processes.reduce((n,p)=>n+p.pssKiB,0)});}catch{}
 },1000);
 await guardedWait(()=>window.Module?.calledRun);
+if(codeCache&&!freshLauncher&&!preparedLauncher)
+ assert.equal(await page.evaluate(cache=>Module._eka2l1_code_cache_configure(...cache),codeCache),0);
 if(process.env.EKA2L1_TAB_RENDERER_CLIENT_ID){
  const renderers=(await browserMemory()).filter(proc=>proc.type==='renderer')
   .sort((a,b)=>b.pssKiB-a.pssKiB);

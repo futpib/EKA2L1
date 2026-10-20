@@ -852,9 +852,18 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
 }
 
 static void trim_compiled_modules() {
-    constexpr std::size_t limit = 32u * 1024 * 1024;
+    // Benchmark overrides are frozen by the frontend before initialization.
+    static const std::size_t limit = [] {
+        const auto *value = std::getenv("EKA2L1_BENCHMARK_CODE_CACHE_LIMIT_MIB");
+        const auto mib = value ? std::strtoul(value, nullptr, 10) : 32u;
+        return mib ? mib * 1024 * 1024 : std::size_t(-1);
+    }();
+    static const std::size_t target = [] {
+        const auto *value = std::getenv("EKA2L1_BENCHMARK_CODE_CACHE_TARGET_MIB");
+        return (value ? std::strtoul(value, nullptr, 10) : 24u) * 1024 * 1024;
+    }();
     if (resident_modules.bytes() <= limit) return;
-    evict_compiled_modules(limit * 3 / 4);
+    evict_compiled_modules(target);
 }
 
 void evict_compiled_modules(std::size_t target_bytes) {
