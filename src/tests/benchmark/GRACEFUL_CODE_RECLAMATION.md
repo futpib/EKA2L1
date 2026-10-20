@@ -307,3 +307,20 @@ CPU-worker start, zero limit/OOM events and zero runtime errors for these
 passing runs. Only these three heavy games were tested in the cap panel;
 the budget is empirical headroom for these measurements, not a hard bound
 on total browser memory in every workload.
+
+## Deployment
+
+Implementation commit: `df48f256b` on `wasm-port`. The exact tested build was
+copied to
+`/home/claude/.local/share/eka2l1/releases/df48f256b-76d0a98a/build`, with a
+new empty ROM-cache directory. `eka2l1-lan.service` now serves it at
+`https://claude-laptop.lan:8188/`; HTTP-fetched JS and WASM hashes matched the
+32 MiB validation hashes above. The old release is retained for rollback.
+
+`lan-final32-asphalt-3` ran the corrected prepared route through both racing
+windows on that live URL at the host's restored normal frequency limits
+(800 MHz minimum / 5.1 GHz maximum). It passed at **1241.0 MiB**, with zero
+limit-hit/OOM events, one CPU-worker start, no runtime errors, and both
+endpoint HUD checks. Its 116.91 / 140.59 FPS are live smoke observations at
+a different host clock, **not** another fixed-3.0-GHz performance comparison.
+The private ports 8190/8192 are stopped. No changes were pushed.
