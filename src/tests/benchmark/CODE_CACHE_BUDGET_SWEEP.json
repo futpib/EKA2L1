@@ -1,0 +1,939 @@
+{
+  "game": "asphalt-3",
+  "sourceCommit": "254db682f",
+  "wasmSha256": "f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+  "jsSha256": "591467300714693e662889e33ce845b3186a1db2f88655e8a81e610db464d0fc",
+  "hostClockKHz": 3000000,
+  "rendererLimitMiB": 3072,
+  "rawArtifacts": "/home/claude/.scratch/eka-cache-sweep",
+  "runs": [
+    {
+      "run": "fresh-0-0-a",
+      "status": "pass",
+      "peakMiB": 1793.7,
+      "race_s": 78.04,
+      "compiled": 114541,
+      "retired": 5608,
+      "compile_s": 15.9,
+      "sweeps": 0,
+      "cpuStarts": 1,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "reports": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 93.98,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 5,
+          "compilationUs": {
+            "aot_translation_us": 402,
+            "aot_emission_us": 44,
+            "aot_installation_us": 588
+          }
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 85.28,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 12,
+          "compilationUs": {
+            "aot_translation_us": 2795,
+            "aot_emission_us": 203,
+            "aot_installation_us": 2264
+          }
+        }
+      ],
+      "compilationUs": {
+        "aot_translation_us": 6801904,
+        "aot_emission_us": 750617,
+        "aot_installation_us": 8352395
+      }
+    },
+    {
+      "run": "fresh-64-48-a",
+      "status": "pass",
+      "peakMiB": 1329,
+      "race_s": 124.41,
+      "compiled": 262135,
+      "retired": 248137,
+      "compile_s": 37.26,
+      "sweeps": 40,
+      "cpuStarts": 1,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "reports": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 96.19,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 9,
+          "compilationUs": {
+            "aot_translation_us": 744,
+            "aot_emission_us": 78,
+            "aot_installation_us": 1129
+          }
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 84.1,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 18,
+          "compilationUs": {
+            "aot_translation_us": 2280,
+            "aot_emission_us": 228,
+            "aot_installation_us": 3026
+          }
+        }
+      ],
+      "compilationUs": {
+        "aot_translation_us": 16467887,
+        "aot_emission_us": 1829623,
+        "aot_installation_us": 18961382
+      }
+    },
+    {
+      "run": "fresh-96-88-a",
+      "status": "pass",
+      "peakMiB": 1414.4,
+      "race_s": 96.88,
+      "compiled": 174159,
+      "retired": 147613,
+      "compile_s": 24.16,
+      "sweeps": 42,
+      "cpuStarts": 1,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "reports": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 94.83,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 1,
+          "compilationUs": {
+            "aot_translation_us": 90,
+            "aot_emission_us": 9,
+            "aot_installation_us": 239
+          }
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 85.62,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 18,
+          "compilationUs": {
+            "aot_translation_us": 3272,
+            "aot_emission_us": 229,
+            "aot_installation_us": 3486
+          }
+        }
+      ],
+      "compilationUs": {
+        "aot_translation_us": 10485503,
+        "aot_emission_us": 1183888,
+        "aot_installation_us": 12491002
+      }
+    },
+    {
+      "run": "fresh-128-120-a",
+      "status": "pass",
+      "peakMiB": 1429.5,
+      "race_s": 88.28,
+      "compiled": 145197,
+      "retired": 105905,
+      "compile_s": 20.21,
+      "sweeps": 27,
+      "cpuStarts": 1,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "reports": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 97.01,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 5,
+          "compilationUs": {
+            "aot_translation_us": 457,
+            "aot_emission_us": 64,
+            "aot_installation_us": 772
+          }
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 84.78,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 16,
+          "compilationUs": {
+            "aot_translation_us": 2654,
+            "aot_emission_us": 215,
+            "aot_installation_us": 3223
+          }
+        }
+      ],
+      "compilationUs": {
+        "aot_translation_us": 8552698,
+        "aot_emission_us": 991383,
+        "aot_installation_us": 10669357
+      }
+    },
+    {
+      "run": "prepared-0-0-a",
+      "status": "pass",
+      "peakMiB": 1657.6,
+      "race_s": 53.03,
+      "compiled": 93313,
+      "retired": 2045,
+      "compile_s": 12.79,
+      "sweeps": 0,
+      "cpuStarts": 1,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "reports": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 96.47,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 1,
+          "compilationUs": {
+            "aot_translation_us": 100,
+            "aot_emission_us": 274,
+            "aot_installation_us": 1238
+          }
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 84.9,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 18,
+          "compilationUs": {
+            "aot_translation_us": 2806,
+            "aot_emission_us": 228,
+            "aot_installation_us": 2961
+          }
+        }
+      ],
+      "compilationUs": {
+        "aot_translation_us": 5503600,
+        "aot_emission_us": 607096,
+        "aot_installation_us": 6677303
+      }
+    },
+    {
+      "run": "prepared-32-24-a",
+      "status": "pass",
+      "peakMiB": 1261.7,
+      "race_s": 117.49,
+      "compiled": 303654,
+      "retired": 296167,
+      "compile_s": 43.9,
+      "sweeps": 102,
+      "cpuStarts": 1,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "reports": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 98.53,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 14,
+          "compilationUs": {
+            "aot_translation_us": 1490,
+            "aot_emission_us": 119,
+            "aot_installation_us": 1614
+          }
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 85.29,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 114,
+          "compilationUs": {
+            "aot_translation_us": 16792,
+            "aot_emission_us": 1636,
+            "aot_installation_us": 15130
+          }
+        }
+      ],
+      "compilationUs": {
+        "aot_translation_us": 20041972,
+        "aot_emission_us": 2162194,
+        "aot_installation_us": 21692329
+      }
+    },
+    {
+      "run": "prepared-32-30-a",
+      "status": "pass",
+      "peakMiB": 1274.2,
+      "race_s": 110.87,
+      "compiled": 270153,
+      "retired": 262735,
+      "compile_s": 39.34,
+      "sweeps": 339,
+      "cpuStarts": 1,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "reports": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 99.2,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 21,
+          "compilationUs": {
+            "aot_translation_us": 1744,
+            "aot_emission_us": 451,
+            "aot_installation_us": 3270
+          }
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 87.48,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 28,
+          "compilationUs": {
+            "aot_translation_us": 4140,
+            "aot_emission_us": 297,
+            "aot_installation_us": 3741
+          }
+        }
+      ],
+      "compilationUs": {
+        "aot_translation_us": 17931428,
+        "aot_emission_us": 1950255,
+        "aot_installation_us": 19460995
+      }
+    },
+    {
+      "run": "prepared-48-44-a",
+      "status": "pass",
+      "peakMiB": 1354.6,
+      "race_s": 85.17,
+      "compiled": 193799,
+      "retired": 181204,
+      "compile_s": 27.39,
+      "sweeps": 111,
+      "cpuStarts": 1,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "reports": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 93.25,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 10,
+          "compilationUs": {
+            "aot_translation_us": 1344,
+            "aot_emission_us": 98,
+            "aot_installation_us": 1304
+          }
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 85.81,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 11,
+          "compilationUs": {
+            "aot_translation_us": 1748,
+            "aot_emission_us": 157,
+            "aot_installation_us": 2125
+          }
+        }
+      ],
+      "compilationUs": {
+        "aot_translation_us": 12156110,
+        "aot_emission_us": 1341878,
+        "aot_installation_us": 13895403
+      }
+    },
+    {
+      "run": "prepared-64-48-a",
+      "status": "pass",
+      "peakMiB": 1314.9,
+      "race_s": 75.97,
+      "compiled": 172371,
+      "retired": 157743,
+      "compile_s": 24.09,
+      "sweeps": 24,
+      "cpuStarts": 1,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "reports": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 92.91,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 5,
+          "compilationUs": {
+            "aot_translation_us": 1387,
+            "aot_emission_us": 331,
+            "aot_installation_us": 1739
+          }
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 85.29,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 38,
+          "compilationUs": {
+            "aot_translation_us": 4940,
+            "aot_emission_us": 363,
+            "aot_installation_us": 4318
+          }
+        }
+      ],
+      "compilationUs": {
+        "aot_translation_us": 10660834,
+        "aot_emission_us": 1186004,
+        "aot_installation_us": 12241751
+      }
+    },
+    {
+      "run": "prepared-64-48-b",
+      "status": "pass",
+      "peakMiB": 1342.9,
+      "race_s": 79.51,
+      "compiled": 179042,
+      "retired": 164229,
+      "compile_s": 24.76,
+      "sweeps": 25,
+      "cpuStarts": 1,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "reports": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 92.22,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 4,
+          "compilationUs": {
+            "aot_translation_us": 628,
+            "aot_emission_us": 303,
+            "aot_installation_us": 1697
+          }
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 84.04,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 17,
+          "compilationUs": {
+            "aot_translation_us": 2502,
+            "aot_emission_us": 216,
+            "aot_installation_us": 3186
+          }
+        }
+      ],
+      "compilationUs": {
+        "aot_translation_us": 10914963,
+        "aot_emission_us": 1231683,
+        "aot_installation_us": 12615429
+      }
+    },
+    {
+      "run": "prepared-64-60-a",
+      "status": "pass",
+      "peakMiB": 1331.1,
+      "race_s": 73.25,
+      "compiled": 157374,
+      "retired": 141275,
+      "compile_s": 21.91,
+      "sweeps": 80,
+      "cpuStarts": 1,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "reports": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 92.86,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 1,
+          "compilationUs": {
+            "aot_translation_us": 104,
+            "aot_emission_us": 9,
+            "aot_installation_us": 255
+          }
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 86.05,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 45,
+          "compilationUs": {
+            "aot_translation_us": 6480,
+            "aot_emission_us": 701,
+            "aot_installation_us": 6634
+          }
+        }
+      ],
+      "compilationUs": {
+        "aot_translation_us": 9576287,
+        "aot_emission_us": 1063264,
+        "aot_installation_us": 11272255
+      }
+    },
+    {
+      "run": "prepared-64-60-b",
+      "status": "pass",
+      "peakMiB": 1394.2,
+      "race_s": 72.81,
+      "compiled": 156676,
+      "retired": 140807,
+      "compile_s": 21.76,
+      "sweeps": 79,
+      "cpuStarts": 1,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "reports": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 98.76,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 2,
+          "compilationUs": {
+            "aot_translation_us": 254,
+            "aot_emission_us": 29,
+            "aot_installation_us": 514
+          }
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 83.04,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 106,
+          "compilationUs": {
+            "aot_translation_us": 15150,
+            "aot_emission_us": 1628,
+            "aot_installation_us": 12971
+          }
+        }
+      ],
+      "compilationUs": {
+        "aot_translation_us": 9489171,
+        "aot_emission_us": 1066742,
+        "aot_installation_us": 11200912
+      }
+    },
+    {
+      "run": "prepared-96-88-a",
+      "status": "pass",
+      "peakMiB": 1415.9,
+      "race_s": 61.7,
+      "compiled": 124920,
+      "retired": 96302,
+      "compile_s": 16.99,
+      "sweeps": 26,
+      "cpuStarts": 1,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "reports": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 95.41,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 14,
+          "compilationUs": {
+            "aot_translation_us": 1437,
+            "aot_emission_us": 144,
+            "aot_installation_us": 1787
+          }
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 86.96,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 15,
+          "compilationUs": {
+            "aot_translation_us": 2026,
+            "aot_emission_us": 438,
+            "aot_installation_us": 3439
+          }
+        }
+      ],
+      "compilationUs": {
+        "aot_translation_us": 7425857,
+        "aot_emission_us": 829385,
+        "aot_installation_us": 8737634
+      }
+    },
+    {
+      "run": "prepared-96-88-b",
+      "status": "pass",
+      "peakMiB": 1423.6,
+      "race_s": 61.78,
+      "compiled": 124814,
+      "retired": 97689,
+      "compile_s": 17.12,
+      "sweeps": 26,
+      "cpuStarts": 1,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "reports": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 94.42,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 1,
+          "compilationUs": {
+            "aot_translation_us": 84,
+            "aot_emission_us": 25,
+            "aot_installation_us": 240
+          }
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 84.8,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 13,
+          "compilationUs": {
+            "aot_translation_us": 1988,
+            "aot_emission_us": 190,
+            "aot_installation_us": 2880
+          }
+        }
+      ],
+      "compilationUs": {
+        "aot_translation_us": 7438875,
+        "aot_emission_us": 835031,
+        "aot_installation_us": 8842243
+      }
+    },
+    {
+      "run": "prepared-128-120-a",
+      "status": "pass",
+      "peakMiB": 1494.6,
+      "race_s": 56.26,
+      "compiled": 106732,
+      "retired": 68058,
+      "compile_s": 14.35,
+      "sweeps": 16,
+      "cpuStarts": 1,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "reports": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 93.75,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 1,
+          "compilationUs": {
+            "aot_translation_us": 89,
+            "aot_emission_us": 19,
+            "aot_installation_us": 240
+          }
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 85.16,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 14,
+          "compilationUs": {
+            "aot_translation_us": 3087,
+            "aot_emission_us": 549,
+            "aot_installation_us": 3407
+          }
+        }
+      ],
+      "compilationUs": {
+        "aot_translation_us": 6193463,
+        "aot_emission_us": 699603,
+        "aot_installation_us": 7456611
+      }
+    },
+    {
+      "run": "prepared-128-120-b",
+      "status": "pass",
+      "peakMiB": 1489.6,
+      "race_s": 56.36,
+      "compiled": 106450,
+      "retired": 64277,
+      "compile_s": 14.34,
+      "sweeps": 16,
+      "cpuStarts": 1,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "reports": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 90.75,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 3,
+          "compilationUs": {
+            "aot_translation_us": 515,
+            "aot_emission_us": 44,
+            "aot_installation_us": 588
+          }
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 83.98,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "errors": [],
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba",
+          "compiledFunctions": 41,
+          "compilationUs": {
+            "aot_translation_us": 5053,
+            "aot_emission_us": 738,
+            "aot_installation_us": 6394
+          }
+        }
+      ],
+      "compilationUs": {
+        "aot_translation_us": 6187692,
+        "aot_emission_us": 713279,
+        "aot_installation_us": 7440340
+      }
+    }
+  ]
+}

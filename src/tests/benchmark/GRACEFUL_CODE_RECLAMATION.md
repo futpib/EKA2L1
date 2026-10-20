@@ -324,3 +324,97 @@ limit-hit/OOM events, one CPU-worker start, no runtime errors, and both
 endpoint HUD checks. Its 116.91 / 140.59 FPS are live smoke observations at
 a different host clock, **not** another fixed-3.0-GHz performance comparison.
 The private ports 8190/8192 are stopped. No changes were pushed.
+
+
+## Startup/memory budget sweep
+
+A larger cache recovers most of the startup cost while still retiring code.
+The practical choices on this Asphalt route are 96/88 MiB for a balance of
+memory and speed, and 128/120 MiB for startup close to the unbounded control.
+These are workload-specific measured choices, not a global optimum or a new
+1,331 MiB-cap default.
+
+Benchmark controls in `254db682f` keep the normal 32/24 MiB policy and expose
+`EKA2L1_BENCHMARK_CODE_CACHE_MIB=LIMIT:TARGET` only through the test harness.
+`0:0` selects the unbounded control. The launcher applies the override before
+initialization, validates its range, and rejects changes after initialization.
+The harness stores the requested values in each route's `code-cache.json`.
+
+All 16 runs used the same binary (WASM SHA-256
+`f31390e521d8e94fc1b08b983b305993859f50ada4f50819c5e51907615320ba`),
+fresh Chromium 154 profiles and empty ROM translation caches, a fixed 3.0 GHz
+host clock, guest audio enabled, and the corrected two-window racing route.
+Only the uniquely verified game renderer was placed in the cgroup. Its limit
+was 3072 MiB with swap disabled to measure uncensored peaks, **not** to claim
+that these settings pass the production 1331 MiB cap. Normal GC was used.
+Every full route passed with zero limit-hit/OOM events, one CPU-worker start,
+and no reported runtime errors. Racing-HUD checks passed at both endpoints
+of both gameplay windows. Final 128 MiB screenshots were also inspected.
+
+Prepared installation, with a fresh browser and no prior generated code:
+
+| # | Ceiling → trim target, MiB | Runs | Race entry, s | Peak tab RAM, MiB | Compiled entries at race |
+|---:|---|---:|---:|---:|---:|
+| 1 | 32 → 24 | 1 | 117.5 | 1261.7 | 303,654 |
+| 2 | 32 → 30 | 1 | 110.9 | 1274.2 | 270,153 |
+| 3 | 48 → 44 | 1 | 85.2 | 1354.6 | 193,799 |
+| 4 | 64 → 48 | 2 | 76.0–79.5 | 1314.9–1342.9 | 172,371–179,042 |
+| 5 | 64 → 60 | 2 | 72.8–73.2 | 1331.1–1394.2 | 156,676–157,374 |
+| 6 | 96 → 88 | 2 | 61.7–61.8 | 1415.9–1423.6 | 124,814–124,920 |
+| 7 | 128 → 120 | 2 | 56.3–56.4 | 1489.6–1494.6 | 106,450–106,732 |
+| 8 | Unbounded | 1 | 53.0 | 1657.6 | 93,313 |
+
+Fresh runtime/game installation in the same browser session as gameplay:
+
+| # | Ceiling → trim target, MiB | Runs | Race entry, s | Peak tab RAM, MiB | Compiled entries at race |
+|---:|---|---:|---:|---:|---:|
+| 1 | 64 → 48 | 1 | 124.4 | 1329.0 | 262,135 |
+| 2 | 96 → 88 | 1 | 96.9 | 1414.4 | 174,159 |
+| 3 | 128 → 120 | 1 | 88.3 | 1429.5 | 145,197 |
+| 4 | Unbounded | 1 | 78.0 | 1793.7 | 114,541 |
+
+Compiled-entry totals include recompilation; they are not unique guest PCs.
+The timing is the scripted route's race-entry checkpoint, not first frame.
+The smaller 32/30 MiB sweep saved about 6.6 seconds, but required 339 sweeps
+versus 102 at 32/24. At 64 MiB, trimming to 60 instead of 48 saved only a few
+seconds while increasing sweep frequency and the observed peak range.
+The ceiling and trim target therefore need separate evaluation.
+
+For prepared launches, 128/120 recovered about 95% of the delay introduced
+by 32/24: approximately 56.3 seconds versus 117.5 at the default and 53.0
+unbounded. It retained about 163–168 MiB less peak tab memory than unbounded.
+Moving from 96/88 to 128/120 saved roughly 5.4 seconds at the cost of about
+66–79 MiB in these prepared-run peaks. Beyond 128 MiB, the unbounded endpoint
+saved only another 3.3 seconds while using another 163–168 MiB.
+
+Peak RAM is not monotonic in the logical code budget. The 64/60 repeats
+spanned 1331–1394 MiB despite almost identical startup times, and the fresh
+128/120 route peaked below its prepared routes. Live code, allocation churn,
+collection timing, and other memory all contribute. A single lower peak is
+not a safe renderer limit; repeated cold cap tests and other heavy games
+remain necessary before changing the production policy.
+
+Opening gameplay FPS at 128/120 was 84.0–85.2 prepared and 84.8 fresh, versus
+84.9 for the prepared unbounded control. The later three-second windows
+varied more; all per-run values and compilation counters are retained in
+`CODE_CACHE_BUDGET_SWEEP.json`. These short checks are not a general
+throughput guarantee or evidence of a speedup.
+
+The build and browser tests passed, including budget validation and rejecting
+configuration after initialization. No normal-launch defaults changed and
+`.lan` remains on the previously validated 32/24 MiB release.
+
+Reproduction uses the existing `renderer-memory-limit.mjs` and
+`arena-growth-benchmark.mjs` harnesses. Set
+`EKA2L1_BENCHMARK_CODE_CACHE_MIB=128:120`,
+`EKA2L1_BENCHMARK_PREPARED=1`,
+`EKA2L1_BENCHMARK_PREPARED_LAUNCHER=1`, and
+`EKA2L1_TAB_RENDERER_CLIENT_ID=7`, then run
+`node renderer-memory-limit.mjs asphalt-3 3072 NEW_OUTPUT SERVER_URL`.
+For a fresh install, unset both prepared variables and set
+`EKA2L1_BENCHMARK_FRESH_LAUNCHER=1`. Every invocation must use a new output
+folder and browser profile. The exact route and frequency-restoring panel
+scripts, browser logs, full reports, and screenshots are under
+`/home/claude/.scratch/eka-cache-sweep/`; its `panel.sh` uses
+`/home/claude/.scratch/eka-graceful-lifetime/checked-gameplay-routes.json`.
+The compact measurements are tracked in `CODE_CACHE_BUDGET_SWEEP.json`.
