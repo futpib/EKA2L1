@@ -855,7 +855,7 @@ static void trim_compiled_modules() {
     // Benchmark overrides are frozen by the frontend before initialization.
     static const std::size_t limit = [] {
         const auto *value = std::getenv("EKA2L1_BENCHMARK_CODE_CACHE_LIMIT_MIB");
-        const auto mib = value ? std::strtoul(value, nullptr, 10) : 48u;
+        const auto mib = value ? std::strtoul(value, nullptr, 10) : 47u;
         return mib ? mib * 1024 * 1024 : std::size_t(-1);
     }();
     static const std::size_t target = [] {
