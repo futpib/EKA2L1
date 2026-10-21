@@ -157,6 +157,7 @@ namespace eka2l1::arm::aot {
     // dll_code: optional full-DLL code window for resolving BLX imm veneers
     // immutable_code: optional ROM window for precisely folding bounded BLX veneers and SVC stubs
     // leaves: optional same-address-space RAM resolver for bounded calls and branches
+    // compiled_recovery: caller can resume a scalar miss with the single-instruction compiler
     //
     // Returns a wasm_func_def ready to be included in a WASM module.
     // Returns empty body on failure.
@@ -167,5 +168,6 @@ namespace eka2l1::arm::aot {
         std::uint32_t start_address,
         const sibling_map *siblings = nullptr,
         const code_window *dll_code = nullptr, bool bounded = false, bool stop_after_store = false, bool cache_registers = false,
-        const code_window *immutable_code = nullptr, const leaf_resolver *leaves = nullptr);
+        const code_window *immutable_code = nullptr, const leaf_resolver *leaves = nullptr,
+        bool compiled_recovery = false);
 }

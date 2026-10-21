@@ -104,6 +104,7 @@ namespace eka2l1::arm::aot {
         bool finite_loop = false;
         bool polled_loop = false;
         bool continue_stores = false;
+        bool compiled_recovery = false;
         bool defer_memory = false;
         const leaf_resolver *leaves = nullptr;
         unsigned helper_calls = 0;
@@ -116,7 +117,14 @@ namespace eka2l1::arm::aot {
         // as instructions.
         std::uint32_t bail_count = 0;
 
-        void op(std::uint8_t o) { source.mark(b.size()); b.push_back(o); }
+        // Depth inside the result block added by state_local_cache::finish.
+        unsigned scope_depth = 0;
+        void op(std::uint8_t o) {
+            source.mark(b.size());
+            if (o == op_block || o == op_loop || o == op_if) ++scope_depth;
+            else if (o == op_end) --scope_depth;
+            b.push_back(o);
+        }
         void state_ptr() { op(op_local_get); leb(b, 0); }
         void get_local(std::uint32_t i) { op(op_local_get); leb(b, i); }
         void set_local(std::uint32_t i) { op(op_local_set); leb(b, i); }
@@ -351,7 +359,10 @@ namespace eka2l1::arm::aot {
         }
         void ret(unsigned why=exit_census::control) {
             source_scope provenance(source, source_kind::dispatch);
-            census_exit(why); cache.barrier_at(b.size()); op(op_return); }
+            census_exit(why);
+            if (cache.shared_return) { op(op_br); leb(b, scope_depth); }
+            else { cache.barrier_at(b.size()); op(op_return); }
+        }
 
         // Bail: publish PC and report progress (normal control flow exit)
         void bail(std::uint32_t pc, std::uint32_t source_index, unsigned why=exit_census::control) {
@@ -1130,7 +1141,7 @@ namespace eka2l1::arm::aot {
             // direct accesses cannot change mappings or request an interrupt,
             // so their stores need no intermediate return to the dispatcher.
             // Whole-span misses leave before the first register transfer.
-            w.defer_memory = w.continue_stores && (
+            w.defer_memory = (w.continue_stores || w.compiled_recovery) && (
                 (insn & 0xf000) == 0x5000 || (insn & 0xe000) == 0x6000
                 || (insn & 0xf000) == 0x8000 || (insn & 0xf000) == 0x9000
                 || (insn & 0xf800) == 0x4800
@@ -4762,7 +4773,7 @@ namespace eka2l1::arm::aot {
         std::uint32_t start_address,
         const sibling_map *siblings,
         const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers,
-        const code_window *immutable_code, const leaf_resolver *leaves)
+        const code_window *immutable_code, const leaf_resolver *leaves, bool compiled_recovery)
     {
         // Bounded blocks exit on branches instead of recursively calling siblings.
         // Keep guest-visible instructions (including veneers) in the execution stream.
@@ -4797,8 +4808,11 @@ namespace eka2l1::arm::aot {
         w.finite_loop = loop_size != 0;
         w.continue_stores = direct_memory && stop_after_store && memory_experiment::enabled()
             && common::code_tracking::skip_code_write_guards();
+        w.compiled_recovery = compiled_recovery && direct_memory && memory_experiment::enabled()
+            && common::code_tracking::skip_code_write_guards();
         w.leaves = leaves;
         w.cache.enabled = bounded && cache_registers;
+        w.cache.shared_return = w.cache.enabled;
         // Keep repeated PC, endian and TLB accesses in locals. Slow
         // callbacks still publish/reload the complete cached state.
         w.cache.runtime_fields = direct_memory;
@@ -4811,10 +4825,11 @@ namespace eka2l1::arm::aot {
         if (fuse) w.cache.entry_scope = w.cache.active_scope = std::make_shared<state_local_cache::entry_fields>();
         emit_thumb_block(tr, w, code, code_size, start_address, siblings, dll_code,
             bounded, stop_after_store, immutable_code, 0, fuse ? &fusion : nullptr);
-        // Every loop-carried local must be initialized before the first iteration.
-        // A nested entry reload must not overwrite a value from an earlier lap.
-        if (w.polled_loop && w.cache.entry_scope) {
-            for (const auto &[field, slot] : w.cache.locals) w.cache.entry_scope->used.insert(field);
+        // Every loop-carried local and shared-exit field needs an entry value.
+        // Nested entries must not overwrite state from an earlier path/lap.
+        if ((w.polled_loop || w.cache.shared_return) && w.cache.entry_scope) {
+            for (const auto &[field, slot] : w.cache.locals)
+                if (w.polled_loop || w.cache.written.count(field)) w.cache.entry_scope->used.insert(field);
         }
         finish_memory_locals(w);
         w.cache.finish(result);
@@ -4827,10 +4842,10 @@ namespace eka2l1::arm::aot {
     translate_result translate_thumb_block(
         const std::uint8_t *code, std::size_t code_size, std::uint32_t start_address,
         const sibling_map *siblings, const code_window *dll_code, bool bounded,
-        bool stop_after_store, bool cache_registers, const code_window *immutable_code, const leaf_resolver *leaves)
+        bool stop_after_store, bool cache_registers, const code_window *immutable_code, const leaf_resolver *leaves, bool compiled_recovery)
     {
         // Finite bodies complete; the outer successor dispatch polls for yields.
         return translate_thumb_block_impl(code, code_size, start_address,
-            siblings, dll_code, bounded, stop_after_store, cache_registers, immutable_code, leaves);
+            siblings, dll_code, bounded, stop_after_store, cache_registers, immutable_code, leaves, compiled_recovery);
     }
 }

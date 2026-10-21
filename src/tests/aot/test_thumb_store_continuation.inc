@@ -17,12 +17,16 @@ static bool test_thumb_store_continuation() {
         {0x9000,0x9a00,0x3201,0x9201,0x4770},
         {0x5088,0x588b,0x5488,0x5c8b,0x3001,0x4770},
         {0x5288,0x568b,0x5488,0x5e8b,0x3001,0x4770},
-        {0x6008,0x3104,0x7008,0x780a,0x3101,0x700a,0x4770}
+        {0x6008,0x3104,0x7008,0x780a,0x3101,0x700a,0x4770},
+        {0xb40f,0xbc0f,0x4770}, // PUSH/POP spanning multiple words
+        {0xb500,0xbd00},        // LR saved and restored directly into PC
+        {0xc105,0x3908,0xc905,0x4770} // STMIA/LDMIA with base writeback
     };
     unsigned checks = 0;
+    for (bool rom_recovery : {false, true})
     for (const auto &code : programs) {
         const auto tr = translate_thumb_block(reinterpret_cast<const std::uint8_t *>(code.data()),
-            code.size()*2,0x1000,nullptr,nullptr,true,true,true);
+            code.size()*2,0x1000,nullptr,nullptr,true,!rom_recovery,true,nullptr,nullptr,rom_recovery);
         if (!tr.complete || tr.end_address != 0x1000 + code.size()*2) return false;
         const auto bytes = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},
             {"env","tlb_write32",3,false},{"env","tlb_read8",2,true},
@@ -40,6 +44,8 @@ static bool test_thumb_store_continuation() {
             for (unsigned r=0;r<15;++r) state[r]=r*73+11;
             state[0]=input; state[1]=fault==3?0x8ffc:fault==4?0x8001:0x8000;
             state[2]=4; state[13]=state[1]; state[14]=0x3001; state[15]=0x1000;
+            if (code[0] == 0xb40f) state[13] += 16;
+            if (code[0] == 0xb500) state[13] += 4;
             state[S::MODE/4]=16; state[S::CPSR/4]=0x30|(flags<<28)|(fault==5?0x200:0);
             state[S::TFLAG/4]=1; state[S::NIRQ/4]=1; state[S::NUM_INSTRS_TO_EXECUTE/4]=UINT32_MAX;
             state[S::NFLAG/4]=(flags>>3)&1; state[S::ZFLAG/4]=(flags>>2)&1;
@@ -55,7 +61,7 @@ static bool test_thumb_store_continuation() {
             const auto progress=js_run_aot_wasm(bytes.data(),bytes.size(),
                 reinterpret_cast<std::uint8_t *>(state),sizeof(state));
             watchdog::request=0;
-            if (progress<0 || g_all_memory_helper_calls || (!fault && state[15] != (code[0] == 0x8808 && !input ? 0x100a : 0x3000))
+            if (progress<0 || g_all_memory_helper_calls || (!fault && (state[15] & ~1u) != (code[0] == 0x8808 && !input ? 0x100a : 0x3000))
                     || reference_to(*cpu,state)<0 || memory.data!=reference.data) {
                 printf("FAIL Thumb store continuation first=%x input=%x flags=%u fault=%u pc=%x helpers=%u progress=%d r0=%x r1=%x r2=%x\n",
                     code[0],input,flags,fault,state[15],g_all_memory_helper_calls,progress,state[0],state[1],state[2]); return false;
@@ -68,7 +74,7 @@ static bool test_thumb_store_continuation() {
     const std::uint16_t code[]={0x6008,0x3001,0x6048,0x4770};
     if (translate_thumb_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),
             0x1000,nullptr,nullptr,true,true,true).end_address!=0x1002) return false;
-    printf("PASS Thumb store continuation: %u interpreter state/flags/memory comparisons\n",checks);
+    printf("PASS Thumb RAM continuation and ROM compiled recovery: %u interpreter state/flags/memory comparisons\n",checks);
 #endif
     return true;
 }

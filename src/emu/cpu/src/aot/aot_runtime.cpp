@@ -378,7 +378,7 @@ static void compile_at(core &cpu, std::uint32_t key, std::vector<std::uint32_t> 
             return std::vector<std::uint8_t>(leaf.bytes, leaf.bytes + bytes);
         };
         const code_window immutable_code{hot_rom, hot_rom_base, hot_rom_size};
-        auto translate = [&] {return thumb ? translate_thumb_block(view.bytes, size, pc, nullptr, nullptr, true, true, true, &immutable_code, &leaves)
+        auto translate = [&] {return thumb ? translate_thumb_block(view.bytes, size, pc, nullptr, nullptr, true, true, true, &immutable_code, &leaves, true)
                             : translate_arm_block(view.bytes, size, pc, nullptr, nullptr, true, true, true, true, &leaves, true, arm_ir_policy::write_spans);};
         auto tr = [&] { compilation_timer timer{compilation.translation_us, &compilation.ram_translation_us}; return translate(); }();
         if (tr.func.body.empty() || !tr.entry_supported) {
@@ -429,7 +429,7 @@ static void compile_at(core &cpu, std::uint32_t key, std::vector<std::uint32_t> 
     const auto offset = pc - hot_rom_base;
     const auto size = std::min(primary_window_bytes, hot_rom_size - offset);
     const code_window immutable_code{hot_rom, hot_rom_base, hot_rom_size};
-    auto translate = [&] {return thumb ? translate_thumb_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, true, &immutable_code, nullptr)
+    auto translate = [&] {return thumb ? translate_thumb_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, true, &immutable_code, nullptr, true)
                         : translate_arm_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, true, true, nullptr, true, arm_ir_policy::write_spans);};
     auto tr = [&] { compilation_timer timer{compilation.translation_us, &compilation.rom_translation_us}; return translate(); }();
     if (tr.func.body.empty() || !tr.entry_supported) return;
@@ -855,12 +855,12 @@ static void trim_compiled_modules() {
     // Benchmark overrides are frozen by the frontend before initialization.
     static const std::size_t limit = [] {
         const auto *value = std::getenv("EKA2L1_BENCHMARK_CODE_CACHE_LIMIT_MIB");
-        const auto mib = value ? std::strtoul(value, nullptr, 10) : 104u;
+        const auto mib = value ? std::strtoul(value, nullptr, 10) : 48u;
         return mib ? mib * 1024 * 1024 : std::size_t(-1);
     }();
     static const std::size_t target = [] {
         const auto *value = std::getenv("EKA2L1_BENCHMARK_CODE_CACHE_TARGET_MIB");
-        return (value ? std::strtoul(value, nullptr, 10) : 96u) * 1024 * 1024;
+        return (value ? std::strtoul(value, nullptr, 10) : 40u) * 1024 * 1024;
     }();
     if (resident_modules.bytes() <= limit) return;
     evict_compiled_modules(target);
@@ -929,7 +929,7 @@ static bool export_rom_cache(const std::string &path) {
         const auto offset = pc - hot_rom_base;
         const auto size = std::min(primary_window_bytes, hot_rom_size - offset);
         auto tr = key & 1
-            ? translate_thumb_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, true, &immutable_code, nullptr)
+            ? translate_thumb_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, true, &immutable_code, nullptr, true)
             : translate_arm_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, true, true, nullptr, true, arm_ir_policy::write_spans);
         if (!tr.entry_supported || tr.func.body.empty()) continue;
         tr.func.export_name = "f_" + std::to_string(key);
