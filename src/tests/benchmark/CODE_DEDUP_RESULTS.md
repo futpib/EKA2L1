@@ -197,3 +197,28 @@ Final loader SHA-256: `3cefe612be554de5bf098798e272be3dd50a4e2c5593f350a424e1b35
 ## Deployment
 
 The immutable release `/home/claude/.local/share/eka2l1/releases/b26148182-af0162b2` is deployed at `https://claude-laptop.lan:8188/`. Both served hashes match the final candidate. The first live prepared Tetris route completed at the 1024 MiB cap with zero OOMs. Its first two gameplay windows were 153.53 / 154.75 FPS; its third window crossed into the results screen and is excluded from gameplay evidence. A follow-up live route with the new start/end board assertions passed under the same cap, with zero OOMs and two verified gameplay windows of 153.38 / 151.56 FPS. Its peak was 1024.0 MiB. CPU frequency bounds were restored afterward.
+
+## Uncensored heavy-game ranking on the deployed build
+
+The 1024 MiB acceptance runs above clip peaks at the cap, so they cannot rank
+the heavy games. Six additional runs used the exact deployed WASM SHA-256
+`af0162b29b63d1c629f7b57c02ca35077c508264b712ccb5832369e16a8fa506`,
+fresh browser profiles, forced N-Gage source installation, and a 2048 MiB
+game-tab renderer ceiling with zero swap. The second round reversed game order.
+All six reached their asserted gameplay scene, selected exactly one capped
+renderer, and recorded `memory.events.max=0`, `oom=0`, and `oom_kill=0`.
+
+| # | Game | First peak, MiB | Reverse-order peak, MiB |
+|---:|---|---:|---:|
+| 1 | Hooked On | 1036.0 | 1054.6 |
+| 2 | Tetris | 1048.6 | 1011.0 |
+| 3 | Asphalt 3 | 998.4 | 1025.0 |
+
+Asphalt 3 was not the largest in either round. Hooked On exceeded Asphalt 3
+in both, while Hooked On and Tetris traded first place. These two cold runs
+per game establish the observed order, not a stable ranking across sessions
+or levels. The 2048 MiB peaks include charged filesystem cache; the same games
+can pass a 1024 MiB limit when Linux reclaims that cache under pressure.
+
+Raw results are in `/home/claude/.scratch/eka-tab-ram-rank-af0162-GAME/`
+and `/home/claude/.scratch/eka-tab-ram-rank-af0162-GAME-r2/`.
