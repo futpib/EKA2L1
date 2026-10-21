@@ -2304,6 +2304,10 @@ static bool test_bounded_execution(bool thumb_only = false) {
         for (unsigned shift : {0u, 0x80u, 0xF80u, 0x20u, 0xFA0u, 0x40u, 0xFC0u, 0x60u, 0xFE0u, 0x10u, 0x30u, 0x50u, 0x70u}) {
             const auto rd = opcode >= 8 && opcode <= 11 ? 0u : 2u;
             programs.push_back(arm({0xE0100000u | (opcode<<21) | (rd<<12) | shift}));
+            // Non-S operations must keep C unchanged, including RRX, while
+            // arithmetic S operations use their own carry rather than the shifter's.
+            if (opcode < 8 || opcode > 11)
+                programs.push_back(arm({0xE0000000u | (opcode<<21) | (rd<<12) | shift}));
         }
     }
     for (unsigned opcode = 0; opcode < 16; ++opcode)
