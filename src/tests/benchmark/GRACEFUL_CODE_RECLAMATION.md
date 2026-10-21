@@ -472,3 +472,17 @@ collection without restarting the CPU worker.
 Raw evidence and frequency-restoring panel scripts are in
 `/home/claude/.scratch/eka-cache-default128/`; compact results are tracked in
 `CODE_CACHE_DEFAULT128.json`.
+
+
+Deployment: implementation commit `00c87c693` was copied to
+`/home/claude/.local/share/eka2l1/releases/00c87c693-e725b6ae/build`, with
+an empty adjacent ROM-cache directory. The live service now serves this
+release at `https://claude-laptop.lan:8188/`. Both HTTP-fetched JS/WASM hashes
+matched the default-validation hashes above. The previous release remains
+available for rollback.
+
+The public-URL smoke route `lan-asphalt-3-a` completed both racing windows
+without a budget override, at **1504.4 MiB peak**, with zero limit/OOM
+events, one CPU-worker start, and no reported runtime errors. Host frequency
+limits were restored to 800 MHz–5.1 GHz for this smoke, so its FPS is not
+part of the fixed-3-GHz comparison. The private port 8190 server is stopped.
