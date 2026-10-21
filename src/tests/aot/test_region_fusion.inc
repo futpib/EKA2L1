@@ -12,7 +12,7 @@ EM_JS(double, fusion_operation_count, (int kind, bool clear), {
 static bool count_fusion_operations(wasm_func_def &function) {
     if(function.outlined_callee && !count_fusion_operations(*function.outlined_callee))return false;
     for(auto &call:function.outlined_calls)if(!count_fusion_operations(*call.callee))return false;
-    enum immediate {none,leb,pair,table,float32,float64,unknown};
+    enum immediate {none,leb,pair,table,float32,float64,atomic_load,unknown};
     const auto &body=function.body;std::vector<std::uint8_t> counted;
     std::map<unsigned,unsigned> relocated;
     for(std::size_t pos=0;pos<body.size();) {
@@ -30,6 +30,7 @@ static bool count_fusion_operations(wasm_func_def &function) {
         case table:{const auto n=read();for(unsigned i=0;i<=n;++i)read();break;}
         case float32:pos+=4;break;
         case float64:pos+=8;break;
+        case atomic_load:if(read()!=0x10 || read()!=2)return false;read();break;
         default:return false;
         }
         if(pos>body.size())return false;

@@ -12,17 +12,17 @@ const string=s=>[...leb(s.length),...Buffer.from(s)];
 function module(body,locals) {
     const bytes=[0,97,115,109,1,0,0,0],section=(id,b)=>bytes.push(id,...leb(b.length),...b);
     section(1,[2,0x60,1,0x7f,1,0x7f,0x60,1,0x7f,0]);
-    section(2,[2,...string('env'),...string('memory'),2,0,1,...string('env'),...string('helper'),0,1]);
+    section(2,[2,...string('env'),...string('memory'),2,3,1,1,...string('env'),...string('helper'),0,1]);
     section(3,[1,0]);section(7,[1,...string('probe'),0,1]);
     const code=[1,...leb(locals),0x7f,...Buffer.from(body,'hex'),0x0b];
     section(10,[1,...leb(code.length),...code]);
     const raw=Uint8Array.from(bytes);assert(WebAssembly.validate(raw));return counted(raw,{breakdown:true});
 }
-const memory=new WebAssembly.Memory({initial:1}),words=new Uint32Array(memory.buffer),state=64;
+const memory=new WebAssembly.Memory({initial:1,maximum:1,shared:true}),words=new Uint32Array(memory.buffer),state=64;
 let trace=[],mutate=false;
 const env={memory,helper:p=>{
     assert.equal(p,state);trace.push([...words.slice(state/4,state/4+64)]);
-    if(mutate){words[state/4]=(words[state/4]+19)>>>0;words[state/4+1]^=0xa55a;}
+    if(mutate){words[state/4]=(words[state/4]+19)>>>0;words[state/4+1]^=0xa55a;Atomics.store(words,0,1);}
 }};
 const costs=new CostComparisons();let comparisons=0,reduced=0;
 for(const probe of probes) {
@@ -31,7 +31,7 @@ for(const probe of probes) {
     for(let seed=0;seed<32;++seed)for(let condition=0;condition<5;++condition)for(const mutation of [false,true]) {
         const results=instances.map(instance=>{
             for(let i=0;i<64;++i)words[state/4+i]=(Math.imul(seed+1,0x1234567)+i)>>>0;
-            words[state/4+2]=condition;trace=[];mutate=mutation;resetCost(instance);
+            words[state/4+2]=condition;Atomics.store(words,0,condition&1);trace=[];mutate=mutation;resetCost(instance);
             const result=instance.exports.probe(state);
             return {result,state:[...words.slice(state/4,state/4+64)],trace,cost:readCost(instance)};
         });

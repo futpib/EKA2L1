@@ -19,6 +19,7 @@ namespace {
         void set(unsigned n) { op(op_local_set); imm(n); }
         void constant(unsigned n) { op(op_i32_const); imm(n); }
         void raw(unsigned offset) { get(0); op(op_i32_load); imm(2); imm(offset); }
+        void poll() { constant(0); op(0xfe); imm(0x10); imm(2); imm(0); }
         void load(unsigned offset) { get(cache.local(offset)); }
         void store(unsigned offset) { set(cache.local(offset)); cache.written.insert(offset); }
         void write(unsigned offset, unsigned n) { constant(n); store(offset); }
@@ -63,6 +64,18 @@ int main(int argc, char **) {
             f.raw(8); f.set(1); f.control(op_block); f.control(op_loop);
             f.get(1); f.op(op_i32_eqz); f.branch(op_br_if, 1);
             f.load(0); f.constant(1); f.op(op_i32_add); f.store(0);
+            f.get(1); f.constant(1); f.op(op_i32_sub); f.set(1); f.branch(op_br, 0);
+            f.op(op_end); f.op(op_end); f.result();
+        }},
+        {"watchdog_exit", [](auto &f) {
+            f.write(0, 7); f.poll(); f.control(op_if); f.result(); f.op(op_end);
+            f.write(0, 9); f.result();
+        }},
+        {"watchdog_loop_helper", [](auto &f) {
+            f.raw(8); f.set(1); f.control(op_block); f.control(op_loop);
+            f.poll(); f.branch(op_br_if, 1);
+            f.get(1); f.op(op_i32_eqz); f.branch(op_br_if, 1);
+            f.load(0); f.constant(1); f.op(op_i32_add); f.store(0); f.helper();
             f.get(1); f.constant(1); f.op(op_i32_sub); f.set(1); f.branch(op_br, 0);
             f.op(op_end); f.op(op_end); f.result();
         }},
@@ -163,6 +176,7 @@ int main(int argc, char **) {
         auto old = f.function, current = f.function;
         f.cache.finish(old, false); f.cache.finish(current);
         assert(current.body.size() <= old.body.size());
+        if (std::string(name).find("watchdog_") == 0) assert(current.body.size() < old.body.size());
         changed += current.body != old.body;
         if (argc > 1) {
             std::printf("STATE_PROBE {\"name\":\"%s\",\"locals\":%u,\"before\":\"", name, old.num_locals);
@@ -172,11 +186,14 @@ int main(int argc, char **) {
     assert(changed >= 8);
 
     // Unknown instructions and unsupported layouts preserve exact bytes.
-    for (unsigned kind = 0; kind < 3; ++kind) {
+    for (unsigned kind = 0; kind < 6; ++kind) {
         fixture f; f.write(0, 7); f.fixed_result();
         if (kind == 0) f.op(0xfd);
         if (kind == 1) { f.op(op_i32_const); f.op(0x80); }
         if (kind == 2) for (unsigned n = 1; n <= 64; ++n) f.cache.local(n * 4);
+        if (kind == 3) { f.constant(0); f.op(0xfe); f.imm(0x17); f.imm(2); f.imm(0); }
+        if (kind == 4) { f.constant(0); f.op(0xfe); f.imm(0x10); f.imm(1); f.imm(0); }
+        if (kind == 5) { f.constant(0); f.op(0xfe); f.imm(0x10); f.imm(2); f.op(0x80); }
         auto old = f.function, current = f.function;
         f.cache.finish(old, false); f.cache.finish(current);
         assert(old.body == current.body);

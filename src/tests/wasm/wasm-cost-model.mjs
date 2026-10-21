@@ -31,6 +31,9 @@ export function instruction(bytes, offset) {
     case 'table':{const n=leb();if(n>bytes.length-offset)throw Error('Truncated branch table');for(let i=0;i<=n;++i)leb();break;}
     case 'float32':offset+=4;break;
     case 'float64':offset+=8;break;
+    case 'atomic_load':
+        if(leb()!==0x10 || leb()!==2)throw Error('Unsupported atomic operation');
+        leb();break;
     default:throw Error(`Unknown immediate format ${entry.immediate}`);
     }
     if(offset>bytes.length)throw Error('Truncated WASM immediate');

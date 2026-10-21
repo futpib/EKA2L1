@@ -6,7 +6,7 @@
 
 namespace eka2l1::arm::aot {
     namespace {
-        enum class immediate { none, leb, pair, table, float32, float64, unknown };
+        enum class immediate { none, leb, pair, table, float32, float64, atomic_load, unknown };
         constexpr auto encodings() {
             std::array<immediate, 256> table{};
             for (auto &entry : table) entry = immediate::unknown;
@@ -137,6 +137,12 @@ namespace eka2l1::arm::aot {
                 break;
             case immediate::float32: input.position += 4; break;
             case immediate::float64: input.position += 8; break;
+            case immediate::atomic_load:
+                // A watchdog i32.atomic.load cannot modify architectural state.
+                // Preserve the poll and reject other atomic operations.
+                if (input.leb() != 0x10 || input.leb() != 2) return false;
+                input.leb();
+                break;
             case immediate::unknown: return false;
             }
             if (!input.valid || input.position > function.body.size()) return false;
