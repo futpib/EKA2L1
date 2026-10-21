@@ -20,6 +20,8 @@
 #include <cpu/aot/wasm_emitter.h>
 #include <cpu/aot/memory_experiment.h>
 #include <cstring>
+#include <string_view>
+#include <unordered_map>
 #ifdef EKA2L1_AOT_SOURCE_MAPS
 #include <zlib.h>
 #endif
@@ -72,6 +74,7 @@ namespace eka2l1::arm::aot {
         const std::uint32_t num_imports = static_cast<std::uint32_t>(imports.size());
         const std::uint32_t num_funcs = static_cast<std::uint32_t>(funcs.size());
         std::vector<const wasm_func_def *> definitions;
+        std::unordered_multimap<std::string_view, std::uint32_t> private_indices;
         std::vector<std::vector<std::pair<std::uint32_t, std::uint32_t>>> outlined_indices(num_funcs);
         for (const auto &func : funcs) definitions.push_back(&func);
         for (std::uint32_t i = 0; i < num_funcs; ++i) {
@@ -84,6 +87,27 @@ namespace eka2l1::arm::aot {
                     || func.body[offset - 1] != op_call) return false;
                 for (const auto &prior : outlined_indices[i])
                     if (prior.first == offset) return false;
+                // Private helpers share the module's import/sibling indices.
+                // Reuse identical definitions without changing public indices
+                // or adding calls. Match provenance as well as executable bytes.
+                const auto matches = private_indices.equal_range(callee->export_name);
+                for (auto it = matches.first; it != matches.second; ++it) {
+                    const auto &prior = *definitions[it->second];
+                    if (prior.num_locals == callee->num_locals
+                        && prior.num_prefix_i64_locals == callee->num_prefix_i64_locals
+                        && prior.num_f32_locals == callee->num_f32_locals
+                        && prior.num_f64_locals == callee->num_f64_locals
+                        && prior.body == callee->body
+                        && std::equal(prior.sources.begin(), prior.sources.end(),
+                            callee->sources.begin(), callee->sources.end(),
+                            [](const source_mark &a, const source_mark &b) {
+                                return a.offset == b.offset && a.pc == b.pc && a.kind == b.kind;
+                            })) {
+                        outlined_indices[i].emplace_back(offset, num_imports + it->second);
+                        return true;
+                    }
+                }
+                private_indices.emplace(callee->export_name, static_cast<std::uint32_t>(definitions.size()));
                 outlined_indices[i].emplace_back(offset, num_imports + static_cast<std::uint32_t>(definitions.size()));
                 definitions.push_back(callee.get());
                 return true;

@@ -30,6 +30,7 @@
 
 #include <cstring>
 #include <algorithm>
+#include <array>
 #include <set>
 
 // VFP instruction field extraction (from ARM encoding).
@@ -580,6 +581,10 @@ namespace eka2l1::arm::aot {
         unsigned expanded = 0;
         bool stores = false;
         std::uint64_t end = 0;
+        // Each bit names an instruction reached by every path from this PC.
+        // Keep the original expanded-path limit when sharing their tails.
+        static_assert(leaf_instruction_limit <= 32);
+        std::array<std::uint32_t, leaf_instruction_limit> postdominators{};
 
         bool analyze(std::uint32_t pc) {
             std::uint16_t insn;
@@ -587,26 +592,36 @@ namespace eka2l1::arm::aot {
                     || std::uint64_t(pc) >= std::uint64_t(entry) + leaf_instruction_limit * 2
                     || !rom->read(pc, &insn, 2)) return false;
             end = std::max(end, std::uint64_t(pc) + 2);
+            auto &post = postdominators[(pc - entry) / 2];
+            post = 1u << ((pc - entry) / 2);
             if (insn == 0x4770) return true;
             if ((insn & 0xf000) == 0xd000 && ((insn >> 8) & 15) < 14) {
                 const auto target = pc + 4 + static_cast<std::int8_t>(insn & 255) * 2;
-                return target > pc && analyze(target) && analyze(pc + 2);
+                if (target <= pc || !analyze(target) || !analyze(pc + 2)) return false;
+                post |= postdominators[(target - entry) / 2] & postdominators[(pc + 2 - entry) / 2];
+                return true;
             }
             if ((insn & 0xf800) == 0xe000) {
                 const auto target = pc + 4 + (static_cast<std::int16_t>((insn & 2047) << 5) >> 5) * 2;
-                return target > pc && analyze(target);
+                if (target <= pc || !analyze(target)) return false;
+                post |= postdominators[(target - entry) / 2];
+                return true;
             }
             if (!leaf_read_size(insn) && !(stores && leaf_write_size(insn))) {
                 std::vector<std::uint8_t> bytes;
                 emit probe{bytes};
                 if (!emit_leaf_alu(probe, insn)) return false;
             }
-            return analyze(pc + 2);
+            if (!analyze(pc + 2)) return false;
+            post |= postdominators[(pc + 2 - entry) / 2];
+            return true;
         }
     };
 
     static void emit_thumb_leaf(emit &w, const thumb_leaf &leaf, std::uint32_t pc,
-            unsigned count, std::uint32_t return_pc, unsigned depth = 0) {
+            unsigned count, std::uint32_t return_pc, unsigned depth = 0,
+            std::uint64_t stop = UINT64_MAX) {
+        if (pc == stop) return;
         std::uint16_t insn = 0;
         leaf.rom->read(pc, &insn, 2);
         w.source.pc = pc; w.source.kind = source_kind::guest;
@@ -618,16 +633,24 @@ namespace eka2l1::arm::aot {
         }
         if ((insn & 0xf000) == 0xd000) {
             const auto target = pc + 4 + static_cast<std::int8_t>(insn & 255) * 2;
+            const auto common = leaf.postdominators[(target - leaf.entry) / 2]
+                & leaf.postdominators[(pc + 2 - leaf.entry) / 2];
+            const auto join = common ? std::uint64_t(leaf.entry) + __builtin_ctz(common) * 2 : stop;
             emit_thumb_condition(w, (insn >> 8) & 15);
             w.op(op_if); w.op(type_void);
-            emit_thumb_leaf(w, leaf, target, count + 1, return_pc, depth + 1);
+            emit_thumb_leaf(w, leaf, target, count + 1, return_pc, depth + 1, join);
             w.op(op_else);
-            emit_thumb_leaf(w, leaf, pc + 2, count + 1, return_pc, depth + 1);
-            w.op(op_end); return;
+            emit_thumb_leaf(w, leaf, pc + 2, count + 1, return_pc, depth + 1, join);
+            w.op(op_end);
+            // Progress is a boolean; both paths have executed the call and
+            // branch. No path-dependent instruction count is needed here.
+            if (common) emit_thumb_leaf(w, leaf, static_cast<std::uint32_t>(join),
+                count + 1, return_pc, depth, stop);
+            return;
         }
         if ((insn & 0xf800) == 0xe000) {
             const auto target = pc + 4 + (static_cast<std::int16_t>((insn & 2047) << 5) >> 5) * 2;
-            emit_thumb_leaf(w, leaf, target, count + 1, return_pc, depth); return;
+            emit_thumb_leaf(w, leaf, target, count + 1, return_pc, depth, stop); return;
         }
         const bool write = leaf_write_size(insn) != 0;
         if (const auto size = write ? leaf_write_size(insn) : leaf_read_size(insn)) {
@@ -646,7 +669,7 @@ namespace eka2l1::arm::aot {
             direct_access(w, size, write, [&] { w.bail(pc, count, exit_census::guard); });
             if (!write) { w.set_local(1); w.store_reg(rd, 1); }
         } else emit_leaf_alu(w, insn);
-        emit_thumb_leaf(w, leaf, pc + 2, count + 1, return_pc, depth);
+        emit_thumb_leaf(w, leaf, pc + 2, count + 1, return_pc, depth, stop);
     }
 
 

@@ -2669,7 +2669,8 @@ static bool test_block_transfer_guards() {
 // Private callee relocation must not shift public sibling-call indices, even
 // when imports and enough public functions require a multi-byte callee index.
 static bool test_outlined_callee_indices() {
-    for (unsigned import_count : {0u, 6u}) for (unsigned public_count : {2u, 128u}) {
+    for (unsigned import_count : {0u, 6u}) for (unsigned public_count : {2u, 128u})
+    for (unsigned variant = 0; variant < 7; ++variant) {
         std::vector<wasm_func_def> functions(public_count);
         for (unsigned i = 0; i < public_count; ++i) {
             functions[i].export_name = "f_" + std::to_string(i);
@@ -2691,18 +2692,52 @@ static bool test_outlined_callee_indices() {
             auto child=std::make_shared<wasm_func_def>();child->num_locals=0;
             child->body={op_i32_const,static_cast<std::uint8_t>(value)};
             parent.outlined_calls.push_back({child,offset});
+            return child;
         };
         add_private(caller,3);add_private(caller,5);add_private(functions[1],0);
+        const auto duplicate = add_private(caller,7);
+        *duplicate = *caller.outlined_callee;
+        *add_private(functions[1],7) = *caller.outlined_callee;
+        switch (variant) {
+        case 1: duplicate->num_locals = 1; break;
+        case 2: duplicate->num_prefix_i64_locals = 1; break;
+        case 3: duplicate->num_f32_locals = 1; break;
+        case 4: duplicate->num_f64_locals = 1; break;
+        case 5: duplicate->sources.push_back({0,0x8000,source_kind::guest}); break;
+        case 6: duplicate->export_name = "different_guest_entry"; break;
+        }
         std::vector<wasm_import_func> imports;
         if (import_count) imports = {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
             {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
         const auto module = build_wasm_module(functions, imports);
         if (module.empty()) return false;
+        // Inspect the actual function section: only the identical helper may
+        // share a definition. Local layouts and guest provenance stay distinct.
+        std::size_t pos = 8;
+        const auto read_leb = [&]() {
+            unsigned value = 0, shift = 0;
+            for (;;) {
+                const auto byte = module.at(pos++);
+                value |= unsigned(byte & 127) << shift;
+                if (!(byte & 128)) return value;
+                shift += 7;
+            }
+        };
+        unsigned definitions = 0;
+        while (pos < module.size()) {
+            const auto section = module.at(pos++);
+            const auto size = read_leb();
+            if (section == 3) { definitions = read_leb(); break; }
+            pos += size;
+        }
+        if (definitions != public_count + 4 + (variant != 0)) {
+            printf("  FAIL private helper definitions=%u variant=%u\n",definitions,variant); return false;
+        }
 #ifdef __EMSCRIPTEN__
         alignas(8) std::uint32_t state[256]{};
         if (js_run_aot_wasm(module.data(), module.size(),
-                reinterpret_cast<std::uint8_t *>(state), sizeof(state)) != 28) {
+                reinterpret_cast<std::uint8_t *>(state), sizeof(state)) != 42) {
             printf("  FAIL outlined callee imports=%u public=%u\n", import_count, public_count);
             return false;
         }

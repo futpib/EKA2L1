@@ -21,12 +21,23 @@ static bool test_thumb_ram_leaves() {
         {0x9000,0x9a00,0x3201,0x9201,0x4770},
         {0x4800,0x4770,0x8001,0x1234},
         {0x4670,0x4770},
-        {0xe001,0x4686,0x4770,0x3001,0x4770}
+        {0xe001,0x4686,0x4770,0x3001,0x4770},
+        // Diamonds, nested joins and an early return. Joined memory accesses
+        // must retain the flags, registers and exact fault PC of either path.
+        {0x2800,0xd002,0x2201,0xe001,0x4686,0x2202,0x600a,0x3001,0x4770},
+        {0x2800,0xd004,0x2801,0xd001,0x2301,0xe003,0x2302,0xe001,
+            0x4686,0x2303,0x600b,0x680a,0x4770},
+        {0x2800,0xd001,0x4770,0x4686,0x2a00,0xd000,0x3201,0x600a,0x4770},
+        {0xd000,0x3001,0xd000,0x3201,0xd000,0x3301,0x680c,0x4770}
     };
-    for (unsigned cond=0;cond<14;++cond)
+    for (unsigned cond=0;cond<14;++cond) {
         programs.push_back({static_cast<std::uint16_t>(0xd000|(cond<<8)|1),
             0x6008,0x4770,0x6048,0x4770});
+        programs.push_back({static_cast<std::uint16_t>(0xd000|(cond<<8)|2),
+            0x2201,0x600a,0xe001,0x2202,0x600a,0x684b,0x3301,0x604b,0x4770});
+    }
     unsigned checks = 0;
+    std::size_t emitted_bytes = 0;
     for (const auto &code : programs) {
         const auto *data = reinterpret_cast<const std::uint8_t *>(code.data());
         leaf_resolver resolve = [&](unsigned pc) {
@@ -35,6 +46,7 @@ static bool test_thumb_ram_leaves() {
         };
         const auto tr = translate_thumb_block(reinterpret_cast<const std::uint8_t *>(caller),
             sizeof(caller),0x1000,nullptr,nullptr,true,true,true,nullptr,&resolve);
+        emitted_bytes += tr.func.body.size();
         if (!tr.complete || tr.inlined_thumb_helpers != 1 || tr.dependencies.size() != 1
                 || tr.dependencies[0].address != 0x2000
                 || tr.dependencies[0].bytes.size() != (code[0] == 0x4800 ? 4 : code.size()*2)
@@ -107,7 +119,8 @@ static bool test_thumb_ram_leaves() {
             0x1000,nullptr,nullptr,true,true,true,nullptr,&resolve);
         if (tr.inlined_thumb_helpers || !tr.dependencies.empty()) return false;
     }
-    printf("PASS RAM Thumb leaves: %u interpreter state/flags/memory comparisons\n", checks);
+    printf("PASS RAM Thumb leaves: %u interpreter state/flags/memory comparisons, %zu emitted bytes\n",
+        checks, emitted_bytes);
 #endif
     return true;
 }
