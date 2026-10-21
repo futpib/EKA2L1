@@ -10,8 +10,13 @@ original metrics and are not added together or treated as current-runtime gains.
 The [verified audio replay results](RESULTS.md) record the four-run comparison and test limitations.
 
 The [1 GiB renderer results](MEMORY_CAP_1GIB_RESULTS.md) cover smaller Thumb ROM
-translations, shared exit writebacks, the 48/40 MiB module-cache default, all eight
+translations, shared exit writebacks, the initial 48/40 MiB module-cache default, all eight
 games, repeated cold/prepared launches, and matched unpaced throughput.
+
+The [code deduplication results](CODE_DEDUP_RESULTS.md) cover shared Thumb leaf
+continuations and identical private helpers, the current 47/40 MiB retention
+default, eight-game throughput and renderer-cap checks, and explicit exclusion
+of runs affected by host contention.
 
 The [memory-access distribution report](MEMORY_ACCESS_DISTRIBUTION_RESULTS.md)
 covers all supported stock-device games and the N-Gage client, with per-process

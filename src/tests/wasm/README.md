@@ -395,8 +395,9 @@ EKA2L1_TAB_RENDERER_CLIENT_ID=7 EKA2L1_BENCHMARK_FRESH_LAUNCHER=1 \
 ```
 
 The current target is 1 GiB (1024 MiB). Build-specific peaks, failures,
-and throughput comparisons for the current 48/40 MiB default are recorded in
-`src/tests/benchmark/MEMORY_CAP_1GIB_RESULTS.md`. The preceding 1.3 GiB results
+and throughput comparisons for the current 47/40 MiB default are recorded in
+`src/tests/benchmark/CODE_DEDUP_RESULTS.md`. The initial 48/40 MiB results remain
+in `src/tests/benchmark/MEMORY_CAP_1GIB_RESULTS.md`. The preceding 1.3 GiB results
 remain in `src/tests/benchmark/MEMORY_CAP_WITHOUT_GAMEPLAY_SLOWDOWN.md`. Historical captures
 remain in `src/tests/benchmark/RENDERER_CAP_RESULTS.md`.
 The client ID is specific to the tested Chromium 154 launch. The harness
