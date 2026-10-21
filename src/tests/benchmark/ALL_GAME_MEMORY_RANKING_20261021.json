@@ -1,0 +1,980 @@
+{
+  "sourceCommit": "549787c7fa5a237b4c52aa3016e4a496b4c90323",
+  "url": "https://claude-laptop.lan:8188/",
+  "wasmSha256": "6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+  "jsSha256": "2e76d9486a3de105066f8892c060e134aa614c2aed98e262d7ef45895de1c209",
+  "limitMiB": 4096,
+  "scope": "single game-tab renderer, no swap",
+  "browser": "Chromium 154.0.8037.97 Arch Linux",
+  "routes": "/home/claude/.scratch/eka-graceful-lifetime/checked-gameplay-routes.json",
+  "cacheBudgetMiB": [
+    104,
+    96
+  ],
+  "cacheOverride": false,
+  "profileStorage": "new SSD profile per invocation",
+  "games": [
+    "snakes",
+    "sky-force",
+    "k-rally",
+    "asphalt-2",
+    "hooked-on",
+    "asphalt-3",
+    "tetris",
+    "super-miners"
+  ],
+  "ranking": [
+    {
+      "game": "asphalt-3",
+      "peaksMiB": [
+        1377.609375
+      ],
+      "maximumPeakMiB": 1377.609375,
+      "runs": [
+        "asphalt-3-a"
+      ]
+    },
+    {
+      "game": "hooked-on",
+      "peaksMiB": [
+        1339.3359375
+      ],
+      "maximumPeakMiB": 1339.3359375,
+      "runs": [
+        "hooked-on-a"
+      ]
+    },
+    {
+      "game": "tetris",
+      "peaksMiB": [
+        1305.5859375
+      ],
+      "maximumPeakMiB": 1305.5859375,
+      "runs": [
+        "tetris-a"
+      ]
+    },
+    {
+      "game": "asphalt-2",
+      "peaksMiB": [
+        955.36328125
+      ],
+      "maximumPeakMiB": 955.36328125,
+      "runs": [
+        "asphalt-2-a"
+      ]
+    },
+    {
+      "game": "snakes",
+      "peaksMiB": [
+        868.75390625
+      ],
+      "maximumPeakMiB": 868.75390625,
+      "runs": [
+        "snakes-a"
+      ]
+    },
+    {
+      "game": "super-miners",
+      "peaksMiB": [
+        823.609375
+      ],
+      "maximumPeakMiB": 823.609375,
+      "runs": [
+        "super-miners-a"
+      ]
+    },
+    {
+      "game": "sky-force",
+      "peaksMiB": [
+        812.55078125
+      ],
+      "maximumPeakMiB": 812.55078125,
+      "runs": [
+        "sky-force-a"
+      ]
+    },
+    {
+      "game": "k-rally",
+      "peaksMiB": [
+        811.515625
+      ],
+      "maximumPeakMiB": 811.515625,
+      "runs": [
+        "k-rally-a"
+      ]
+    }
+  ],
+  "runs": [
+    {
+      "name": "asphalt-2-a",
+      "game": "asphalt-2",
+      "status": "pass",
+      "peakMiB": 955.36328125,
+      "limitMiB": 4096,
+      "cappedRendererProcesses": 1,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "routeExit": {
+        "code": 0,
+        "signal": null
+      },
+      "windows": [
+        {
+          "label": "golf-san-francisco-barrier",
+          "fps": 124.26231655914103,
+          "frames": 1252,
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "errors": [],
+          "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+          "hostClockMHzRange": [
+            2999.352,
+            3001.362
+          ],
+          "romCache": {
+            "staging": null,
+            "status": 0
+          },
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled"
+        }
+      ],
+      "stages": [
+        {
+          "name": "sound-ready-0",
+          "seconds": 14.021460000008345
+        },
+        {
+          "name": "sound-ready-1",
+          "seconds": 17.04358000001311
+        },
+        {
+          "name": "sound-ready-2",
+          "seconds": 17.865884999990463
+        },
+        {
+          "name": "sound-ready",
+          "seconds": 17.99872499999404
+        },
+        {
+          "name": "initial",
+          "seconds": 18.098909999996422
+        },
+        {
+          "name": "golf",
+          "seconds": 19.84222499999404
+        },
+        {
+          "name": "track",
+          "seconds": 20.159020000010727
+        },
+        {
+          "name": "barrier",
+          "seconds": 29.569289999991657
+        },
+        {
+          "name": "golf-san-francisco-barrier-start",
+          "seconds": 29.69152500000596
+        },
+        {
+          "name": "golf-san-francisco-barrier-end",
+          "seconds": 40.07485499998927
+        }
+      ],
+      "largestCurrentSample": {
+        "totalMiB": 952.00390625,
+        "statMiB": {
+          "anon": 864.8046875,
+          "file": 71.0234375,
+          "shmem": 1.5859375,
+          "kernel": 9.15625
+        }
+      },
+      "evidence": "/home/claude/.scratch/eka-all-games-rank-6a5cc6de-20261021/asphalt-2-a"
+    },
+    {
+      "name": "asphalt-3-a",
+      "game": "asphalt-3",
+      "status": "pass",
+      "peakMiB": 1377.609375,
+      "limitMiB": 4096,
+      "cappedRendererProcesses": 1,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "routeExit": {
+        "code": 0,
+        "signal": null
+      },
+      "windows": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 104.38016842826262,
+          "frames": 316,
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "errors": [],
+          "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+          "hostClockMHzRange": [
+            2999.101,
+            3007.446
+          ],
+          "romCache": {
+            "staging": null,
+            "status": 0
+          },
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled"
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 90.76235423259266,
+          "frames": 458,
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "errors": [],
+          "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+          "hostClockMHzRange": [
+            2998.459,
+            3000.313
+          ],
+          "romCache": {
+            "staging": null,
+            "status": 0
+          },
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled"
+        }
+      ],
+      "stages": [
+        {
+          "name": "language",
+          "seconds": 82.85676999998093
+        },
+        {
+          "name": "language-attempt-0",
+          "seconds": 84.89171999999881
+        },
+        {
+          "name": "language-attempt-1",
+          "seconds": 89.04326999998092
+        },
+        {
+          "name": "after-language-short",
+          "seconds": 89.28252499997616
+        },
+        {
+          "name": "loaded-short",
+          "seconds": 92.37814999997616
+        },
+        {
+          "name": "sound-prompt-short",
+          "seconds": 92.760375
+        },
+        {
+          "name": "sound-yes-short",
+          "seconds": 93.2268599999845
+        },
+        {
+          "name": "race-short",
+          "seconds": 94.44285499998927
+        },
+        {
+          "name": "race-ready-0",
+          "seconds": 95.10859999999404
+        },
+        {
+          "name": "race-loaded",
+          "seconds": 95.25842499998213
+        },
+        {
+          "name": "race-warm",
+          "seconds": 96.57578000000119
+        },
+        {
+          "name": "instant-play-stationary-sound-on-start",
+          "seconds": 96.72682999998331
+        },
+        {
+          "name": "instant-play-stationary-sound-on-end",
+          "seconds": 102.11681000000239
+        },
+        {
+          "name": "instant-play-stationary-sound-on-settled-start",
+          "seconds": 102.29953999999165
+        },
+        {
+          "name": "instant-play-stationary-sound-on-settled-end",
+          "seconds": 105.66573499998451
+        }
+      ],
+      "largestCurrentSample": {
+        "totalMiB": 1366.9140625,
+        "statMiB": {
+          "anon": 1265.97265625,
+          "file": 82.80859375,
+          "shmem": 13.37109375,
+          "kernel": 10.99609375
+        }
+      },
+      "evidence": "/home/claude/.scratch/eka-all-games-rank-6a5cc6de-20261021/asphalt-3-a"
+    },
+    {
+      "name": "hooked-on-a",
+      "game": "hooked-on",
+      "status": "pass",
+      "peakMiB": 1339.3359375,
+      "limitMiB": 4096,
+      "cappedRendererProcesses": 1,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "routeExit": {
+        "code": 0,
+        "signal": null
+      },
+      "windows": [
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-0",
+          "fps": 225.69529550579782,
+          "frames": 2279,
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "errors": [],
+          "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+          "hostClockMHzRange": [
+            2998.419,
+            3000.951
+          ],
+          "romCache": {
+            "staging": null,
+            "status": 0
+          },
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled"
+        },
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-1",
+          "fps": 236.9238723584221,
+          "frames": 2392,
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "errors": [],
+          "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+          "hostClockMHzRange": [
+            2997.558,
+            3004.924
+          ],
+          "romCache": {
+            "staging": null,
+            "status": 0
+          },
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled"
+        },
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-2",
+          "fps": 250.4558018298529,
+          "frames": 2529,
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "errors": [],
+          "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+          "hostClockMHzRange": [
+            2997.442,
+            3003.037
+          ],
+          "romCache": {
+            "staging": null,
+            "status": 0
+          },
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled"
+        }
+      ],
+      "stages": [
+        {
+          "name": "client",
+          "seconds": 84.63816000002623
+        },
+        {
+          "name": "language",
+          "seconds": 101.5370300000012
+        },
+        {
+          "name": "main",
+          "seconds": 105.98608500000834
+        },
+        {
+          "name": "restart",
+          "seconds": 120.45297000002861
+        },
+        {
+          "name": "name",
+          "seconds": 122.48630000001192
+        },
+        {
+          "name": "menu",
+          "seconds": 133.55260500001907
+        },
+        {
+          "name": "boat",
+          "seconds": 144.76385000002384
+        },
+        {
+          "name": "fishing-help",
+          "seconds": 150.94131500002743
+        },
+        {
+          "name": "pause-attempt-0",
+          "seconds": 152.50746000000834
+        },
+        {
+          "name": "fishing-pause",
+          "seconds": 152.69661500000953
+        },
+        {
+          "name": "boat-after-tutorial",
+          "seconds": 172.93932000002266
+        },
+        {
+          "name": "costa-rica-stationary-tutorial-dismissed-window-0-start",
+          "seconds": 173.09538500002026
+        },
+        {
+          "name": "costa-rica-stationary-tutorial-dismissed-window-0-end",
+          "seconds": 183.54903500002624
+        },
+        {
+          "name": "costa-rica-stationary-tutorial-dismissed-window-1-start",
+          "seconds": 183.72921000000835
+        },
+        {
+          "name": "costa-rica-stationary-tutorial-dismissed-window-1-end",
+          "seconds": 194.16511500000954
+        },
+        {
+          "name": "costa-rica-stationary-tutorial-dismissed-window-2-start",
+          "seconds": 194.3298450000286
+        },
+        {
+          "name": "costa-rica-stationary-tutorial-dismissed-window-2-end",
+          "seconds": 204.76551000002027
+        }
+      ],
+      "largestCurrentSample": {
+        "totalMiB": 1337.91796875,
+        "statMiB": {
+          "anon": 1237.28515625,
+          "file": 83.07421875,
+          "shmem": 13.63671875,
+          "kernel": 11.9140625
+        }
+      },
+      "evidence": "/home/claude/.scratch/eka-all-games-rank-6a5cc6de-20261021/hooked-on-a"
+    },
+    {
+      "name": "k-rally-a",
+      "game": "k-rally",
+      "status": "pass",
+      "peakMiB": 811.515625,
+      "limitMiB": 4096,
+      "cappedRendererProcesses": 1,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "routeExit": {
+        "code": 0,
+        "signal": null
+      },
+      "windows": [
+        {
+          "label": "tutorial-driving",
+          "fps": 161.03991442074138,
+          "frames": 487,
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "errors": [],
+          "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+          "hostClockMHzRange": [
+            2998.319,
+            3001.372
+          ],
+          "romCache": {
+            "staging": null,
+            "status": 0
+          },
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled"
+        }
+      ],
+      "stages": [
+        {
+          "name": "profile",
+          "seconds": 19.686935000002386
+        },
+        {
+          "name": "name",
+          "seconds": 24.847069999992847
+        },
+        {
+          "name": "name2",
+          "seconds": 27.187375
+        },
+        {
+          "name": "track",
+          "seconds": 40.02235499998927
+        },
+        {
+          "name": "tutorial-driving-start",
+          "seconds": 40.161509999990464
+        },
+        {
+          "name": "tutorial-driving-end",
+          "seconds": 43.49355499997735
+        }
+      ],
+      "largestCurrentSample": {
+        "totalMiB": 809.12109375,
+        "statMiB": {
+          "anon": 725.6015625,
+          "file": 71.0625,
+          "shmem": 1.625,
+          "kernel": 8.49609375
+        }
+      },
+      "evidence": "/home/claude/.scratch/eka-all-games-rank-6a5cc6de-20261021/k-rally-a"
+    },
+    {
+      "name": "sky-force-a",
+      "game": "sky-force",
+      "status": "pass",
+      "peakMiB": 812.55078125,
+      "limitMiB": 4096,
+      "cappedRendererProcesses": 1,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "routeExit": {
+        "code": 0,
+        "signal": null
+      },
+      "windows": [
+        {
+          "label": "stage-1",
+          "fps": 253.63325921234832,
+          "frames": 511,
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "errors": [],
+          "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+          "hostClockMHzRange": [
+            2999.886,
+            3000.853
+          ],
+          "romCache": {
+            "staging": null,
+            "status": 0
+          },
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled"
+        }
+      ],
+      "stages": [
+        {
+          "name": "gameplay-ready-0",
+          "seconds": 18.57587000000477
+        },
+        {
+          "name": "gameplay-ready-1",
+          "seconds": 19.896814999997616
+        },
+        {
+          "name": "gameplay-ready-2",
+          "seconds": 20.95962000000477
+        },
+        {
+          "name": "gameplay-ready-3",
+          "seconds": 21.99325
+        },
+        {
+          "name": "gameplay-ready-4",
+          "seconds": 24.01890500000119
+        },
+        {
+          "name": "gameplay-ready",
+          "seconds": 24.192210000008345
+        },
+        {
+          "name": "stage",
+          "seconds": 24.291814999997616
+        },
+        {
+          "name": "stage-1-start",
+          "seconds": 24.827230000019075
+        },
+        {
+          "name": "stage-1-end",
+          "seconds": 27.15445000001788
+        }
+      ],
+      "largestCurrentSample": {
+        "totalMiB": 809.78125,
+        "statMiB": {
+          "anon": 727.42578125,
+          "file": 71.0078125,
+          "shmem": 1.5703125,
+          "kernel": 8.46484375
+        }
+      },
+      "evidence": "/home/claude/.scratch/eka-all-games-rank-6a5cc6de-20261021/sky-force-a"
+    },
+    {
+      "name": "snakes-a",
+      "game": "snakes",
+      "status": "pass",
+      "peakMiB": 868.75390625,
+      "limitMiB": 4096,
+      "cappedRendererProcesses": 1,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "routeExit": {
+        "code": 0,
+        "signal": null
+      },
+      "windows": [
+        {
+          "label": "opening-level-valid",
+          "fps": 77.58375225577687,
+          "frames": 391,
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "errors": [],
+          "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+          "hostClockMHzRange": [
+            2999.885,
+            3004.106
+          ],
+          "romCache": {
+            "staging": null,
+            "status": 0
+          },
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled"
+        }
+      ],
+      "stages": [
+        {
+          "name": "gameplay-ready-0",
+          "seconds": 21.337444999992847
+        },
+        {
+          "name": "gameplay-blue-0",
+          "seconds": 21.510710000008345
+        },
+        {
+          "name": "gameplay-ready-1",
+          "seconds": 22.675585000008343
+        },
+        {
+          "name": "gameplay-blue-1",
+          "seconds": 22.853389999985694
+        },
+        {
+          "name": "gameplay-ready-2",
+          "seconds": 24.508905000001192
+        },
+        {
+          "name": "gameplay-blue-2",
+          "seconds": 24.672
+        },
+        {
+          "name": "gameplay-ready-3",
+          "seconds": 27.466125
+        },
+        {
+          "name": "gameplay-blue-3",
+          "seconds": 27.58284499999881
+        },
+        {
+          "name": "gameplay-ready-4",
+          "seconds": 30.207509999990464
+        },
+        {
+          "name": "gameplay-blue-4",
+          "seconds": 30.325139999985694
+        },
+        {
+          "name": "gameplay-ready",
+          "seconds": 30.423465000003578
+        },
+        {
+          "name": "playing",
+          "seconds": 30.507634999990465
+        },
+        {
+          "name": "opening-level-valid-start",
+          "seconds": 32.52727000001073
+        },
+        {
+          "name": "opening-level-valid-end",
+          "seconds": 37.83155500000715
+        }
+      ],
+      "largestCurrentSample": {
+        "totalMiB": 844.65625,
+        "statMiB": {
+          "anon": 760.38671875,
+          "file": 70.05078125,
+          "shmem": 0.61328125,
+          "kernel": 8.5859375
+        }
+      },
+      "evidence": "/home/claude/.scratch/eka-all-games-rank-6a5cc6de-20261021/snakes-a"
+    },
+    {
+      "name": "super-miners-a",
+      "game": "super-miners",
+      "status": "pass",
+      "peakMiB": 823.609375,
+      "limitMiB": 4096,
+      "cappedRendererProcesses": 1,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "routeExit": {
+        "code": 0,
+        "signal": null
+      },
+      "windows": [
+        {
+          "label": "challenge-level-1",
+          "fps": 289.37126253649586,
+          "frames": 1458,
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "errors": [],
+          "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+          "hostClockMHzRange": [
+            2995.104,
+            3000.119
+          ],
+          "romCache": {
+            "staging": null,
+            "status": 0
+          },
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled"
+        }
+      ],
+      "stages": [
+        {
+          "name": "menu",
+          "seconds": 20.071215000003576
+        },
+        {
+          "name": "mode",
+          "seconds": 20.74944500002265
+        },
+        {
+          "name": "level",
+          "seconds": 23.0848900000155
+        },
+        {
+          "name": "miners-ready-0",
+          "seconds": 23.201314999997617
+        },
+        {
+          "name": "miners-hearts-0",
+          "seconds": 23.341534999996423
+        },
+        {
+          "name": "miners-ready",
+          "seconds": 23.47530000001192
+        },
+        {
+          "name": "challenge-level-1-start",
+          "seconds": 23.67765500000119
+        },
+        {
+          "name": "challenge-level-1-end",
+          "seconds": 29.00929500001669
+        }
+      ],
+      "largestCurrentSample": {
+        "totalMiB": 822.4921875,
+        "statMiB": {
+          "anon": 739.515625,
+          "file": 71.0078125,
+          "shmem": 1.5703125,
+          "kernel": 8.4765625
+        }
+      },
+      "evidence": "/home/claude/.scratch/eka-all-games-rank-6a5cc6de-20261021/super-miners-a"
+    },
+    {
+      "name": "tetris-a",
+      "game": "tetris",
+      "status": "pass",
+      "peakMiB": 1305.5859375,
+      "limitMiB": 4096,
+      "cappedRendererProcesses": 1,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "routeExit": {
+        "code": 0,
+        "signal": null
+      },
+      "windows": [
+        {
+          "label": "marathon-level-1-long",
+          "fps": 156.440135410161,
+          "frames": 790,
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "errors": [],
+          "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+          "hostClockMHzRange": [
+            2999.892,
+            3000.63
+          ],
+          "romCache": {
+            "staging": null,
+            "status": 0
+          },
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled"
+        },
+        {
+          "label": "marathon-level-1-settled-0",
+          "fps": 153.1237340793395,
+          "frames": 773,
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "errors": [],
+          "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+          "hostClockMHzRange": [
+            2999.93,
+            3003.974
+          ],
+          "romCache": {
+            "staging": null,
+            "status": 0
+          },
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled"
+        },
+        {
+          "label": "marathon-level-1-settled-1",
+          "fps": 151.88524841724512,
+          "frames": 767,
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "errors": [],
+          "mode": "unpaced, continuous route with 1800s guest deadline, no pauses",
+          "hostClockMHzRange": [
+            2999.903,
+            3000.216
+          ],
+          "romCache": {
+            "staging": null,
+            "status": 0
+          },
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled"
+        }
+      ],
+      "stages": [
+        {
+          "name": "client",
+          "seconds": 62.867055000007156
+        },
+        {
+          "name": "start",
+          "seconds": 85.30156000000238
+        },
+        {
+          "name": "marathon",
+          "seconds": 88.38410499998928
+        },
+        {
+          "name": "board",
+          "seconds": 89.58426999998093
+        },
+        {
+          "name": "marathon-level-1-long-start",
+          "seconds": 90.67465999999642
+        },
+        {
+          "name": "marathon-level-1-long-end",
+          "seconds": 96.0400300000012
+        },
+        {
+          "name": "marathon-level-1-settled-0-start",
+          "seconds": 96.18945999997854
+        },
+        {
+          "name": "marathon-level-1-settled-0-end",
+          "seconds": 101.54090999999643
+        },
+        {
+          "name": "marathon-level-1-settled-1-start",
+          "seconds": 101.68993500000238
+        },
+        {
+          "name": "marathon-level-1-settled-1-end",
+          "seconds": 107.04092499998212
+        }
+      ],
+      "largestCurrentSample": {
+        "totalMiB": 1294.56640625,
+        "statMiB": {
+          "anon": 1193.8359375,
+          "file": 82.82421875,
+          "shmem": 13.38671875,
+          "kernel": 11.04296875
+        }
+      },
+      "evidence": "/home/claude/.scratch/eka-all-games-rank-6a5cc6de-20261021/tetris-a"
+    }
+  ],
+  "notes": [
+    "Peak is a game-tab cgroup charge, including associated filesystem cache; not whole-browser PSS or WASM capacity.",
+    "The 4096 MiB ceiling only provides headroom: require zero max/OOM events to accept a peak as uncensored.",
+    "No prepared filesystem image or cross-run ROM translation cache is used.",
+    "These routes cover installation/startup and the recorded gameplay windows, not every possible later level.",
+    "file includes shmem; do not add both. Memory-stat samples need not equal the exact kernel high-water mark.",
+    "FPS is recorded as route evidence, not used here for cross-game speed claims."
+  ]
+}

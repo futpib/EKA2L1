@@ -545,3 +545,66 @@ code normally. There is no production forced GC or per-game restart threshold.
 The exact final-build hashes, full-route cap checks, controlled throughput
 comparisons, exclusions, and weak-reference collection audit are in
 [GRACEFUL_CODE_RECLAMATION.md](GRACEFUL_CODE_RECLAMATION.md).
+
+## Eight-game ranking on the 104/96 MiB default (2026-10-21)
+
+All eight currently supported games completed a fresh install/startup and their
+checked gameplay route on the same deployed `.lan` build. **Asphalt 3, Hooked On
+and Tetris remain the three largest measured workloads.** Tetris's peak exceeds
+fourth-place Asphalt 2 by 350.2 MiB in this sweep.
+
+| # | Game | Peak game-tab memory, MiB | Verified gameplay scene |
+|---:|---|---:|---|
+| 1 | Asphalt 3 | 1377.6 | Instant-play race |
+| 2 | Hooked On | 1339.3 | Costa Rica boat, tutorial dismissed |
+| 3 | Tetris | 1305.6 | Marathon level 1 board |
+| 4 | Asphalt 2 | 955.4 | Golf, San Francisco barrier |
+| 5 | Snakes | 868.8 | Opening level |
+| 6 | Super Miners | 823.6 | Challenge level 1 |
+| 7 | Sky Force | 812.6 | Stage 1 |
+| 8 | K-Rally | 811.5 | Tutorial driving |
+
+These are `memory.peak` values for the single game-tab renderer cgroup, including
+its charged filesystem cache. They are neither whole-browser memory nor WASM
+linear-memory capacity. Each run had a **4096 MiB ceiling and zero swap**; all
+eight recorded `memory.events.max=0`, `oom=0`, and `oom_kill=0`. Every run checked
+that exactly one renderer was capped, completed the route, and produced gameplay
+endpoint screenshots, which were also inspected. The peaks are uncensored by
+the measurement ceiling.
+
+Asphalt 3 and Hooked On's peaks exceed 1331 MiB when given this extra headroom.
+That is consistent with the same build's earlier successful 1331 MiB runs:
+Linux reclaimed filesystem cache under the tighter limit. The previous capped
+results establish completion under pressure; they do not establish natural peaks
+below 1331 MiB. See
+[MEMORY_CAP_WITHOUT_GAMEPLAY_SLOWDOWN.md](MEMORY_CAP_WITHOUT_GAMEPLAY_SLOWDOWN.md).
+
+The runtime is commit `48da070e2`, with source checkout `549787c7f` at measurement.
+The served files were unchanged throughout:
+
+- WASM SHA-256: `6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c`
+- JavaScript SHA-256: `2e76d9486a3de105066f8892c060e134aa614c2aed98e262d7ef45895de1c209`
+- URL: `https://claude-laptop.lan:8188/`
+
+Chromium 154.0.8037.97 used independent fresh profiles on the SSD capture
+filesystem, no persisted ROM translations, the default 104/96 MiB module cache,
+and guest sound enabled with browser output muted. CPU frequency bounds were
+fixed at 3.0 GHz for the sequential sweep and restored afterward. No allocation
+or native-memory profiling was enabled. The three N-Gage titles used the public
+launcher with forced source installation; the five SIS titles used the existing
+ROM/RPKG/SIS upload route with persistent OPFS and no prepared installation.
+The standalone N-Gage application is not counted as a game.
+
+There is one complete run per game. This establishes the separated top-three
+group for these routes, not an invariant ordering across longer sessions or
+other levels. In particular, the 1.0 MiB gap between Sky Force and K-Rally is too
+small to call a stable ordering. FPS windows are retained as route evidence;
+this sweep does not claim a throughput improvement. Historical all-renderer
+and tmpfs-profile measurements above have different accounting and should not
+be used to calculate percentage improvements against this table.
+
+The compact results, stage times, FPS windows and cap counters are in
+[ALL_GAME_MEMORY_RANKING_20261021.json](ALL_GAME_MEMORY_RANKING_20261021.json).
+Raw logs, screenshots, memory samples, build manifest and reproducible panel
+script are under
+`/home/claude/.scratch/eka-all-games-rank-6a5cc6de-20261021/`.

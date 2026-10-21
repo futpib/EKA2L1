@@ -7,6 +7,11 @@ Their measured unpaced gameplay is faster than the previous 128/120 MiB
 code-cache default. Cold startup differs by about 1–3 seconds; this is not a
 claim that every phase became faster.
 
+A later [eight-game sweep](RENDERER_CAP_RESULTS.md#eight-game-ranking-on-the-10496-mib-default-2026-10-21)
+on this same build confirms that these remain the largest three workloads.
+That sweep uses a 4096 MiB ceiling to measure uncensored peaks separately from
+the 1331 MiB acceptance results below.
+
 The default generated-module budget is now **104 MiB, trimming to 96 MiB**.
 Demand compilation still looks ahead four regions. No benchmark cache override
 is used in the candidate results. The emulator keeps its CPU worker and guest
