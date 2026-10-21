@@ -1115,6 +1115,18 @@ TEST_CASE("A startup scan does not displace repeatedly used modules", "[aot][cpu
     REQUIRE(cache.victims(100) == std::vector<std::uintptr_t>{20, 30});
 }
 
+TEST_CASE("Completed startup phases lose their old reuse priority", "[aot][cpu]") {
+    eka2l1::arm::aot::module_residency cache;
+    cache.install(100, {10});
+    for (unsigned i = 0; i < 15; ++i) {
+        cache.install(100, {20});
+        cache.touch(10);
+    }
+    for (unsigned i = 0; i < 1024; ++i) cache.install(100, {20});
+    cache.touch(20);
+    REQUIRE(cache.victims(100) == std::vector<std::uintptr_t>{10});
+}
+
 TEST_CASE("Cache eviction retires every shared owner before table reuse", "[aot][cpu]") {
     using namespace eka2l1::arm;
     aot::validated_code_cache cache;

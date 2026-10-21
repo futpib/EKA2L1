@@ -25,6 +25,9 @@
 #include <common/virtualmem.h>
 #include <cstdlib>
 #include <cstring>
+#ifdef __EMSCRIPTEN__
+extern "C" void *eka2l1_sparse_aligned_alloc(std::size_t, std::size_t, std::size_t *);
+#endif
 #include <mem/mmu.h>
 
 #include <cpu/arm_interface.h>
@@ -49,7 +52,9 @@ namespace eka2l1::mem {
         if (!direct_local_) {
             // Reserve the maximum contiguous range without touching its tail.
             // Native objects and retained pointers keep this base for life.
-            direct_local_ = std::aligned_alloc(65536, direct_size);
+            std::size_t dirty = 0;
+            direct_local_ = eka2l1_sparse_aligned_alloc(65536, direct_size, &dirty);
+            direct_dirty_ = static_cast<std::uint32_t>(dirty);
             if (!direct_local_) return nullptr;
             stats.arena_bytes += direct_size;
 #ifdef EKA2L1_MEMORY_ACCESS_PROFILE
@@ -71,7 +76,11 @@ namespace eka2l1::mem {
             constexpr std::uint32_t growth_step = 1024 * 1024;
             const auto capacity = static_cast<std::uint32_t>(std::min<std::uint64_t>(
                 (required + growth_step - 1) & ~(std::uint64_t(growth_step) - 1), direct_size));
-            std::memset(static_cast<std::uint8_t *>(direct_local_) + direct_capacity_, 0, capacity - direct_capacity_);
+            // A new reservation is already zero without touching its pages.
+            // Recycled malloc bytes are cleared before exposing them.
+            const auto clear_end = std::min(capacity, direct_dirty_);
+            if (clear_end > direct_capacity_)
+                std::memset(static_cast<std::uint8_t *>(direct_local_) + direct_capacity_, 0, clear_end - direct_capacity_);
             stats.arena_initialized_bytes += capacity - direct_capacity_;
             ++stats.arena_growths;
             direct_capacity_ = capacity;

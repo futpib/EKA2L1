@@ -395,7 +395,9 @@ EKA2L1_TAB_RENDERER_CLIENT_ID=7 EKA2L1_BENCHMARK_FRESH_LAUNCHER=1 \
 ```
 
 The 1.3 GiB target is rounded down to 1331 MiB. Build-specific peaks, failures,
-and throughput comparisons are recorded in `src/tests/benchmark/RENDERER_CAP_RESULTS.md`.
+and throughput comparisons for the current 104/96 MiB default are recorded in
+`src/tests/benchmark/MEMORY_CAP_WITHOUT_GAMEPLAY_SLOWDOWN.md`. Historical captures
+remain in `src/tests/benchmark/RENDERER_CAP_RESULTS.md`.
 The client ID is specific to the tested Chromium 154 launch. The harness
 asserts that it selects the unique game-tab renderer; an incorrect ID fails
 the route. Omitting `EKA2L1_TAB_RENDERER_CLIENT_ID` instead caps all renderer

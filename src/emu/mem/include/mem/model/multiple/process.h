@@ -36,6 +36,7 @@ namespace eka2l1::mem {
         linear_section user_dll_static_data_sec_;
         void *direct_local_ = nullptr;
         std::uint32_t direct_capacity_ = 0;
+        std::uint32_t direct_dirty_ = 0;
         void *direct_local_backing(vm_address address, std::size_t size);
         void initialize_direct_range(vm_address address, std::size_t size);
 

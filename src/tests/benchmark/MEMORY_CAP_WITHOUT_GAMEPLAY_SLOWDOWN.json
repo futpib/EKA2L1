@@ -1,0 +1,1257 @@
+{
+  "scope": "Selected game-tab renderer cgroup, zero swap; browser, GPU, spare renderers and runner excluded",
+  "limitMiB": 1331,
+  "cpuClockMHz": 3000,
+  "cacheLimitMiB": 104,
+  "cacheTrimTargetMiB": 96,
+  "cacheOverrides": false,
+  "profileStorage": "Fresh Chromium profiles on the capture SSD filesystem, not tmpfs",
+  "candidateWasmSha256": "6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+  "candidateJsSha256": "2e76d9486a3de105066f8892c060e134aa614c2aed98e262d7ef45895de1c209",
+  "controlWasmSha256": "e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+  "artifactRoot": "/home/claude/.scratch/eka-memory-fast1331",
+  "runs": [
+    {
+      "run": "fresh-asphalt-3-matched-control",
+      "status": "pass",
+      "limitMiB": 2048,
+      "peakMiB": 1422.10546875,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "cappedRendererProcesses": 1,
+      "startup": {
+        "race-loaded": 89.70624500000477
+      },
+      "windows": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 95.70293808087676,
+          "frames": 290,
+          "compilations": 2,
+          "errors": [],
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "hostClockMHzRange": [
+            2997.952,
+            3003.711
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 85.1400008514804,
+          "frames": 430,
+          "compilations": 23,
+          "errors": [],
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "hostClockMHzRange": [
+            2999.141,
+            3002.02
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        }
+      ],
+      "largestObservedAnonymousSnapshotMiB": {
+        "anon": 1289.0546875,
+        "file": 82.9453125,
+        "shmem": 13.5078125,
+        "kernel": 12.3671875
+      },
+      "evidence": "/home/claude/.scratch/eka-memory-fast1331/fresh-asphalt-3-matched-control"
+    },
+    {
+      "run": "fresh-hooked-on-matched-control",
+      "status": "pass",
+      "limitMiB": 2048,
+      "peakMiB": 1446.51171875,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "cappedRendererProcesses": 1,
+      "startup": {
+        "client": 79.63419999998808,
+        "boat": 142.14486000001432
+      },
+      "windows": [
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-0",
+          "fps": 202.2452091863829,
+          "frames": 2041,
+          "compilations": 0,
+          "errors": [],
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "hostClockMHzRange": [
+            2999.885,
+            3005.245
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        },
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-1",
+          "fps": 211.45977133978946,
+          "frames": 2133,
+          "compilations": 0,
+          "errors": [],
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "hostClockMHzRange": [
+            2998.995,
+            3002.305
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        },
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-2",
+          "fps": 222.61604579972666,
+          "frames": 2246,
+          "compilations": 0,
+          "errors": [],
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "hostClockMHzRange": [
+            2999.717,
+            3001.574
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        }
+      ],
+      "largestObservedAnonymousSnapshotMiB": {
+        "anon": 1330.76953125,
+        "file": 83.08203125,
+        "shmem": 13.64453125,
+        "kernel": 12.7578125
+      },
+      "evidence": "/home/claude/.scratch/eka-memory-fast1331/fresh-hooked-on-matched-control"
+    },
+    {
+      "run": "fresh-tetris-matched-control",
+      "status": "pass",
+      "limitMiB": 2048,
+      "peakMiB": 1439.80859375,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "cappedRendererProcesses": 1,
+      "startup": {
+        "client": 59.96844999998808,
+        "board": 86.94178499999643
+      },
+      "windows": [
+        {
+          "label": "marathon-level-1-long",
+          "fps": 131.9732373310255,
+          "frames": 667,
+          "compilations": 15,
+          "errors": [],
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "hostClockMHzRange": [
+            2997.185,
+            3001.305
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        },
+        {
+          "label": "marathon-level-1-settled-0",
+          "fps": 132.29975797896128,
+          "frames": 668,
+          "compilations": 11,
+          "errors": [],
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "hostClockMHzRange": [
+            2999.869,
+            3000.446
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        },
+        {
+          "label": "marathon-level-1-settled-1",
+          "fps": 129.88594390529337,
+          "frames": 656,
+          "compilations": 13,
+          "errors": [],
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "hostClockMHzRange": [
+            2998.287,
+            3003.212
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        }
+      ],
+      "largestObservedAnonymousSnapshotMiB": {
+        "anon": 1327.890625,
+        "file": 82.8828125,
+        "shmem": 13.4453125,
+        "kernel": 12.45703125
+      },
+      "evidence": "/home/claude/.scratch/eka-memory-fast1331/fresh-tetris-matched-control"
+    },
+    {
+      "run": "fresh-asphalt-3-matched-control-b",
+      "status": "pass",
+      "limitMiB": 2048,
+      "peakMiB": 1429.5625,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "cappedRendererProcesses": 1,
+      "startup": {
+        "race-loaded": 90.89113500002027
+      },
+      "windows": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 68.25364637737867,
+          "frames": 207,
+          "compilations": 3,
+          "errors": [],
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "hostClockMHzRange": [
+            2999.734,
+            3000.259
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 75.03717210859449,
+          "frames": 379,
+          "compilations": 48,
+          "errors": [],
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "hostClockMHzRange": [
+            2999.692,
+            3000.872
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        }
+      ],
+      "largestObservedAnonymousSnapshotMiB": {
+        "anon": 1320.15625,
+        "file": 82.88671875,
+        "shmem": 13.44921875,
+        "kernel": 12.34765625
+      },
+      "evidence": "/home/claude/.scratch/eka-memory-fast1331/fresh-asphalt-3-matched-control-b"
+    },
+    {
+      "run": "fresh-hooked-on-matched-control-b",
+      "status": "pass",
+      "limitMiB": 2048,
+      "peakMiB": 1505.53515625,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "cappedRendererProcesses": 1,
+      "startup": {
+        "client": 98.91540500000119,
+        "boat": 162.39099500000478
+      },
+      "windows": [
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-0",
+          "fps": 198.20417110730423,
+          "frames": 2000,
+          "compilations": 2,
+          "errors": [],
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "hostClockMHzRange": [
+            2999.047,
+            3005.44
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        },
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-1",
+          "fps": 203.35818491933105,
+          "frames": 2052,
+          "compilations": 0,
+          "errors": [],
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "hostClockMHzRange": [
+            2999.88,
+            3010.602
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        },
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-2",
+          "fps": 215.50304106946737,
+          "frames": 2175,
+          "compilations": 0,
+          "errors": [],
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "hostClockMHzRange": [
+            2999.096,
+            3001.166
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        }
+      ],
+      "largestObservedAnonymousSnapshotMiB": {
+        "anon": 1420.5078125,
+        "file": 65.5625,
+        "shmem": 13.375,
+        "kernel": 11.63671875
+      },
+      "evidence": "/home/claude/.scratch/eka-memory-fast1331/fresh-hooked-on-matched-control-b"
+    },
+    {
+      "run": "fresh-tetris-matched-control-b",
+      "status": "pass",
+      "limitMiB": 2048,
+      "peakMiB": 1417.66015625,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "cappedRendererProcesses": 1,
+      "startup": {
+        "client": 60.366625,
+        "board": 87.0333450000286
+      },
+      "windows": [
+        {
+          "label": "marathon-level-1-long",
+          "fps": 128.87069874201524,
+          "frames": 651,
+          "compilations": 22,
+          "errors": [],
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "hostClockMHzRange": [
+            2993.808,
+            3002.042
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        },
+        {
+          "label": "marathon-level-1-settled-0",
+          "fps": 131.16131256417518,
+          "frames": 662,
+          "compilations": 12,
+          "errors": [],
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "hostClockMHzRange": [
+            2999.787,
+            3001.811
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        },
+        {
+          "label": "marathon-level-1-settled-1",
+          "fps": 128.30031778072828,
+          "frames": 648,
+          "compilations": 16,
+          "errors": [],
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "hostClockMHzRange": [
+            2999.936,
+            3001.275
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        }
+      ],
+      "largestObservedAnonymousSnapshotMiB": {
+        "anon": 1310.02734375,
+        "file": 83.07421875,
+        "shmem": 13.63671875,
+        "kernel": 12.14453125
+      },
+      "evidence": "/home/claude/.scratch/eka-memory-fast1331/fresh-tetris-matched-control-b"
+    },
+    {
+      "run": "fresh-asphalt-3-view-a",
+      "status": "pass",
+      "limitMiB": 1331,
+      "peakMiB": 1321.4453125,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "cappedRendererProcesses": 1,
+      "startup": {
+        "race-loaded": 91.03206999999284
+      },
+      "windows": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 105.6400217221879,
+          "frames": 320,
+          "compilations": 15,
+          "errors": [],
+          "wasm": "http://127.0.0.1:8204/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "hostClockMHzRange": [
+            2993.59,
+            3004.167
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 92.9205073977023,
+          "frames": 469,
+          "compilations": 23,
+          "errors": [],
+          "wasm": "http://127.0.0.1:8204/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "hostClockMHzRange": [
+            2999.832,
+            3003.018
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        }
+      ],
+      "largestObservedAnonymousSnapshotMiB": {
+        "anon": 1220.6015625,
+        "file": 83.07421875,
+        "shmem": 13.63671875,
+        "kernel": 11.53515625
+      },
+      "evidence": "/home/claude/.scratch/eka-memory-fast1331/fresh-asphalt-3-view-a"
+    },
+    {
+      "run": "fresh-hooked-on-view-a",
+      "status": "pass",
+      "limitMiB": 1331,
+      "peakMiB": 1331,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 162,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "cappedRendererProcesses": 1,
+      "startup": {
+        "client": 82.04041999998688,
+        "boat": 141.27306999999286
+      },
+      "windows": [
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-0",
+          "fps": 228.16517256296896,
+          "frames": 2303,
+          "compilations": 1,
+          "errors": [],
+          "wasm": "http://127.0.0.1:8204/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "hostClockMHzRange": [
+            2998.074,
+            3000.638
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        },
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-1",
+          "fps": 241.35782859244287,
+          "frames": 2435,
+          "compilations": 2,
+          "errors": [],
+          "wasm": "http://127.0.0.1:8204/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "hostClockMHzRange": [
+            2999.726,
+            3002.737
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        },
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-2",
+          "fps": 253.82370897770636,
+          "frames": 2561,
+          "compilations": 0,
+          "errors": [],
+          "wasm": "http://127.0.0.1:8204/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "hostClockMHzRange": [
+            2999.374,
+            3000.502
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        }
+      ],
+      "largestObservedAnonymousSnapshotMiB": {
+        "anon": 1268.515625,
+        "file": 43.3984375,
+        "shmem": 13.4609375,
+        "kernel": 11.0
+      },
+      "evidence": "/home/claude/.scratch/eka-memory-fast1331/fresh-hooked-on-view-a"
+    },
+    {
+      "run": "fresh-tetris-view-a",
+      "status": "pass",
+      "limitMiB": 1331,
+      "peakMiB": 1307.32421875,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "cappedRendererProcesses": 1,
+      "startup": {
+        "client": 62.7353900000155,
+        "board": 89.63687000000476
+      },
+      "windows": [
+        {
+          "label": "marathon-level-1-long",
+          "fps": 155.2261619442691,
+          "frames": 784,
+          "compilations": 20,
+          "errors": [],
+          "wasm": "http://127.0.0.1:8204/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "hostClockMHzRange": [
+            2998.521,
+            3001.625
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        },
+        {
+          "label": "marathon-level-1-settled-0",
+          "fps": 153.06688210840082,
+          "frames": 773,
+          "compilations": 23,
+          "errors": [],
+          "wasm": "http://127.0.0.1:8204/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "hostClockMHzRange": [
+            2999.442,
+            3000.626
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        },
+        {
+          "label": "marathon-level-1-settled-1",
+          "fps": 152.72059559044254,
+          "frames": 771,
+          "compilations": 18,
+          "errors": [],
+          "wasm": "http://127.0.0.1:8204/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "hostClockMHzRange": [
+            2996.953,
+            3000.473
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        }
+      ],
+      "largestObservedAnonymousSnapshotMiB": {
+        "anon": 1191.30078125,
+        "file": 82.94921875,
+        "shmem": 13.51171875,
+        "kernel": 11.015625
+      },
+      "evidence": "/home/claude/.scratch/eka-memory-fast1331/fresh-tetris-view-a"
+    },
+    {
+      "run": "fresh-asphalt-3-view-b",
+      "status": "pass",
+      "limitMiB": 1331,
+      "peakMiB": 1331,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 279,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "cappedRendererProcesses": 1,
+      "startup": {
+        "race-loaded": 92.2135
+      },
+      "windows": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 106.64753155342338,
+          "frames": 324,
+          "compilations": 14,
+          "errors": [],
+          "wasm": "http://127.0.0.1:8204/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "hostClockMHzRange": [
+            2999.983,
+            3000.315
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 91.71667668680749,
+          "frames": 463,
+          "compilations": 115,
+          "errors": [],
+          "wasm": "http://127.0.0.1:8204/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "hostClockMHzRange": [
+            2996.869,
+            3006.66
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        }
+      ],
+      "largestObservedAnonymousSnapshotMiB": {
+        "anon": 1297.73046875,
+        "file": 16.82421875,
+        "shmem": 13.38671875,
+        "kernel": 9.953125
+      },
+      "evidence": "/home/claude/.scratch/eka-memory-fast1331/fresh-asphalt-3-view-b"
+    },
+    {
+      "run": "fresh-hooked-on-view-b",
+      "status": "pass",
+      "limitMiB": 1331,
+      "peakMiB": 1331,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 120,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "cappedRendererProcesses": 1,
+      "startup": {
+        "client": 82.34213500002026,
+        "boat": 141.75149500000478
+      },
+      "windows": [
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-0",
+          "fps": 228.40231294487165,
+          "frames": 2306,
+          "compilations": 0,
+          "errors": [],
+          "wasm": "http://127.0.0.1:8204/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "hostClockMHzRange": [
+            2999.829,
+            3005.548
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        },
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-1",
+          "fps": 240.49943021354605,
+          "frames": 2427,
+          "compilations": 0,
+          "errors": [],
+          "wasm": "http://127.0.0.1:8204/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "hostClockMHzRange": [
+            2997.432,
+            3002.295
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        },
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-2",
+          "fps": 254.7886439320925,
+          "frames": 2580,
+          "compilations": 0,
+          "errors": [],
+          "wasm": "http://127.0.0.1:8204/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "hostClockMHzRange": [
+            2999.836,
+            3005.884
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        }
+      ],
+      "largestObservedAnonymousSnapshotMiB": {
+        "anon": 1260.375,
+        "file": 53.015625,
+        "shmem": 13.578125,
+        "kernel": 10.52734375
+      },
+      "evidence": "/home/claude/.scratch/eka-memory-fast1331/fresh-hooked-on-view-b"
+    },
+    {
+      "run": "fresh-tetris-view-b",
+      "status": "pass",
+      "limitMiB": 1331,
+      "peakMiB": 1316.75390625,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "cappedRendererProcesses": 1,
+      "startup": {
+        "client": 62.73757000002265,
+        "board": 89.32213000002504
+      },
+      "windows": [
+        {
+          "label": "marathon-level-1-long",
+          "fps": 156.7270789120853,
+          "frames": 791,
+          "compilations": 20,
+          "errors": [],
+          "wasm": "http://127.0.0.1:8204/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "hostClockMHzRange": [
+            2997.685,
+            3008.343
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        },
+        {
+          "label": "marathon-level-1-settled-0",
+          "fps": 151.77633794984948,
+          "frames": 766,
+          "compilations": 21,
+          "errors": [],
+          "wasm": "http://127.0.0.1:8204/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "hostClockMHzRange": [
+            2999.613,
+            3002.945
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        },
+        {
+          "label": "marathon-level-1-settled-1",
+          "fps": 152.8068598584158,
+          "frames": 771,
+          "compilations": 24,
+          "errors": [],
+          "wasm": "http://127.0.0.1:8204/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "hostClockMHzRange": [
+            2999.726,
+            3002.56
+          ],
+          "preparedInstallation": false,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        }
+      ],
+      "largestObservedAnonymousSnapshotMiB": {
+        "anon": 1211.63671875,
+        "file": 82.9453125,
+        "shmem": 13.5078125,
+        "kernel": 11.12890625
+      },
+      "evidence": "/home/claude/.scratch/eka-memory-fast1331/fresh-tetris-view-b"
+    },
+    {
+      "run": "prepared-asphalt-3-view-a",
+      "status": "pass",
+      "limitMiB": 1331,
+      "peakMiB": 1331,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 133,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "cappedRendererProcesses": 1,
+      "startup": {
+        "race-loaded": 57.96546999999881
+      },
+      "windows": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 104.31039604986032,
+          "frames": 316,
+          "compilations": 19,
+          "errors": [],
+          "wasm": "http://127.0.0.1:8204/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "hostClockMHzRange": [
+            2996.6,
+            3001.156
+          ],
+          "preparedInstallation": true,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 93.67783538845835,
+          "frames": 473,
+          "compilations": 12,
+          "errors": [],
+          "wasm": "http://127.0.0.1:8204/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "hostClockMHzRange": [
+            2999.134,
+            3001.347
+          ],
+          "preparedInstallation": true,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        }
+      ],
+      "largestObservedAnonymousSnapshotMiB": {
+        "anon": 1197.27734375,
+        "file": 116.97265625,
+        "shmem": 13.328125,
+        "kernel": 12.46484375
+      },
+      "evidence": "/home/claude/.scratch/eka-memory-fast1331/prepared-asphalt-3-view-a"
+    },
+    {
+      "run": "prepared-hooked-on-view-a",
+      "status": "pass",
+      "limitMiB": 1331,
+      "peakMiB": 1331,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 204,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "cappedRendererProcesses": 1,
+      "startup": {
+        "client": 34.06320000001788,
+        "boat": 78.3231550000012
+      },
+      "windows": [
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-0",
+          "fps": 225.35015947844133,
+          "frames": 2275,
+          "compilations": 0,
+          "errors": [],
+          "wasm": "http://127.0.0.1:8204/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "hostClockMHzRange": [
+            2997.439,
+            3002.505
+          ],
+          "preparedInstallation": true,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        },
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-1",
+          "fps": 236.52346168131734,
+          "frames": 2388,
+          "compilations": 0,
+          "errors": [],
+          "wasm": "http://127.0.0.1:8204/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "hostClockMHzRange": [
+            2999.53,
+            3000.391
+          ],
+          "preparedInstallation": true,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        },
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-2",
+          "fps": 250.0950479993282,
+          "frames": 2526,
+          "compilations": 0,
+          "errors": [],
+          "wasm": "http://127.0.0.1:8204/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "hostClockMHzRange": [
+            2999.135,
+            3001.894
+          ],
+          "preparedInstallation": true,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        }
+      ],
+      "largestObservedAnonymousSnapshotMiB": {
+        "anon": 1185.8359375,
+        "file": 98.40625,
+        "shmem": 13.26171875,
+        "kernel": 11.71875
+      },
+      "evidence": "/home/claude/.scratch/eka-memory-fast1331/prepared-hooked-on-view-a"
+    },
+    {
+      "run": "prepared-tetris-view-a",
+      "status": "pass",
+      "limitMiB": 1331,
+      "peakMiB": 1331,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 178,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "cappedRendererProcesses": 1,
+      "startup": {
+        "client": 32.993865000009535,
+        "board": 53.369944999992846,
+        "next": 63.134134999990465
+      },
+      "windows": [
+        {
+          "label": "marathon-level-1-long",
+          "fps": 154.46569227885195,
+          "frames": 780,
+          "compilations": 13,
+          "errors": [],
+          "wasm": "http://127.0.0.1:8204/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "hostClockMHzRange": [
+            2999.661,
+            3003.395
+          ],
+          "preparedInstallation": true,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        },
+        {
+          "label": "marathon-level-1-settled-0",
+          "fps": 153.68132118416796,
+          "frames": 776,
+          "compilations": 18,
+          "errors": [],
+          "wasm": "http://127.0.0.1:8204/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "hostClockMHzRange": [
+            2999.725,
+            3001.938
+          ],
+          "preparedInstallation": true,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        },
+        {
+          "label": "marathon-level-1-settled-1",
+          "fps": 146.99371116503875,
+          "frames": 742,
+          "compilations": 224,
+          "errors": [],
+          "wasm": "http://127.0.0.1:8204/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+          "hostClockMHzRange": [
+            2999.906,
+            3001.152
+          ],
+          "preparedInstallation": true,
+          "sound": "browser muted; guest audio remains enabled",
+          "romCache": {
+            "staging": null,
+            "status": 0
+          }
+        }
+      ],
+      "largestObservedAnonymousSnapshotMiB": {
+        "anon": 1200.828125,
+        "file": 110.40625,
+        "shmem": 13.26171875,
+        "kernel": 12.0
+      },
+      "evidence": "/home/claude/.scratch/eka-memory-fast1331/prepared-tetris-view-a"
+    }
+  ],
+  "notes": [
+    "file includes shmem; do not add both",
+    "Snapshots are sampled and do not equal the exact cgroup high-water mark",
+    "Control cap 2048 MiB leaves its peak uncensored; cap-hit candidate peaks are censored",
+    "Native allocation and CPU profiles are separate attribution runs, not timing evidence"
+  ],
+  "finalMemoryProfile": {
+    "browser_pss_mib": 1789.4853515625,
+    "renderer_pss_mib": 1164.4375,
+    "all_process_mapping_mib": {
+      "Chromium PartitionAlloc mappings": 586.33,
+      "File-backed mappings": 464.56,
+      "Other anonymous or shared mappings": 21.99,
+      "Other V8 mappings": 46.7,
+      "Other V8 sandbox mappings": 62.97,
+      "V8 executable code and trampolines": 156.85,
+      "WASM linear memory backing": 448.93
+    },
+    "renderer_mapping_mib": {
+      "Chromium PartitionAlloc mappings": 399.76,
+      "Other V8 sandbox mappings": 57.59,
+      "WASM linear memory backing": 448.93,
+      "Other V8 mappings": 42.38,
+      "V8 executable code and trampolines": 156.69,
+      "File-backed mappings": 47.33,
+      "Other anonymous or shared mappings": 11.6
+    },
+    "jit_code_residency": {
+      "renderer_pid": 2797123,
+      "page_bytes": 4096,
+      "executable_mappings": 1626,
+      "executable_pss_kib": 160448,
+      "executable_rss_kib": 160448,
+      "present_pages": 40113,
+      "swapped_pages": 0,
+      "resident_pages_by_logged_code": {
+        "guest_only": 35718,
+        "other_only": 3131,
+        "mixed": 0,
+        "no_logged_code": 1264
+      },
+      "guest_code_entries": 220693,
+      "other_code_entries": 8461,
+      "guest_logged_code_bytes": 1370578368,
+      "other_logged_code_bytes": 18485338,
+      "scope": "Present pages intersecting deduplicated, append-only V8 perf-map entries; reused code addresses may retain stale labels"
+    },
+    "v8_heap_samples": {
+      "isolates": 7,
+      "sampled_estimate_bytes": 32870624,
+      "by_isolate": {
+        "page": 8038796,
+        "worker-1": 20411016,
+        "worker-2": 1355988,
+        "worker-3": 919444,
+        "worker-4": 1033912,
+        "worker-5": 16432,
+        "worker-6": 1095036
+      }
+    },
+    "native_top_sites": [
+      {
+        "site": "v8::(anonymous namespace)::GetAndCopyFirstArgumentAsBytes(v8::FunctionCallbackInfo<v8::Value> const&, unsigned long, v8::internal::wasm::ErrorThrower*)",
+        "sampled_estimate_bytes": 112050176
+      },
+      {
+        "site": "v8::internal::wasm::WasmCode::WasmCode(v8::internal::wasm::NativeModule*, int, v8::base::Vector<unsigned char>, int, int, unsigned int, int, int, int, int, int, int, v8::base::Vector<unsigned char const>, v8::base::Vector<unsigned char const>, v8::base::Vector<unsigned char const>, v8::base::Vector<unsigned char const>, v8::base::Vector<unsigned char const>, v8::internal::wasm::WasmCode::Kind, v8::internal::wasm::ExecutionTier, v8::internal::wasm::ForDebugging, unsigned long, v8::base::Vector<unsigned char const>, bool)",
+        "sampled_estimate_bytes": 37355520
+      },
+      {
+        "site": "v8::internal::trap_handler::RegisterHandlerData(unsigned long, unsigned long, unsigned long, v8::internal::trap_handler::TrappingInstructionData const*)",
+        "sampled_estimate_bytes": 23855104
+      },
+      {
+        "site": "blink::StringImpl::CreateUninitialized(unsigned long, base::span<unsigned char, 18446744073709551615ul, unsigned char*>&)",
+        "sampled_estimate_bytes": 21266432
+      },
+      {
+        "site": "blink::SerializedScriptValue::Create()",
+        "sampled_estimate_bytes": 13991936
+      },
+      {
+        "site": "v8::internal::wasm::StreamingDecoder::Finish(std::__Cr::function<void (v8::WasmStreaming::ModuleCachingInterface&)> const&)",
+        "sampled_estimate_bytes": 11370496
+      },
+      {
+        "site": "std::__Cr::basic_string<char16_t, std::__Cr::char_traits<char16_t>, std::__Cr::allocator<char16_t> >::__grow_by_and_replace(unsigned long, unsigned long, unsigned long, unsigned long, unsigned long, unsigned long, char16_t const*)",
+        "sampled_estimate_bytes": 7061504
+      },
+      {
+        "site": "v8::ArrayBuffer::NewBackingStore(void*, unsigned long, void (*)(void*, unsigned long, void*), void*)",
+        "sampled_estimate_bytes": 3735552
+      },
+      {
+        "site": "blink::ArrayBufferContents::ArrayBufferContents(unsigned long, std::__Cr::optional<unsigned long>, unsigned long, blink::ArrayBufferContents::SharingType, blink::ArrayBufferContents::InitializationPolicy, blink::ArrayBufferContents::AllocationFailureBehavior)",
+        "sampled_estimate_bytes": 3407872
+      },
+      {
+        "site": "v8::internal::wasm::NativeModule::AddCompiledCode(v8::base::Vector<v8::internal::wasm::WasmCompilationResult>)",
+        "sampled_estimate_bytes": 3162112
+      }
+    ],
+    "evidence": "/home/claude/.scratch/eka-memory-fast1331/final-memory-profile",
+    "observedRendererPeakPssMiB": 1421.751953125,
+    "scope": "Separate uncapped attribution capture, normal measured candidate, not an FPS benchmark"
+  }
+}

@@ -5,6 +5,10 @@ Our table exports were keeping a large compilation cache live. The replacement
 reclaims cold modules at a CPU boundary and leaves the worker, guest state, and
 hot compiled code intact. It also frees retired C++ cache records.
 
+The current default and renewed 1.3 GiB cap validation are documented in
+[MEMORY_CAP_WITHOUT_GAMEPLAY_SLOWDOWN.md](MEMORY_CAP_WITHOUT_GAMEPLAY_SLOWDOWN.md).
+Historical comparisons below retain their original builds and measurements.
+
 ## Ownership and reclamation
 
 1. Emscripten's table, mirror, and abort wrappers retain callable exports. A
@@ -14,8 +18,8 @@ hot compiled code intact. It also frees retired C++ cache records.
    the table slots that still belong to it. Replacement transfers ownership;
    removing the last slot retires the module. Module IDs and table slots are
    reused.
-3. Above 128 MiB of live source-module bytes, the runtime selects cold whole
-   modules until at most 120 MiB remains. This is a cache budget, **not** a
+3. Above 104 MiB of live source-module bytes, the runtime selects cold whole
+   modules until at most 96 MiB remains. This is a cache budget, **not** a
    bound on physical V8 or renderer memory. Recency and an aging reuse score
    protect repeatedly used code from one-use startup scans. Usage stores run
    only while compilation is active; after 20 ms without installation, the
@@ -420,12 +424,15 @@ scripts, browser logs, full reports, and screenshots are under
 The compact measurements are tracked in `CODE_CACHE_BUDGET_SWEEP.json`.
 
 
-## Adopt 128/120 MiB as the browser default
+## Previous adoption of 128/120 MiB as the browser default
 
-Normal browser launches now retain up to 128 MiB of generated module bytes
-and trim cold modules to 120 MiB. No launcher flag is required. Targeted
-benchmark overrides remain available. This adopts the measured startup/memory
-tradeoff; it supersedes the earlier 1331 MiB renderer-cap target.
+Superseded by the [104/96 MiB optimized default](MEMORY_CAP_WITHOUT_GAMEPLAY_SLOWDOWN.md).
+The measurements below describe the previous release.
+
+At this stage, normal browser launches retained up to 128 MiB of generated module bytes
+and trimmed cold modules to 120 MiB. No launcher flag was required. Targeted
+benchmark overrides remained available. This adopted the measured startup/memory
+tradeoff and superseded the earlier 1331 MiB renderer-cap target at the time.
 
 The rebuilt default binary has WASM SHA-256
 `e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032`

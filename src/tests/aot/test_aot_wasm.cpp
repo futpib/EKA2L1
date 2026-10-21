@@ -4634,9 +4634,17 @@ static bool test_pointer_lifetimes() {
         state[state_offsets::AOT_TLB/4]=pointer;
         bool observed=false;g_test_mem=&memory;
         g_read32_observer=[&](unsigned p,unsigned address){auto *v=reinterpret_cast<unsigned*>(p);
-            observed=address==0xa000&&v[6]==107&&v[15]==0x1020;
+            observed=address==0xa000&&v[6]==107&&v[15]==0x1020&&v[2]==0xa004;
             v[1]=0xb000;v[state_offsets::AOT_TLB/4]=0;};
         auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+        if(count!=0||observed||state[2]!=0xa000||state[6]!=107||state[15]!=0x1020) {
+            printf(" FAIL lifetime recovery entry unsafe=%u count=%d pc=%x\n",unsafe,count,state[15]);return false;
+        }
+        auto recovery=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code.data()+8),4,0x1020,
+            nullptr,nullptr,true,false,false,false);
+        auto recovery_module=build_wasm_module({recovery.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        count=js_run_aot_wasm(recovery_module.data(),recovery_module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
         g_test_mem=nullptr;
             g_read32_observer={};
         if(!observed||count!=1||state[1]!=0xb000||state[3]!=333||state[6]!=107||state[15]!=0x1024) {
@@ -5025,6 +5033,15 @@ static bool test_literal_pc_veneers() {
                 visible &= address==literal && v[15]==0x2000 && v[14]==0x1008 && v[4]==5;};
             g_test_mem=&actual;
             int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+            if(!mapping) {
+                if(count!=0||callbacks||state[15]!=0x2000||state[14]!=0x1008||state[4]!=5) {
+                    printf(" FAIL literal veneer recovery entry\n");return false;
+                }
+                auto recovery=translate_arm_block(lb,4,0x2000,nullptr,nullptr,true,false,false,false);
+                auto recovery_module=build_wasm_module({recovery.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+                    {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+                count=js_run_aot_wasm(recovery_module.data(),recovery_module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+            }
             g_test_mem=nullptr;
             if (count < 0) return false;
             count = reference_to(*reference,state);g_read32_observer={};
@@ -6197,6 +6214,73 @@ static bool test_precompile_capacity() {
     return true;
 }
 
+#ifdef __EMSCRIPTEN__
+extern "C" void *eka2l1_sparse_aligned_alloc(std::size_t, std::size_t, std::size_t *);
+#endif
+static bool test_memory_view_switches() {
+#ifdef __EMSCRIPTEN__
+    using namespace memory_experiment;
+    view memory;
+    unsigned resolves = 0;
+    std::uint32_t host = 0x10000;
+    const auto enter = [&](unsigned generation, unsigned space) {
+        const auto pointer = memory.enter(generation, space, [&] {
+            ++resolves;
+            return std::vector<binding>{{space * 4096, host, prot_read_write}};
+        });
+        auto *direct = reinterpret_cast<const direct_view *>(pointer);
+        auto *pages = reinterpret_cast<const page *>(direct->pages);
+        const bool valid = pages[space].read == host && pages[space].write == host
+            && pages[space == 1 ? 2 : 1].read == 0;
+        memory.leave();
+        return valid;
+    };
+    if (!enter(1, 1) || !enter(1, 2) || !enter(1, 1) || !enter(1, 2) || resolves != 2) return false;
+    host = 0x20000;
+    if (!enter(2, 1) || !enter(2, 2) || resolves != 4) return false;
+    if (!enter(2, 1) || !enter(2, 2) || resolves != 4) return false;
+    printf("PASS memory views: alternating address spaces, cleared mappings, generation and backing changes\n");
+#endif
+    return true;
+}
+
+static bool test_sparse_allocator() {
+#ifdef __EMSCRIPTEN__
+    std::atomic<bool> valid{true};
+    // Heap growth and reuse on another pthread must not label dirty bytes as
+    // fresh in this thread's allocation. Ordinary free retains full ownership.
+    std::thread other([&] {
+        for (unsigned round = 0; round < 200; ++round) {
+            const auto size = 8192 + round * 137;
+            auto *p = static_cast<unsigned char *>(std::malloc(size));
+            if (!p) { valid = false; return; }
+            std::memset(p, 0x5a, size);
+            std::this_thread::yield();
+            if (p[0] != 0x5a || p[size - 1] != 0x5a) valid = false;
+            std::free(p);
+        }
+    });
+    std::vector<void *> held;
+    for (unsigned round = 0; round < 16; ++round) {
+        constexpr std::size_t size = 2 * 1024 * 1024;
+        std::size_t dirty = size;
+        auto *p = static_cast<unsigned char *>(eka2l1_sparse_aligned_alloc(65536, size, &dirty));
+        if (!p || dirty > size || reinterpret_cast<std::uintptr_t>(p) % 65536) {
+            valid = false; std::free(p); break;
+        }
+        for (auto i = dirty; i < size; ++i) if (p[i]) { valid = false; break; }
+        std::memset(p, 0xa5, size);
+        held.push_back(p);
+        if (held.size() == 4) { for (auto *block : held) std::free(block); held.clear(); }
+    }
+    for (auto *block : held) std::free(block);
+    other.join();
+    if (!valid) return false;
+    printf("PASS sparse allocator: aligned ownership, fresh zero bytes, recycled allocations and concurrent malloc\n");
+#endif
+    return true;
+}
+
 static bool test_growing_arenas() {
 #ifdef __EMSCRIPTEN__
     using namespace memory_experiment;
@@ -6333,9 +6417,24 @@ static bool test_growing_arenas() {
     if (control.direct_arena(first->address_space_id()).size != 45 * 1024 * 1024
         || stats.arena_bytes - bytes_before != 2 * direct_size) return false;
     object->~native_map(); owned.object = nullptr;
+    // Dirty both the initial prefix and a distant published hole. A later
+    // process must not observe either value when the allocator reuses backing.
+    held[1024] = 0xfeedbeef;
+    held[40 * 1024 * 1024 / 4] = 0xdeadbeef;
     first.reset(); second.reset();
     if (stats.arena_bytes != bytes_before || stats.arena_initialized_bytes != initialized_before) return false;
-    printf("PASS contiguous arenas: stable native objects/pointers, prefix growth, process isolation, ARM/Thumb accesses and alias conflicts\n");
+    for (unsigned round = 0; round < 4; ++round) {
+        auto reused = std::make_unique<mem::multiple_mem_model_process>(&control);
+        info.addr = direct_begin; info.size = 44 * 1024 * 1024;
+        mem::mem_model_chunk *chunk{};
+        if (reused->create_chunk(chunk, info) || chunk->commit(0,4096) != 4096
+            || chunk->commit(43 * 1024 * 1024,4096) != 4096) return false;
+        auto *words = static_cast<std::uint32_t *>(chunk->host_base());
+        if (words[1024] || words[40 * 1024 * 1024 / 4]) return false;
+        words[1024] = 0xfeedbeef; words[40 * 1024 * 1024 / 4] = 0xdeadbeef;
+    }
+    if (stats.arena_bytes != bytes_before || stats.arena_initialized_bytes != initialized_before) return false;
+    printf("PASS contiguous arenas: stable native objects/pointers, prefix growth, process isolation, ARM/Thumb accesses, aliases and recycled zeroing\n");
 #endif
     return true;
 }
@@ -6518,7 +6617,7 @@ int main(int argc, char **argv) {
 #endif
     if(argc==2 && std::string(argv[1])=="--precompile-only") return test_precompile() && test_precompile_capacity()?0:1;
     if(argc==2 && std::string(argv[1])=="--ram-retirement-only") return test_ram_function_retirement()?0:1;
-    if(argc==2 && std::string(argv[1])=="--arena-growth-only") return test_growing_arenas()?0:1;
+    if(argc==2 && std::string(argv[1])=="--arena-growth-only") return test_sparse_allocator() && test_memory_view_switches() && test_growing_arenas()?0:1;
     if(argc==2 && std::string(argv[1])=="--sparse-chunks-only") return test_sparse_chunk_backing()?0:1;
     if(argc==2 && std::string(argv[1])=="--watchdog-only") return test_watchdog()?0:1;
     if(argc==2 && std::string(argv[1])=="--compiled-only") return test_compiled_only() && test_shared_compiled_code() && test_cold_module_lifetime() && test_rom_process_lifetime() && test_rom_translation_cache() && test_flat_precompile_entries()?0:1;
@@ -7376,6 +7475,8 @@ int main(int argc, char **argv) {
     if (test_thumb_polled_loops()) passed++; else failed++;
     if (test_region_fusion(false,true)) passed++; else failed++;
     if (test_ram_function_retirement()) passed++; else failed++;
+    if (test_sparse_allocator()) passed++; else failed++;
+    if (test_memory_view_switches()) passed++; else failed++;
     if (test_growing_arenas()) passed++; else failed++;
     if (test_sparse_chunk_backing()) passed++; else failed++;
     if (test_compiled_only()) passed++; else failed++;

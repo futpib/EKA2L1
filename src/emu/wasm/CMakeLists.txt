@@ -4,7 +4,7 @@ option(EKA2L1_WASM_ALLOCATION_PROFILE "Attribute live C++ allocations in a diagn
 if(EKA2L1_WASM_ALLOCATION_PROFILE)
     target_sources(eka2l1_wasm PRIVATE allocation_profile.cpp)
     target_link_options(eka2l1_wasm PRIVATE
-        "SHELL:-Wl,--wrap=emscripten_builtin_malloc,--wrap=emscripten_builtin_calloc,--wrap=emscripten_builtin_realloc,--wrap=emscripten_builtin_free,--wrap=emscripten_builtin_memalign")
+        "SHELL:-Wl,--wrap=emscripten_builtin_malloc,--wrap=emscripten_builtin_calloc,--wrap=emscripten_builtin_realloc,--wrap=emscripten_builtin_free,--wrap=emscripten_builtin_memalign,--wrap=eka2l1_sparse_aligned_alloc")
 endif()
 
 # Package the patches staged by this build, including newly added upstream

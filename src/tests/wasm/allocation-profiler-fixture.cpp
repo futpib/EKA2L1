@@ -18,7 +18,27 @@ EM_JS(void, verify, (int stage), {
     if (p.groups.reduce((n,g) => n+g.live_bytes,0) !== p.live_bytes) throw Error('Group totals differ');
 });
 
+#ifdef EKA2L1_SPARSE_ALLOCATOR_FIXTURE
+extern "C" void *eka2l1_sparse_aligned_alloc(std::size_t, std::size_t, std::size_t *);
+EM_JS(void, sparse_before, (), {
+    globalThis.sparseBefore = JSON.parse(UTF8ToString(_eka2l1_allocation_profile_report())).live_bytes;
+});
+EM_JS(void, sparse_held, (void *pointer), {
+    const p = JSON.parse(UTF8ToString(_eka2l1_allocation_profile_report()));
+    const allocation = p.large_allocations.find(a => a.pointer === pointer);
+    if (!allocation || p.live_bytes - sparseBefore !== allocation.usable || p.unknown_frees || p.dropped)
+        throw Error('Sparse allocation attribution mismatch');
+});
+EM_JS(void, sparse_freed, (), {
+    const p = JSON.parse(UTF8ToString(_eka2l1_allocation_profile_report()));
+    if (p.live_bytes !== sparseBefore || p.unknown_frees || p.dropped)
+        throw Error('Sparse allocation did not retire cleanly');
+    globalThis.sparseChecked = true;
+});
+#endif
+
 int main() {
+    std::printf("Allocation fixture ready\n");
     verify(0);
     auto *a = std::malloc(8 * 1024 * 1024);
     auto *b = std::calloc(1, 4 * 1024 * 1024);
@@ -33,7 +53,6 @@ int main() {
     b = std::realloc(b, 2 * 1024 * 1024); assert(b);
     volatile std::size_t impossible_size = 0x7fffffff;
     auto *failed = std::realloc(b, impossible_size);
-    std::printf("Failed realloc control: %p, original: %p\n", failed, b);
     assert(!failed);
     verify(2);
     std::free(a); std::free(b); std::free(c); emscripten_builtin_free(d);
@@ -45,4 +64,13 @@ int main() {
         for (unsigned i = 0; i < 4096; ++i) std::free(small[(i * 1777) % 4096]);
     }
     verify(4);
+#ifdef EKA2L1_SPARSE_ALLOCATOR_FIXTURE
+    sparse_before();
+    std::size_t dirty = 0;
+    auto *sparse = eka2l1_sparse_aligned_alloc(65536, 8 * 1024 * 1024, &dirty);
+    assert(sparse && dirty <= 8 * 1024 * 1024);
+    sparse_held(sparse);
+    std::free(sparse);
+    sparse_freed();
+#endif
 }

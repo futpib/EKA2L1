@@ -1842,6 +1842,7 @@ namespace eka2l1::arm::aot {
                 const bool short_span = w.direct_block_memory && (load ||
                     common::code_tracking::skip_code_write_guards());
                 const bool span_fast_path = (w.region || short_span) && (count >= 2 || proved_span);
+                const bool defer_span = span_fast_path && !proved_span && w.defer_memory && !early_writeback;
                 const bool pc_written_before_span = w.pc_written;
                 if (span_fast_path) {
                     if (proved_span) w.proved_host();
@@ -1868,6 +1869,7 @@ namespace eka2l1::arm::aot {
                     }
                     if (!load && !proved_span) {
                         if (!common::code_tracking::skip_code_write_guards()) {
+                        w.instruction_may_exit = true;
                         w.get_local(arm_emit::HOST); w.load_i32(S::AOT_CODE_END); w.op(op_i32_lt_u);
                         w.get_local(arm_emit::HOST); w.i32_const(count * 4); w.op(op_i32_add);
                         w.load_i32(S::AOT_CODE_BEGIN); w.op(op_i32_gt_u); w.op(op_i32_and);
@@ -1878,18 +1880,16 @@ namespace eka2l1::arm::aot {
                     // Code generation visits both arms; a fast LDM PC store
                     // must not suppress PC publication before fallback helpers.
                     if (!proved_span) w.pc_written = pc_written_before_span;
-                    if (!proved_span && w.defer_memory && !writeback && !has_pc) {
-                        // DynCom publishes block-transfer writeback before its
-                        // callbacks, unlike this compiled/native contract. Keep
-                        // writeback forms on the existing helper path.
+                    if (defer_span) {
                         // Whole-span validation precedes every transfer. Restart
-                        // only here, never after a partially completed LDM/STM.
-
+                        // only here, never after a partially completed LDM/STM
+                        // or an early base-in-list writeback. Precise compiled
+                        // recovery retains the original callback contract.
                         w.bail(insn_addr, insn_idx, exit_census::memory);
                     }
                 }
                 int off = 0;
-                for (int r = 0; !proved_span && r < 16; r++) {
+                for (int r = 0; !proved_span && !defer_span && r < 16; r++) {
                     if (!(reglist & (1 << r))) continue;
                     if (load) {
                         w.state_ptr();
@@ -1913,6 +1913,9 @@ namespace eka2l1::arm::aot {
                 }
 
                 if (span_fast_path && !proved_span) w.op(op_end);
+                // The deferred arm exits; only the successful span reaches
+                // this join, including its loaded PC for interworking returns.
+                if (defer_span && load && has_pc) w.pc_written = true;
 
                 if (writeback && !early_writeback) {
                     w.load_reg(rn);
@@ -2139,7 +2142,12 @@ namespace eka2l1::arm::aot {
                         w.load_reg(rn); // access uses the original base
                     }
                     w.set_local(ADDR_TMP);
-                    if (!preindex) w.store_reg(rn, TMP4); // DynCom updates the base before the access.
+                    w.restartable_access = bounded && (load || sh == 1);
+                    const bool deferred_writeback = !preindex && w.defer_memory && w.restartable_access;
+                    if (!preindex && !deferred_writeback) w.store_reg(rn, TMP4);
+                    const bool early_writeback = bounded && preindex && writeback && rn != 15 && rn != rd
+                        && w.restartable_access && !w.defer_memory;
+                    if (early_writeback) w.store_reg(rn, ADDR_TMP);
 
                     if (!load && sh >= 2) {
                         // ARMv5 doubleword transfers perform two ordered word accesses.
@@ -2209,7 +2217,8 @@ namespace eka2l1::arm::aot {
                         }
                     }
 
-                    if (writeback) {
+                    if (deferred_writeback) w.store_reg(rn, TMP4);
+                    if (writeback && !early_writeback) {
                         // Write-back for pre-indexed forms.
                         w.store_reg(rn, ADDR_TMP);
                     }
@@ -2655,11 +2664,15 @@ namespace eka2l1::arm::aot {
                     w.load_reg(rn);
                 }
                 w.set_local(ADDR_TMP);
-                if (!preindex) w.store_reg(rn, TMP4);
-                // Post-indexed forms have already published base writeback.
-                // Keep all writeback and PC-result forms on the original helper
-                // path. The remaining forms have changed only temporaries.
-                w.restartable_access = preindex && !writeback && rd != 15;
+                const bool deferred_writeback = !preindex && w.defer_memory;
+                if (!preindex && !deferred_writeback) w.store_reg(rn, TMP4);
+                // On a direct-memory miss, leave before the instruction changes
+                // architectural state. The existing single-instruction compiler
+                // performs the callback and its precise writeback/fault ordering.
+                // Successful inline accesses need no callback reload sequence.
+                w.restartable_access = true;
+                const bool early_writeback = bounded && preindex && writeback && rn != 15 && rn != rd && !w.defer_memory;
+                if (early_writeback) w.store_reg(rn, ADDR_TMP);
 
                 if (load) {
                     if (byte) {
@@ -2672,6 +2685,7 @@ namespace eka2l1::arm::aot {
                         w.call(0); // tlb_read32
                     }
                     w.set_local(TMP1);
+                    if (deferred_writeback) w.store_reg(rn, TMP4);
                     if (rd == 15) {
                         w.store_reg(15, TMP1);
                         w.get_local(TMP1);
@@ -2679,7 +2693,7 @@ namespace eka2l1::arm::aot {
                         w.op(op_i32_and);
                         w.set_local(TMP2);
                         w.store_i32(S::TFLAG, TMP2);
-                        if (writeback && rn != 15) {
+                        if (writeback && rn != 15 && !early_writeback) {
                             w.store_reg(rn, ADDR_TMP);
                         }
                         w.bail_preserve_pc();
@@ -2706,9 +2720,10 @@ namespace eka2l1::arm::aot {
                     } else {
                         w.call(1); // tlb_write32
                     }
+                    if (deferred_writeback) w.store_reg(rn, TMP4);
                 }
 
-                if (writeback && rn != 15) {
+                if (writeback && rn != 15 && !early_writeback) {
                     w.store_reg(rn, ADDR_TMP);
                 }
 

@@ -90,7 +90,11 @@ static bool test_stack_returns() {
                 if(indirect)cpu->set_reg(7,call_target);
                 cpu->set_reg(0,1);cpu->set_reg(1,alias?0x8ffc:0x9000);cpu->set_reg(2,2);cpu->set_reg(3,alias==2?0x4001:0x4000);
                 cpu->set_reg(13,0x9000);cpu->set_reg(14,0x4000);cpu->set_pc(0x1000);cpu->set_cpsr(0x10|(flags<<28));
-                if(reference_to(*cpu,states[1])<0||expected.data!=memories[1].data)return false;++independent;
+                if(reference_to(*cpu,states[1])<0||expected.data!=memories[1].data) {
+                    printf(" FAIL stack interpreter policy=%u shape=%u defer=%u indirect=%u flags=%u alias=%u pc=%x thumb=%u\n",
+                        policy,shape,defer,indirect,flags,alias,states[1][15],states[1][S::TFLAG/4]);return false;
+                }
+                ++independent;
             }
             ++checks;
         }

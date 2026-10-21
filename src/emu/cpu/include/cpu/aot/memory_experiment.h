@@ -36,6 +36,9 @@ namespace eka2l1::arm::aot::memory_experiment {
         std::uint64_t generation_ = 0;
         std::uint32_t space_ = ~0u;
         std::vector<binding> bindings_;
+        std::vector<binding> previous_bindings_;
+        std::uint64_t previous_generation_ = 0;
+        std::uint32_t previous_space_ = ~0u;
         std::vector<page> pages_;
         direct_view direct_{};
         bool active_ = false;

@@ -12,7 +12,18 @@ namespace eka2l1::arm::aot::memory_experiment {
             // Avoid clearing the entire 8 MiB table on every process switch.
             if (pages_.empty()) pages_.resize(1<<20);
             else for (auto b:bindings_) pages_[b.guest>>12]={};
-            bindings_ = resolve();
+            // Scheduler switches commonly alternate between two processes.
+            // Reuse only a snapshot with the same global mapping generation;
+            // any remap, permission change or lifetime change forces resolution.
+            if (previous_generation_ == generation && previous_space_ == space) {
+                bindings_.swap(previous_bindings_);
+            } else {
+                auto next = resolve();
+                previous_bindings_ = std::move(bindings_);
+                bindings_ = std::move(next);
+            }
+            previous_generation_ = generation_;
+            previous_space_ = space_;
             for(auto b:bindings_) pages_[b.guest>>12]={b.permissions&prot_read?b.host:0,b.permissions&prot_write?b.host:0};
             // External mappings/remaps inside the arena invalidate the affine
             // shortcut. The canonical page table still handles those pages.

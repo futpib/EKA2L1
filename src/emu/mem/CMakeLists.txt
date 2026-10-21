@@ -48,3 +48,13 @@ target_include_directories(epocmem PUBLIC include)
 
 target_link_libraries(epocmem PUBLIC common)
 target_link_libraries(epocmem PRIVATE cpu config)
+
+if (EMSCRIPTEN)
+    # Extend the selected SDK allocator; retain its locking and free/reuse path.
+    target_sources(epocmem PRIVATE src/allocator/sparse_wasm.c
+        "${EMSCRIPTEN_ROOT_PATH}/system/lib/libc/sbrk.c")
+    set_source_files_properties(src/allocator/sparse_wasm.c PROPERTIES
+        COMPILE_DEFINITIONS "EKA2L1_DLMALLOC_SOURCE=\"${EMSCRIPTEN_ROOT_PATH}/system/lib/dlmalloc.c\""
+        COMPILE_OPTIONS "-fno-builtin;-fno-lto")
+    target_link_options(epocmem INTERFACE "SHELL:-s MALLOC=none")
+endif()

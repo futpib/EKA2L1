@@ -82,7 +82,10 @@ namespace eka2l1::arm::aot {
                     for (auto slot : modules_[i].slots)
                         if (owners_[slot] == i) {
                             recent[i] = std::max(recent[i], used_[slot]);
-                            heat[i] = std::max(heat[i], heat_[slot]);
+                            // Installation advances even without a trim. Let
+                            // completed startup phases lose their old priority.
+                            const auto age = std::min<std::uint64_t>(4, (clock_ - used_[slot]) / 256);
+                            heat[i] = std::max(heat[i], static_cast<std::uint8_t>(heat_[slot] >> age));
                         }
                 }
             std::sort(ordered.begin(), ordered.end(), [&](auto a, auto b) {

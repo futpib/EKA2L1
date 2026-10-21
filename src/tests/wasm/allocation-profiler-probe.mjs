@@ -55,6 +55,8 @@ try {
  assert(owned.whole_page_resident_bytes>=4*1024*1024-8192,'Written pages must be resident in the identified allocation');
  await page.evaluate(p=>Module._free(p),control.pointer);
  assert.equal(errors.length,0);
+ const sparseChecked=await page.evaluate(()=>globalThis.sparseBefore===undefined?null:globalThis.sparseChecked);
+ if(sparseChecked!==null)assert.equal(sparseChecked,true,'Sparse allocation must retire without double counting');
  fs.writeFileSync(path.join(out,'report.json'),JSON.stringify({browser:await browser.version(),errors,stages,exported,residency},null,2));
- console.log(JSON.stringify({verified:true,marker_verified:residency.marker_verified,control_resident_bytes:owned.whole_page_resident_bytes,baseline_bytes:baseline.live_bytes,peak_bytes:stages.at(-1).profile.peak_bytes,allocations:stages.at(-1).profile.allocations,unknown_frees:stages.at(-1).profile.unknown_frees}));
+ console.log(JSON.stringify({verified:true,sparseChecked,marker_verified:residency.marker_verified,control_resident_bytes:owned.whole_page_resident_bytes,baseline_bytes:baseline.live_bytes,peak_bytes:stages.at(-1).profile.peak_bytes,allocations:stages.at(-1).profile.allocations,unknown_frees:stages.at(-1).profile.unknown_frees}));
 } finally {await browser.close();await new Promise(resolve=>server.close(resolve));}

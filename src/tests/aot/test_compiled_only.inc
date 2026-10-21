@@ -214,6 +214,65 @@ static bool test_compiled_only() {
         return false;
     }
     ++checks;
+    // Scalar recovery must preserve indexed writeback, signed loads, loaded
+    // PCs, and the state seen by callbacks that stop the current slice.
+    const unsigned scalar_ops[]{0xe4910004,0xe4810004,0xe5b10004,0xe5a10004,
+        0xe4d10001,0xe4c10001,0xe5f10001,0xe5e10001,0xe0d100b2,0xe0c100b2,
+        0xe1f100b2,0xe1e100b2,0xe0d100d1,0xe0d100f2,0xe1f100d1,0xe1f100f2,
+        0xe491f004,0xe5b1f004};
+    for(unsigned opcode:scalar_ops) for(unsigned path=0;path<3;++path) {
+        memory_experiment::mode=path?2:0;
+        const bool stop=path==2;
+        test_mem actual,expected;
+        const unsigned pc=0x80000;
+        actual.write32(pc,opcode);actual.write32(pc+4,0xef0000ff);
+        actual.write32(0x81000,0xef0000ff);
+        const unsigned data=((opcode>>12)&15)==15?0x81000:0x81828384;
+        actual.write32(0x8000,data);actual.write32(0x8004,data);
+        expected=actual;
+        r12l1::exclusive_monitor actual_monitor(1),expected_monitor(1);
+        auto compiled=make_cpu(actual,actual_monitor),reference=make_cpu(expected,expected_monitor);
+        compiled->code_address_space=1000+checks;
+        compiled->experimental_pointer=reinterpret_cast<std::uintptr_t>(&view);
+        compiled->experimental_memory=[&](bool){return reinterpret_cast<std::uintptr_t>(&view);};
+        if(!path)compiled->set_tlb_page(0x8000,actual.data.data()+0x8000,prot_read_write);
+        using observation=std::array<unsigned,3>;
+        std::vector<observation> actual_calls,expected_calls;
+        for(auto *core:{compiled.get(),reference.get()}) {
+            core->set_pc(pc);core->set_cpsr(0xa0000010);
+            core->set_reg(0,0x12345678);core->set_reg(1,0x8000);
+            auto wrap=[&,core](auto function) {
+                return [&,core,function](address a,auto *value) {
+                    auto &events=core==compiled.get()?actual_calls:expected_calls;
+                    events.push_back({a,core->get_reg(1),core->get_pc()});
+                    if(stop&&core==compiled.get())core->stop();
+                    return function(a,value);
+                };
+            };
+            core->read_32bit=wrap(core->read_32bit);core->write_32bit=wrap(core->write_32bit);
+            core->read_16bit=wrap(core->read_16bit);core->write_16bit=wrap(core->write_16bit);
+            core->read_8bit=wrap(core->read_8bit);core->write_8bit=wrap(core->write_8bit);
+        }
+        bool reference_done=false;
+        compiled->system_call_handler=[&](unsigned n){if(n==255)compiled->stop();};
+        reference->system_call_handler=[&](unsigned n){if(n==255)reference_done=true;};
+        reference->interpret_step_for_test();
+        if(!stop)reference->interpret_step_for_test();
+        watchdog::request=0;compiled->run(0);
+        for(unsigned reg=0;reg<16;++reg)if(compiled->get_reg(reg)!=reference->get_reg(reg)) {
+            printf(" FAIL scalar recovery op=%x path=%u r%u actual=%x expected=%x\n",
+                opcode,path,reg,compiled->get_reg(reg),reference->get_reg(reg));return false;
+        }
+        if(actual.data!=expected.data||compiled->get_cpsr()!=reference->get_cpsr()
+                ||(!stop&&!reference_done)||(path&&actual_calls!=expected_calls)
+                ||matched_kernel_access::state(*compiled)->trans_cache_buf) {
+            printf(" FAIL scalar recovery memory/flags/callback op=%x path=%u flags=%x/%x calls=%zu/%zu\n",
+                opcode,path,compiled->get_cpsr(),reference->get_cpsr(),actual_calls.size(),expected_calls.size());
+            for(const auto &event:actual_calls)printf(" actual %x %x %x\n",event[0],event[1],event[2]);
+            for(const auto &event:expected_calls)printf(" expected %x %x %x\n",event[0],event[1],event[2]);return false;
+        }
+        ++checks;
+    }
     // Identical code is copied into two address spaces with different data.
     // Reusing its native function must still use the active core's memory.
     memory_experiment::mode = 0;
@@ -331,27 +390,31 @@ static bool test_compiled_only() {
     }
     // A whole-span miss must leave before any transfer or writeback. Its
     // precise compiled recovery retains the native callback/stop boundary.
-    for (unsigned operation = 0; operation < 4; ++operation) for (unsigned stop = 0; stop < 2; ++stop) {
+    for (unsigned thumb = 0; thumb < 2; ++thumb)
+    for (unsigned operation = 0; operation < (thumb ? 4u : 6u); ++operation) for (unsigned stop = 0; stop < 2; ++stop) {
         memory_experiment::mode = 2;
         eka2l1::common::code_tracking::unsafe_code_mode = 3;
         test_mem actual, expected;
         r12l1::exclusive_monitor actual_monitor(1), expected_monitor(1);
         auto compiled = make_cpu(actual, actual_monitor), reference = make_cpu(expected, expected_monitor);
-        const unsigned pc = 0x81000 + (operation * 2 + stop) * 0x1000;
+        const unsigned pc = 0x90000 + (thumb * 12 + operation * 2 + stop) * 0x1000;
         const unsigned short operations[]{0xb403, 0xbc03, 0xc203, 0xca03};
-        const unsigned short code[]{operations[operation], 0xdfff};
-        actual.write_code(pc, {reinterpret_cast<const std::uint8_t *>(code),
-            reinterpret_cast<const std::uint8_t *>(code) + sizeof(code)});
-        actual.write32(0x8000, 5); actual.write32(0x8004, 11); expected = actual;
+        const unsigned short code[]{operations[operation % 4], 0xdfff};
+        const unsigned arm_operations[]{0xe92d0003,0xe8bd0003,0xe8a20003,0xe8b20003,0xe8bd8001,0xe8b28001};
+        const unsigned arm_code[]{arm_operations[operation],0xef0000ff};
+        const auto *bytes=thumb?reinterpret_cast<const std::uint8_t *>(code):reinterpret_cast<const std::uint8_t *>(arm_code);
+        actual.write_code(pc, {bytes,bytes+(thumb?sizeof(code):sizeof(arm_code))});
+        actual.write32(0xc0000,0xef0000ff);
+        actual.write32(0x8000, 5); actual.write32(0x8004, operation>=4?0xc0000:11); expected = actual;
         std::vector<memory_experiment::page> pages(1 << 20);
         memory_experiment::direct_view view{0, 0, 0,
             static_cast<unsigned>(reinterpret_cast<std::uintptr_t>(pages.data())), 0, 0};
         compiled->experimental_pointer = reinterpret_cast<std::uintptr_t>(&view);
         compiled->experimental_memory = [&](bool) { return reinterpret_cast<std::uintptr_t>(&view); };
-        compiled->code_address_space = 960 + operation * 2 + stop;
+        compiled->code_address_space = 1200 + thumb * 12 + operation * 2 + stop;
         for (auto pair : {std::pair{compiled.get(), &actual}, std::pair{reference.get(), &expected}}) {
             auto *core = pair.first; auto *mem = pair.second;
-            core->set_pc(pc); core->set_cpsr(48);
+            core->set_pc(pc); core->set_cpsr(16 | (thumb << 5));
             core->set_reg(0, 7); core->set_reg(1, 9); core->set_reg(2, 0x8000);
             core->set_sp(operation == 0 ? 0x8008 : 0x8000);
             core->read_32bit = [&,core,mem](address a, unsigned *value) {
@@ -366,8 +429,8 @@ static bool test_compiled_only() {
         watchdog::request = 0; compiled->run(0);
         for (unsigned step = 0; step < (stop ? 1u : 2u); ++step) reference->interpret_step_for_test();
         for (unsigned reg = 0; reg < 16; ++reg) if (compiled->get_reg(reg) != reference->get_reg(reg)) {
-            printf(" FAIL multi-register recovery operation=%u stop=%u r%u actual=%x expected=%x\n",
-                operation, stop, reg, compiled->get_reg(reg), reference->get_reg(reg)); return false;
+            printf(" FAIL multi-register recovery thumb=%u operation=%u stop=%u r%u actual=%x expected=%x\n",
+                thumb, operation, stop, reg, compiled->get_reg(reg), reference->get_reg(reg)); return false;
         }
         if (compiled->get_cpsr() != reference->get_cpsr() || actual.data != expected.data
                 || compilation.single_functions.load() <= recoveries

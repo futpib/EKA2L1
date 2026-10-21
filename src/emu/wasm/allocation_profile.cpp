@@ -138,7 +138,16 @@ void *__real_emscripten_builtin_calloc(std::size_t, std::size_t);
 void *__real_emscripten_builtin_realloc(void *, std::size_t);
 void __real_emscripten_builtin_free(void *);
 void *__real_emscripten_builtin_memalign(std::size_t, std::size_t);
+void *__real_eka2l1_sparse_aligned_alloc(std::size_t, std::size_t, std::size_t *);
 
+void eka2l1_record_sparse_allocation(void *p, std::size_t n) { allocator_call call; if (call.outer) record(p, n); }
+void *__wrap_eka2l1_sparse_aligned_alloc(std::size_t alignment, std::size_t n, std::size_t *dirty) {
+    // The aligned allocator calls malloc internally before splitting its chunk.
+    allocator_call call;
+    auto *p = __real_eka2l1_sparse_aligned_alloc(alignment, n, dirty);
+    if (call.outer) record(p, n);
+    return p;
+}
 void *malloc(std::size_t n) { allocator_call call; auto *p = __real_emscripten_builtin_malloc(n); if (call.outer) record(p, n); return p; }
 void *calloc(std::size_t n, std::size_t size) { allocator_call call; auto *p = __real_emscripten_builtin_calloc(n, size); if (call.outer) record(p, n * size); return p; }
 void free(void *p) { allocator_call call; if (call.outer) record_release(forget(p)); __real_emscripten_builtin_free(p); }
