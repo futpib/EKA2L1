@@ -188,3 +188,31 @@ The sparse allocator profiler fixture can be rebuilt with the tested SDK using
 `-fno-builtin`, and wraps both the existing builtin allocator APIs and
 `eka2l1_sparse_aligned_alloc`. The latter is diagnostic-only; normal binaries
 use the same measured allocation path without profiling.
+
+## Deployment verification
+
+Committed on `wasm-port` as `48da070e2` and deployed at
+<https://claude-laptop.lan:8188/> from
+`/home/claude/.local/share/eka2l1/releases/48da070e2-6a5cc6de/build`.
+Both served JS/WASM hashes match the exact candidate used in the controlled
+panel and final memory capture. No binaries or game blobs are committed.
+
+Two additional fresh Hooked On routes through the public HTTPS URL completed
+installation, launch and all three playable-boat FPS windows, each with exactly
+one capped renderer and zero OOMs or kills. Both peaks were 1331 MiB; the
+limit-hit counters were 49 and 73. Final gameplay was also visually inspected.
+This brings complete cap passes to **11**, including nine controlled runs.
+
+Public timing is excluded from the speed comparison: recorded clocks fell to
+1.6 GHz in the first run and below the requested 3 GHz in the repeat. A separate
+process sample found `cache-clean.py pressure --apply` and native kmux UI tests
+each consuming roughly one core. The repeat recorded frequency policy and
+actual clocks every two seconds; min/max settings stayed at 3 GHz while actual
+clocks sometimes fell, without a thermal-throttle counter increment. These
+observations establish a host-confounded comparison, not a game-code diagnosis.
+The raw startup/FPS numbers remain in the JSON rather than being discarded.
+Controlled performance claims above use only the earlier matched panel.
+
+CPU frequency bounds were restored after every panel. Private experiment
+servers were stopped; completed native perf maps were moved out of `/tmp` into
+their capture directories.

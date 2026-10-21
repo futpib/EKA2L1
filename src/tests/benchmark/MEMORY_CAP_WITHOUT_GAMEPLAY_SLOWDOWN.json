@@ -1253,5 +1253,132 @@
     "evidence": "/home/claude/.scratch/eka-memory-fast1331/final-memory-profile",
     "observedRendererPeakPssMiB": 1421.751953125,
     "scope": "Separate uncapped attribution capture, normal measured candidate, not an FPS benchmark"
-  }
+  },
+  "deployment": {
+    "commit": "48da070e2",
+    "release": "/home/claude/.local/share/eka2l1/releases/48da070e2-6a5cc6de",
+    "override": "/home/claude/.config/systemd/user/eka2l1-lan.service.d/zzzzzzzzzzzzzzzzzzzz-code-cache.conf",
+    "url": "https://claude-laptop.lan:8188/",
+    "wasmSha256": "6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c",
+    "jsSha256": "2e76d9486a3de105066f8892c060e134aa614c2aed98e262d7ef45895de1c209",
+    "publicRoute": "two complete fresh Hooked On runs passed, no runtime errors or OOMs",
+    "servedHashesVerified": true,
+    "publicTimingExcluded": true
+  },
+  "publicVerification": [
+    {
+      "run": "fresh-hooked-on-public-final",
+      "status": "pass",
+      "limitMiB": 1331,
+      "peakMiB": 1331,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 49,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "cappedRendererProcesses": 1,
+      "startup": {
+        "client": 91.83020999997854,
+        "boat": 152.55662999999524
+      },
+      "windows": [
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-0",
+          "fps": 94.95109576708863,
+          "frames": 967,
+          "hostClockMHzRange": [
+            1599.977,
+            3000.0
+          ],
+          "errors": [],
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c"
+        },
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-1",
+          "fps": 129.84761131606587,
+          "frames": 1318,
+          "hostClockMHzRange": [
+            1599.996,
+            2600.16
+          ],
+          "errors": [],
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c"
+        },
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-2",
+          "fps": 189.40919850564256,
+          "frames": 1916,
+          "hostClockMHzRange": [
+            2499.694,
+            3011.92
+          ],
+          "errors": [],
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c"
+        }
+      ],
+      "evidence": "/home/claude/.scratch/eka-memory-fast1331/fresh-hooked-on-public-final",
+      "useForSpeedComparison": false,
+      "timingExclusion": "Host CPU clock drops; overlapping cache-clean pressure job and native kmux UI tests recorded during repeat. These are deployment/cap checks, not matched performance measurements."
+    },
+    {
+      "run": "fresh-hooked-on-public-repeat",
+      "status": "pass",
+      "limitMiB": 1331,
+      "peakMiB": 1331,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 73,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "cappedRendererProcesses": 1,
+      "startup": {
+        "client": 105.15427500000597,
+        "boat": 168.60505500000716
+      },
+      "windows": [
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-0",
+          "fps": 218.57631387117038,
+          "frames": 2208,
+          "hostClockMHzRange": [
+            2999.932,
+            3001.637
+          ],
+          "errors": [],
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c"
+        },
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-1",
+          "fps": 227.30355221197533,
+          "frames": 2296,
+          "hostClockMHzRange": [
+            2999.83,
+            3002.274
+          ],
+          "errors": [],
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c"
+        },
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-2",
+          "fps": 201.4203196334742,
+          "frames": 2038,
+          "hostClockMHzRange": [
+            2499.867,
+            3000.137
+          ],
+          "errors": [],
+          "wasm": "https://claude-laptop.lan:8188/eka2l1.wasm?v=6a5cc6de8223b777b46c3699891767ee5f8b1d753898418cfbb28ef17f4e481c"
+        }
+      ],
+      "evidence": "/home/claude/.scratch/eka-memory-fast1331/fresh-hooked-on-public-repeat",
+      "useForSpeedComparison": false,
+      "timingExclusion": "Host CPU clock drops; overlapping cache-clean pressure job and native kmux UI tests recorded during repeat. These are deployment/cap checks, not matched performance measurements."
+    }
+  ]
 }
