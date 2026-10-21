@@ -219,6 +219,16 @@ const requireAsphalt3Race=label=>{
  fs.writeFileSync(out+'/'+label+'-hud.json',JSON.stringify(hud));
  assert(hud.position>400&&hud.lap>400,'Asphalt 3 is not showing the racing HUD; reject this route');
 };
+const requireTetrisBoard=label=>{
+ const png=PNG.sync.read(fs.readFileSync(out+'/'+label+'.png'));
+ let black=0,total=0;
+ for(let y=140;y<650;y+=5)for(let x=320;x<580;x+=5){
+  const i=(y*png.width+x)*4;
+  if(Math.max(...png.data.subarray(i,i+3))<20)black++;
+  total++;
+ }
+ assert(black/total>0.2,'Tetris is not showing its game board; reject results screens from gameplay timing');
+};
 const measure=async(label,seconds=30)=>{
  await shot(label+'-start');
  if(game==='sky-force')assert(skyHud(PNG.sync.read(fs.readFileSync(out+'/'+label+'-start.png'))).valid,'Sky Force must show health, score, percent and life HUD; reject logos and menus');
@@ -241,6 +251,7 @@ const measure=async(label,seconds=30)=>{
  }
 
  if(game==='asphalt-3')requireAsphalt3Race(label+'-start');
+ if(game==='tetris')requireTetrisBoard(label+'-start');
 
  const clocksBefore=cpuFrequencies();
  const processesBefore=await browserMemory();
@@ -291,6 +302,7 @@ const measure=async(label,seconds=30)=>{
  report.observedBrowserPeakPssKiB=Math.max(report.browserPssKiB,...browserMemorySamples.map(s=>s.pssKiB));
  await shot(label+'-end');
  if(game==='asphalt-3')requireAsphalt3Race(label+'-end');
+ if(game==='tetris')requireTetrisBoard(label+'-end');
  fs.writeFileSync(out+'/'+label+'.json',JSON.stringify(report,null,2));
  if(fullMemory){
   for(const process of report.browserMemory){
