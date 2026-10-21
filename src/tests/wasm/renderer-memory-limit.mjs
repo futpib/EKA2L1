@@ -67,6 +67,7 @@ try {
   const sample = () => {
     const row = {ms: Date.now(), currentBytes: readNumber(path.join(cgroup, 'memory.current')),
       peakBytes: readNumber(path.join(cgroup, 'memory.peak')),
+      stat: readEvents(path.join(cgroup, 'memory.stat')),
       events: readEvents(path.join(cgroup, 'memory.events'))};
     samples.push(row);
     while (smapsThresholds.length && row.currentBytes >= smapsThresholds[0] * 1048576) {

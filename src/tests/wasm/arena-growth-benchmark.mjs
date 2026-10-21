@@ -31,7 +31,14 @@ const assetDir=process.env.EKA2L1_ASSET_DIR || '/tmp/eka2l1-serve';
 const browserArgs=['--host-resolver-rules=MAP claude-laptop.lan 127.0.0.1','--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=vulkan','--enable-features=Vulkan','--enable-gpu','--ignore-gpu-blocklist','--disable-background-timer-throttling'];
 if(process.env.EKA2L1_RENDERER_CGROUP_PREFIX)browserArgs.push('--renderer-cmd-prefix='+process.env.EKA2L1_RENDERER_CGROUP_PREFIX);
 if(fullMemory)browserArgs.push('--js-flags=--perf-basic-prof');
-const browser=await puppeteer.launch({executablePath:process.env.EKA2L1_CHROMIUM || '/usr/bin/chromium',headless:true,args:browserArgs});
+// OPFS must live on the capture's filesystem, not an implicit /tmp RAM disk.
+// Every route still starts with an independent empty browser profile.
+const userDataDir=fs.mkdtempSync(path.join(out,'chromium-profile-'));
+fs.writeFileSync(out+'/profile-filesystem.json',JSON.stringify({path:userDataDir,
+ filesystemType:fs.statfsSync(userDataDir).type})+'\n');
+let browser;
+try { browser=await puppeteer.launch({executablePath:process.env.EKA2L1_CHROMIUM || '/usr/bin/chromium',headless:true,args:browserArgs,userDataDir}); }
+catch(error){fs.rmSync(userDataDir,{recursive:true,force:true});throw error;}
 const system=await browser.target().createCDPSession();
 const errors=[],log=fs.createWriteStream(out+'/browser.log');
 let status=async()=>null;
@@ -409,4 +416,4 @@ console.log('READY',game,JSON.stringify(await status()));
 
 
 
-} catch (error) {fs.writeFileSync(out+'/failure.json',JSON.stringify({error:String(error),errors,status:await status().catch(()=>null)},null,2));throw error;} finally {clearInterval(browserMemoryTimer);try{if(memoryProfiler)await memoryProfiler.stop();if(allocationProfile)fs.writeFileSync(out+'/allocation-stages.json',JSON.stringify(allocationSnapshots,null,2));if(browserMemorySamples.length)fs.writeFileSync(out+'/browser-memory-samples.json',JSON.stringify(browserMemorySamples,null,2));}finally{await browser.close();log.end();}}
+} catch (error) {fs.writeFileSync(out+'/failure.json',JSON.stringify({error:String(error),errors,status:await status().catch(()=>null)},null,2));throw error;} finally {clearInterval(browserMemoryTimer);try{if(memoryProfiler)await memoryProfiler.stop();if(allocationProfile)fs.writeFileSync(out+'/allocation-stages.json',JSON.stringify(allocationSnapshots,null,2));if(browserMemorySamples.length)fs.writeFileSync(out+'/browser-memory-samples.json',JSON.stringify(browserMemorySamples,null,2));}finally{await browser.close();fs.rmSync(userDataDir,{recursive:true,force:true});log.end();}}
