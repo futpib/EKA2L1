@@ -391,12 +391,13 @@ persistent-device fresh-install gameplay route under a renderer-only cgroup:
 
 ```sh
 EKA2L1_TAB_RENDERER_CLIENT_ID=7 EKA2L1_BENCHMARK_FRESH_LAUNCHER=1 \
-  node src/tests/wasm/renderer-memory-limit.mjs asphalt-3 1331 /absolute/path/new-budget-run https://claude-laptop.lan:8188/
+  node src/tests/wasm/renderer-memory-limit.mjs asphalt-3 1024 /absolute/path/new-budget-run https://claude-laptop.lan:8188/
 ```
 
-The 1.3 GiB target is rounded down to 1331 MiB. Build-specific peaks, failures,
-and throughput comparisons for the current 104/96 MiB default are recorded in
-`src/tests/benchmark/MEMORY_CAP_WITHOUT_GAMEPLAY_SLOWDOWN.md`. Historical captures
+The current target is 1 GiB (1024 MiB). Build-specific peaks, failures,
+and throughput comparisons for the current 48/40 MiB default are recorded in
+`src/tests/benchmark/MEMORY_CAP_1GIB_RESULTS.md`. The preceding 1.3 GiB results
+remain in `src/tests/benchmark/MEMORY_CAP_WITHOUT_GAMEPLAY_SLOWDOWN.md`. Historical captures
 remain in `src/tests/benchmark/RENDERER_CAP_RESULTS.md`.
 The client ID is specific to the tested Chromium 154 launch. The harness
 asserts that it selects the unique game-tab renderer; an incorrect ID fails

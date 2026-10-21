@@ -608,3 +608,16 @@ The compact results, stage times, FPS windows and cap counters are in
 Raw logs, screenshots, memory samples, build manifest and reproducible panel
 script are under
 `/home/claude/.scratch/eka-all-games-rank-6a5cc6de-20261021/`.
+
+## 1 GiB default after Thumb code reduction (2026-10-21)
+
+The subsequent default completes all eight games under a 1024 MiB game-tab
+renderer cap. Repeated cold and prepared routes for Asphalt 3, Hooked On and
+Tetris pass with zero swap and zero OOMs. The generated-module budget is 48/40 MiB;
+four-region demand-compilation lookahead is unchanged. Matched unpaced windows
+show no material regression and cold startup improves. These capped outcomes do
+not replace the uncensored ranking above.
+
+The current measurements, source attribution, failed experiments, build hashes
+and reproduction are in [MEMORY_CAP_1GIB_RESULTS.md](MEMORY_CAP_1GIB_RESULTS.md)
+and its [companion JSON](MEMORY_CAP_1GIB_RESULTS.json).

@@ -260,7 +260,7 @@ boundary. All valid samples remain included; see the [host limitations](CONTROLL
 
 ## Complete report catalogue
 
-345 reports and supporting notes are discovered below, including
+378 reports and supporting notes are discovered below, including
 timing, adoption and design documents with nonstandard filenames. Design plans
 and profiling shares do not establish measured speed gains. Each document
 retains its exact variants, workloads, controls and
@@ -288,335 +288,368 @@ is retained separately from the later controlled comparisons.
 | 14 | Results/notes | [ARM short-block runtime state cache](ARM_STATE_CACHE_RESULTS.md) | [Findings below](#report-14) |
 | 15 | Results/notes | [ARM short-block register-transfer spans](ARM_TRANSFER_SPAN_RESULTS.md) | [Findings below](#report-15) |
 | 16 | Results/notes | [Asphalt 3 audio on Qt and WebAssembly](ASPHALT3_AUDIO.md) | No performance excerpt; see source report |
-| 17 | Results/notes | [Asphalt framebuffer loop: remove repeated region dispatch](ASPHALT_FINITE_LOOP_RESULTS.md) | [Findings below](#report-17) |
-| 18 | Results/notes | [Asphalt 2: frame, timer and native-code attribution](ASPHALT_FRAME_TIMELINE.md) | [Findings below](#report-18) |
-| 19 | Results/notes | [Asphalt 2: reducing region and display overhead](ASPHALT_OVERHEAD_RESULTS.md) | [Findings below](#report-19) |
-| 20 | Profiling/analysis | [Asphalt 2: matched paced Qt/WASM benchmark and profile](ASPHALT_PACED_PROFILE.md) | [Findings below](#report-20) |
-| 21 | Results/notes | [Asphalt 2: keep callback-free Thumb backedges compiled](ASPHALT_POLLED_LOOP_RESULTS.md) | [Findings below](#report-21) |
-| 22 | Results/notes | [Asphalt 2: fusing RAM Thumb helpers and branches](ASPHALT_RAM_FUSION_RESULTS.md) | [Findings below](#report-22) |
-| 23 | Results/notes | [Persistent caching for the LAN launcher](ASSET_CACHE_RESULTS.md) | [Findings below](#report-23) |
-| 24 | Results/notes | [Browser audio and Qt parity](AUDIO_PARITY_RESULTS.md) | No performance excerpt; see source report |
-| 25 | Results/notes | [Vectorize exact-order Speex interpolation in browser audio](AUDIO_SIMD_RESULTS.md) | [Findings below](#report-25) |
-| 26 | Results/notes | [Generic instruction-count batching](BATCHED_INSTRUCTION_COUNTS.md) | [Findings below](#report-26) |
-| 27 | Results/notes | [Performance opportunities outside the archived experiment sweep](BLIND_SPOT_RESEARCH.md) | [Findings below](#report-27) |
-| 28 | Results/notes | [ARM block transfers and sustained live gameplay](BLOCK_TRANSFER_RESULTS.md) | [Findings below](#report-28) |
-| 29 | Results/notes | [Ordinary block-transfer callback writeback ordering](BLOCK_WRITEBACK_CALLBACK_RESULTS.md) | [Findings below](#report-29) |
-| 30 | Results/notes | [Follow-up boundary diagnostics](BOUNDARY_DETAILS_RESULTS.md) | [Findings below](#report-30) |
-| 31 | Results/notes | [Compiled-region boundaries and limits: measured findings](BOUNDARY_STUDY_RESULTS.md) | [Findings below](#report-31) |
-| 32 | Results/notes | [Branch veneers on the graduated forward-leaf runtime](BRANCH_CURRENT_RESULTS.md) | [Findings below](#report-32) |
-| 33 | Results/notes | [Single-branch callee fusion](BRANCH_VENEER_RESULTS.md) | [Findings below](#report-33) |
-| 34 | Results/notes | [Shared syscall bridge allocation experiment](BRIDGE_ALLOCATION_RESULTS.md) | [Findings below](#report-34) |
-| 35 | Results/notes | [Expanded browser CPU kernels, 2026-09-30](BROWSER_CORES_EXPANDED_RESULTS.md) | [Findings below](#report-35) |
-| 36 | Results/notes | [Flycast SH4 browser CPU adapter, 2026-09-30](BROWSER_CORES_FLYCAST_RESULTS.md) | [Findings below](#report-36) |
-| 37 | Results/notes | [Full EKA CPU browser control, 2026-09-30](BROWSER_CORES_FULL_EKA_RESULTS.md) | [Findings below](#report-37) |
-| 38 | Results/notes | [Initial browser CPU kernels, 2026-09-30](BROWSER_CORES_INITIAL_RESULTS.md) | [Findings below](#report-38) |
-| 39 | Results/notes | [v86 equivalent-algorithm comparison, 2026-09-30](BROWSER_CORES_V86_RESULTS.md) | No performance excerpt; see source report |
-| 40 | Design/plan | [Original-emitter budget chunks](BUDGET_CHUNKS_DESIGN.md) | [Findings below](#report-40) |
-| 41 | Results/notes | [Budget chunks: matching-compiler gain, mixed served comparison](BUDGET_CHUNKS_RESULTS.md) | [Findings below](#report-41) |
-| 42 | Results/notes | [Bulk-loop eligibility and compilation scheduling](BULK_AND_COMPILATION_RESULTS.md) | [Findings below](#report-42) |
-| 43 | Results/notes | [Adopt cache-policy specialization after gameplay profiling](CACHE_POLICY_DEFAULT_RESULTS.md) | [Findings below](#report-43) |
-| 44 | Results/notes | [Publish compiled flags before memory exception callbacks](CALLBACK_CPSR_RESULTS.md) | No performance excerpt; see source report |
-| 45 | Results/notes | [Callee-prefix fusion](CALL_PREFIX_RESULTS.md) | [Findings below](#report-45) |
-| 46 | Profiling/analysis | [Chrome gameplay profile: Snakes and Sky Force](CHROME_GAMEPLAY_ANALYSIS.md) | [Findings below](#report-46) |
-| 47 | Profiling/analysis | [Chrome memory profiling with WASM source maps](CHROME_MEMORY_PROFILER_RESULTS.md) | [Findings below](#report-47) |
-| 48 | Profiling/analysis | [Chrome profiling](CHROME_PROFILING.md) | [Findings below](#report-48) |
-| 49 | Profiling/analysis | [Chrome profiling switch validation](CHROME_PROFILING_RESULTS.md) | [Findings below](#report-49) |
-| 50 | Profiling/analysis | [Recent code-cache misses are a small fraction of lookups](CODE_CACHE_CENSUS_RESULTS.md) | No performance excerpt; see source report |
-| 51 | Results/notes | [Mutation-driven compiled-code validation](CODE_LIFECYCLE.md) | No performance excerpt; see source report |
-| 52 | Results/notes | [Mutation-driven code validity: implementation and measurements](CODE_LIFECYCLE_RESULTS.md) | [Findings below](#report-52) |
-| 53 | Results/notes | [Four-vector exact code comparison: delivered](CODE_QUAD_RESULTS.md) | [Findings below](#report-53) |
-| 54 | Profiling/analysis | [Exact validation span census after folded-TLB delivery](CODE_SPAN_CENSUS_RESULTS.md) | [Findings below](#report-54) |
-| 55 | Results/notes | [Exact code validation with an overlapping vector tail: not promoted](CODE_TAIL_RESULTS.md) | [Findings below](#report-55) |
-| 56 | Results/notes | [Backing-page validity tracking](CODE_VALIDITY.md) | [Findings below](#report-56) |
-| 57 | Design/plan | [Watched-code write protection experiment](CODE_WRITE_PROTECTION_DESIGN.md) | [Findings below](#report-57) |
-| 58 | Results/notes | [Watched-code write protection](CODE_WRITE_PROTECTION_RESULTS.md) | [Findings below](#report-58) |
-| 59 | Results/notes | [Removing earlier emitter peepholes: rejected](COMBINATION_RESULTS.md) | [Findings below](#report-59) |
-| 60 | Results/notes | [Combined write-span and budget proofs: exact archive delivered](COMBINED_DELIVERY_RESULTS.md) | [Findings below](#report-60) |
-| 61 | Design/plan | [Combined write-span and budget proofs](COMBINED_PROOFS_DESIGN.md) | No performance excerpt; see source report |
-| 62 | Results/notes | [Combined write-span and budget proofs: gain does not repeat](COMBINED_PROOFS_RESULTS.md) | [Findings below](#report-62) |
-| 63 | Results/notes | [CMP operand reuse](COMPARE_CONDITION_RESULTS.md) | [Findings below](#report-63) |
-| 64 | Results/notes | [Compile deferred memory misses](COMPILED_MEMORY_MISSES_RESULTS.md) | No performance excerpt; see source report |
-| 65 | Results/notes | [Compiled memory misses serial timing screen](COMPILED_MEMORY_MISSES_TIMING_RESULTS.md) | [Findings below](#report-65) |
-| 66 | Results/notes | [Shared ARM/Thumb syscall compilation stage](COMPILED_SVC_RESULTS.md) | [Findings below](#report-66) |
-| 67 | Results/notes | [Compiled syscall serial timing panel](COMPILED_SVC_TIMING_RESULTS.md) | [Findings below](#report-67) |
-| 68 | Results/notes | [ARM-to-WASM compiler bookkeeping results](COMPILER_BOOKKEEPING_RESULTS.md) | [Findings below](#report-68) |
-| 69 | Results/notes | [Comparing four routes toward Qt JIT throughput](COMPILER_OPTIONS_RESULTS.md) | [Findings below](#report-69) |
-| 70 | Results/notes | [Conditional ALU selection: rejected](CONDITIONAL_ALU_RESULTS.md) | [Findings below](#report-70) |
-| 71 | Results/notes | [Conditional MOV selection: no confirmed speedup](CONDITIONAL_MOV_RESULTS.md) | [Findings below](#report-71) |
-| 72 | Results/notes | [Conditional-leaf runner limit revisit](CONDITIONAL_RUNNER_LIMITS_RESULTS.md) | [Findings below](#report-72) |
-| 73 | Results/notes | [Conditional-leaf site limit revisit](CONDITIONAL_SITE_LIMITS_RESULTS.md) | [Findings below](#report-73) |
-| 74 | Results/notes | [Confine browser reservation state to its CPU worker](CONFINED_MONITOR_RESULTS.md) | [Findings below](#report-74) |
-| 75 | Results/notes | [Connected callees on the graduated runtime](CONNECTED_CURRENT_RESULTS.md) | [Findings below](#report-75) |
-| 76 | Results/notes | [Frequency-controlled browser comparisons](CONTROLLED_BENCHMARKS.md) | [Findings below](#report-76) |
-| 77 | Reassessment | [Reassessment of optimization timing decisions](CONTROLLED_REASSESSMENT.md) | [Findings below](#report-77) |
-| 78 | Results/notes | [Browser execution without instruction accounting](COUNT_FREE_DEFAULT_RESULTS.md) | [Findings below](#report-78) |
-| 79 | Results/notes | [Compiled CPU overhead reductions](CPU_COST_RESULTS.md) | [Findings below](#report-79) |
-| 80 | Results/notes | [Actual dispatcher costs and native/WASM fault comparison](CPU_DISPATCH_AND_FAULT_RESULTS.md) | [Findings below](#report-80) |
-| 81 | Results/notes | [Zooming into the native / WASM CPU gap](CPU_SLOWDOWN_RESULTS.md) | [Findings below](#report-81) |
-| 82 | Results/notes | [Browser benchmark CPU time](CPU_TIME_RESULTS.md) | [Findings below](#report-82) |
-| 83 | Profiling/analysis | [Current original emitter and mixed IR: diagnostic profiles](CURRENT_IR_PROFILE_RESULTS.md) | [Findings below](#report-83) |
-| 84 | Results/notes | [Corrected default: direct confirmation does not support delivery](DEFAULT_CONFIRMATION_RESULTS.md) | [Findings below](#report-84) |
-| 85 | Results/notes | [Deferred comparison flags across successful reads](DEFERRED_COMPARE_MEMORY_RESULTS.md) | [Findings below](#report-85) |
-| 86 | Design/plan | [Deferred instruction counts inside proved chunks](DEFERRED_COUNTS_DESIGN.md) | [Findings below](#report-86) |
-| 87 | Results/notes | [Deferred counts: marginal benefit not established](DEFERRED_COUNTS_RESULTS.md) | [Findings below](#report-87) |
-| 88 | Profiling/analysis | [Code dependency overlap census](DEPENDENCY_CENSUS_RESULTS.md) | [Findings below](#report-88) |
-| 89 | Results/notes | [Direct memory: consume scalar lookup results immediately](DIRECT_ACCESS_LOWERING_RESULTS.md) | [Findings below](#report-89) |
-| 90 | Results/notes | [Direct region tail chaining experiment](DIRECT_CHAIN_RESULTS.md) | [Findings below](#report-90) |
-| 91 | Results/notes | [Direct structured guest loops](DIRECT_LOOP_RESULTS.md) | [Findings below](#report-91) |
-| 92 | Profiling/analysis | [Direct-memory regression attribution](DIRECT_MEMORY_ATTRIBUTION.md) | [Findings below](#report-92) |
-| 93 | Results/notes | [Compact direct-memory lowering and mapping notifications](DIRECT_MEMORY_CUTS_RESULTS.md) | [Findings below](#report-93) |
-| 94 | Results/notes | [Direct shared-backing memory experiment](DIRECT_MEMORY_RESULTS.md) | [Findings below](#report-94) |
-| 95 | Results/notes | [Direct-memory entry-span extension](DIRECT_SPAN_RESULTS.md) | [Findings below](#report-95) |
-| 96 | Results/notes | [Three-access direct-memory span proofs](DIRECT_SPAN_THREE_RESULTS.md) | [Findings below](#report-96) |
-| 97 | Results/notes | [Compact dispatch and division lowering](DISPATCH_AND_DIVISION_RESULTS.md) | [Findings below](#report-97) |
-| 98 | Results/notes | [Raw WASM imports and recent compiled-block lookup](DISPATCH_RESULTS.md) | [Findings below](#report-98) |
-| 99 | Profiling/analysis | [Integer division call census](DIVISION_CENSUS_RESULTS.md) | No performance excerpt; see source report |
-| 100 | Results/notes | [Complete division helper summary](DIVISION_HELPER_RESULTS.md) | [Findings below](#report-100) |
-| 101 | Design/plan | [Dynamic Thumb ROM groups: focused screen gates](DYNAMIC_ROM_COHORT_SCREEN_GATES.md) | [Findings below](#report-101) |
-| 102 | Results/notes | [Dynamic Thumb ROM grouping: rejected screen](DYNAMIC_ROM_COHORT_TIMING_RESULTS.md) | [Findings below](#report-102) |
-| 103 | Design/plan | [Apply the existing region compiler to eager ROM exports](EAGER_REGIONS_DESIGN.md) | No performance excerpt; see source report |
-| 104 | Results/notes | [Eager ROM regions: no promotion](EAGER_REGIONS_RESULTS.md) | [Findings below](#report-104) |
-| 105 | Results/notes | [Skip an already-empty exclusive monitor](EMPTY_MONITOR_CLEAR_RESULTS.md) | [Findings below](#report-105) |
-| 106 | Results/notes | [Loop-free entry-budget experiment](ENTRY_BUDGET_RESULTS.md) | [Findings below](#report-106) |
-| 107 | Results/notes | [Entry-proof fallback census after expanded leaf eligibility](ENTRY_PROOF_RESULTS.md) | [Findings below](#report-107) |
-| 108 | Results/notes | [Redundant region exit guards](EXIT_GUARD_RESULTS.md) | [Findings below](#report-108) |
-| 109 | Results/notes | [Forward-only leaf expansion on the current runtime](EXPANDED_CURRENT_RESULTS.md) | [Findings below](#report-109) |
-| 110 | Results/notes | [Expanded original-emitter leaf prototype](EXPANDED_LEAVES_RESULTS.md) | [Findings below](#report-110) |
-| 111 | Results/notes | [Correction: standalone WASM fault-probe policy selection](FAULT_POLICY_AUDIT_RESULTS.md) | No performance excerpt; see source report |
-| 112 | Results/notes | [Fault-probe rebuild correction, 2026-09-29](FAULT_PROBE_REBUILD_AUDIT.md) | No performance excerpt; see source report |
-| 113 | Results/notes | [First-use compilation coverage screen (rejected)](FIRST_USE_COMPILATION_SCREEN_RESULTS.md) | [Findings below](#report-113) |
-| 114 | Results/notes | [Flag and incoming-register data-flow experiments](FLAG_DATAFLOW_RESULTS.md) | [Findings below](#report-114) |
-| 115 | Results/notes | [Direct flag-stack stores](FLAG_STACK_RESULTS.md) | [Findings below](#report-115) |
-| 116 | Profiling/analysis | [Remaining costs after folded data-TLB delivery](FOLDED_PROFILE_RESULTS.md) | No performance excerpt; see source report |
-| 117 | Results/notes | [Fusing indirect ARM calls and their returns](FUSED_INDIRECT_CALL_RESULTS.md) | [Findings below](#report-117) |
-| 118 | Results/notes | [Fusion after fixing User::After timing](FUSION_AFTER_TIMER_RESULTS.md) | [Findings below](#report-118) |
-| 119 | Profiling/analysis | [Whole-game call fusion census](FUSION_CENSUS_RESULTS.md) | [Findings below](#report-119) |
-| 120 | Results/notes | [Graduation and reassessment of marginal experiments](GRADUATION_RESULTS.md) | [Findings below](#report-120) |
-| 121 | Results/notes | [Browser log and GL diagnostic overhead](GRAPHICS_DIAGNOSTICS_RESULTS.md) | [Findings below](#report-121) |
-| 122 | Results/notes | [Natural snake growth increases the measured workload](GROWTH_LENGTH_RESULTS.md) | [Findings below](#report-122) |
-| 123 | Profiling/analysis | [Diagnostic profiles of the natural length routes](GROWTH_PROFILE_RESULTS.md) | [Findings below](#report-123) |
-| 124 | Design/plan | [Pending independent guard-interval publication experiment](GUARD_PUBLICATION_PLAN.md) | No performance excerpt; see source report |
-| 125 | Results/notes | [Guard-interval publication experiment](GUARD_PUBLICATION_RESULTS.md) | No performance excerpt; see source report |
-| 126 | Profiling/analysis | [Guest-level interpreter profile: Snakes](GUEST_PROFILE_RESULTS.md) | [Findings below](#report-126) |
-| 127 | Profiling/analysis | [Guest interpreter attribution](GUEST_PROFILING.md) | No performance excerpt; see source report |
-| 128 | Profiling/analysis | [Native instruction samples of compiled-region handoffs](HANDOFF_NATIVE_PROFILE_RESULTS.md) | [Findings below](#report-128) |
-| 129 | Results/notes | [Hardware counter diagnostic: slow mode not reproduced](HARDWARE_COUNTER_RESULTS.md) | [Findings below](#report-129) |
-| 130 | Results/notes | [Headroom optimization trials](HEADROOM_RESULTS.md) | [Findings below](#report-130) |
-| 131 | Results/notes | [Hooked On: allow loaded games past the hot-compilation quota](HOOKED_AOT_CAPACITY_RESULTS.md) | [Findings below](#report-131) |
-| 132 | Profiling/analysis | [Hooked On: paced WASM deficit and idle-wakeup experiment](HOOKED_PACED_PROFILE.md) | [Findings below](#report-132) |
-| 133 | Profiling/analysis | [Hooked On startup profile after WasmFS adoption](HOOKED_POST_WASMFS_PROFILE.md) | [Findings below](#report-133) |
-| 134 | Profiling/analysis | [Hooked On startup profile after the startup follow-up](HOOKED_STARTUP_PROFILE.md) | [Findings below](#report-134) |
-| 135 | Results/notes | [V29 short decision screen](HOTPATH_SHORT_SCREEN_RESULTS.md) | [Findings below](#report-135) |
-| 136 | Results/notes | [Frozen hot-path specialization: V29 acceptance](HOTPATH_SPECIALIZATION_RESULTS.md) | [Findings below](#report-136) |
-| 137 | Results/notes | [Individual hot-path timings: V29](HOTPATH_SPECIALIZATION_TIMING_RESULTS.md) | [Findings below](#report-137) |
-| 138 | Results/notes | [Profile-driven hotspot round](HOTSPOT_ROUND_RESULTS.md) | [Findings below](#report-138) |
-| 139 | Results/notes | [Deadline-aware paced WASM idle waits](IDLE_DEADLINE_RESULTS.md) | [Findings below](#report-139) |
-| 140 | Results/notes | [Whole-game impact of constant-time target selection](INDIRECT_TARGET_TABLE_GAME_RESULTS.md) | [Findings below](#report-140) |
-| 141 | Results/notes | [Constant-time indirect-call target selection](INDIRECT_TARGET_TABLE_RESULTS.md) | [Findings below](#report-141) |
-| 142 | Results/notes | [Interpreter flags before slow memory callbacks](INTERPRETER_CALLBACK_CPSR_RESULTS.md) | [Findings below](#report-142) |
-| 143 | Results/notes | [Interpreter fallback hunt](INTERPRETER_HUNT_RESULTS.md) | [Findings below](#report-143) |
-| 144 | Design/plan | [Mixed IR with invariant read proofs](INVARIANT_IR_DESIGN.md) | [Findings below](#report-144) |
-| 145 | Results/notes | [Mixed IR consuming invariant read proofs](INVARIANT_IR_RESULTS.md) | [Findings below](#report-145) |
-| 146 | Design/plan | [Prove read spans through unchanged registers across regions](INVARIANT_READS_DESIGN.md) | No performance excerpt; see source report |
-| 147 | Results/notes | [Invariant read spans: modest measured gain, delivered on LAN](INVARIANT_READS_RESULTS.md) | [Findings below](#report-147) |
-| 148 | Design/plan | [Invariant write-span experiment](INVARIANT_WRITES_DESIGN.md) | [Findings below](#report-148) |
-| 149 | Results/notes | [Invariant write spans: retained opt-in, no deployment gain established](INVARIANT_WRITES_RESULTS.md) | [Findings below](#report-149) |
-| 150 | Design/plan | [Narrow and scaled memory in mixed IR](IR_ADDRESSING_DESIGN.md) | No performance excerpt; see source report |
-| 151 | Results/notes | [Broader IR memory addressing: no promotion](IR_ADDRESSING_RESULTS.md) | [Findings below](#report-151) |
-| 152 | Adoption/decision | [Current custom IR versus reusing Dynarmic](IR_BACKEND_DECISION.md) | No performance excerpt; see source report |
-| 153 | Results/notes | [Budget proofs in gaps between IR segments](IR_BUDGET_GAPS_RESULTS.md) | No performance excerpt; see source report |
-| 154 | Design/plan | [IR values across validated inline leaves](IR_CALLS_DESIGN.md) | No performance excerpt; see source report |
-| 155 | Results/notes | [Mixed IR through validated inline calls](IR_CALLS_RESULTS.md) | [Findings below](#report-155) |
-| 156 | Design/plan | [Conditional pure values in mixed IR](IR_CONDITIONS_DESIGN.md) | [Findings below](#report-156) |
-| 157 | Results/notes | [Conditional integer IR: no promotion](IR_CONDITIONS_RESULTS.md) | [Findings below](#report-157) |
-| 158 | Design/plan | [Flag values in mixed IR](IR_FLAGS_DESIGN.md) | [Findings below](#report-158) |
-| 159 | Results/notes | [Flag-aware mixed IR](IR_FLAGS_RESULTS.md) | [Findings below](#report-159) |
-| 160 | Design/plan | [Bounded longer mixed-IR segments](IR_LONG_SEGMENTS_DESIGN.md) | No performance excerpt; see source report |
-| 161 | Results/notes | [Longer mixed-IR segments: not promoted](IR_LONG_SEGMENTS_RESULTS.md) | [Findings below](#report-161) |
-| 162 | Results/notes | [Page reuse in mixed IR: correct, no promotion](IR_MEMORY_CACHE_RESULTS.md) | [Findings below](#report-162) |
-| 163 | Design/plan | [Precise intermediate exits in IR segments](IR_MEMORY_DESIGN.md) | No performance excerpt; see source report |
-| 164 | Results/notes | [Intermediate memory exits in IR: not promoted](IR_MEMORY_RESULTS.md) | [Findings below](#report-164) |
-| 165 | Design/plan | [Private precise fallbacks for IR segments](IR_OUTLINE_DESIGN.md) | [Findings below](#report-165) |
-| 166 | Results/notes | [Private IR fallbacks: smaller hot functions, no promotion](IR_OUTLINE_RESULTS.md) | [Findings below](#report-166) |
-| 167 | Design/plan | [Fault-only IR reconstruction](IR_RECIPES_DESIGN.md) | [Findings below](#report-167) |
-| 168 | Results/notes | [Fault-only reconstruction: no promotion](IR_RECIPES_RESULTS.md) | [Findings below](#report-168) |
-| 169 | Design/plan | [Same application binary compiler-mode control](IR_SAME_BINARY_DESIGN.md) | No performance excerpt; see source report |
-| 170 | Results/notes | [Matched application binary: no IR promotion](IR_SAME_BINARY_RESULTS.md) | [Findings below](#report-170) |
-| 171 | Design/plan | [Integer IR segments inside existing regions](IR_SEGMENTS_DESIGN.md) | No performance excerpt; see source report |
-| 172 | Results/notes | [Integer IR segments: correct, not promoted](IR_SEGMENTS_RESULTS.md) | [Findings below](#report-172) |
-| 173 | Design/plan | [Adjacent single-use pure IR values](IR_STACK_VALUES_DESIGN.md) | [Findings below](#report-173) |
-| 174 | Results/notes | [Adjacent pure stack values: not promoted](IR_STACK_VALUES_RESULTS.md) | [Findings below](#report-174) |
-| 175 | Design/plan | [Wide values across guarded IR memory](IR_WIDE_DESIGN.md) | No performance excerpt; see source report |
-| 176 | Results/notes | [Wide mixed IR: no gameplay promotion](IR_WIDE_RESULTS.md) | [Findings below](#report-176) |
-| 177 | Design/plan | [Invariant write proofs consumed by mixed IR](IR_WRITES_DESIGN.md) | [Findings below](#report-177) |
-| 178 | Results/notes | [Invariant write proofs inside mixed IR](IR_WRITES_RESULTS.md) | [Findings below](#report-178) |
-| 179 | Results/notes | [Fixed syscall dispatch and same-thread context reuse](KERNEL_DISPATCH_RESULTS.md) | [Findings below](#report-179) |
-| 180 | Results/notes | [Wide values and precise exit snapshots](LAZY_WIDE_RESULTS.md) | [Findings below](#report-180) |
-| 181 | Results/notes | [Inlining short ARM leaf helpers](LEAF_REGIONS.md) | [Findings below](#report-181) |
-| 182 | Results/notes | [Summarize the hot linked-list scan](LIST_SCAN_RESULTS.md) | [Findings below](#report-182) |
-| 183 | Results/notes | [Runtime literal-PC veneer fusion](LITERAL_PC_RESULTS.md) | [Findings below](#report-183) |
-| 184 | Results/notes | [Live browser input and virtual-clock pacing](LIVE_INPUT_RESULTS.md) | [Findings below](#report-184) |
-| 185 | Results/notes | [ARM long-multiply AOT results](LONG_MULTIPLY_RESULTS.md) | [Findings below](#report-185) |
-| 186 | Results/notes | [Long-run headroom and memory investigation](LONG_RUN_RESULTS.md) | [Findings below](#report-186) |
-| 187 | Results/notes | [Lookup and validation follow-up](LOOKUP_FOLLOWUP_RESULTS.md) | [Findings below](#report-187) |
-| 188 | Design/plan | [Outlined code-cache recovery experiment](LOOKUP_OUTLINE_DESIGN.md) | [Findings below](#report-188) |
-| 189 | Results/notes | [Outlined code-cache lookup: acceptance](LOOKUP_OUTLINE_RESULTS.md) | [Findings below](#report-189) |
-| 190 | Results/notes | [Instruction budgets at ARM loop heads](LOOP_BUDGET_RESULTS.md) | [Findings below](#report-190) |
-| 191 | Results/notes | [Rejected LTO experiment](LTO_EXPERIMENT.md) | No performance excerpt; see source report |
-| 192 | Results/notes | [Matched native/WASM control and a precise memory-miss prototype](MATCHED_COMPILER_RESULTS.md) | [Findings below](#report-192) |
-| 193 | Results/notes | [Guest memory-access distribution and arena sizing](MEMORY_ACCESS_DISTRIBUTION_RESULTS.md) | [Findings below](#report-193) |
-| 194 | Results/notes | [Memory semantics and connected-path experiments](MEMORY_AND_CONNECTED_RESULTS.md) | [Findings below](#report-194) |
-| 195 | Results/notes | [Software page-cache comparison](MEMORY_CACHE_RESULTS.md) | [Findings below](#report-195) |
-| 196 | Results/notes | [Four guest-memory implementations](MEMORY_IMPLEMENTATIONS_RESULTS.md) | [Findings below](#report-196) |
-| 197 | Results/notes | [Merged-source baseline and CPU profile](MERGED_BASELINE_RESULTS.md) | No performance excerpt; see source report |
-| 198 | Results/notes | [Mode-3 literal comparison](MODE3_LITERAL_RESULTS.md) | [Findings below](#report-198) |
-| 199 | Design/plan | [Outlined lookup after mode-3 literal-PC delivery](MODE3_LOOKUP_PLAN.md) | No performance excerpt; see source report |
-| 200 | Results/notes | [Mode-3 lookup comparison](MODE3_LOOKUP_RESULTS.md) | [Findings below](#report-200) |
-| 201 | Results/notes | [Remaining costs under the delivered mode-3 policy](MODE3_REMAINING_RESULTS.md) | [Findings below](#report-201) |
-| 202 | Results/notes | [Indirect-call instance layout discriminator](MODULE_LAYOUT_RESULTS.md) | [Findings below](#report-202) |
-| 203 | Results/notes | [MOV/MVN unused source-register elimination](MOV_UNUSED_RN_RESULTS.md) | [Findings below](#report-203) |
-| 204 | Results/notes | [Nokia N80 firmware assets](N80_ASSETS.md) | [Findings below](#report-204) |
-| 205 | Profiling/analysis | [Native Sky Force attribution to guest ARM and C++](NATIVE_ATTRIBUTION_RESULTS.md) | [Findings below](#report-205) |
-| 206 | Results/notes | [Original N-Gage client on the stock browser device](NGAGE_CLIENT_RESULTS.md) | No performance excerpt; see source report |
-| 207 | Profiling/analysis | [Fresh normal-policy control profiles](NORMAL_POLICY_PROFILE_V30.md) | [Findings below](#report-207) |
-| 208 | Results/notes | [Worker-owned browser graphics](OFFSCREEN_RESULTS.md) | [Findings below](#report-208) |
-| 209 | Results/notes | [Outlined short-budget recovery experiment](OUTLINED_BUDGET_RESULTS.md) | [Findings below](#report-209) |
-| 210 | Results/notes | [Owning-core reuse on the graduated runtime](OWNER_CURRENT_RESULTS.md) | [Findings below](#report-210) |
-| 211 | Results/notes | [Interactive browser pacing, 2026-10-01](PACING_RESULTS.md) | [Findings below](#report-211) |
-| 212 | Results/notes | [Publish reservation state with the existing monitor lock](PACKED_MONITOR_RESULTS.md) | [Findings below](#report-212) |
-| 213 | Results/notes | [Browser performance investigation — 2026-09-26](PERFORMANCE_RESULTS.md) | [Findings below](#report-213) |
-| 214 | Results/notes | [Persistent browser devices](PERSISTENT_DEVICE_RESULTS.md) | [Findings below](#report-214) |
-| 215 | Results/notes | [Incoming-pointer lifetime proofs](POINTER_LIFETIME_RESULTS.md) | [Findings below](#report-215) |
-| 216 | Results/notes | [Post-reboot performance revalidation](POST_REBOOT_RESULTS.md) | [Findings below](#report-216) |
-| 217 | Results/notes | [Preparing loaded code before guest execution](PRECOMPILATION_RESULTS.md) | [Findings below](#report-217) |
-| 218 | Results/notes | [Conditional integer leaf fusion](PREDICATED_LEAVES_RESULTS.md) | [Findings below](#report-218) |
-| 219 | Results/notes | [Hooked On preinstalled filesystem pilot](PREINSTALLED_IMAGE_RESULTS.md) | [Findings below](#report-219) |
-| 220 | Results/notes | [Preserve existing inner leaf fusion when selecting prefixes](PRESERVE_INNER_RESULTS.md) | [Findings below](#report-220) |
-| 221 | Results/notes | [Keypad Symbian: games six through ten](PRE_TOUCH_GAMES_6_TO_10.md) | [Findings below](#report-221) |
-| 222 | Results/notes | [Keypad Symbian: top-five installer recovery](PRE_TOUCH_GAME_INSTALLERS.md) | [Findings below](#report-222) |
-| 223 | Results/notes | [Five-game unpaced browser measurements](PRE_TOUCH_UNPACED_RESULTS.md) | [Findings below](#report-223) |
-| 224 | Profiling/analysis | [Profile-driven dispatch optimization: stopping at diminishing returns](PROFILE_OPTIMIZATION_PLATEAU_RESULTS.md) | [Findings below](#report-224) |
-| 225 | Profiling/analysis | [WASM performance profiling](PROFILING.md) | [Findings below](#report-225) |
-| 226 | Results/notes | [Invariant spans with watched-code protection](PROTECTED_PROOFS_RESULTS.md) | [Findings below](#report-226) |
-| 227 | Results/notes | [Reuse the published page view for exclusive reads](PUBLISHED_EXCLUSIVE_READ_RESULTS.md) | [Findings below](#report-227) |
-| 228 | Results/notes | [Qt throughput and headroom](QT_HEADROOM_RESULTS.md) | [Findings below](#report-228) |
-| 229 | Results/notes | [Qt versus WASM: paced FPS for the ten launcher games](QT_VS_WASM_PACED_FPS.md) | [Findings below](#report-229) |
-| 230 | Results/notes | [Qt versus WASM: unpaced FPS for the ten launcher games](QT_VS_WASM_UNPACED_FPS.md) | [Findings below](#report-230) |
-| 231 | Results/notes | [Compiled RAM code reclamation](RAM_CODE_RECLAMATION_RESULTS.md) | [Findings below](#report-231) |
-| 232 | Results/notes | [RAM first-use compilation and Thumb register exchange correctness](RAM_FIRST_USE_COMPILATION_RESULTS.md) | [Findings below](#report-232) |
-| 233 | Results/notes | [RAM first-use compilation serial timing screen](RAM_FIRST_USE_COMPILATION_TIMING_RESULTS.md) | [Findings below](#report-233) |
-| 234 | Results/notes | [Proved read-span experiment](READ_SPANS_RESULTS.md) | [Findings below](#report-234) |
-| 235 | Results/notes | [RAM compilation and bounded compiled execution](REALTIME_AOT_RESULTS.md) | [Findings below](#report-235) |
-| 236 | Results/notes | [Realtime Snakes gameplay in the browser](REALTIME_PLAYABILITY.md) | [Findings below](#report-236) |
-| 237 | Results/notes | [Recovered optimization graduation](RECOVERED_DEFAULTS_RESULTS.md) | [Findings below](#report-237) |
-| 238 | Profiling/analysis | [Post-merge compiled-region exit census](REGION_EXIT_CENSUS_RESULTS.md) | [Findings below](#report-238) |
-| 239 | Results/notes | [Fuse connected Thumb regions with shared register locals](REGION_FUSION_RESULTS.md) | [Findings below](#report-239) |
-| 240 | Design/plan | [Guarded value IR prototype](REGION_IR_DESIGN.md) | No performance excerpt; see source report |
-| 241 | Results/notes | [Guarded value IR: real kernel gain, no whole-game promotion](REGION_IR_RESULTS.md) | [Findings below](#report-241) |
-| 242 | Results/notes | [Independent region and runner limits](REGION_LIMITS_RESULTS.md) | [Findings below](#report-242) |
-| 243 | Results/notes | [Whole-region memory specialization](REGION_MEMORY_RESULTS.md) | [Findings below](#report-243) |
-| 244 | Results/notes | [Residual boundary sample audit](REGION_RESIDUAL_EDGES_RESULTS.md) | No performance excerpt; see source report |
-| 245 | Results/notes | [Direct register-result stores: rejected experiment](REGISTER_STORE_RESULTS.md) | [Findings below](#report-245) |
-| 246 | Results/notes | [Keep ROM cache hits inside the compiled runner](REGISTRY_CHAIN_INLINE_RESULTS.md) | [Findings below](#report-246) |
-| 247 | Results/notes | [Registry positive-hit inline layout](REGISTRY_INLINE_RESULTS.md) | [Findings below](#report-247) |
-| 248 | Results/notes | [Registry missing-entry cache](REGISTRY_MISS_CACHE_RESULTS.md) | [Findings below](#report-248) |
-| 249 | Results/notes | [Snakes custom-resolution experiment](RESOLUTION_RESULTS.md) | No performance excerpt; see source report |
-| 250 | Results/notes | [Verified audio replay — 2026-09-26](RESULTS.md) | No performance excerpt; see source report |
-| 251 | Results/notes | [Retired compiler experiments and instrumentation](RETIRED_EXPERIMENTS.md) | [Findings below](#report-251) |
-| 252 | Results/notes | [Second compiler experiment cleanup](RETIRED_EXPERIMENTS_ROUND2.md) | [Findings below](#report-252) |
-| 253 | Results/notes | [Cleanup after the completed controlled sweep](RETIRED_SWEEP_EXPERIMENTS.md) | [Findings below](#report-253) |
-| 254 | Results/notes | [Bounded immutable-ROM calls](ROM_BOUNDED_CALL_RESULTS.md) | No performance excerpt; see source report |
-| 255 | Results/notes | [Bounded ROM-call timing panel](ROM_BOUNDED_CALL_SCREEN_RESULTS.md) | [Findings below](#report-255) |
-| 256 | Results/notes | [Bounded Thumb ROM calls on the current runtime](ROM_CALLS_CURRENT_RESULTS.md) | [Findings below](#report-256) |
-| 257 | Results/notes | [Bounded first-use ROM compilation with slot reuse](ROM_FIRST_USE_RECYCLING_RESULTS.md) | [Findings below](#report-257) |
-| 258 | Results/notes | [bounded ROM first-use replacement serial timing screen](ROM_FIRST_USE_RECYCLING_TIMING_RESULTS.md) | [Findings below](#report-258) |
-| 259 | Results/notes | [Bounded immutable-ROM leaf fusion](ROM_LEAF_FUSION_RESULTS.md) | No performance excerpt; see source report |
-| 260 | Results/notes | [ROM policy screen](ROM_LEAF_FUSION_SCREEN_RESULTS.md) | [Findings below](#report-260) |
-| 261 | Results/notes | [Inline immutable ARM ROM veneers into Thumb callers](ROM_LEAF_HANDOFF_RESULTS.md) | [Findings below](#report-261) |
-| 262 | Results/notes | [Shared immutable-ROM module dispatcher](ROM_MODULE_DISPATCH_RESULTS.md) | No performance excerpt; see source report |
-| 263 | Results/notes | [Immutable-ROM module dispatcher serial timing panel](ROM_MODULE_DISPATCH_TIMING_RESULTS.md) | [Findings below](#report-263) |
-| 264 | Results/notes | [Fold ROM range checks](ROM_RANGE_RESULTS.md) | [Findings below](#report-264) |
-| 265 | Results/notes | [Fold the private sparse-registry range check](ROM_REGISTRY_RANGE_RESULTS.md) | [Findings below](#report-265) |
-| 266 | Results/notes | [Bounded shared Thumb state retention](ROM_STATE_COHORT_RESULTS.md) | [Findings below](#report-266) |
-| 267 | Results/notes | [Bounded state retention and total-change timing](ROM_STATE_COHORT_TOTAL_TIMING_RESULTS.md) | [Findings below](#report-267) |
-| 268 | Results/notes | [Fold immutable ROM syscall stubs into Thumb callers](ROM_SYSCALL_HANDOFF_RESULTS.md) | [Findings below](#report-268) |
-| 269 | Results/notes | [Guest-time route stepping for growth investigation](ROUTE_STEP_RESULTS.md) | [Findings below](#report-269) |
-| 270 | Results/notes | [Keep compiled-runner counters private](RUNNER_LOCALS_RESULTS.md) | [Findings below](#report-270) |
-| 271 | Results/notes | [Compiled runner specialization and rejected address experiments](RUNNER_SPECIALIZATION_RESULTS.md) | [Findings below](#report-271) |
-| 272 | Results/notes | [Runtime state traffic after state-transfer pruning](RUNTIME_STATE_RESULTS.md) | [Findings below](#report-272) |
-| 273 | Results/notes | [S60 3rd Edition browser catalogue](S60V3_CATALOGUE_RESULTS.md) | No performance excerpt; see source report |
-| 274 | Results/notes | [CPU time varies along with elapsed time](SCHEDULER_DIAGNOSTIC_RESULTS.md) | [Findings below](#report-274) |
-| 275 | Results/notes | [Stable process arena growth](SEGMENTED_ARENA_GROWTH_RESULTS.md) | [Findings below](#report-275) |
-| 276 | Results/notes | [Shared ARM exit writeback](SHARED_EXIT_RESULTS.md) | [Findings below](#report-276) |
-| 277 | Results/notes | [Cheaper lowering of existing memory proofs](SHARED_SPAN_LOWERING_RESULTS.md) | [Findings below](#report-277) |
-| 278 | Results/notes | [Fixed-size short code comparison experiment](SHORT_SIZES_RESULTS.md) | [Findings below](#report-278) |
-| 279 | Results/notes | [Fresh V8 dispatch census](SKY_CURRENT_DISPATCH_RESULTS.md) | [Findings below](#report-279) |
-| 280 | Results/notes | [Sky Force on the WASM launcher](SKY_FORCE_RESULTS.md) | [Findings below](#report-280) |
-| 281 | Results/notes | [Shared V8 interpreter fallback comparison](SKY_INTERPRETER_FALLBACK_RESULTS.md) | [Findings below](#report-281) |
-| 282 | Results/notes | [Shared ROM-region policy screen](SKY_ROM_POLICY_RESULTS.md) | [Findings below](#report-282) |
-| 283 | Results/notes | [Total shared improvement versus untouched live](SKY_TOTAL_CHANGE_RESULTS.md) | [Findings below](#report-283) |
-| 284 | Profiling/analysis | [Slow32 frequency in Snakes and Sky Force](SLOW32_CENSUS.md) | [Findings below](#report-284) |
-| 285 | Results/notes | [Preserved official Snakes releases](SNAKES_RELEASES.md) | No performance excerpt; see source report |
-| 286 | Results/notes | [Snake growth: coverage gap remains open](SNAKE_GROWTH_STATUS.md) | [Findings below](#report-286) |
-| 287 | Results/notes | [Generated exact-snapshot validator discriminator](SNAPSHOT_VALIDATORS_RESULTS.md) | No performance excerpt; see source report |
-| 288 | Results/notes | [S60 softkey mapping correction](SOFTKEYS_RESULTS.md) | No performance excerpt; see source report |
-| 289 | Results/notes | [Generic ARM span page reuse](SPAN_PAGE_REUSE_RESULTS.md) | [Findings below](#report-289) |
-| 290 | Design/plan | [Sparse ROM lookup: focused screen gates](SPARSE_ROM_LOOKUP_SCREEN_GATES.md) | No performance excerpt; see source report |
-| 291 | Results/notes | [Sparse ROM lookup: rejected speed screen](SPARSE_ROM_LOOKUP_TIMING_RESULTS.md) | [Findings below](#report-291) |
-| 292 | Results/notes | [Caller-specific stack returns](STACK_RETURN_RESULTS.md) | [Findings below](#report-292) |
-| 293 | Results/notes | [Hooked On startup bookkeeping](STARTUP_BOOKKEEPING_RESULTS.md) | [Findings below](#report-293) |
-| 294 | Results/notes | [Startup follow-up: compiler admission and mapping work](STARTUP_FOLLOWUP_RESULTS.md) | [Findings below](#report-294) |
-| 295 | Results/notes | [State transfer pruning and V8 cost validation](STATE_LIVENESS_RESULTS.md) | [Findings below](#report-295) |
-| 296 | Results/notes | [Static bindings for built-in syscalls](STATIC_SVC_BINDINGS_RESULTS.md) | [Findings below](#report-296) |
-| 297 | Results/notes | [Snakes stock-resolution survey](STOCK_RESOLUTION_RESULTS.md) | No performance excerpt; see source report |
-| 298 | Results/notes | [Selecting exact comparators at snapshot construction](STORED_COMPARATOR_RESULTS.md) | [Findings below](#report-298) |
-| 299 | Results/notes | [Complete proved syscall returns without region handoffs](SVC_RETURN_CONTINUATION_RESULTS.md) | [Findings below](#report-299) |
-| 300 | Results/notes | [Completed sweep and combined graduation measurement](SWEEP_COMBINED_RESULTS.md) | [Findings below](#report-300) |
-| 301 | Results/notes | [SWI file-hash bypass and deployed startup profile](SWI_FILE_HASH_BYPASS_RESULTS.md) | [Findings below](#report-301) |
-| 302 | Results/notes | [Tail prefixes on the graduated branch-veneer runtime](TAIL_CURRENT_RESULTS.md) | [Findings below](#report-302) |
-| 303 | Results/notes | [Register-only tail-prefix experiment](TAIL_PREFIX_RESULTS.md) | [Findings below](#report-303) |
-| 304 | Results/notes | [Thumb arithmetic budget groups](THUMB_BUDGET_GROUP_RESULTS.md) | [Findings below](#report-304) |
-| 305 | Results/notes | [Bounded Thumb long-call fusion](THUMB_CALL_RESULTS.md) | [Findings below](#report-305) |
-| 306 | Results/notes | [Completing short Thumb calls inside their caller](THUMB_COMPLETE_CALL_RESULTS.md) | [Findings below](#report-306) |
-| 307 | Results/notes | [Compact connected Thumb regions](THUMB_CONNECTED_REGION_RESULTS.md) | [Findings below](#report-307) |
-| 308 | Results/notes | [One budget proof for an inlined Thumb helper](THUMB_LEAF_BUDGET_RESULTS.md) | [Findings below](#report-308) |
-| 309 | Results/notes | [Remove unused WASM loops from bounded Thumb regions](THUMB_LINEAR_REGION_RESULTS.md) | [Findings below](#report-309) |
-| 310 | Results/notes | [Adopt guarded Thumb memory after profiling normal play](THUMB_MEMORY_DEFAULT_RESULTS.md) | [Findings below](#report-310) |
-| 311 | Design/plan | [Direct memory accesses in compiled Thumb code](THUMB_MEMORY_DESIGN.md) | [Findings below](#report-311) |
-| 312 | Results/notes | [Thumb memory timing: first verified stage](THUMB_MEMORY_TIMING.md) | [Findings below](#report-312) |
-| 313 | Results/notes | [Thumb cache writeback at earlier exits](THUMB_PREFIX_RESULTS.md) | [Findings below](#report-313) |
-| 314 | Results/notes | [One budget proof for each bounded Thumb path](THUMB_REGION_BUDGET_RESULTS.md) | [Findings below](#report-314) |
-| 315 | Results/notes | [Fuse known Thumb return continuations](THUMB_RETURN_FUSION_RESULTS.md) | [Findings below](#report-315) |
-| 316 | Results/notes | [Inline short immutable Thumb helpers](THUMB_ROM_LEAF_RESULTS.md) | [Findings below](#report-316) |
-| 317 | Results/notes | [One-page Thumb register-transfer proofs](THUMB_SPAN_RESULTS.md) | [Findings below](#report-317) |
-| 318 | Results/notes | [Thumb compiler startup results](THUMB_STARTUP_RESULTS.md) | [Findings below](#report-318) |
-| 319 | Results/notes | [Thumb runtime state cache](THUMB_STATE_RESULTS.md) | [Findings below](#report-319) |
-| 320 | Results/notes | [Thumb continuations with static instruction counts](THUMB_STATIC_REGION_RESULTS.md) | [Findings below](#report-320) |
-| 321 | Results/notes | [Direct RAM Thumb store continuation](THUMB_STORE_RESULTS.md) | [Findings below](#report-321) |
-| 322 | Results/notes | [Select Thumb continuations by state transfers](THUMB_TRANSFER_GATE_RESULTS.md) | [Findings below](#report-322) |
-| 323 | Design/plan | [Fold higher virtual-page bits into the DynCom data TLB index](TLB_HASH_DESIGN.md) | No performance excerpt; see source report |
-| 324 | Results/notes | [Folded data-TLB indexing: historical results](TLB_HASH_RESULTS.md) | [Findings below](#report-324) |
-| 325 | Results/notes | [Scalar alignment guard experiment](UNALIGNED_SCALAR_RESULTS.md) | [Findings below](#report-325) |
-| 326 | Results/notes | [Ungated counters capture a slower execution rate](UNGATED_COUNTER_RESULTS.md) | [Findings below](#report-326) |
-| 327 | Profiling/analysis | [Unsafe code-mutation cost attribution](UNSAFE_CODE_ATTRIBUTION_RESULTS.md) | [Findings below](#report-327) |
-| 328 | Results/notes | [Unsafe executable-byte assumption experiment](UNSAFE_CODE_RESULTS.md) | [Findings below](#report-328) |
-| 329 | Results/notes | [WASM executable-byte default, 2026-10-01](UNSAFE_DEFAULT_RESULTS.md) | No performance excerpt; see source report |
-| 330 | Results/notes | [Upstream master integration, 2026-09-30](UPSTREAM_20260930_RESULTS.md) | [Findings below](#report-330) |
-| 331 | Results/notes | [Upstream merge and new deterministic baseline](UPSTREAM_MERGE_RESULTS.md) | [Findings below](#report-331) |
-| 332 | Results/notes | [User::After tick deadlines](USER_AFTER_RESULTS.md) | [Findings below](#report-332) |
-| 333 | Results/notes | [Direct-call switches with production code validation](VALIDATED_LAYOUT_RESULTS.md) | [Findings below](#report-333) |
-| 334 | Results/notes | [Safe validity generations and native/browser cost comparison](VALIDITY_AND_COST_RESULTS.md) | [Findings below](#report-334) |
-| 335 | Results/notes | [WasmFS: remove filesystem handoffs to the browser main thread](WASMFS_RESULTS.md) | [Findings below](#report-335) |
-| 336 | Results/notes | [Shared WASM cost accounting and Snakes diagnosis](WASM_COST_ACCOUNTING_RESULTS.md) | [Findings below](#report-336) |
-| 337 | Results/notes | [Count-free watchdog execution](WATCHDOG_RESULTS.md) | [Findings below](#report-337) |
-| 338 | Results/notes | [Adjacent long multiply result reuse: rejected](WIDE_REUSE_RESULTS.md) | [Findings below](#report-338) |
-| 339 | Profiling/analysis | [CPU sampling after eliminating measured interpreter fallback](ZERO_FALLBACK_CPU_PROFILE_RESULTS.md) | No performance excerpt; see source report |
-| 340 | Results/notes | [Recurrent literal-load fallback: data-TLB collision observed](ZERO_LITERAL_RESULTS.md) | No performance excerpt; see source report |
-| 341 | Results/notes | [Historical counted fault matrices](archive/counted-kernels/README.md) | No performance excerpt; see source report |
-| 342 | Results/notes | [Asphalt frame-timeline evidence](asphalt-timeline/README.md) | [Findings below](#report-342) |
-| 343 | Results/notes | [Browser CPU comparison (in progress)](browser_cores/README.md) | No performance excerpt; see source report |
-| 344 | Results/notes | [Runtime service overlap census](service_overlap/README.md) | [Findings below](#report-344) |
-| 345 | Results/notes | [Snakes service overlap, 2026-10-01](service_overlap/RESULTS.md) | [Findings below](#report-345) |
+| 17 | Profiling/analysis | [Current Asphalt 3 browser memory profile](ASPHALT3_CURRENT_MEMORY_PROFILE.md) | No performance excerpt; see source report |
+| 18 | Results/notes | [First significant Asphalt 3 startup memory burst](ASPHALT3_FIRST_MEMORY_BURST.md) | [Findings below](#report-18) |
+| 19 | Results/notes | [Asphalt 3 launch validation failures](ASPHALT3_LAUNCH_INTEGRITY.md) | [Findings below](#report-19) |
+| 20 | Profiling/analysis | [Asphalt 3 launch allocation attribution (2026-10-18)](ASPHALT3_LAUNCH_MEMORY_ATTRIBUTION.md) | No performance excerpt; see source report |
+| 21 | Results/notes | [Next Asphalt 3 startup memory burst](ASPHALT3_NEXT_MEMORY_BURST.md) | No performance excerpt; see source report |
+| 22 | Profiling/analysis | [Asphalt 3 persistent-device memory profile (2026-10-16)](ASPHALT3_PERSISTENT_MEMORY_PROFILE.md) | [Findings below](#report-22) |
+| 23 | Profiling/analysis | [Asphalt 3 memory attribution after the upstream merge (2026-10-16)](ASPHALT3_POST_MERGE_MEMORY_PROFILE.md) | [Findings below](#report-23) |
+| 24 | Profiling/analysis | [Asphalt 3 memory after installer staging](ASPHALT3_POST_STAGING_MEMORY_PROFILE.md) | No performance excerpt; see source report |
+| 25 | Profiling/analysis | [Asphalt 3 memory after sparse chunk backing](ASPHALT3_SPARSE_MEMORY_PROFILE.md) | [Findings below](#report-25) |
+| 26 | Results/notes | [Asphalt framebuffer loop: remove repeated region dispatch](ASPHALT_FINITE_LOOP_RESULTS.md) | [Findings below](#report-26) |
+| 27 | Results/notes | [Asphalt 2: frame, timer and native-code attribution](ASPHALT_FRAME_TIMELINE.md) | [Findings below](#report-27) |
+| 28 | Results/notes | [Asphalt 2: reducing region and display overhead](ASPHALT_OVERHEAD_RESULTS.md) | [Findings below](#report-28) |
+| 29 | Profiling/analysis | [Asphalt 2: matched paced Qt/WASM benchmark and profile](ASPHALT_PACED_PROFILE.md) | [Findings below](#report-29) |
+| 30 | Results/notes | [Asphalt 2: keep callback-free Thumb backedges compiled](ASPHALT_POLLED_LOOP_RESULTS.md) | [Findings below](#report-30) |
+| 31 | Results/notes | [Asphalt 2: fusing RAM Thumb helpers and branches](ASPHALT_RAM_FUSION_RESULTS.md) | [Findings below](#report-31) |
+| 32 | Results/notes | [Persistent caching for the LAN launcher](ASSET_CACHE_RESULTS.md) | [Findings below](#report-32) |
+| 33 | Results/notes | [Browser audio and Qt parity](AUDIO_PARITY_RESULTS.md) | No performance excerpt; see source report |
+| 34 | Results/notes | [Vectorize exact-order Speex interpolation in browser audio](AUDIO_SIMD_RESULTS.md) | [Findings below](#report-34) |
+| 35 | Results/notes | [Generic instruction-count batching](BATCHED_INSTRUCTION_COUNTS.md) | [Findings below](#report-35) |
+| 36 | Results/notes | [Performance opportunities outside the archived experiment sweep](BLIND_SPOT_RESEARCH.md) | [Findings below](#report-36) |
+| 37 | Results/notes | [ARM block transfers and sustained live gameplay](BLOCK_TRANSFER_RESULTS.md) | [Findings below](#report-37) |
+| 38 | Results/notes | [Ordinary block-transfer callback writeback ordering](BLOCK_WRITEBACK_CALLBACK_RESULTS.md) | [Findings below](#report-38) |
+| 39 | Results/notes | [Follow-up boundary diagnostics](BOUNDARY_DETAILS_RESULTS.md) | [Findings below](#report-39) |
+| 40 | Results/notes | [Compiled-region boundaries and limits: measured findings](BOUNDARY_STUDY_RESULTS.md) | [Findings below](#report-40) |
+| 41 | Results/notes | [Branch veneers on the graduated forward-leaf runtime](BRANCH_CURRENT_RESULTS.md) | [Findings below](#report-41) |
+| 42 | Results/notes | [Single-branch callee fusion](BRANCH_VENEER_RESULTS.md) | [Findings below](#report-42) |
+| 43 | Results/notes | [Shared syscall bridge allocation experiment](BRIDGE_ALLOCATION_RESULTS.md) | [Findings below](#report-43) |
+| 44 | Results/notes | [Expanded browser CPU kernels, 2026-09-30](BROWSER_CORES_EXPANDED_RESULTS.md) | [Findings below](#report-44) |
+| 45 | Results/notes | [Flycast SH4 browser CPU adapter, 2026-09-30](BROWSER_CORES_FLYCAST_RESULTS.md) | [Findings below](#report-45) |
+| 46 | Results/notes | [Full EKA CPU browser control, 2026-09-30](BROWSER_CORES_FULL_EKA_RESULTS.md) | [Findings below](#report-46) |
+| 47 | Results/notes | [Initial browser CPU kernels, 2026-09-30](BROWSER_CORES_INITIAL_RESULTS.md) | [Findings below](#report-47) |
+| 48 | Results/notes | [v86 equivalent-algorithm comparison, 2026-09-30](BROWSER_CORES_V86_RESULTS.md) | No performance excerpt; see source report |
+| 49 | Profiling/analysis | [Whole-browser memory attribution: Asphalt 3](BROWSER_MEMORY_ATTRIBUTION_RESULTS.md) | [Findings below](#report-49) |
+| 50 | Design/plan | [Original-emitter budget chunks](BUDGET_CHUNKS_DESIGN.md) | [Findings below](#report-50) |
+| 51 | Results/notes | [Budget chunks: matching-compiler gain, mixed served comparison](BUDGET_CHUNKS_RESULTS.md) | [Findings below](#report-51) |
+| 52 | Results/notes | [Bulk-loop eligibility and compilation scheduling](BULK_AND_COMPILATION_RESULTS.md) | [Findings below](#report-52) |
+| 53 | Results/notes | [Adopt cache-policy specialization after gameplay profiling](CACHE_POLICY_DEFAULT_RESULTS.md) | [Findings below](#report-53) |
+| 54 | Results/notes | [Publish compiled flags before memory exception callbacks](CALLBACK_CPSR_RESULTS.md) | No performance excerpt; see source report |
+| 55 | Results/notes | [Callee-prefix fusion](CALL_PREFIX_RESULTS.md) | [Findings below](#report-55) |
+| 56 | Profiling/analysis | [Chrome gameplay profile: Snakes and Sky Force](CHROME_GAMEPLAY_ANALYSIS.md) | [Findings below](#report-56) |
+| 57 | Profiling/analysis | [Chrome memory profiling with WASM source maps](CHROME_MEMORY_PROFILER_RESULTS.md) | [Findings below](#report-57) |
+| 58 | Profiling/analysis | [Chrome profiling](CHROME_PROFILING.md) | [Findings below](#report-58) |
+| 59 | Profiling/analysis | [Chrome profiling switch validation](CHROME_PROFILING_RESULTS.md) | [Findings below](#report-59) |
+| 60 | Results/notes | [Back guest chunks by their requested maximum](CHUNK_BACKING_RESULTS.md) | No performance excerpt; see source report |
+| 61 | Profiling/analysis | [Recent code-cache misses are a small fraction of lookups](CODE_CACHE_CENSUS_RESULTS.md) | No performance excerpt; see source report |
+| 62 | Results/notes | [Mutation-driven compiled-code validation](CODE_LIFECYCLE.md) | No performance excerpt; see source report |
+| 63 | Results/notes | [Mutation-driven code validity: implementation and measurements](CODE_LIFECYCLE_RESULTS.md) | [Findings below](#report-63) |
+| 64 | Results/notes | [Four-vector exact code comparison: delivered](CODE_QUAD_RESULTS.md) | [Findings below](#report-64) |
+| 65 | Profiling/analysis | [Exact validation span census after folded-TLB delivery](CODE_SPAN_CENSUS_RESULTS.md) | [Findings below](#report-65) |
+| 66 | Results/notes | [Exact code validation with an overlapping vector tail: not promoted](CODE_TAIL_RESULTS.md) | [Findings below](#report-66) |
+| 67 | Results/notes | [Backing-page validity tracking](CODE_VALIDITY.md) | [Findings below](#report-67) |
+| 68 | Design/plan | [Watched-code write protection experiment](CODE_WRITE_PROTECTION_DESIGN.md) | [Findings below](#report-68) |
+| 69 | Results/notes | [Watched-code write protection](CODE_WRITE_PROTECTION_RESULTS.md) | [Findings below](#report-69) |
+| 70 | Results/notes | [Removing earlier emitter peepholes: rejected](COMBINATION_RESULTS.md) | [Findings below](#report-70) |
+| 71 | Results/notes | [Combined write-span and budget proofs: exact archive delivered](COMBINED_DELIVERY_RESULTS.md) | [Findings below](#report-71) |
+| 72 | Design/plan | [Combined write-span and budget proofs](COMBINED_PROOFS_DESIGN.md) | No performance excerpt; see source report |
+| 73 | Results/notes | [Combined write-span and budget proofs: gain does not repeat](COMBINED_PROOFS_RESULTS.md) | [Findings below](#report-73) |
+| 74 | Results/notes | [CMP operand reuse](COMPARE_CONDITION_RESULTS.md) | [Findings below](#report-74) |
+| 75 | Results/notes | [Compile deferred memory misses](COMPILED_MEMORY_MISSES_RESULTS.md) | No performance excerpt; see source report |
+| 76 | Results/notes | [Compiled memory misses serial timing screen](COMPILED_MEMORY_MISSES_TIMING_RESULTS.md) | [Findings below](#report-76) |
+| 77 | Profiling/analysis | [Browser memory after compiled-only graduation](COMPILED_ONLY_MEMORY_PROFILE.md) | No performance excerpt; see source report |
+| 78 | Results/notes | [Compiled-only browser CPU](COMPILED_ONLY_RESULTS.md) | [Findings below](#report-78) |
+| 79 | Results/notes | [Shared ARM/Thumb syscall compilation stage](COMPILED_SVC_RESULTS.md) | [Findings below](#report-79) |
+| 80 | Results/notes | [Compiled syscall serial timing panel](COMPILED_SVC_TIMING_RESULTS.md) | [Findings below](#report-80) |
+| 81 | Results/notes | [ARM-to-WASM compiler bookkeeping results](COMPILER_BOOKKEEPING_RESULTS.md) | [Findings below](#report-81) |
+| 82 | Results/notes | [Comparing four routes toward Qt JIT throughput](COMPILER_OPTIONS_RESULTS.md) | [Findings below](#report-82) |
+| 83 | Results/notes | [Conditional ALU selection: rejected](CONDITIONAL_ALU_RESULTS.md) | [Findings below](#report-83) |
+| 84 | Results/notes | [Conditional MOV selection: no confirmed speedup](CONDITIONAL_MOV_RESULTS.md) | [Findings below](#report-84) |
+| 85 | Results/notes | [Conditional-leaf runner limit revisit](CONDITIONAL_RUNNER_LIMITS_RESULTS.md) | [Findings below](#report-85) |
+| 86 | Results/notes | [Conditional-leaf site limit revisit](CONDITIONAL_SITE_LIMITS_RESULTS.md) | [Findings below](#report-86) |
+| 87 | Results/notes | [Confine browser reservation state to its CPU worker](CONFINED_MONITOR_RESULTS.md) | [Findings below](#report-87) |
+| 88 | Results/notes | [Connected callees on the graduated runtime](CONNECTED_CURRENT_RESULTS.md) | [Findings below](#report-88) |
+| 89 | Results/notes | [Frequency-controlled browser comparisons](CONTROLLED_BENCHMARKS.md) | [Findings below](#report-89) |
+| 90 | Reassessment | [Reassessment of optimization timing decisions](CONTROLLED_REASSESSMENT.md) | [Findings below](#report-90) |
+| 91 | Results/notes | [Browser execution without instruction accounting](COUNT_FREE_DEFAULT_RESULTS.md) | [Findings below](#report-91) |
+| 92 | Results/notes | [Compiled CPU overhead reductions](CPU_COST_RESULTS.md) | [Findings below](#report-92) |
+| 93 | Results/notes | [Actual dispatcher costs and native/WASM fault comparison](CPU_DISPATCH_AND_FAULT_RESULTS.md) | [Findings below](#report-93) |
+| 94 | Results/notes | [Zooming into the native / WASM CPU gap](CPU_SLOWDOWN_RESULTS.md) | [Findings below](#report-94) |
+| 95 | Results/notes | [Browser benchmark CPU time](CPU_TIME_RESULTS.md) | [Findings below](#report-95) |
+| 96 | Profiling/analysis | [Current original emitter and mixed IR: diagnostic profiles](CURRENT_IR_PROFILE_RESULTS.md) | [Findings below](#report-96) |
+| 97 | Results/notes | [Corrected default: direct confirmation does not support delivery](DEFAULT_CONFIRMATION_RESULTS.md) | [Findings below](#report-97) |
+| 98 | Results/notes | [Deferred comparison flags across successful reads](DEFERRED_COMPARE_MEMORY_RESULTS.md) | [Findings below](#report-98) |
+| 99 | Design/plan | [Deferred instruction counts inside proved chunks](DEFERRED_COUNTS_DESIGN.md) | [Findings below](#report-99) |
+| 100 | Results/notes | [Deferred counts: marginal benefit not established](DEFERRED_COUNTS_RESULTS.md) | [Findings below](#report-100) |
+| 101 | Profiling/analysis | [Code dependency overlap census](DEPENDENCY_CENSUS_RESULTS.md) | [Findings below](#report-101) |
+| 102 | Results/notes | [Direct memory: consume scalar lookup results immediately](DIRECT_ACCESS_LOWERING_RESULTS.md) | [Findings below](#report-102) |
+| 103 | Adoption/decision | [Finer direct-arena growth after installer staging](DIRECT_ARENA_FINE_GROWTH_ADOPTION.md) | [Findings below](#report-103) |
+| 104 | Results/notes | [Direct arena residency in Asphalt 3](DIRECT_ARENA_RESIDENCY.md) | [Findings below](#report-104) |
+| 105 | Results/notes | [Direct region tail chaining experiment](DIRECT_CHAIN_RESULTS.md) | [Findings below](#report-105) |
+| 106 | Results/notes | [Direct structured guest loops](DIRECT_LOOP_RESULTS.md) | [Findings below](#report-106) |
+| 107 | Profiling/analysis | [Direct-memory regression attribution](DIRECT_MEMORY_ATTRIBUTION.md) | [Findings below](#report-107) |
+| 108 | Results/notes | [Compact direct-memory lowering and mapping notifications](DIRECT_MEMORY_CUTS_RESULTS.md) | [Findings below](#report-108) |
+| 109 | Results/notes | [Direct shared-backing memory experiment](DIRECT_MEMORY_RESULTS.md) | [Findings below](#report-109) |
+| 110 | Results/notes | [Direct ROM installation](DIRECT_ROM_INSTALL_RESULTS.md) | [Findings below](#report-110) |
+| 111 | Results/notes | [Direct-memory entry-span extension](DIRECT_SPAN_RESULTS.md) | [Findings below](#report-111) |
+| 112 | Results/notes | [Three-access direct-memory span proofs](DIRECT_SPAN_THREE_RESULTS.md) | [Findings below](#report-112) |
+| 113 | Results/notes | [Compact dispatch and division lowering](DISPATCH_AND_DIVISION_RESULTS.md) | [Findings below](#report-113) |
+| 114 | Results/notes | [Raw WASM imports and recent compiled-block lookup](DISPATCH_RESULTS.md) | [Findings below](#report-114) |
+| 115 | Profiling/analysis | [Integer division call census](DIVISION_CENSUS_RESULTS.md) | No performance excerpt; see source report |
+| 116 | Results/notes | [Complete division helper summary](DIVISION_HELPER_RESULTS.md) | [Findings below](#report-116) |
+| 117 | Design/plan | [Dynamic Thumb ROM groups: focused screen gates](DYNAMIC_ROM_COHORT_SCREEN_GATES.md) | [Findings below](#report-117) |
+| 118 | Results/notes | [Dynamic Thumb ROM grouping: rejected screen](DYNAMIC_ROM_COHORT_TIMING_RESULTS.md) | [Findings below](#report-118) |
+| 119 | Design/plan | [Apply the existing region compiler to eager ROM exports](EAGER_REGIONS_DESIGN.md) | No performance excerpt; see source report |
+| 120 | Results/notes | [Eager ROM regions: no promotion](EAGER_REGIONS_RESULTS.md) | [Findings below](#report-120) |
+| 121 | Results/notes | [Skip an already-empty exclusive monitor](EMPTY_MONITOR_CLEAR_RESULTS.md) | [Findings below](#report-121) |
+| 122 | Results/notes | [Loop-free entry-budget experiment](ENTRY_BUDGET_RESULTS.md) | [Findings below](#report-122) |
+| 123 | Results/notes | [Entry-proof fallback census after expanded leaf eligibility](ENTRY_PROOF_RESULTS.md) | [Findings below](#report-123) |
+| 124 | Results/notes | [Redundant region exit guards](EXIT_GUARD_RESULTS.md) | [Findings below](#report-124) |
+| 125 | Results/notes | [Forward-only leaf expansion on the current runtime](EXPANDED_CURRENT_RESULTS.md) | [Findings below](#report-125) |
+| 126 | Results/notes | [Expanded original-emitter leaf prototype](EXPANDED_LEAVES_RESULTS.md) | [Findings below](#report-126) |
+| 127 | Results/notes | [Correction: standalone WASM fault-probe policy selection](FAULT_POLICY_AUDIT_RESULTS.md) | No performance excerpt; see source report |
+| 128 | Results/notes | [Fault-probe rebuild correction, 2026-09-29](FAULT_PROBE_REBUILD_AUDIT.md) | No performance excerpt; see source report |
+| 129 | Results/notes | [FBS backing and process arena memory](FBS_ARENA_MEMORY_RESULTS.md) | [Findings below](#report-129) |
+| 130 | Results/notes | [First-use compilation coverage screen (rejected)](FIRST_USE_COMPILATION_SCREEN_RESULTS.md) | [Findings below](#report-130) |
+| 131 | Results/notes | [Flag and incoming-register data-flow experiments](FLAG_DATAFLOW_RESULTS.md) | [Findings below](#report-131) |
+| 132 | Results/notes | [Direct flag-stack stores](FLAG_STACK_RESULTS.md) | [Findings below](#report-132) |
+| 133 | Profiling/analysis | [Remaining costs after folded data-TLB delivery](FOLDED_PROFILE_RESULTS.md) | No performance excerpt; see source report |
+| 134 | Results/notes | [Fusing indirect ARM calls and their returns](FUSED_INDIRECT_CALL_RESULTS.md) | [Findings below](#report-134) |
+| 135 | Results/notes | [Fusion after fixing User::After timing](FUSION_AFTER_TIMER_RESULTS.md) | [Findings below](#report-135) |
+| 136 | Profiling/analysis | [Whole-game call fusion census](FUSION_CENSUS_RESULTS.md) | [Findings below](#report-136) |
+| 137 | Results/notes | [Reclaim generated code without restarting the CPU worker](GRACEFUL_CODE_RECLAMATION.md) | [Findings below](#report-137) |
+| 138 | Results/notes | [Graduation and reassessment of marginal experiments](GRADUATION_RESULTS.md) | [Findings below](#report-138) |
+| 139 | Results/notes | [Browser log and GL diagnostic overhead](GRAPHICS_DIAGNOSTICS_RESULTS.md) | [Findings below](#report-139) |
+| 140 | Results/notes | [Natural snake growth increases the measured workload](GROWTH_LENGTH_RESULTS.md) | [Findings below](#report-140) |
+| 141 | Profiling/analysis | [Diagnostic profiles of the natural length routes](GROWTH_PROFILE_RESULTS.md) | [Findings below](#report-141) |
+| 142 | Design/plan | [Pending independent guard-interval publication experiment](GUARD_PUBLICATION_PLAN.md) | No performance excerpt; see source report |
+| 143 | Results/notes | [Guard-interval publication experiment](GUARD_PUBLICATION_RESULTS.md) | No performance excerpt; see source report |
+| 144 | Profiling/analysis | [Guest-level interpreter profile: Snakes](GUEST_PROFILE_RESULTS.md) | [Findings below](#report-144) |
+| 145 | Profiling/analysis | [Guest interpreter attribution](GUEST_PROFILING.md) | No performance excerpt; see source report |
+| 146 | Profiling/analysis | [Native instruction samples of compiled-region handoffs](HANDOFF_NATIVE_PROFILE_RESULTS.md) | [Findings below](#report-146) |
+| 147 | Results/notes | [Hardware counter diagnostic: slow mode not reproduced](HARDWARE_COUNTER_RESULTS.md) | [Findings below](#report-147) |
+| 148 | Results/notes | [Headroom optimization trials](HEADROOM_RESULTS.md) | [Findings below](#report-148) |
+| 149 | Results/notes | [Hooked On: allow loaded games past the hot-compilation quota](HOOKED_AOT_CAPACITY_RESULTS.md) | [Findings below](#report-149) |
+| 150 | Profiling/analysis | [Hooked On: paced WASM deficit and idle-wakeup experiment](HOOKED_PACED_PROFILE.md) | [Findings below](#report-150) |
+| 151 | Profiling/analysis | [Hooked On startup profile after WasmFS adoption](HOOKED_POST_WASMFS_PROFILE.md) | [Findings below](#report-151) |
+| 152 | Profiling/analysis | [Hooked On startup profile after the startup follow-up](HOOKED_STARTUP_PROFILE.md) | [Findings below](#report-152) |
+| 153 | Results/notes | [V29 short decision screen](HOTPATH_SHORT_SCREEN_RESULTS.md) | [Findings below](#report-153) |
+| 154 | Results/notes | [Frozen hot-path specialization: V29 acceptance](HOTPATH_SPECIALIZATION_RESULTS.md) | [Findings below](#report-154) |
+| 155 | Results/notes | [Individual hot-path timings: V29](HOTPATH_SPECIALIZATION_TIMING_RESULTS.md) | [Findings below](#report-155) |
+| 156 | Results/notes | [Profile-driven hotspot round](HOTSPOT_ROUND_RESULTS.md) | [Findings below](#report-156) |
+| 157 | Results/notes | [Deadline-aware paced WASM idle waits](IDLE_DEADLINE_RESULTS.md) | [Findings below](#report-157) |
+| 158 | Results/notes | [Whole-game impact of constant-time target selection](INDIRECT_TARGET_TABLE_GAME_RESULTS.md) | [Findings below](#report-158) |
+| 159 | Results/notes | [Constant-time indirect-call target selection](INDIRECT_TARGET_TABLE_RESULTS.md) | [Findings below](#report-159) |
+| 160 | Results/notes | [Temporary installer staging and WASM residency](INSTALLER_STAGING_RESULTS.md) | [Findings below](#report-160) |
+| 161 | Results/notes | [Interpreter flags before slow memory callbacks](INTERPRETER_CALLBACK_CPSR_RESULTS.md) | [Findings below](#report-161) |
+| 162 | Results/notes | [Interpreter fallback hunt](INTERPRETER_HUNT_RESULTS.md) | [Findings below](#report-162) |
+| 163 | Design/plan | [Mixed IR with invariant read proofs](INVARIANT_IR_DESIGN.md) | [Findings below](#report-163) |
+| 164 | Results/notes | [Mixed IR consuming invariant read proofs](INVARIANT_IR_RESULTS.md) | [Findings below](#report-164) |
+| 165 | Design/plan | [Prove read spans through unchanged registers across regions](INVARIANT_READS_DESIGN.md) | No performance excerpt; see source report |
+| 166 | Results/notes | [Invariant read spans: modest measured gain, delivered on LAN](INVARIANT_READS_RESULTS.md) | [Findings below](#report-166) |
+| 167 | Design/plan | [Invariant write-span experiment](INVARIANT_WRITES_DESIGN.md) | [Findings below](#report-167) |
+| 168 | Results/notes | [Invariant write spans: retained opt-in, no deployment gain established](INVARIANT_WRITES_RESULTS.md) | [Findings below](#report-168) |
+| 169 | Design/plan | [Narrow and scaled memory in mixed IR](IR_ADDRESSING_DESIGN.md) | No performance excerpt; see source report |
+| 170 | Results/notes | [Broader IR memory addressing: no promotion](IR_ADDRESSING_RESULTS.md) | [Findings below](#report-170) |
+| 171 | Adoption/decision | [Current custom IR versus reusing Dynarmic](IR_BACKEND_DECISION.md) | No performance excerpt; see source report |
+| 172 | Results/notes | [Budget proofs in gaps between IR segments](IR_BUDGET_GAPS_RESULTS.md) | No performance excerpt; see source report |
+| 173 | Design/plan | [IR values across validated inline leaves](IR_CALLS_DESIGN.md) | No performance excerpt; see source report |
+| 174 | Results/notes | [Mixed IR through validated inline calls](IR_CALLS_RESULTS.md) | [Findings below](#report-174) |
+| 175 | Design/plan | [Conditional pure values in mixed IR](IR_CONDITIONS_DESIGN.md) | [Findings below](#report-175) |
+| 176 | Results/notes | [Conditional integer IR: no promotion](IR_CONDITIONS_RESULTS.md) | [Findings below](#report-176) |
+| 177 | Design/plan | [Flag values in mixed IR](IR_FLAGS_DESIGN.md) | [Findings below](#report-177) |
+| 178 | Results/notes | [Flag-aware mixed IR](IR_FLAGS_RESULTS.md) | [Findings below](#report-178) |
+| 179 | Design/plan | [Bounded longer mixed-IR segments](IR_LONG_SEGMENTS_DESIGN.md) | No performance excerpt; see source report |
+| 180 | Results/notes | [Longer mixed-IR segments: not promoted](IR_LONG_SEGMENTS_RESULTS.md) | [Findings below](#report-180) |
+| 181 | Results/notes | [Page reuse in mixed IR: correct, no promotion](IR_MEMORY_CACHE_RESULTS.md) | [Findings below](#report-181) |
+| 182 | Design/plan | [Precise intermediate exits in IR segments](IR_MEMORY_DESIGN.md) | No performance excerpt; see source report |
+| 183 | Results/notes | [Intermediate memory exits in IR: not promoted](IR_MEMORY_RESULTS.md) | [Findings below](#report-183) |
+| 184 | Design/plan | [Private precise fallbacks for IR segments](IR_OUTLINE_DESIGN.md) | [Findings below](#report-184) |
+| 185 | Results/notes | [Private IR fallbacks: smaller hot functions, no promotion](IR_OUTLINE_RESULTS.md) | [Findings below](#report-185) |
+| 186 | Design/plan | [Fault-only IR reconstruction](IR_RECIPES_DESIGN.md) | [Findings below](#report-186) |
+| 187 | Results/notes | [Fault-only reconstruction: no promotion](IR_RECIPES_RESULTS.md) | [Findings below](#report-187) |
+| 188 | Design/plan | [Same application binary compiler-mode control](IR_SAME_BINARY_DESIGN.md) | No performance excerpt; see source report |
+| 189 | Results/notes | [Matched application binary: no IR promotion](IR_SAME_BINARY_RESULTS.md) | [Findings below](#report-189) |
+| 190 | Design/plan | [Integer IR segments inside existing regions](IR_SEGMENTS_DESIGN.md) | No performance excerpt; see source report |
+| 191 | Results/notes | [Integer IR segments: correct, not promoted](IR_SEGMENTS_RESULTS.md) | [Findings below](#report-191) |
+| 192 | Design/plan | [Adjacent single-use pure IR values](IR_STACK_VALUES_DESIGN.md) | [Findings below](#report-192) |
+| 193 | Results/notes | [Adjacent pure stack values: not promoted](IR_STACK_VALUES_RESULTS.md) | [Findings below](#report-193) |
+| 194 | Design/plan | [Wide values across guarded IR memory](IR_WIDE_DESIGN.md) | No performance excerpt; see source report |
+| 195 | Results/notes | [Wide mixed IR: no gameplay promotion](IR_WIDE_RESULTS.md) | [Findings below](#report-195) |
+| 196 | Design/plan | [Invariant write proofs consumed by mixed IR](IR_WRITES_DESIGN.md) | [Findings below](#report-196) |
+| 197 | Results/notes | [Invariant write proofs inside mixed IR](IR_WRITES_RESULTS.md) | [Findings below](#report-197) |
+| 198 | Results/notes | [Fixed syscall dispatch and same-thread context reuse](KERNEL_DISPATCH_RESULTS.md) | [Findings below](#report-198) |
+| 199 | Results/notes | [Wide values and precise exit snapshots](LAZY_WIDE_RESULTS.md) | [Findings below](#report-199) |
+| 200 | Results/notes | [Inlining short ARM leaf helpers](LEAF_REGIONS.md) | [Findings below](#report-200) |
+| 201 | Results/notes | [Summarize the hot linked-list scan](LIST_SCAN_RESULTS.md) | [Findings below](#report-201) |
+| 202 | Results/notes | [Runtime literal-PC veneer fusion](LITERAL_PC_RESULTS.md) | [Findings below](#report-202) |
+| 203 | Results/notes | [Live browser input and virtual-clock pacing](LIVE_INPUT_RESULTS.md) | [Findings below](#report-203) |
+| 204 | Results/notes | [ARM long-multiply AOT results](LONG_MULTIPLY_RESULTS.md) | [Findings below](#report-204) |
+| 205 | Results/notes | [Long-run headroom and memory investigation](LONG_RUN_RESULTS.md) | [Findings below](#report-205) |
+| 206 | Results/notes | [Lookup and validation follow-up](LOOKUP_FOLLOWUP_RESULTS.md) | [Findings below](#report-206) |
+| 207 | Design/plan | [Outlined code-cache recovery experiment](LOOKUP_OUTLINE_DESIGN.md) | [Findings below](#report-207) |
+| 208 | Results/notes | [Outlined code-cache lookup: acceptance](LOOKUP_OUTLINE_RESULTS.md) | [Findings below](#report-208) |
+| 209 | Results/notes | [Instruction budgets at ARM loop heads](LOOP_BUDGET_RESULTS.md) | [Findings below](#report-209) |
+| 210 | Results/notes | [Rejected LTO experiment](LTO_EXPERIMENT.md) | No performance excerpt; see source report |
+| 211 | Results/notes | [Matched native/WASM control and a precise memory-miss prototype](MATCHED_COMPILER_RESULTS.md) | [Findings below](#report-211) |
+| 212 | Results/notes | [Guest memory-access distribution and arena sizing](MEMORY_ACCESS_DISTRIBUTION_RESULTS.md) | [Findings below](#report-212) |
+| 213 | Results/notes | [Memory semantics and connected-path experiments](MEMORY_AND_CONNECTED_RESULTS.md) | [Findings below](#report-213) |
+| 214 | Results/notes | [Software page-cache comparison](MEMORY_CACHE_RESULTS.md) | [Findings below](#report-214) |
+| 215 | Results/notes | [Fit the browser game renderer within 1 GiB](MEMORY_CAP_1GIB_RESULTS.md) | [Findings below](#report-215) |
+| 216 | Results/notes | [Fit the game renderer within 1.3 GiB without losing gameplay throughput](MEMORY_CAP_WITHOUT_GAMEPLAY_SLOWDOWN.md) | [Findings below](#report-216) |
+| 217 | Results/notes | [Four guest-memory implementations](MEMORY_IMPLEMENTATIONS_RESULTS.md) | [Findings below](#report-217) |
+| 218 | Results/notes | [Merged-source baseline and CPU profile](MERGED_BASELINE_RESULTS.md) | No performance excerpt; see source report |
+| 219 | Results/notes | [Mode-3 literal comparison](MODE3_LITERAL_RESULTS.md) | [Findings below](#report-219) |
+| 220 | Design/plan | [Outlined lookup after mode-3 literal-PC delivery](MODE3_LOOKUP_PLAN.md) | No performance excerpt; see source report |
+| 221 | Results/notes | [Mode-3 lookup comparison](MODE3_LOOKUP_RESULTS.md) | [Findings below](#report-221) |
+| 222 | Results/notes | [Remaining costs under the delivered mode-3 policy](MODE3_REMAINING_RESULTS.md) | [Findings below](#report-222) |
+| 223 | Results/notes | [Generated module handoff across CPU workers](MODULE_HANDOFF_RESULTS.md) | No performance excerpt; see source report |
+| 224 | Results/notes | [Indirect-call instance layout discriminator](MODULE_LAYOUT_RESULTS.md) | [Findings below](#report-224) |
+| 225 | Results/notes | [Generated WASM module lifetime](MODULE_LIFETIME_RESULTS.md) | No performance excerpt; see source report |
+| 226 | Results/notes | [MOV/MVN unused source-register elimination](MOV_UNUSED_RN_RESULTS.md) | [Findings below](#report-226) |
+| 227 | Results/notes | [Nokia N80 firmware assets](N80_ASSETS.md) | [Findings below](#report-227) |
+| 228 | Profiling/analysis | [Native Sky Force attribution to guest ARM and C++](NATIVE_ATTRIBUTION_RESULTS.md) | [Findings below](#report-228) |
+| 229 | Results/notes | [Original N-Gage client on the stock browser device](NGAGE_CLIENT_RESULTS.md) | No performance excerpt; see source report |
+| 230 | Results/notes | [N-Gage package staging in the browser](NGAGE_STREAM_STAGING_RESULTS.md) | [Findings below](#report-230) |
+| 231 | Profiling/analysis | [Fresh normal-policy control profiles](NORMAL_POLICY_PROFILE_V30.md) | [Findings below](#report-231) |
+| 232 | Results/notes | [Worker-owned browser graphics](OFFSCREEN_RESULTS.md) | [Findings below](#report-232) |
+| 233 | Results/notes | [Full-OPFS startup and file-I/O trace](OPFS_FS_TRACE_RESULTS.md) | [Findings below](#report-233) |
+| 234 | Results/notes | [Selective OPFS storage for installed ROMs](OPFS_ROM_RESULTS.md) | [Findings below](#report-234) |
+| 235 | Results/notes | [Outlined short-budget recovery experiment](OUTLINED_BUDGET_RESULTS.md) | [Findings below](#report-235) |
+| 236 | Results/notes | [Owning-core reuse on the graduated runtime](OWNER_CURRENT_RESULTS.md) | [Findings below](#report-236) |
+| 237 | Results/notes | [Interactive browser pacing, 2026-10-01](PACING_RESULTS.md) | [Findings below](#report-237) |
+| 238 | Results/notes | [Publish reservation state with the existing monitor lock](PACKED_MONITOR_RESULTS.md) | [Findings below](#report-238) |
+| 239 | Results/notes | [Browser performance investigation — 2026-09-26](PERFORMANCE_RESULTS.md) | [Findings below](#report-239) |
+| 240 | Results/notes | [Persistent browser devices](PERSISTENT_DEVICE_RESULTS.md) | [Findings below](#report-240) |
+| 241 | Results/notes | [Incoming-pointer lifetime proofs](POINTER_LIFETIME_RESULTS.md) | [Findings below](#report-241) |
+| 242 | Results/notes | [Post-reboot performance revalidation](POST_REBOOT_RESULTS.md) | [Findings below](#report-242) |
+| 243 | Results/notes | [Preparing loaded code before guest execution](PRECOMPILATION_RESULTS.md) | [Findings below](#report-243) |
+| 244 | Results/notes | [Conditional integer leaf fusion](PREDICATED_LEAVES_RESULTS.md) | [Findings below](#report-244) |
+| 245 | Results/notes | [Hooked On preinstalled filesystem pilot](PREINSTALLED_IMAGE_RESULTS.md) | [Findings below](#report-245) |
+| 246 | Results/notes | [Preserve existing inner leaf fusion when selecting prefixes](PRESERVE_INNER_RESULTS.md) | [Findings below](#report-246) |
+| 247 | Results/notes | [Keypad Symbian: games six through ten](PRE_TOUCH_GAMES_6_TO_10.md) | [Findings below](#report-247) |
+| 248 | Results/notes | [Keypad Symbian: top-five installer recovery](PRE_TOUCH_GAME_INSTALLERS.md) | [Findings below](#report-248) |
+| 249 | Results/notes | [Five-game unpaced browser measurements](PRE_TOUCH_UNPACED_RESULTS.md) | [Findings below](#report-249) |
+| 250 | Profiling/analysis | [Profile-driven dispatch optimization: stopping at diminishing returns](PROFILE_OPTIMIZATION_PLATEAU_RESULTS.md) | [Findings below](#report-250) |
+| 251 | Profiling/analysis | [WASM performance profiling](PROFILING.md) | [Findings below](#report-251) |
+| 252 | Results/notes | [Invariant spans with watched-code protection](PROTECTED_PROOFS_RESULTS.md) | [Findings below](#report-252) |
+| 253 | Results/notes | [Reuse the published page view for exclusive reads](PUBLISHED_EXCLUSIVE_READ_RESULTS.md) | [Findings below](#report-253) |
+| 254 | Results/notes | [Qt throughput and headroom](QT_HEADROOM_RESULTS.md) | [Findings below](#report-254) |
+| 255 | Results/notes | [Qt versus WASM: paced FPS for the ten launcher games](QT_VS_WASM_PACED_FPS.md) | [Findings below](#report-255) |
+| 256 | Results/notes | [Qt versus WASM: unpaced FPS for the ten launcher games](QT_VS_WASM_UNPACED_FPS.md) | [Findings below](#report-256) |
+| 257 | Results/notes | [Compiled RAM code reclamation](RAM_CODE_RECLAMATION_RESULTS.md) | [Findings below](#report-257) |
+| 258 | Results/notes | [RAM first-use compilation and Thumb register exchange correctness](RAM_FIRST_USE_COMPILATION_RESULTS.md) | [Findings below](#report-258) |
+| 259 | Results/notes | [RAM first-use compilation serial timing screen](RAM_FIRST_USE_COMPILATION_TIMING_RESULTS.md) | [Findings below](#report-259) |
+| 260 | Results/notes | [Read-only firmware storage results](READONLY_FIRMWARE_RESULTS.md) | [Findings below](#report-260) |
+| 261 | Results/notes | [Proved read-span experiment](READ_SPANS_RESULTS.md) | [Findings below](#report-261) |
+| 262 | Results/notes | [RAM compilation and bounded compiled execution](REALTIME_AOT_RESULTS.md) | [Findings below](#report-262) |
+| 263 | Results/notes | [Realtime Snakes gameplay in the browser](REALTIME_PLAYABILITY.md) | [Findings below](#report-263) |
+| 264 | Results/notes | [Recovered optimization graduation](RECOVERED_DEFAULTS_RESULTS.md) | [Findings below](#report-264) |
+| 265 | Profiling/analysis | [Post-merge compiled-region exit census](REGION_EXIT_CENSUS_RESULTS.md) | [Findings below](#report-265) |
+| 266 | Results/notes | [Fuse connected Thumb regions with shared register locals](REGION_FUSION_RESULTS.md) | [Findings below](#report-266) |
+| 267 | Design/plan | [Guarded value IR prototype](REGION_IR_DESIGN.md) | No performance excerpt; see source report |
+| 268 | Results/notes | [Guarded value IR: real kernel gain, no whole-game promotion](REGION_IR_RESULTS.md) | [Findings below](#report-268) |
+| 269 | Results/notes | [Independent region and runner limits](REGION_LIMITS_RESULTS.md) | [Findings below](#report-269) |
+| 270 | Results/notes | [Whole-region memory specialization](REGION_MEMORY_RESULTS.md) | [Findings below](#report-270) |
+| 271 | Results/notes | [Residual boundary sample audit](REGION_RESIDUAL_EDGES_RESULTS.md) | No performance excerpt; see source report |
+| 272 | Results/notes | [Direct register-result stores: rejected experiment](REGISTER_STORE_RESULTS.md) | [Findings below](#report-272) |
+| 273 | Results/notes | [Keep ROM cache hits inside the compiled runner](REGISTRY_CHAIN_INLINE_RESULTS.md) | [Findings below](#report-273) |
+| 274 | Results/notes | [Registry positive-hit inline layout](REGISTRY_INLINE_RESULTS.md) | [Findings below](#report-274) |
+| 275 | Results/notes | [Registry missing-entry cache](REGISTRY_MISS_CACHE_RESULTS.md) | [Findings below](#report-275) |
+| 276 | Results/notes | [Browser renderer memory cap (2026-10-18)](RENDERER_CAP_RESULTS.md) | [Findings below](#report-276) |
+| 277 | Results/notes | [Snakes custom-resolution experiment](RESOLUTION_RESULTS.md) | No performance excerpt; see source report |
+| 278 | Results/notes | [Streaming built-in installer responses](RESPONSE_STREAMING_RESULTS.md) | [Findings below](#report-278) |
+| 279 | Results/notes | [Verified audio replay — 2026-09-26](RESULTS.md) | No performance excerpt; see source report |
+| 280 | Results/notes | [Retired compiler experiments and instrumentation](RETIRED_EXPERIMENTS.md) | [Findings below](#report-280) |
+| 281 | Results/notes | [Second compiler experiment cleanup](RETIRED_EXPERIMENTS_ROUND2.md) | [Findings below](#report-281) |
+| 282 | Results/notes | [Cleanup after the completed controlled sweep](RETIRED_SWEEP_EXPERIMENTS.md) | [Findings below](#report-282) |
+| 283 | Results/notes | [Bounded immutable-ROM calls](ROM_BOUNDED_CALL_RESULTS.md) | No performance excerpt; see source report |
+| 284 | Results/notes | [Bounded ROM-call timing panel](ROM_BOUNDED_CALL_SCREEN_RESULTS.md) | [Findings below](#report-284) |
+| 285 | Results/notes | [Bounded Thumb ROM calls on the current runtime](ROM_CALLS_CURRENT_RESULTS.md) | [Findings below](#report-285) |
+| 286 | Results/notes | [Bounded first-use ROM compilation with slot reuse](ROM_FIRST_USE_RECYCLING_RESULTS.md) | [Findings below](#report-286) |
+| 287 | Results/notes | [bounded ROM first-use replacement serial timing screen](ROM_FIRST_USE_RECYCLING_TIMING_RESULTS.md) | [Findings below](#report-287) |
+| 288 | Results/notes | [Bounded immutable-ROM leaf fusion](ROM_LEAF_FUSION_RESULTS.md) | No performance excerpt; see source report |
+| 289 | Results/notes | [ROM policy screen](ROM_LEAF_FUSION_SCREEN_RESULTS.md) | [Findings below](#report-289) |
+| 290 | Results/notes | [Inline immutable ARM ROM veneers into Thumb callers](ROM_LEAF_HANDOFF_RESULTS.md) | [Findings below](#report-290) |
+| 291 | Results/notes | [Shared immutable-ROM module dispatcher](ROM_MODULE_DISPATCH_RESULTS.md) | No performance excerpt; see source report |
+| 292 | Results/notes | [Immutable-ROM module dispatcher serial timing panel](ROM_MODULE_DISPATCH_TIMING_RESULTS.md) | [Findings below](#report-292) |
+| 293 | Results/notes | [Fold ROM range checks](ROM_RANGE_RESULTS.md) | [Findings below](#report-293) |
+| 294 | Results/notes | [Fold the private sparse-registry range check](ROM_REGISTRY_RANGE_RESULTS.md) | [Findings below](#report-294) |
+| 295 | Results/notes | [Bounded shared Thumb state retention](ROM_STATE_COHORT_RESULTS.md) | [Findings below](#report-295) |
+| 296 | Results/notes | [Bounded state retention and total-change timing](ROM_STATE_COHORT_TOTAL_TIMING_RESULTS.md) | [Findings below](#report-296) |
+| 297 | Results/notes | [Fold immutable ROM syscall stubs into Thumb callers](ROM_SYSCALL_HANDOFF_RESULTS.md) | [Findings below](#report-297) |
+| 298 | Results/notes | [Guest-time route stepping for growth investigation](ROUTE_STEP_RESULTS.md) | [Findings below](#report-298) |
+| 299 | Results/notes | [Browser RPKG installation: eliminate the whole-file read](RPKG_INSTALL_STREAMING_RESULTS.md) | No performance excerpt; see source report |
+| 300 | Results/notes | [Keep compiled-runner counters private](RUNNER_LOCALS_RESULTS.md) | [Findings below](#report-300) |
+| 301 | Results/notes | [Compiled runner specialization and rejected address experiments](RUNNER_SPECIALIZATION_RESULTS.md) | [Findings below](#report-301) |
+| 302 | Results/notes | [Runtime state traffic after state-transfer pruning](RUNTIME_STATE_RESULTS.md) | [Findings below](#report-302) |
+| 303 | Results/notes | [S60 3rd Edition browser catalogue](S60V3_CATALOGUE_RESULTS.md) | No performance excerpt; see source report |
+| 304 | Results/notes | [CPU time varies along with elapsed time](SCHEDULER_DIAGNOSTIC_RESULTS.md) | [Findings below](#report-304) |
+| 305 | Results/notes | [Stable process arena growth](SEGMENTED_ARENA_GROWTH_RESULTS.md) | [Findings below](#report-305) |
+| 306 | Results/notes | [Shared ARM exit writeback](SHARED_EXIT_RESULTS.md) | [Findings below](#report-306) |
+| 307 | Results/notes | [Cheaper lowering of existing memory proofs](SHARED_SPAN_LOWERING_RESULTS.md) | [Findings below](#report-307) |
+| 308 | Results/notes | [Fixed-size short code comparison experiment](SHORT_SIZES_RESULTS.md) | [Findings below](#report-308) |
+| 309 | Results/notes | [Fresh V8 dispatch census](SKY_CURRENT_DISPATCH_RESULTS.md) | [Findings below](#report-309) |
+| 310 | Results/notes | [Sky Force on the WASM launcher](SKY_FORCE_RESULTS.md) | [Findings below](#report-310) |
+| 311 | Results/notes | [Shared V8 interpreter fallback comparison](SKY_INTERPRETER_FALLBACK_RESULTS.md) | [Findings below](#report-311) |
+| 312 | Results/notes | [Shared ROM-region policy screen](SKY_ROM_POLICY_RESULTS.md) | [Findings below](#report-312) |
+| 313 | Results/notes | [Total shared improvement versus untouched live](SKY_TOTAL_CHANGE_RESULTS.md) | [Findings below](#report-313) |
+| 314 | Profiling/analysis | [Slow32 frequency in Snakes and Sky Force](SLOW32_CENSUS.md) | [Findings below](#report-314) |
+| 315 | Results/notes | [Preserved official Snakes releases](SNAKES_RELEASES.md) | No performance excerpt; see source report |
+| 316 | Results/notes | [Snake growth: coverage gap remains open](SNAKE_GROWTH_STATUS.md) | [Findings below](#report-316) |
+| 317 | Results/notes | [Generated exact-snapshot validator discriminator](SNAPSHOT_VALIDATORS_RESULTS.md) | No performance excerpt; see source report |
+| 318 | Results/notes | [S60 softkey mapping correction](SOFTKEYS_RESULTS.md) | No performance excerpt; see source report |
+| 319 | Results/notes | [Generic ARM span page reuse](SPAN_PAGE_REUSE_RESULTS.md) | [Findings below](#report-319) |
+| 320 | Results/notes | [Demand-backed WASM chunks](SPARSE_CHUNK_BACKING_RESULTS.md) | No performance excerpt; see source report |
+| 321 | Design/plan | [Sparse ROM lookup: focused screen gates](SPARSE_ROM_LOOKUP_SCREEN_GATES.md) | No performance excerpt; see source report |
+| 322 | Results/notes | [Sparse ROM lookup: rejected speed screen](SPARSE_ROM_LOOKUP_TIMING_RESULTS.md) | [Findings below](#report-322) |
+| 323 | Results/notes | [Caller-specific stack returns](STACK_RETURN_RESULTS.md) | [Findings below](#report-323) |
+| 324 | Results/notes | [Hooked On startup bookkeeping](STARTUP_BOOKKEEPING_RESULTS.md) | [Findings below](#report-324) |
+| 325 | Results/notes | [Startup follow-up: compiler admission and mapping work](STARTUP_FOLLOWUP_RESULTS.md) | [Findings below](#report-325) |
+| 326 | Profiling/analysis | [Fresh N-Gage startup after CPU worker recycling](STARTUP_WORKER_RECYCLE_ATTRIBUTION.md) | [Findings below](#report-326) |
+| 327 | Results/notes | [State transfer pruning and V8 cost validation](STATE_LIVENESS_RESULTS.md) | [Findings below](#report-327) |
+| 328 | Results/notes | [Static bindings for built-in syscalls](STATIC_SVC_BINDINGS_RESULTS.md) | [Findings below](#report-328) |
+| 329 | Results/notes | [Snakes stock-resolution survey](STOCK_RESOLUTION_RESULTS.md) | No performance excerpt; see source report |
+| 330 | Results/notes | [Selecting exact comparators at snapshot construction](STORED_COMPARATOR_RESULTS.md) | [Findings below](#report-330) |
+| 331 | Results/notes | [Complete proved syscall returns without region handoffs](SVC_RETURN_CONTINUATION_RESULTS.md) | [Findings below](#report-331) |
+| 332 | Results/notes | [Completed sweep and combined graduation measurement](SWEEP_COMBINED_RESULTS.md) | [Findings below](#report-332) |
+| 333 | Results/notes | [SWI file-hash bypass and deployed startup profile](SWI_FILE_HASH_BYPASS_RESULTS.md) | [Findings below](#report-333) |
+| 334 | Results/notes | [Tail prefixes on the graduated branch-veneer runtime](TAIL_CURRENT_RESULTS.md) | [Findings below](#report-334) |
+| 335 | Results/notes | [Register-only tail-prefix experiment](TAIL_PREFIX_RESULTS.md) | [Findings below](#report-335) |
+| 336 | Profiling/analysis | [Current Tetris browser memory profile (2026-10-16)](TETRIS_CURRENT_MEMORY_PROFILE.md) | [Findings below](#report-336) |
+| 337 | Results/notes | [Thumb arithmetic budget groups](THUMB_BUDGET_GROUP_RESULTS.md) | [Findings below](#report-337) |
+| 338 | Results/notes | [Bounded Thumb long-call fusion](THUMB_CALL_RESULTS.md) | [Findings below](#report-338) |
+| 339 | Results/notes | [Completing short Thumb calls inside their caller](THUMB_COMPLETE_CALL_RESULTS.md) | [Findings below](#report-339) |
+| 340 | Results/notes | [Compact connected Thumb regions](THUMB_CONNECTED_REGION_RESULTS.md) | [Findings below](#report-340) |
+| 341 | Results/notes | [One budget proof for an inlined Thumb helper](THUMB_LEAF_BUDGET_RESULTS.md) | [Findings below](#report-341) |
+| 342 | Results/notes | [Remove unused WASM loops from bounded Thumb regions](THUMB_LINEAR_REGION_RESULTS.md) | [Findings below](#report-342) |
+| 343 | Results/notes | [Adopt guarded Thumb memory after profiling normal play](THUMB_MEMORY_DEFAULT_RESULTS.md) | [Findings below](#report-343) |
+| 344 | Design/plan | [Direct memory accesses in compiled Thumb code](THUMB_MEMORY_DESIGN.md) | [Findings below](#report-344) |
+| 345 | Results/notes | [Thumb memory timing: first verified stage](THUMB_MEMORY_TIMING.md) | [Findings below](#report-345) |
+| 346 | Results/notes | [Thumb cache writeback at earlier exits](THUMB_PREFIX_RESULTS.md) | [Findings below](#report-346) |
+| 347 | Results/notes | [One budget proof for each bounded Thumb path](THUMB_REGION_BUDGET_RESULTS.md) | [Findings below](#report-347) |
+| 348 | Results/notes | [Fuse known Thumb return continuations](THUMB_RETURN_FUSION_RESULTS.md) | [Findings below](#report-348) |
+| 349 | Results/notes | [Inline short immutable Thumb helpers](THUMB_ROM_LEAF_RESULTS.md) | [Findings below](#report-349) |
+| 350 | Results/notes | [One-page Thumb register-transfer proofs](THUMB_SPAN_RESULTS.md) | [Findings below](#report-350) |
+| 351 | Results/notes | [Thumb compiler startup results](THUMB_STARTUP_RESULTS.md) | [Findings below](#report-351) |
+| 352 | Results/notes | [Thumb runtime state cache](THUMB_STATE_RESULTS.md) | [Findings below](#report-352) |
+| 353 | Results/notes | [Thumb continuations with static instruction counts](THUMB_STATIC_REGION_RESULTS.md) | [Findings below](#report-353) |
+| 354 | Results/notes | [Direct RAM Thumb store continuation](THUMB_STORE_RESULTS.md) | [Findings below](#report-354) |
+| 355 | Results/notes | [Select Thumb continuations by state transfers](THUMB_TRANSFER_GATE_RESULTS.md) | [Findings below](#report-355) |
+| 356 | Design/plan | [Fold higher virtual-page bits into the DynCom data TLB index](TLB_HASH_DESIGN.md) | No performance excerpt; see source report |
+| 357 | Results/notes | [Folded data-TLB indexing: historical results](TLB_HASH_RESULTS.md) | [Findings below](#report-357) |
+| 358 | Results/notes | [Scalar alignment guard experiment](UNALIGNED_SCALAR_RESULTS.md) | [Findings below](#report-358) |
+| 359 | Results/notes | [Ungated counters capture a slower execution rate](UNGATED_COUNTER_RESULTS.md) | [Findings below](#report-359) |
+| 360 | Profiling/analysis | [Unsafe code-mutation cost attribution](UNSAFE_CODE_ATTRIBUTION_RESULTS.md) | [Findings below](#report-360) |
+| 361 | Results/notes | [Unsafe executable-byte assumption experiment](UNSAFE_CODE_RESULTS.md) | [Findings below](#report-361) |
+| 362 | Results/notes | [WASM executable-byte default, 2026-10-01](UNSAFE_DEFAULT_RESULTS.md) | No performance excerpt; see source report |
+| 363 | Results/notes | [Upstream master integration, 2026-09-30](UPSTREAM_20260930_RESULTS.md) | [Findings below](#report-363) |
+| 364 | Results/notes | [Upstream merge and new deterministic baseline](UPSTREAM_MERGE_RESULTS.md) | [Findings below](#report-364) |
+| 365 | Results/notes | [User::After tick deadlines](USER_AFTER_RESULTS.md) | [Findings below](#report-365) |
+| 366 | Results/notes | [Direct-call switches with production code validation](VALIDATED_LAYOUT_RESULTS.md) | [Findings below](#report-366) |
+| 367 | Results/notes | [Safe validity generations and native/browser cost comparison](VALIDITY_AND_COST_RESULTS.md) | [Findings below](#report-367) |
+| 368 | Results/notes | [WasmFS: remove filesystem handoffs to the browser main thread](WASMFS_RESULTS.md) | [Findings below](#report-368) |
+| 369 | Results/notes | [Shared WASM cost accounting and Snakes diagnosis](WASM_COST_ACCOUNTING_RESULTS.md) | [Findings below](#report-369) |
+| 370 | Results/notes | [Count-free watchdog execution](WATCHDOG_RESULTS.md) | [Findings below](#report-370) |
+| 371 | Results/notes | [Adjacent long multiply result reuse: rejected](WIDE_REUSE_RESULTS.md) | [Findings below](#report-371) |
+| 372 | Profiling/analysis | [CPU sampling after eliminating measured interpreter fallback](ZERO_FALLBACK_CPU_PROFILE_RESULTS.md) | No performance excerpt; see source report |
+| 373 | Results/notes | [Recurrent literal-load fallback: data-TLB collision observed](ZERO_LITERAL_RESULTS.md) | No performance excerpt; see source report |
+| 374 | Results/notes | [Historical counted fault matrices](archive/counted-kernels/README.md) | No performance excerpt; see source report |
+| 375 | Results/notes | [Asphalt frame-timeline evidence](asphalt-timeline/README.md) | [Findings below](#report-375) |
+| 376 | Results/notes | [Browser CPU comparison (in progress)](browser_cores/README.md) | No performance excerpt; see source report |
+| 377 | Results/notes | [Runtime service overlap census](service_overlap/README.md) | [Findings below](#report-377) |
+| 378 | Results/notes | [Snakes service overlap, 2026-10-01](service_overlap/RESULTS.md) | [Findings below](#report-378) |
 
 ## Historical findings and gain/loss tables
 
@@ -988,9 +1021,131 @@ No samples were removed. Live remains unchanged.
 
 </details>
 
-<a id="report-17"></a>
+<a id="report-18"></a>
 <details>
-<summary>17. Asphalt framebuffer loop: remove repeated region dispatch</summary>
+<summary>18. First significant Asphalt 3 startup memory burst</summary>
+
+[Full report and evidence](ASPHALT3_FIRST_MEMORY_BURST.md)
+
+**First significant Asphalt 3 startup memory burst**
+
+The paired asset-peak reductions were **52.1 and 38.2 MiB**. The first-burst
+reductions were **12.0 and 12.0 MiB**. The startup timings do not establish a
+speedup because the two control launches varied by 3.61 seconds. In a separate
+source-profiled trial, the tee site fell from 118.4 MiB sampled to zero, while
+the ROM-cache ArrayBuffer remained at 32.9 MiB. The actual patched server
+likewise reached `_gameRunning` with no tee allocation in the first-burst
+sample; its native allocation estimate was 33.5 MiB, almost all the cache
+ArrayBuffer. The cache change acts only during asset download, before guest
+execution, so it adds no CPU checks to the game loop. The patched private
+server also completed the stock Asphalt 3 route to the validated race HUD,
+presented 303 frames in its five-second unpaced window (59.78 FPS), and logged
+no guest errors. This is a correctness smoke test, not a paired runtime-speed
+comparison.
+
+</details>
+
+<a id="report-19"></a>
+<details>
+<summary>19. Asphalt 3 launch validation failures</summary>
+
+[Full report and evidence](ASPHALT3_LAUNCH_INTEGRITY.md)
+
+**Validation**
+
+A fresh normal paced launcher run, `repair106-asphalt3-paced-navigation-1`,
+reached racing and rendered 305 frames over ten seconds (30.49 FPS), with no
+reported errors. The first paced helper timed out on a client view because its
+visual navigation omitted a continue input. The revised helper logs those
+inputs and reaches the racing HUD; the failed helper run remains retained as
+`repair106-asphalt3-paced-1`. These concurrently run startup checks establish
+launch behavior, not an isolated comparison of emulator throughput or memory.
+They do not establish campaign completion or full-game activation.
+
+- `negative93-asphalt3-1/`: original captured SDK code-hash rejection and hash inputs.
+- `replay93-official-complete.log`: fixed-input replay after restoring the covered instructions.
+- `negative95-asphalt3-0/unicorn-segments.json`: 47 matching caller segments.
+- `negative100-asphalt3-heap-1/`: failing heap and mapped RAM capture.
+- `negative101-asphalt3-image-1/`: incorrect image input immediately before decoding.
+- `negative102-asphalt3-sdk-read-1/`: SDK read errors despite copied bytes.
+- `negative103-asphalt3-seek-1/`: file-metadata callback and first bad flag write.
+- `replay103-seek32-correct-tls.log`: independent replay reproducing `0x72`.
+- `replay103-plain-file-name-correct-tls.log`: same bytes with the correct name return `0x20`.
+- `repair98-asphalt3-plaintext-name-1/`: browser race with sound after the manual filename intervention.
+- `build-106-native-preserved-tests.log`, `build-106-cpu-tests.log`, `build-106-wasm-tests.log`: regression checks.
+
+Candidate 106 removes all temporary tracing. Its WASM SHA-256 is
+`d31435fa2b15ab989776f661ce7afc6bfb416b953474193adf992bc1f7a2f7dd`.
+Concurrent diagnostic runs are stability evidence, not throughput benchmarks.
+The public `.lan` control has not been replaced by the compiled-only candidate.
+
+</details>
+
+<a id="report-22"></a>
+<details>
+<summary>22. Asphalt 3 persistent-device memory profile (2026-10-16)</summary>
+
+[Full report and evidence](ASPHALT3_PERSISTENT_MEMORY_PROFILE.md)
+
+**Asphalt 3 persistent-device memory profile (2026-10-16)**
+
+Asphalt 3 was the largest browser-memory user in the prior supported-game
+comparison. This capture uses the current persistent-device route, including
+read-only OPFS firmware offload, and reaches the racing HUD with no guest
+errors. A clean production build and an allocation-instrumented diagnostic
+build were measured separately; diagnostic FPS is not a throughput result.
+
+</details>
+
+<a id="report-23"></a>
+<details>
+<summary>23. Asphalt 3 memory attribution after the upstream merge (2026-10-16)</summary>
+
+[Full report and evidence](ASPHALT3_POST_MERGE_MEMORY_PROFILE.md)
+
+**Asphalt 3 memory attribution after the upstream merge (2026-10-16)**
+
+The emulator initializes `committed_` to zero in `multiple_mem_model_chunk::do_create()` and then obtains backing for `max_size_` at `src/emu/mem/src/model/multiple/chunk.cpp:365-381`. In this WASM build, those two separate backings have every whole page resident. Guest demand reaches only the committed amounts above. This proves a discrepancy at the current scene, **not** that a proposed sparse implementation would save exactly 221.68 MiB of browser PSS without overhead or regression.
+
+There are also smaller non-direct chunks with uncommitted capacity, including `FbsSharedChunk` (2 MiB backing, about 0.12 MiB committed) and many 1 MiB code-region reservations. They account for some of the remaining 125 MiB in the 349 MiB chunk-backing owner. Their current commitment suggests another possible saving, but this capture does not prove every page can be reclaimed while preserving future guest mapping, aliases, pointer stability, and throughput. The 13 direct arenas reserve 832 MiB of allocator address space but only 278 MiB is resident; their reservation is not an 832 MiB physical leak. They have 192 MiB initialized prefixes at the endpoint.
+
+A focused next experiment should remove eager physical backing for **non-direct** uncommitted chunk pages while keeping guest zero-fill and stable mapped pointers, then repeat the same racing-HUD browser-PSS, allocation-residency, and unpaced-throughput captures. The measured 221.68 MiB is the first target; the smaller chunks and V8 module footprint need separate proof before treating them as savings.
+
+</details>
+
+<a id="report-25"></a>
+<details>
+<summary>25. Asphalt 3 memory after sparse chunk backing</summary>
+
+[Full report and evidence](ASPHALT3_SPARSE_MEMORY_PROFILE.md)
+
+**Asphalt 3 memory after sparse chunk backing**
+
+The cached and uncached Asphalt runs had nearly identical compiled-function
+totals at the endpoint (140,284 and 140,232), but the cache moved roughly
+70,000 functions from demand compilation into preload. In this single pair,
+the cache added 67.87 MiB browser PSS, including 68.06 MiB more executable
+pages, and reached the race HUD at 73.21 rather than 77.79 seconds from page
+navigation. That timing is a one-pair observation, not a stable startup
+speedup. The code-memory difference is real for these captured scenes; the
+precise reason V8 retains more native code despite similar function counts
+remains unproved. The cache remains deployed for its startup benefit.
+
+**Physical browser ownership**
+
+| # | Mapping owner | PSS, MiB | Meaning |
+|---:|---|---:|---|
+| 1 | Chromium PartitionAlloc | 945.36 | Browser-native allocations, including V8 module/code metadata |
+| 2 | WASM linear-memory backing | 879.44 | Emulator C++, guest chunks, process arenas, filesystem and ROM data |
+| 3 | V8 executable code and trampolines | 500.56 | Generated guest code, runtime WASM, JS and trampolines |
+| 4 | File-backed mappings | 443.31 | Chromium and other mapped files |
+| 5 | Other V8 and anonymous mappings | 202.78 | Sandbox, heaps, stacks and shared buffers |
+
+</details>
+
+<a id="report-26"></a>
+<details>
+<summary>26. Asphalt framebuffer loop: remove repeated region dispatch</summary>
 
 [Full report and evidence](ASPHALT_FINITE_LOOP_RESULTS.md)
 
@@ -1024,9 +1179,9 @@ all four adoption timings.
 
 </details>
 
-<a id="report-18"></a>
+<a id="report-27"></a>
 <details>
-<summary>18. Asphalt 2: frame, timer and native-code attribution</summary>
+<summary>27. Asphalt 2: frame, timer and native-code attribution</summary>
 
 [Full report and evidence](ASPHALT_FRAME_TIMELINE.md)
 
@@ -1071,9 +1226,9 @@ of CPU time: that phase contains its blocking wait.
 
 </details>
 
-<a id="report-19"></a>
+<a id="report-28"></a>
 <details>
-<summary>19. Asphalt 2: reducing region and display overhead</summary>
+<summary>28. Asphalt 2: reducing region and display overhead</summary>
 
 [Full report and evidence](ASPHALT_OVERHEAD_RESULTS.md)
 
@@ -1091,9 +1246,9 @@ The `.lan` served WASM hash matches the frozen combined build below.
 
 </details>
 
-<a id="report-20"></a>
+<a id="report-29"></a>
 <details>
-<summary>20. Asphalt 2: matched paced Qt/WASM benchmark and profile</summary>
+<summary>29. Asphalt 2: matched paced Qt/WASM benchmark and profile</summary>
 
 [Full report and evidence](ASPHALT_PACED_PROFILE.md)
 
@@ -1146,9 +1301,9 @@ Nor does the dispatcher sample identify which guest region caused each handoff.
 
 </details>
 
-<a id="report-21"></a>
+<a id="report-30"></a>
 <details>
-<summary>21. Asphalt 2: keep callback-free Thumb backedges compiled</summary>
+<summary>30. Asphalt 2: keep callback-free Thumb backedges compiled</summary>
 
 [Full report and evidence](ASPHALT_POLLED_LOOP_RESULTS.md)
 
@@ -1165,9 +1320,9 @@ totals remain zero.
 
 </details>
 
-<a id="report-22"></a>
+<a id="report-31"></a>
 <details>
-<summary>22. Asphalt 2: fusing RAM Thumb helpers and branches</summary>
+<summary>31. Asphalt 2: fusing RAM Thumb helpers and branches</summary>
 
 [Full report and evidence](ASPHALT_RAM_FUSION_RESULTS.md)
 
@@ -1198,9 +1353,9 @@ testing; the desktop audio configuration was untouched.
 
 </details>
 
-<a id="report-23"></a>
+<a id="report-32"></a>
 <details>
-<summary>23. Persistent caching for the LAN launcher</summary>
+<summary>32. Persistent caching for the LAN launcher</summary>
 
 [Full report and evidence](ASSET_CACHE_RESULTS.md)
 
@@ -1216,9 +1371,9 @@ the unserved outlined-lookup candidate. Raw report: /home/claude/.scratch/eka-be
 
 </details>
 
-<a id="report-25"></a>
+<a id="report-34"></a>
 <details>
-<summary>25. Vectorize exact-order Speex interpolation in browser audio</summary>
+<summary>34. Vectorize exact-order Speex interpolation in browser audio</summary>
 
 [Full report and evidence](AUDIO_SIMD_RESULTS.md)
 
@@ -1233,9 +1388,9 @@ All four Sky Force pairs are favorable: +1.12%, +1.33%, +8.86% and +0.80%. The r
 
 </details>
 
-<a id="report-26"></a>
+<a id="report-35"></a>
 <details>
-<summary>26. Generic instruction-count batching</summary>
+<summary>35. Generic instruction-count batching</summary>
 
 [Full report and evidence](BATCHED_INSTRUCTION_COUNTS.md)
 
@@ -1279,9 +1434,9 @@ V8 can optimize both forms, and this campaign did not compare their machine code
 
 </details>
 
-<a id="report-27"></a>
+<a id="report-36"></a>
 <details>
-<summary>27. Performance opportunities outside the archived experiment sweep</summary>
+<summary>36. Performance opportunities outside the archived experiment sweep</summary>
 
 [Full report and evidence](BLIND_SPOT_RESEARCH.md)
 
@@ -1309,9 +1464,9 @@ not new measured speedups.
 
 </details>
 
-<a id="report-28"></a>
+<a id="report-37"></a>
 <details>
-<summary>28. ARM block transfers and sustained live gameplay</summary>
+<summary>37. ARM block transfers and sustained live gameplay</summary>
 
 [Full report and evidence](BLOCK_TRANSFER_RESULTS.md)
 
@@ -1321,9 +1476,9 @@ Optional live sampling is enabled with `EKA2L1_LIVE_PROFILE_START_US=78000000 EK
 
 </details>
 
-<a id="report-29"></a>
+<a id="report-38"></a>
 <details>
-<summary>29. Ordinary block-transfer callback writeback ordering</summary>
+<summary>38. Ordinary block-transfer callback writeback ordering</summary>
 
 [Full report and evidence](BLOCK_WRITEBACK_CALLBACK_RESULTS.md)
 
@@ -1347,9 +1502,9 @@ successful transfers.
 
 </details>
 
-<a id="report-30"></a>
+<a id="report-39"></a>
 <details>
-<summary>30. Follow-up boundary diagnostics</summary>
+<summary>39. Follow-up boundary diagnostics</summary>
 
 [Full report and evidence](BOUNDARY_DETAILS_RESULTS.md)
 
@@ -1359,9 +1514,9 @@ All four diagnostic runs use the same archived executable and explicit default l
 
 </details>
 
-<a id="report-31"></a>
+<a id="report-40"></a>
 <details>
-<summary>31. Compiled-region boundaries and limits: measured findings</summary>
+<summary>40. Compiled-region boundaries and limits: measured findings</summary>
 
 [Full report and evidence](BOUNDARY_STUDY_RESULTS.md)
 
@@ -1371,9 +1526,9 @@ Fresh [mode-3 CPU samples](MODE3_REMAINING_RESULTS.md), with detailed counters d
 
 </details>
 
-<a id="report-32"></a>
+<a id="report-41"></a>
 <details>
-<summary>32. Branch veneers on the graduated forward-leaf runtime</summary>
+<summary>41. Branch veneers on the graduated forward-leaf runtime</summary>
 
 [Full report and evidence](BRANCH_CURRENT_RESULTS.md)
 
@@ -1393,9 +1548,9 @@ historical timing evidence remains in `BRANCH_VENEER_RESULTS.md`.
 
 </details>
 
-<a id="report-33"></a>
+<a id="report-42"></a>
 <details>
-<summary>33. Single-branch callee fusion</summary>
+<summary>42. Single-branch callee fusion</summary>
 
 [Full report and evidence](BRANCH_VENEER_RESULTS.md)
 
@@ -1422,9 +1577,9 @@ A separate immutable loader copy uses `instrument_modules.py --metadata-only`, w
 
 </details>
 
-<a id="report-34"></a>
+<a id="report-43"></a>
 <details>
-<summary>34. Shared syscall bridge allocation experiment</summary>
+<summary>43. Shared syscall bridge allocation experiment</summary>
 
 [Full report and evidence](BRIDGE_ALLOCATION_RESULTS.md)
 
@@ -1439,9 +1594,9 @@ A separate immutable loader copy uses `instrument_modules.py --metadata-only`, w
 
 </details>
 
-<a id="report-35"></a>
+<a id="report-44"></a>
 <details>
-<summary>35. Expanded browser CPU kernels, 2026-09-30</summary>
+<summary>44. Expanded browser CPU kernels, 2026-09-30</summary>
 
 [Full report and evidence](BROWSER_CORES_EXPANDED_RESULTS.md)
 
@@ -1454,9 +1609,9 @@ The existing live emulator is unchanged.
 
 </details>
 
-<a id="report-36"></a>
+<a id="report-45"></a>
 <details>
-<summary>36. Flycast SH4 browser CPU adapter, 2026-09-30</summary>
+<summary>45. Flycast SH4 browser CPU adapter, 2026-09-30</summary>
 
 [Full report and evidence](BROWSER_CORES_FLYCAST_RESULTS.md)
 
@@ -1470,9 +1625,9 @@ All benchmarks and observations are local; the live emulator is unchanged.
 
 </details>
 
-<a id="report-37"></a>
+<a id="report-46"></a>
 <details>
-<summary>37. Full EKA CPU browser control, 2026-09-30</summary>
+<summary>46. Full EKA CPU browser control, 2026-09-30</summary>
 
 [Full report and evidence](BROWSER_CORES_FULL_EKA_RESULTS.md)
 
@@ -1490,9 +1645,9 @@ distinct from warmed throughput.
 
 </details>
 
-<a id="report-38"></a>
+<a id="report-47"></a>
 <details>
-<summary>38. Initial browser CPU kernels, 2026-09-30</summary>
+<summary>47. Initial browser CPU kernels, 2026-09-30</summary>
 
 [Full report and evidence](BROWSER_CORES_INITIAL_RESULTS.md)
 
@@ -1502,9 +1657,31 @@ These figures describe these adapters and tiny, hot, predictable kernels. RPCEmu
 
 </details>
 
-<a id="report-40"></a>
+<a id="report-49"></a>
 <details>
-<summary>40. Original-emitter budget chunks</summary>
+<summary>49. Whole-browser memory attribution: Asphalt 3</summary>
+
+[Full report and evidence](BROWSER_MEMORY_ATTRIBUTION_RESULTS.md)
+
+**Whole-browser memory attribution: Asphalt 3**
+
+Asphalt 3 led the previous eight-game [memory ranking](ALLOCATION_MEMORY_PROFILE_RESULTS.md)
+at 3298.8 MiB browser PSS. It also led the latest uninstrumented two-game
+recheck: 3014.0 MiB in its race, versus 2943.8 MiB for Tetris. Those captured
+scenes do not establish a universal maximum across every level or device. This
+profile replayed Asphalt 3's actual race with guest sound enabled, verified its
+position and lap HUD, rendered 383 frames in the five-second capture window,
+and recorded no guest errors. The served production WASM SHA-256 was
+`d31435fa2b15ab989776f661ce7afc6bfb416b953474193adf992bc1f7a2f7dd`;
+Chromium was 153.0.8010.52. The browser ran with allocation samplers and
+V8's perf-map flag, so its 3170.77 MiB PSS is a **diagnostic measurement**, not
+a new production memory baseline or a throughput result.
+
+</details>
+
+<a id="report-50"></a>
+<details>
+<summary>50. Original-emitter budget chunks</summary>
 
 [Full report and evidence](BUDGET_CHUNKS_DESIGN.md)
 
@@ -1517,9 +1694,9 @@ not establish a win for either game. See
 
 </details>
 
-<a id="report-41"></a>
+<a id="report-51"></a>
 <details>
-<summary>41. Budget chunks: matching-compiler gain, mixed served comparison</summary>
+<summary>51. Budget chunks: matching-compiler gain, mixed served comparison</summary>
 
 [Full report and evidence](BUDGET_CHUNKS_RESULTS.md)
 
@@ -1544,9 +1721,9 @@ The candidate's four samples fall near 12.6s or 14.0s; their cause is unproven.
 
 </details>
 
-<a id="report-42"></a>
+<a id="report-52"></a>
 <details>
-<summary>42. Bulk-loop eligibility and compilation scheduling</summary>
+<summary>52. Bulk-loop eligibility and compilation scheduling</summary>
 
 [Full report and evidence](BULK_AND_COMPILATION_RESULTS.md)
 
@@ -1605,9 +1782,9 @@ runs, but these benchmark trials do not play through the host AudioWorklet.
 
 </details>
 
-<a id="report-43"></a>
+<a id="report-53"></a>
 <details>
-<summary>43. Adopt cache-policy specialization after gameplay profiling</summary>
+<summary>53. Adopt cache-policy specialization after gameplay profiling</summary>
 
 [Full report and evidence](CACHE_POLICY_DEFAULT_RESULTS.md)
 
@@ -1643,9 +1820,9 @@ no trimming, substitutions or host-load normalization.
 
 </details>
 
-<a id="report-45"></a>
+<a id="report-55"></a>
 <details>
-<summary>45. Callee-prefix fusion</summary>
+<summary>55. Callee-prefix fusion</summary>
 
 [Full report and evidence](CALL_PREFIX_RESULTS.md)
 
@@ -1679,9 +1856,9 @@ checks pass. The candidate remains rejected.
 
 </details>
 
-<a id="report-46"></a>
+<a id="report-56"></a>
 <details>
-<summary>46. Chrome gameplay profile: Snakes and Sky Force</summary>
+<summary>56. Chrome gameplay profile: Snakes and Sky Force</summary>
 
 [Full report and evidence](CHROME_GAMEPLAY_ANALYSIS.md)
 
@@ -1694,9 +1871,9 @@ These are diagnostic captures, not speedup measurements.
 
 </details>
 
-<a id="report-47"></a>
+<a id="report-57"></a>
 <details>
-<summary>47. Chrome memory profiling with WASM source maps</summary>
+<summary>57. Chrome memory profiling with WASM source maps</summary>
 
 [Full report and evidence](CHROME_MEMORY_PROFILER_RESULTS.md)
 
@@ -1710,9 +1887,9 @@ its FPS field is diagnostic and is not used for a throughput comparison.
 
 </details>
 
-<a id="report-48"></a>
+<a id="report-58"></a>
 <details>
-<summary>48. Chrome profiling</summary>
+<summary>58. Chrome profiling</summary>
 
 [Full report and evidence](CHROME_PROFILING.md)
 
@@ -1772,9 +1949,9 @@ remain available. This switch does not turn sampling into a causal profiler.
 
 </details>
 
-<a id="report-49"></a>
+<a id="report-59"></a>
 <details>
-<summary>49. Chrome profiling switch validation</summary>
+<summary>59. Chrome profiling switch validation</summary>
 
 [Full report and evidence](CHROME_PROFILING_RESULTS.md)
 
@@ -1808,9 +1985,9 @@ remain available. This switch does not turn sampling into a causal profiler.
 
 </details>
 
-<a id="report-52"></a>
+<a id="report-63"></a>
 <details>
-<summary>52. Mutation-driven code validity: implementation and measurements</summary>
+<summary>63. Mutation-driven code validity: implementation and measurements</summary>
 
 [Full report and evidence](CODE_LIFECYCLE_RESULTS.md)
 
@@ -1854,9 +2031,9 @@ The served baseline remains unchanged; no headroom or smoothness gain is claimed
 
 </details>
 
-<a id="report-53"></a>
+<a id="report-64"></a>
 <details>
-<summary>53. Four-vector exact code comparison: delivered</summary>
+<summary>64. Four-vector exact code comparison: delivered</summary>
 
 [Full report and evidence](CODE_QUAD_RESULTS.md)
 
@@ -1888,9 +2065,9 @@ and slow control is retained. Changes and evidence are local; nothing pushed.
 
 </details>
 
-<a id="report-54"></a>
+<a id="report-65"></a>
 <details>
-<summary>54. Exact validation span census after folded-TLB delivery</summary>
+<summary>65. Exact validation span census after folded-TLB delivery</summary>
 
 [Full report and evidence](CODE_SPAN_CENSUS_RESULTS.md)
 
@@ -1910,9 +2087,9 @@ after capture; the served folded-TLB archive remains unchanged.
 
 </details>
 
-<a id="report-55"></a>
+<a id="report-66"></a>
 <details>
-<summary>55. Exact code validation with an overlapping vector tail: not promoted</summary>
+<summary>66. Exact code validation with an overlapping vector tail: not promoted</summary>
 
 [Full report and evidence](CODE_TAIL_RESULTS.md)
 
@@ -1939,9 +2116,9 @@ justified by this result. The experiment remains opt-in and unserved.
 
 </details>
 
-<a id="report-56"></a>
+<a id="report-67"></a>
 <details>
-<summary>56. Backing-page validity tracking</summary>
+<summary>67. Backing-page validity tracking</summary>
 
 [Full report and evidence](CODE_VALIDITY.md)
 
@@ -1951,9 +2128,9 @@ This is an **opt-in experiment**, built with `-DEKA2L1_WASM_CODE_VERSIONS=ON`. I
 
 </details>
 
-<a id="report-57"></a>
+<a id="report-68"></a>
 <details>
-<summary>57. Watched-code write protection experiment</summary>
+<summary>68. Watched-code write protection experiment</summary>
 
 [Full report and evidence](CODE_WRITE_PROTECTION_DESIGN.md)
 
@@ -1966,9 +2143,9 @@ of a speedup: the extra callback traffic and TLB scans may exceed the saved work
 
 </details>
 
-<a id="report-58"></a>
+<a id="report-69"></a>
 <details>
-<summary>58. Watched-code write protection</summary>
+<summary>69. Watched-code write protection</summary>
 
 [Full report and evidence](CODE_WRITE_PROTECTION_RESULTS.md)
 
@@ -1991,9 +2168,9 @@ closing candidate and both slow barrier controls remain in the evidence.
 
 </details>
 
-<a id="report-59"></a>
+<a id="report-70"></a>
 <details>
-<summary>59. Removing earlier emitter peepholes: rejected</summary>
+<summary>70. Removing earlier emitter peepholes: rejected</summary>
 
 [Full report and evidence](COMBINATION_RESULTS.md)
 
@@ -2026,9 +2203,9 @@ implementation; this trial establishes no new LAN speedup.
 
 </details>
 
-<a id="report-60"></a>
+<a id="report-71"></a>
 <details>
-<summary>60. Combined write-span and budget proofs: exact archive delivered</summary>
+<summary>71. Combined write-span and budget proofs: exact archive delivered</summary>
 
 [Full report and evidence](COMBINED_DELIVERY_RESULTS.md)
 
@@ -2049,9 +2226,9 @@ read/combined pairs favor the combination. Selected candidate samples span
 
 </details>
 
-<a id="report-62"></a>
+<a id="report-73"></a>
 <details>
-<summary>62. Combined write-span and budget proofs: gain does not repeat</summary>
+<summary>73. Combined write-span and budget proofs: gain does not repeat</summary>
 
 [Full report and evidence](COMBINED_PROOFS_RESULTS.md)
 
@@ -2073,9 +2250,9 @@ Pooled means: combined 13.33690s, chunks 13.51468s, served 13.50933s.
 
 </details>
 
-<a id="report-63"></a>
+<a id="report-74"></a>
 <details>
-<summary>63. CMP operand reuse</summary>
+<summary>74. CMP operand reuse</summary>
 
 [Full report and evidence](COMPARE_CONDITION_RESULTS.md)
 
@@ -2104,9 +2281,9 @@ as da1829d58. No deployment or new live/audio acceptance is claimed.
 
 </details>
 
-<a id="report-65"></a>
+<a id="report-76"></a>
 <details>
-<summary>65. Compiled memory misses serial timing screen</summary>
+<summary>76. Compiled memory misses serial timing screen</summary>
 
 [Full report and evidence](COMPILED_MEMORY_MISSES_TIMING_RESULTS.md)
 
@@ -2133,9 +2310,92 @@ support keeping this frozen variant off; no production setting changes.
 
 </details>
 
-<a id="report-66"></a>
+<a id="report-78"></a>
 <details>
-<summary>66. Shared ARM/Thumb syscall compilation stage</summary>
+<summary>78. Compiled-only browser CPU</summary>
+
+[Full report and evidence](COMPILED_ONLY_RESULTS.md)
+
+**Verification and measurement**
+
+RAM is total browser-process PSS, including renderer, GPU and utilities, rather
+than WASM allocation capacity. A 1 Hz sample records the observed startup and
+runtime peak; brief peaks between samples can be missed. Reports also retain
+RSS, process CPU time, host frequencies, compiler time and start/end screenshots.
+FPS is a presentation rate in unpaced execution, not a claim about paced game
+speed. N-Gage receives a bounded client navigation check and no FPS claim.
+
+Every accepted game sample must show actual gameplay at both endpoints. Earlier
+Asphalt 2 sound-prompt and Super Miners menu samples are excluded. Their high
+presentation rates are not game speedups. Sky Force checks the complete HUD,
+not just a bright logo. Asphalt 3's N-Gage startup rejection was traced to
+[inconsistent preservation-package instructions](ASPHALT3_LAUNCH_INTEGRITY.md).
+Failed and successful historical launches remain separate evidence; the exact
+known-image repair is validated independently of compiled-only adoption.
+
+**Complete catalogue pass before the memory-transfer follow-up**
+
+Sky Force repeated at 327.0 FPS control, 324.6 build 50 and 324.7 build 49.
+The earlier 224 FPS observation is unexplained; its initial scene contains a
+Full Health popup absent in the control. It is not evidence of a persistent
+29% regression, and it has not been silently removed. K-Rally also varies with
+car position and terrain; its earlier slowdown did not persist in later pairs.
+
+**Memory-transfer follow-up and historical gates**
+
+K-Rally's three-second driving pair is slower: 145.5 versus 177.4 FPS. A
+separate stationary route retains three consecutive ten-second windows:
+140.4 / 143.9 / 170.5 FPS candidate and 155.7 / 139.9 / 171.0 control.
+The final stationary windows match, but that does not clear the driving
+comparison. Both the changing scene and initial compilation need attribution.
+
+The build-54 Asphalt 3 five-second race sample is 82 FPS. A longer build-58
+race run records five consecutive five-second windows: 123.6 / 141.1 / 152.0 /
+146.7 / 143.4 FPS, versus 117.9 / 129.2 / 136.5 / 139.0 / 129.9 control.
+The last three candidate windows compile no additional emulator regions.
+Observed browser peak PSS is 2929.0 versus 3214.6 MiB in these longer runs.
+The first two windows are retained as warmup evidence; the last three are the
+preselected sustained-throughput window, not a selection of the fastest values.
+
+Cold paced installation remains slower. The control repeats at 31.25 seconds,
+versus 41.35 for build 54. Removing consolidation entirely reduces installation
+to 37.52 seconds but raises Asphalt 2 peak PSS to 2199.5 MiB, above control.
+Selective consolidation of small initial modules takes 40.30 seconds and uses
+more RAM than build 54. Keeping ROM code for other loaded processes takes
+44.18 seconds in its focused run. These alternatives are rejected; source
+returns to build 54 plus the fault context.
+
+**Startup attribution and further screening**
+
+The following are separate focused screens, not new catalogue passes or speedup
+claims. The unchanged control's normal installer endpoint remains 31.19–31.25
+seconds. Its recorded paired Asphalt 2 barrier result is 134.4 FPS, 2134.8 MiB
+steady and 2142.3 MiB peak PSS.
+
+None clears the startup gate. Partial eager entry lists overcompile other
+regions: the imported-entry screen reaches 169,232 functions, and restoring the
+old full policy with the expanded translator reaches 273,950, versus 98,729 in
+the traced control. The cold-tier experiments do not recover the desired
+throughput/startup combination and are removed.
+
+**Build 106 release evaluation**
+
+Three ten-second K-Rally driving windows measured 84.8 / 71.4 / 162.6 FPS
+control and 320.6 / 250.8 / 156.6 candidate. The final windows compiled no
+new guest functions and are close, while scene and host activity prevent an
+exact throughput claim. Asphalt 3's candidate reached racing in repeated
+builds, but longer unpaced runs then displayed a full-version purchase prompt.
+The prompt also appeared without the preserved-image source repair, and one
+fresh control launch failed earlier with N-Gage error -1000002. Full-version
+activation and the exact cause of the prompt remain unverified. Gameplay
+throughput and startup stability are therefore release caveats, not resolved
+correctness claims.
+
+</details>
+
+<a id="report-79"></a>
+<details>
+<summary>79. Shared ARM/Thumb syscall compilation stage</summary>
 
 [Full report and evidence](COMPILED_SVC_RESULTS.md)
 
@@ -2145,9 +2405,9 @@ All counts independently match total minus compiled instructions. These profiles
 
 </details>
 
-<a id="report-67"></a>
+<a id="report-80"></a>
 <details>
-<summary>67. Compiled syscall serial timing panel</summary>
+<summary>80. Compiled syscall serial timing panel</summary>
 
 [Full report and evidence](COMPILED_SVC_TIMING_RESULTS.md)
 
@@ -2186,9 +2446,9 @@ below is not repeated. No production setting changes as part of this reassessmen
 
 </details>
 
-<a id="report-68"></a>
+<a id="report-81"></a>
 <details>
-<summary>68. ARM-to-WASM compiler bookkeeping results</summary>
+<summary>81. ARM-to-WASM compiler bookkeeping results</summary>
 
 [Full report and evidence](COMPILER_BOOKKEEPING_RESULTS.md)
 
@@ -2229,9 +2489,9 @@ The previous [startup profile](SWI_FILE_HASH_BYPASS_RESULTS.md) identified `stat
 
 </details>
 
-<a id="report-69"></a>
+<a id="report-82"></a>
 <details>
-<summary>69. Comparing four routes toward Qt JIT throughput</summary>
+<summary>82. Comparing four routes toward Qt JIT throughput</summary>
 
 [Full report and evidence](COMPILER_OPTIONS_RESULTS.md)
 
@@ -2338,9 +2598,9 @@ is installed, and no speedup is claimed for the retained tooling.
 
 </details>
 
-<a id="report-70"></a>
+<a id="report-83"></a>
 <details>
-<summary>70. Conditional ALU selection: rejected</summary>
+<summary>83. Conditional ALU selection: rejected</summary>
 
 [Full report and evidence](CONDITIONAL_ALU_RESULTS.md)
 
@@ -2367,9 +2627,9 @@ Expanded independent regression coverage is retained. No deployment change.
 
 </details>
 
-<a id="report-71"></a>
+<a id="report-84"></a>
 <details>
-<summary>71. Conditional MOV selection: no confirmed speedup</summary>
+<summary>84. Conditional MOV selection: no confirmed speedup</summary>
 
 [Full report and evidence](CONDITIONAL_MOV_RESULTS.md)
 
@@ -2392,9 +2652,9 @@ the independent condition/budget tests are retained in `5a1a291ef`.
 
 </details>
 
-<a id="report-72"></a>
+<a id="report-85"></a>
 <details>
-<summary>72. Conditional-leaf runner limit revisit</summary>
+<summary>85. Conditional-leaf runner limit revisit</summary>
 
 [Full report and evidence](CONDITIONAL_RUNNER_LIMITS_RESULTS.md)
 
@@ -2417,9 +2677,9 @@ The two changed bounds separately pass another 81,280 explicitly selected instru
 
 </details>
 
-<a id="report-73"></a>
+<a id="report-86"></a>
 <details>
-<summary>73. Conditional-leaf site limit revisit</summary>
+<summary>86. Conditional-leaf site limit revisit</summary>
 
 [Full report and evidence](CONDITIONAL_SITE_LIMITS_RESULTS.md)
 
@@ -2442,9 +2702,9 @@ The two changed bounds separately pass another 81,280 explicitly selected instru
 
 </details>
 
-<a id="report-74"></a>
+<a id="report-87"></a>
 <details>
-<summary>74. Confine browser reservation state to its CPU worker</summary>
+<summary>87. Confine browser reservation state to its CPU worker</summary>
 
 [Full report and evidence](CONFINED_MONITOR_RESULTS.md)
 
@@ -2459,9 +2719,9 @@ Sky Force gains 0.93% on average with only two of four pairs favorable. The reve
 
 </details>
 
-<a id="report-75"></a>
+<a id="report-88"></a>
 <details>
-<summary>75. Connected callees on the graduated runtime</summary>
+<summary>88. Connected callees on the graduated runtime</summary>
 
 [Full report and evidence](CONNECTED_CURRENT_RESULTS.md)
 
@@ -2529,9 +2789,9 @@ faster (1.62% to 2.44%). All eight observations are valid. Sky Force is pending.
 
 </details>
 
-<a id="report-76"></a>
+<a id="report-89"></a>
 <details>
-<summary>76. Frequency-controlled browser comparisons</summary>
+<summary>89. Frequency-controlled browser comparisons</summary>
 
 [Full report and evidence](CONTROLLED_BENCHMARKS.md)
 
@@ -2546,9 +2806,9 @@ boundaries approximately bracket the guest window. Warmup stays outside it.
 
 </details>
 
-<a id="report-77"></a>
+<a id="report-90"></a>
 <details>
-<summary>77. Reassessment of optimization timing decisions</summary>
+<summary>90. Reassessment of optimization timing decisions</summary>
 
 [Full report and evidence](CONTROLLED_REASSESSMENT.md)
 
@@ -2609,9 +2869,9 @@ precise estimate for every machine, scene or game.
 
 </details>
 
-<a id="report-78"></a>
+<a id="report-91"></a>
 <details>
-<summary>78. Browser execution without instruction accounting</summary>
+<summary>91. Browser execution without instruction accounting</summary>
 
 [Full report and evidence](COUNT_FREE_DEFAULT_RESULTS.md)
 
@@ -2634,9 +2894,9 @@ Historical timing and exact native/browser replay reports remain historical.
 
 </details>
 
-<a id="report-79"></a>
+<a id="report-92"></a>
 <details>
-<summary>79. Compiled CPU overhead reductions</summary>
+<summary>92. Compiled CPU overhead reductions</summary>
 
 [Full report and evidence](CPU_COST_RESULTS.md)
 
@@ -2655,9 +2915,9 @@ A separate sampled no-capture profile attributes 50.05% of guest-worker span to 
 
 </details>
 
-<a id="report-80"></a>
+<a id="report-93"></a>
 <details>
-<summary>80. Actual dispatcher costs and native/WASM fault comparison</summary>
+<summary>93. Actual dispatcher costs and native/WASM fault comparison</summary>
 
 [Full report and evidence](CPU_DISPATCH_AND_FAULT_RESULTS.md)
 
@@ -2693,9 +2953,9 @@ is claimed here.
 
 </details>
 
-<a id="report-81"></a>
+<a id="report-94"></a>
 <details>
-<summary>81. Zooming into the native / WASM CPU gap</summary>
+<summary>94. Zooming into the native / WASM CPU gap</summary>
 
 [Full report and evidence](CPU_SLOWDOWN_RESULTS.md)
 
@@ -2748,9 +3008,9 @@ not been given a full-game replay or broad fault/alias regression endorsement.
 
 </details>
 
-<a id="report-82"></a>
+<a id="report-95"></a>
 <details>
-<summary>82. Browser benchmark CPU time</summary>
+<summary>95. Browser benchmark CPU time</summary>
 
 [Full report and evidence](CPU_TIME_RESULTS.md)
 
@@ -2800,9 +3060,9 @@ The measurement capability is adopted; the optimization remains out of productio
 
 </details>
 
-<a id="report-83"></a>
+<a id="report-96"></a>
 <details>
-<summary>83. Current original emitter and mixed IR: diagnostic profiles</summary>
+<summary>96. Current original emitter and mixed IR: diagnostic profiles</summary>
 
 [Full report and evidence](CURRENT_IR_PROFILE_RESULTS.md)
 
@@ -2818,9 +3078,9 @@ of overlapping workers. Sample spans include profiler boundaries and waits.
 
 </details>
 
-<a id="report-84"></a>
+<a id="report-97"></a>
 <details>
-<summary>84. Corrected default: direct confirmation does not support delivery</summary>
+<summary>97. Corrected default: direct confirmation does not support delivery</summary>
 
 [Full report and evidence](DEFAULT_CONFIRMATION_RESULTS.md)
 
@@ -2833,9 +3093,9 @@ of overlapping workers. Sample spans include profiler boundaries and waits.
 
 </details>
 
-<a id="report-85"></a>
+<a id="report-98"></a>
 <details>
-<summary>85. Deferred comparison flags across successful reads</summary>
+<summary>98. Deferred comparison flags across successful reads</summary>
 
 [Full report and evidence](DEFERRED_COMPARE_MEMORY_RESULTS.md)
 
@@ -2868,9 +3128,9 @@ cost instrumenter is used only offline; timed builds contain none of its counter
 
 </details>
 
-<a id="report-86"></a>
+<a id="report-99"></a>
 <details>
-<summary>86. Deferred instruction counts inside proved chunks</summary>
+<summary>99. Deferred instruction counts inside proved chunks</summary>
 
 [Full report and evidence](DEFERRED_COUNTS_DESIGN.md)
 
@@ -2885,9 +3145,9 @@ an unmeasured experiment, not a correctness or speedup claim.
 
 </details>
 
-<a id="report-87"></a>
+<a id="report-100"></a>
 <details>
-<summary>87. Deferred counts: marginal benefit not established</summary>
+<summary>100. Deferred counts: marginal benefit not established</summary>
 
 [Full report and evidence](DEFERRED_COUNTS_RESULTS.md)
 
@@ -2921,9 +3181,9 @@ remain documented in COMBINED_PROOFS_RESULTS.md.
 
 </details>
 
-<a id="report-88"></a>
+<a id="report-101"></a>
 <details>
-<summary>88. Code dependency overlap census</summary>
+<summary>101. Code dependency overlap census</summary>
 
 [Full report and evidence](DEPENDENCY_CENSUS_RESULTS.md)
 
@@ -2937,9 +3197,9 @@ times are excluded from speedup evidence. No validation behavior was changed.
 
 </details>
 
-<a id="report-89"></a>
+<a id="report-102"></a>
 <details>
-<summary>89. Direct memory: consume scalar lookup results immediately</summary>
+<summary>102. Direct memory: consume scalar lookup results immediately</summary>
 
 [Full report and evidence](DIRECT_ACCESS_LOWERING_RESULTS.md)
 
@@ -2966,9 +3226,43 @@ The scalar-access and span-result changes were measured together.
 
 </details>
 
-<a id="report-90"></a>
+<a id="report-103"></a>
 <details>
-<summary>90. Direct region tail chaining experiment</summary>
+<summary>103. Finer direct-arena growth after installer staging</summary>
+
+[Full report and evidence](DIRECT_ARENA_FINE_GROWTH_ADOPTION.md)
+
+**Finer direct-arena growth after installer staging**
+
+The paired WASM reductions were **40.01 and 26.30 MiB**. Whole-browser PSS
+fell **2.93 and 9.20 MiB** in these pairs; V8 executable, sandbox and allocator
+residency varied enough to mask most of the WASM reduction. Control FPS itself
+varied from 60 to 93, so these short windows establish no precise speedup.
+There was no observed race-throughput regression. Growth events increased from
+34 to 118 by the race; startup timings also varied substantially between fresh
+browser launches and do not establish a startup improvement or regression.
+
+</details>
+
+<a id="report-104"></a>
+<details>
+<summary>104. Direct arena residency in Asphalt 3</summary>
+
+[Full report and evidence](DIRECT_ARENA_RESIDENCY.md)
+
+**Fine-growth experiment**
+
+The next useful memory experiment is at the **temporary WasmFS file-write
+source**: reduce or avoid whole-file copies of the ROM/RPKG/SIS during
+installation, then compare whole WASM and browser PSS with the same gameplay
+and throughput gates. Reassigning already-dirty pages between arena and
+allocator accounting cannot reclaim them.
+
+</details>
+
+<a id="report-105"></a>
+<details>
+<summary>105. Direct region tail chaining experiment</summary>
 
 [Full report and evidence](DIRECT_CHAIN_RESULTS.md)
 
@@ -2996,9 +3290,9 @@ saving for a fully linked tiny-region workload, not its frequency in a game.
 
 </details>
 
-<a id="report-91"></a>
+<a id="report-106"></a>
 <details>
-<summary>91. Direct structured guest loops</summary>
+<summary>106. Direct structured guest loops</summary>
 
 [Full report and evidence](DIRECT_LOOP_RESULTS.md)
 
@@ -3018,9 +3312,9 @@ percentage or claiming the larger batch gain is typical.
 
 </details>
 
-<a id="report-92"></a>
+<a id="report-107"></a>
 <details>
-<summary>92. Direct-memory regression attribution</summary>
+<summary>107. Direct-memory regression attribution</summary>
 
 [Full report and evidence](DIRECT_MEMORY_ATTRIBUTION.md)
 
@@ -3121,9 +3415,9 @@ All runs use Chrome 153.0.8010.52. Research hashes:
 
 </details>
 
-<a id="report-93"></a>
+<a id="report-108"></a>
 <details>
-<summary>93. Compact direct-memory lowering and mapping notifications</summary>
+<summary>108. Compact direct-memory lowering and mapping notifications</summary>
 
 [Full report and evidence](DIRECT_MEMORY_CUTS_RESULTS.md)
 
@@ -3178,9 +3472,9 @@ experiments are retained because direct has not demonstrated an overall win.
 
 </details>
 
-<a id="report-94"></a>
+<a id="report-109"></a>
 <details>
-<summary>94. Direct shared-backing memory experiment</summary>
+<summary>109. Direct shared-backing memory experiment</summary>
 
 [Full report and evidence](DIRECT_MEMORY_RESULTS.md)
 
@@ -3214,9 +3508,28 @@ CPU-frequency variation are not eliminated by measuring CPU time.
 
 </details>
 
-<a id="report-95"></a>
+<a id="report-110"></a>
 <details>
-<summary>95. Direct-memory entry-span extension</summary>
+<summary>110. Direct ROM installation</summary>
+
+[Full report and evidence](DIRECT_ROM_INSTALL_RESULTS.md)
+
+**Direct ROM installation**
+
+Direct installation reduced install-end browser PSS by **81.9 and 78.7
+MiB** in the two pairs and running WASM capacity by **72.1 MiB** in both.
+The install phase was faster in both pairs, but only two pairs were measured.
+Running whole-browser PSS was 49–78 MiB lower in these pairs; earlier
+pre-graduation captures varied in both directions, so the firm running-memory
+result is the WASM capacity reduction. The launcher can leave a large RPKG
+browser Blob resident, and renderer GC and browser mappings vary independently
+of WASM capacity.
+
+</details>
+
+<a id="report-111"></a>
+<details>
+<summary>111. Direct-memory entry-span extension</summary>
 
 [Full report and evidence](DIRECT_SPAN_RESULTS.md)
 
@@ -3254,9 +3567,9 @@ does not isolate their contribution or establish a regression cause.
 
 </details>
 
-<a id="report-96"></a>
+<a id="report-112"></a>
 <details>
-<summary>96. Three-access direct-memory span proofs</summary>
+<summary>112. Three-access direct-memory span proofs</summary>
 
 [Full report and evidence](DIRECT_SPAN_THREE_RESULTS.md)
 
@@ -3298,9 +3611,9 @@ retained. All completed observations are kept.
 
 </details>
 
-<a id="report-97"></a>
+<a id="report-113"></a>
 <details>
-<summary>97. Compact dispatch and division lowering</summary>
+<summary>113. Compact dispatch and division lowering</summary>
 
 [Full report and evidence](DISPATCH_AND_DIVISION_RESULTS.md)
 
@@ -3361,9 +3674,9 @@ approximate. No host governor or affinity setting is changed.
 
 </details>
 
-<a id="report-98"></a>
+<a id="report-114"></a>
 <details>
-<summary>98. Raw WASM imports and recent compiled-block lookup</summary>
+<summary>114. Raw WASM imports and recent compiled-block lookup</summary>
 
 [Full report and evidence](DISPATCH_RESULTS.md)
 
@@ -3403,9 +3716,9 @@ remains unmeasured.
 
 </details>
 
-<a id="report-100"></a>
+<a id="report-116"></a>
 <details>
-<summary>100. Complete division helper summary</summary>
+<summary>116. Complete division helper summary</summary>
 
 [Full report and evidence](DIVISION_HELPER_RESULTS.md)
 
@@ -3438,9 +3751,9 @@ variable zero-divisor branch displacement.
 
 </details>
 
-<a id="report-101"></a>
+<a id="report-117"></a>
 <details>
-<summary>101. Dynamic Thumb ROM groups: focused screen gates</summary>
+<summary>117. Dynamic Thumb ROM groups: focused screen gates</summary>
 
 [Full report and evidence](DYNAMIC_ROM_COHORT_SCREEN_GATES.md)
 
@@ -3450,9 +3763,9 @@ These are focused screening gates, not full acceptance. No fresh full compiler/n
 
 </details>
 
-<a id="report-102"></a>
+<a id="report-118"></a>
 <details>
-<summary>102. Dynamic Thumb ROM grouping: rejected screen</summary>
+<summary>118. Dynamic Thumb ROM grouping: rejected screen</summary>
 
 [Full report and evidence](DYNAMIC_ROM_COHORT_TIMING_RESULTS.md)
 
@@ -3480,9 +3793,9 @@ Guest instruction and presentation totals agree. The candidate allocates about 4
 
 </details>
 
-<a id="report-104"></a>
+<a id="report-120"></a>
 <details>
-<summary>104. Eager ROM regions: no promotion</summary>
+<summary>120. Eager ROM regions: no promotion</summary>
 
 [Full report and evidence](EAGER_REGIONS_RESULTS.md)
 
@@ -3509,9 +3822,9 @@ observations remain. Nothing pushed or deployed.
 
 </details>
 
-<a id="report-105"></a>
+<a id="report-121"></a>
 <details>
-<summary>105. Skip an already-empty exclusive monitor</summary>
+<summary>121. Skip an already-empty exclusive monitor</summary>
 
 [Full report and evidence](EMPTY_MONITOR_CLEAR_RESULTS.md)
 
@@ -3529,9 +3842,9 @@ retained, including the slower Sky Force pair; there are zero invalid attempts.
 
 </details>
 
-<a id="report-106"></a>
+<a id="report-122"></a>
 <details>
-<summary>106. Loop-free entry-budget experiment</summary>
+<summary>122. Loop-free entry-budget experiment</summary>
 
 [Full report and evidence](ENTRY_BUDGET_RESULTS.md)
 
@@ -3569,9 +3882,9 @@ is removed, its patch preserved, and no optimization is deployed.
 
 </details>
 
-<a id="report-107"></a>
+<a id="report-123"></a>
 <details>
-<summary>107. Entry-proof fallback census after expanded leaf eligibility</summary>
+<summary>123. Entry-proof fallback census after expanded leaf eligibility</summary>
 
 [Full report and evidence](ENTRY_PROOF_RESULTS.md)
 
@@ -3587,9 +3900,9 @@ A narrower next candidate is generic **callee-prefix fusion**. The captured rout
 
 </details>
 
-<a id="report-108"></a>
+<a id="report-124"></a>
 <details>
-<summary>108. Redundant region exit guards</summary>
+<summary>124. Redundant region exit guards</summary>
 
 [Full report and evidence](EXIT_GUARD_RESULTS.md)
 
@@ -3612,9 +3925,9 @@ The normal Qt attempt exposed a real startup regression: its frontend called the
 
 </details>
 
-<a id="report-109"></a>
+<a id="report-125"></a>
 <details>
-<summary>109. Forward-only leaf expansion on the current runtime</summary>
+<summary>125. Forward-only leaf expansion on the current runtime</summary>
 
 [Full report and evidence](EXPANDED_CURRENT_RESULTS.md)
 
@@ -3643,9 +3956,9 @@ artifact is served with the measured configuration after the checks below.
 
 </details>
 
-<a id="report-110"></a>
+<a id="report-126"></a>
 <details>
-<summary>110. Expanded original-emitter leaf prototype</summary>
+<summary>126. Expanded original-emitter leaf prototype</summary>
 
 [Full report and evidence](EXPANDED_LEAVES_RESULTS.md)
 
@@ -3667,9 +3980,29 @@ rejection. The result does not establish an additional current-runtime gain.
 
 </details>
 
-<a id="report-113"></a>
+<a id="report-129"></a>
 <details>
-<summary>113. First-use compilation coverage screen (rejected)</summary>
+<summary>129. FBS backing and process arena memory</summary>
+
+[Full report and evidence](FBS_ARENA_MEMORY_RESULTS.md)
+
+**FBS backing and process arena memory**
+
+The whole-browser PSS result is workload-sensitive. Tetris's resident WASM
+mapping fell 54 MiB, yet its total browser PSS rose 190.68 MiB in these
+captures. Its control and candidate advanced different numbers of frames and
+compiled functions during the same wall-time window, so total PSS and FPS are
+not clean fixed-work comparisons. Asphalt 3's direct-page count was unchanged
+(2,003), and the nine-app trace supports unchanged direct-path coverage. CPU
+frequency and unrelated host load also varied substantially, so these runs do
+not establish a runtime speedup or slowdown. An early FBS prewarm variant was
+rejected after increasing both WASM capacity and browser PSS.
+
+</details>
+
+<a id="report-130"></a>
+<details>
+<summary>130. First-use compilation coverage screen (rejected)</summary>
 
 [Full report and evidence](FIRST_USE_COMPILATION_SCREEN_RESULTS.md)
 
@@ -3679,9 +4012,9 @@ The separate diagnostic build confirms that all-first-use compilation reaches th
 
 </details>
 
-<a id="report-114"></a>
+<a id="report-131"></a>
 <details>
-<summary>114. Flag and incoming-register data-flow experiments</summary>
+<summary>131. Flag and incoming-register data-flow experiments</summary>
 
 [Full report and evidence](FLAG_DATAFLOW_RESULTS.md)
 
@@ -3752,9 +4085,9 @@ earn its cost in these controls.
 
 </details>
 
-<a id="report-115"></a>
+<a id="report-132"></a>
 <details>
-<summary>115. Direct flag-stack stores</summary>
+<summary>132. Direct flag-stack stores</summary>
 
 [Full report and evidence](FLAG_STACK_RESULTS.md)
 
@@ -3780,9 +4113,9 @@ portable expected gain. The checked work is identical in every run.
 
 </details>
 
-<a id="report-117"></a>
+<a id="report-134"></a>
 <details>
-<summary>117. Fusing indirect ARM calls and their returns</summary>
+<summary>134. Fusing indirect ARM calls and their returns</summary>
 
 [Full report and evidence](FUSED_INDIRECT_CALL_RESULTS.md)
 
@@ -3846,9 +4179,9 @@ that retaining state across this frequently executed boundary pays off.
 
 </details>
 
-<a id="report-118"></a>
+<a id="report-135"></a>
 <details>
-<summary>118. Fusion after fixing User::After timing</summary>
+<summary>135. Fusion after fixing User::After timing</summary>
 
 [Full report and evidence](FUSION_AFTER_TIMER_RESULTS.md)
 
@@ -3916,9 +4249,9 @@ These short panels do not provide confidence intervals or cover every level.
 
 </details>
 
-<a id="report-119"></a>
+<a id="report-136"></a>
 <details>
-<summary>119. Whole-game call fusion census</summary>
+<summary>136. Whole-game call fusion census</summary>
 
 [Full report and evidence](FUSION_CENSUS_RESULTS.md)
 
@@ -3933,9 +4266,98 @@ backend and fusion limits are preserved.
 
 </details>
 
-<a id="report-120"></a>
+<a id="report-137"></a>
 <details>
-<summary>120. Graduation and reassessment of marginal experiments</summary>
+<summary>137. Reclaim generated code without restarting the CPU worker</summary>
+
+[Full report and evidence](GRACEFUL_CODE_RECLAMATION.md)
+
+**Ownership and reclamation**
+
+ROM admission markers must also be cleared on eviction. Otherwise a retired
+ROM PC is treated as already compiled and falls into the single-instruction
+fallback. Pending ROM merge bodies must be removed too: retaining an old
+body and recompiling the same PC produces duplicate exports and failed
+consolidation. Both cases have executable WASM regression coverage.
+
+**Corrected 40 MiB prepared-game comparisons**
+
+Asphalt validates the racing HUD at both endpoints. Tetris's last screenshot
+still shows active Marathon play; Hooked On's last screenshot shows the Costa
+Rica boat without tutorial overlays. These small samples support retaining
+gameplay throughput; they do not establish a general speedup. Tetris and
+Hooked On vary across consecutive windows even in the control.
+
+**Initial prepared Asphalt comparison (FPS later rejected)**
+
+Chromium 154, fresh browser profiles, guest sound enabled, the same prepared
+installation and extended stationary-race route, sequential control/candidate/
+candidate/control runs at 3.0 GHz. The control is `df5c37567` with CPU recycling
+suppressed so it provides the throughput reference without the old restart
+cost. Its cap is 2,048 MiB to avoid censoring its peak. Candidates use 1,331 MiB.
+Only the uniquely verified game-tab renderer is capped, with no swap.
+
+All four completed the then-current racing-HUD assertion with zero limit-hit/OOM
+events, zero instantiation failures, and one CPU-worker start. That assertion
+checked only the start of the interval. Endpoint screenshots subsequently
+showed the trial purchase screen, so these FPS columns mix racing and menu
+work and **cannot establish racing throughput or a performance win**.
+Startup still costs about 28 seconds versus retaining unlimited code. The
+previous recycling default measured 96.7 seconds and 101.53 FPS in its fixed-
+clock panel, recorded in `RENDERER_CAP_RESULTS.md`; that is historical evidence,
+not a new simultaneous comparison.
+
+The benchmark now requires the racing HUD at both interval endpoints and
+publishes an FPS report only after both checks pass. The earlier scratch
+route's 60-million-guest-microsecond warmup allowed the trial timer to expire
+inside the measurement. Accepted comparisons use the repository's normal
+5-million-guest-microsecond warmup on both builds. The attempted longer
+`headroom40-freshquiet-asphalt-3` route exposed the purchase screen when its
+extra interval started; its reported initial 104.72 FPS is also rejected as
+a racing-throughput claim. This correction does not change the recorded
+cgroup peaks or prove that old native allocations were still live.
+
+**Direct-address-index candidate and validation method**
+
+Two samples are excluded from throughput acceptance:
+`direct-prepared-tetris` completed its standard 129.33 FPS window, then an
+optional diagnostic command incorrectly tried to step a running guest;
+`final-prepared-tetris` completed the whole route and passed the cap, but
+actual CPU frequency fell from 1.7 to 1.3 GHz despite the requested 3.0 GHz.
+Neither is silently counted as a clean performance comparison.
+
+**32 MiB validation**
+
+The uncensored fresh Asphalt control peaked at 1858.5 MiB. Its first/later
+windows were 83.60 / 93.23 FPS; the fresh candidates were 80.73 and
+81.53 / 96.51 FPS. The opening candidate windows were 2.5–3.4% slower and
+compiled 266/173 functions versus 19 in the control. The later candidate
+window compiled seven functions versus one in the control and was 3.5%
+faster. These samples do not establish a sustained throughput regression
+or a general speedup; they do show that startup recompilation is not free.
+
+**Startup/memory budget sweep**
+
+Opening gameplay FPS at 128/120 was 84.0–85.2 prepared and 84.8 fresh, versus
+84.9 for the prepared unbounded control. The later three-second windows
+varied more; all per-run values and compilation counters are retained in
+`CODE_CACHE_BUDGET_SWEEP.json`. These short checks are not a general
+throughput guarantee or evidence of a speedup.
+
+**Previous adoption of 128/120 MiB as the browser default**
+
+These short windows support comparable gameplay throughput, not a general
+speedup. Fresh Tetris completed three active Marathon windows at
+131.97/127.13/127.17 FPS. Hooked On completed its restart/tutorial route and
+three gameplay windows in both fresh and prepared cases. Final Tetris and
+Hooked On screenshots were inspected, and Asphalt checked the racing HUD at
+both endpoints of each window.
+
+</details>
+
+<a id="report-138"></a>
+<details>
+<summary>138. Graduation and reassessment of marginal experiments</summary>
 
 [Full report and evidence](GRADUATION_RESULTS.md)
 
@@ -3982,9 +4404,9 @@ not establish a precise universal gain. Every run performs the same
 
 </details>
 
-<a id="report-121"></a>
+<a id="report-139"></a>
 <details>
-<summary>121. Browser log and GL diagnostic overhead</summary>
+<summary>139. Browser log and GL diagnostic overhead</summary>
 
 [Full report and evidence](GRAPHICS_DIAGNOSTICS_RESULTS.md)
 
@@ -4028,9 +4450,9 @@ overhead; it must not be advertised as a 1.50x interactive-emulation gain.
 
 </details>
 
-<a id="report-122"></a>
+<a id="report-140"></a>
 <details>
-<summary>122. Natural snake growth increases the measured workload</summary>
+<summary>140. Natural snake growth increases the measured workload</summary>
 
 [Full report and evidence](GROWTH_LENGTH_RESULTS.md)
 
@@ -4059,9 +4481,9 @@ native wall times are not browser headroom measurements.
 
 </details>
 
-<a id="report-123"></a>
+<a id="report-141"></a>
 <details>
-<summary>123. Diagnostic profiles of the natural length routes</summary>
+<summary>141. Diagnostic profiles of the natural length routes</summary>
 
 [Full report and evidence](GROWTH_PROFILE_RESULTS.md)
 
@@ -4080,9 +4502,9 @@ times are diagnostics and do not replace the ordinary throughput observations.
 
 </details>
 
-<a id="report-126"></a>
+<a id="report-144"></a>
 <details>
-<summary>126. Guest-level interpreter profile: Snakes</summary>
+<summary>144. Guest-level interpreter profile: Snakes</summary>
 
 [Full report and evidence](GUEST_PROFILE_RESULTS.md)
 
@@ -4104,9 +4526,9 @@ fusion. A speedup cannot be inferred directly from instruction percentages.
 
 </details>
 
-<a id="report-128"></a>
+<a id="report-146"></a>
 <details>
-<summary>128. Native instruction samples of compiled-region handoffs</summary>
+<summary>146. Native instruction samples of compiled-region handoffs</summary>
 
 [Full report and evidence](HANDOFF_NATIVE_PROFILE_RESULTS.md)
 
@@ -4131,9 +4553,9 @@ These deltas are descriptive, **not established gains or regressions**. Equal gu
 
 </details>
 
-<a id="report-129"></a>
+<a id="report-147"></a>
 <details>
-<summary>129. Hardware counter diagnostic: slow mode not reproduced</summary>
+<summary>147. Hardware counter diagnostic: slow mode not reproduced</summary>
 
 [Full report and evidence](HARDWARE_COUNTER_RESULTS.md)
 
@@ -4148,9 +4570,9 @@ These deltas are descriptive, **not established gains or regressions**. Equal gu
 
 </details>
 
-<a id="report-130"></a>
+<a id="report-148"></a>
 <details>
-<summary>130. Headroom optimization trials</summary>
+<summary>148. Headroom optimization trials</summary>
 
 [Full report and evidence](HEADROOM_RESULTS.md)
 
@@ -4193,9 +4615,9 @@ measured benefit is not justified by these results.
 
 </details>
 
-<a id="report-131"></a>
+<a id="report-149"></a>
 <details>
-<summary>131. Hooked On: allow loaded games past the hot-compilation quota</summary>
+<summary>149. Hooked On: allow loaded games past the hot-compilation quota</summary>
 
 [Full report and evidence](HOOKED_AOT_CAPACITY_RESULTS.md)
 
@@ -4241,9 +4663,9 @@ values are not gameplay speedup evidence.
 
 </details>
 
-<a id="report-132"></a>
+<a id="report-150"></a>
 <details>
-<summary>132. Hooked On: paced WASM deficit and idle-wakeup experiment</summary>
+<summary>150. Hooked On: paced WASM deficit and idle-wakeup experiment</summary>
 
 [Full report and evidence](HOOKED_PACED_PROFILE.md)
 
@@ -4267,9 +4689,9 @@ Both diagnostic gameplay windows passed with no recorded page/guest access fault
 
 </details>
 
-<a id="report-133"></a>
+<a id="report-151"></a>
 <details>
-<summary>133. Hooked On startup profile after WasmFS adoption</summary>
+<summary>151. Hooked On startup profile after WasmFS adoption</summary>
 
 [Full report and evidence](HOOKED_POST_WASMFS_PROFILE.md)
 
@@ -4337,9 +4759,9 @@ change occurred between the two WasmFS profiles.
 
 </details>
 
-<a id="report-134"></a>
+<a id="report-152"></a>
 <details>
-<summary>134. Hooked On startup profile after the startup follow-up</summary>
+<summary>152. Hooked On startup profile after the startup follow-up</summary>
 
 [Full report and evidence](HOOKED_STARTUP_PROFILE.md)
 
@@ -4378,9 +4800,9 @@ a reason to reintroduce them without new gameplay regression evidence.
 
 </details>
 
-<a id="report-135"></a>
+<a id="report-153"></a>
 <details>
-<summary>135. V29 short decision screen</summary>
+<summary>153. V29 short decision screen</summary>
 
 [Full report and evidence](HOTPATH_SHORT_SCREEN_RESULTS.md)
 
@@ -4397,9 +4819,9 @@ a reason to reintroduce them without new gameplay regression evidence.
 
 </details>
 
-<a id="report-136"></a>
+<a id="report-154"></a>
 <details>
-<summary>136. Frozen hot-path specialization: V29 acceptance</summary>
+<summary>154. Frozen hot-path specialization: V29 acceptance</summary>
 
 [Full report and evidence](HOTPATH_SPECIALIZATION_RESULTS.md)
 
@@ -4415,9 +4837,9 @@ Next: four independent reversed-order panels, each covering stationary and movin
 
 </details>
 
-<a id="report-137"></a>
+<a id="report-155"></a>
 <details>
-<summary>137. Individual hot-path timings: V29</summary>
+<summary>155. Individual hot-path timings: V29</summary>
 
 [Full report and evidence](HOTPATH_SPECIALIZATION_TIMING_RESULTS.md)
 
@@ -4440,9 +4862,9 @@ The user permits a modest loss in one game for a large repeatable gain in the ot
 
 </details>
 
-<a id="report-138"></a>
+<a id="report-156"></a>
 <details>
-<summary>138. Profile-driven hotspot round</summary>
+<summary>156. Profile-driven hotspot round</summary>
 
 [Full report and evidence](HOTSPOT_ROUND_RESULTS.md)
 
@@ -4461,9 +4883,9 @@ Actual gameplay samples are matched to timestamped V8 code versions, covering bo
 
 </details>
 
-<a id="report-139"></a>
+<a id="report-157"></a>
 <details>
-<summary>139. Deadline-aware paced WASM idle waits</summary>
+<summary>157. Deadline-aware paced WASM idle waits</summary>
 
 [Full report and evidence](IDLE_DEADLINE_RESULTS.md)
 
@@ -4487,9 +4909,9 @@ access faults.
 
 </details>
 
-<a id="report-140"></a>
+<a id="report-158"></a>
 <details>
-<summary>140. Whole-game impact of constant-time target selection</summary>
+<summary>158. Whole-game impact of constant-time target selection</summary>
 
 [Full report and evidence](INDIRECT_TARGET_TABLE_GAME_RESULTS.md)
 
@@ -4536,9 +4958,9 @@ be treated as identical-work savings.
 
 </details>
 
-<a id="report-141"></a>
+<a id="report-159"></a>
 <details>
-<summary>141. Constant-time indirect-call target selection</summary>
+<summary>159. Constant-time indirect-call target selection</summary>
 
 [Full report and evidence](INDIRECT_TARGET_TABLE_RESULTS.md)
 
@@ -4578,9 +5000,36 @@ Snakes also presents fewer frames. The candidate remains archived.
 
 </details>
 
-<a id="report-142"></a>
+<a id="report-160"></a>
 <details>
-<summary>142. Interpreter flags before slow memory callbacks</summary>
+<summary>160. Temporary installer staging and WASM residency</summary>
+
+[Full report and evidence](INSTALLER_STAGING_RESULTS.md)
+
+**Temporary installer staging and WASM residency**
+
+The browser build also uses a 1 MiB read buffer while extracting an OPFS
+RPKG or copying an OPFS ROM into the installed storage. Without those buffers,
+OPFS's many small calls made device installation about 20 seconds in one
+Asphalt 3 run. A separate 1 MiB buffer in the SIS parser's generic file stream
+was rejected: paired first-launch runs made SIS installation slower, about
+2.6–2.7 seconds versus 1.8–1.9 seconds without it.
+
+**Gameplay memory**
+
+Snakes saved 122.3 MiB of resident WASM and 126.5 MiB across the browser at
+the measured scene. The paired Asphalt captures saved 34.3 and 80.3 MiB of
+resident WASM. Its whole-browser delta changed sign between pairs (+42.8 and
+-73.6 MiB), so the data do not establish a reliable whole-browser saving for
+that game. The control itself varied by 83.4 MiB of WASM PSS across two runs.
+The FPS values also vary with host load and compilation; they establish that
+the measured candidate reached active gameplay, not a throughput speedup.
+
+</details>
+
+<a id="report-161"></a>
+<details>
+<summary>161. Interpreter flags before slow memory callbacks</summary>
 
 [Full report and evidence](INTERPRETER_CALLBACK_CPSR_RESULTS.md)
 
@@ -4607,9 +5056,9 @@ No live acceptance, deployment or speedup claim accompanies this fix.
 
 </details>
 
-<a id="report-143"></a>
+<a id="report-162"></a>
 <details>
-<summary>143. Interpreter fallback hunt</summary>
+<summary>162. Interpreter fallback hunt</summary>
 
 [Full report and evidence](INTERPRETER_HUNT_RESULTS.md)
 
@@ -4661,9 +5110,9 @@ concurrent and their elapsed times are not used for this comparison.
 
 </details>
 
-<a id="report-144"></a>
+<a id="report-163"></a>
 <details>
-<summary>144. Mixed IR with invariant read proofs</summary>
+<summary>163. Mixed IR with invariant read proofs</summary>
 
 [Full report and evidence](INVARIANT_IR_DESIGN.md)
 
@@ -4686,9 +5135,9 @@ See INVARIANT_IR_RESULTS.md and INVARIANT_IR_EVIDENCE.json.
 
 </details>
 
-<a id="report-145"></a>
+<a id="report-164"></a>
 <details>
-<summary>145. Mixed IR consuming invariant read proofs</summary>
+<summary>164. Mixed IR consuming invariant read proofs</summary>
 
 [Full report and evidence](INVARIANT_IR_RESULTS.md)
 
@@ -4724,9 +5173,9 @@ archive remains served. No owned heavy work overlapped warmup or measurement.
 
 </details>
 
-<a id="report-147"></a>
+<a id="report-166"></a>
 <details>
-<summary>147. Invariant read spans: modest measured gain, delivered on LAN</summary>
+<summary>166. Invariant read spans: modest measured gain, delivered on LAN</summary>
 
 [Full report and evidence](INVARIANT_READS_RESULTS.md)
 
@@ -4750,9 +5199,9 @@ same-binary policy comparison is the more specific evidence for this change.
 
 </details>
 
-<a id="report-148"></a>
+<a id="report-167"></a>
 <details>
-<summary>148. Invariant write-span experiment</summary>
+<summary>167. Invariant write-span experiment</summary>
 
 [Full report and evidence](INVARIANT_WRITES_DESIGN.md)
 
@@ -4763,9 +5212,9 @@ report. Static coverage and generated size do not establish a speedup.
 
 </details>
 
-<a id="report-149"></a>
+<a id="report-168"></a>
 <details>
-<summary>149. Invariant write spans: retained opt-in, no deployment gain established</summary>
+<summary>168. Invariant write spans: retained opt-in, no deployment gain established</summary>
 
 [Full report and evidence](INVARIANT_WRITES_RESULTS.md)
 
@@ -4786,9 +5235,9 @@ percentage; there is no fixed percentage promise.
 
 </details>
 
-<a id="report-151"></a>
+<a id="report-170"></a>
 <details>
-<summary>151. Broader IR memory addressing: no promotion</summary>
+<summary>170. Broader IR memory addressing: no promotion</summary>
 
 [Full report and evidence](IR_ADDRESSING_RESULTS.md)
 
@@ -4810,9 +5259,9 @@ and 676 presentations.
 
 </details>
 
-<a id="report-155"></a>
+<a id="report-174"></a>
 <details>
-<summary>155. Mixed IR through validated inline calls</summary>
+<summary>174. Mixed IR through validated inline calls</summary>
 
 [Full report and evidence](IR_CALLS_RESULTS.md)
 
@@ -4834,9 +5283,9 @@ Candidate throughput relative to controls: flags -2.48%, combined -2.10%, served
 
 </details>
 
-<a id="report-156"></a>
+<a id="report-175"></a>
 <details>
-<summary>156. Conditional pure values in mixed IR</summary>
+<summary>175. Conditional pure values in mixed IR</summary>
 
 [Full report and evidence](IR_CONDITIONS_DESIGN.md)
 
@@ -4850,9 +5299,9 @@ can still regress performance.
 
 </details>
 
-<a id="report-157"></a>
+<a id="report-176"></a>
 <details>
-<summary>157. Conditional integer IR: no promotion</summary>
+<summary>176. Conditional integer IR: no promotion</summary>
 
 [Full report and evidence](IR_CONDITIONS_RESULTS.md)
 
@@ -4879,9 +5328,9 @@ Fresh diagnostic profiles follow separately; they are not promotion timings.
 
 </details>
 
-<a id="report-158"></a>
+<a id="report-177"></a>
 <details>
-<summary>158. Flag values in mixed IR</summary>
+<summary>177. Flag values in mixed IR</summary>
 
 [Full report and evidence](IR_FLAGS_DESIGN.md)
 
@@ -4894,9 +5343,9 @@ does not establish a speedup.
 
 </details>
 
-<a id="report-159"></a>
+<a id="report-178"></a>
 <details>
-<summary>159. Flag-aware mixed IR</summary>
+<summary>178. Flag-aware mixed IR</summary>
 
 [Full report and evidence](IR_FLAGS_RESULTS.md)
 
@@ -4918,9 +5367,9 @@ Candidate throughput relative to controls: ir +5.61%, combined +4.16%, served -7
 
 </details>
 
-<a id="report-161"></a>
+<a id="report-180"></a>
 <details>
-<summary>161. Longer mixed-IR segments: not promoted</summary>
+<summary>180. Longer mixed-IR segments: not promoted</summary>
 
 [Full report and evidence](IR_LONG_SEGMENTS_RESULTS.md)
 
@@ -4948,9 +5397,9 @@ The opt-in experiment and correctness coverage are retained; LAN stays unchanged
 
 </details>
 
-<a id="report-162"></a>
+<a id="report-181"></a>
 <details>
-<summary>162. Page reuse in mixed IR: correct, no promotion</summary>
+<summary>181. Page reuse in mixed IR: correct, no promotion</summary>
 
 [Full report and evidence](IR_MEMORY_CACHE_RESULTS.md)
 
@@ -4983,9 +5432,9 @@ experiments. The default compiler and served build do not enable this path.
 
 </details>
 
-<a id="report-164"></a>
+<a id="report-183"></a>
 <details>
-<summary>164. Intermediate memory exits in IR: not promoted</summary>
+<summary>183. Intermediate memory exits in IR: not promoted</summary>
 
 [Full report and evidence](IR_MEMORY_RESULTS.md)
 
@@ -5033,9 +5482,9 @@ boundaries; extending them is a subsequent structural option, not a promised gai
 
 </details>
 
-<a id="report-165"></a>
+<a id="report-184"></a>
 <details>
-<summary>165. Private precise fallbacks for IR segments</summary>
+<summary>184. Private precise fallbacks for IR segments</summary>
 
 [Full report and evidence](IR_OUTLINE_DESIGN.md)
 
@@ -5048,9 +5497,9 @@ disabled by default pending measured acceptance.
 
 </details>
 
-<a id="report-166"></a>
+<a id="report-185"></a>
 <details>
-<summary>166. Private IR fallbacks: smaller hot functions, no promotion</summary>
+<summary>185. Private IR fallbacks: smaller hot functions, no promotion</summary>
 
 [Full report and evidence](IR_OUTLINE_RESULTS.md)
 
@@ -5074,9 +5523,9 @@ seconds 78–96; each run executes 3,975,618,624 instructions and 676 presentati
 
 </details>
 
-<a id="report-167"></a>
+<a id="report-186"></a>
 <details>
-<summary>167. Fault-only IR reconstruction</summary>
+<summary>186. Fault-only IR reconstruction</summary>
 
 [Full report and evidence](IR_RECIPES_DESIGN.md)
 
@@ -5092,9 +5541,9 @@ or a game speedup from the synthetic recipe fixtures.
 
 </details>
 
-<a id="report-168"></a>
+<a id="report-187"></a>
 <details>
-<summary>168. Fault-only reconstruction: no promotion</summary>
+<summary>187. Fault-only reconstruction: no promotion</summary>
 
 [Full report and evidence](IR_RECIPES_RESULTS.md)
 
@@ -5126,9 +5575,9 @@ both settings. Measure startup/code-size costs as well as warmed throughput.
 
 </details>
 
-<a id="report-170"></a>
+<a id="report-189"></a>
 <details>
-<summary>170. Matched application binary: no IR promotion</summary>
+<summary>189. Matched application binary: no IR promotion</summary>
 
 [Full report and evidence](IR_SAME_BINARY_RESULTS.md)
 
@@ -5157,9 +5606,9 @@ improvement over inline IR does not repeat in this matched-binary batch.
 
 </details>
 
-<a id="report-172"></a>
+<a id="report-191"></a>
 <details>
-<summary>172. Integer IR segments: correct, not promoted</summary>
+<summary>191. Integer IR segments: correct, not promoted</summary>
 
 [Full report and evidence](IR_SEGMENTS_RESULTS.md)
 
@@ -5184,9 +5633,9 @@ work ran separately and its wall times are not performance measurements.
 
 </details>
 
-<a id="report-173"></a>
+<a id="report-192"></a>
 <details>
-<summary>173. Adjacent single-use pure IR values</summary>
+<summary>192. Adjacent single-use pure IR values</summary>
 
 [Full report and evidence](IR_STACK_VALUES_DESIGN.md)
 
@@ -5198,9 +5647,9 @@ some local traffic; smaller WASM is insufficient evidence of a gain.
 
 </details>
 
-<a id="report-174"></a>
+<a id="report-193"></a>
 <details>
-<summary>174. Adjacent pure stack values: not promoted</summary>
+<summary>193. Adjacent pure stack values: not promoted</summary>
 
 [Full report and evidence](IR_STACK_VALUES_RESULTS.md)
 
@@ -5237,9 +5686,9 @@ WASM reductions do not establish machine-code savings or gameplay throughput.
 
 </details>
 
-<a id="report-176"></a>
+<a id="report-195"></a>
 <details>
-<summary>176. Wide mixed IR: no gameplay promotion</summary>
+<summary>195. Wide mixed IR: no gameplay promotion</summary>
 
 [Full report and evidence](IR_WIDE_RESULTS.md)
 
@@ -5265,9 +5714,9 @@ broader semantics do not establish a throughput gain.
 
 </details>
 
-<a id="report-177"></a>
+<a id="report-196"></a>
 <details>
-<summary>177. Invariant write proofs consumed by mixed IR</summary>
+<summary>196. Invariant write proofs consumed by mixed IR</summary>
 
 [Full report and evidence](IR_WRITES_DESIGN.md)
 
@@ -5279,9 +5728,9 @@ are not gameplay throughput evidence. Every ordinary timing sample is retained.
 
 </details>
 
-<a id="report-178"></a>
+<a id="report-197"></a>
 <details>
-<summary>178. Invariant write proofs inside mixed IR</summary>
+<summary>197. Invariant write proofs inside mixed IR</summary>
 
 [Full report and evidence](IR_WRITES_RESULTS.md)
 
@@ -5303,9 +5752,9 @@ Candidate throughput relative to controls: calls +0.44%, combined -7.01%, served
 
 </details>
 
-<a id="report-179"></a>
+<a id="report-198"></a>
 <details>
-<summary>179. Fixed syscall dispatch and same-thread context reuse</summary>
+<summary>198. Fixed syscall dispatch and same-thread context reuse</summary>
 
 [Full report and evidence](KERNEL_DISPATCH_RESULTS.md)
 
@@ -5347,9 +5796,9 @@ returns after its ASID check, without copying state back into the core.
 
 </details>
 
-<a id="report-180"></a>
+<a id="report-199"></a>
 <details>
-<summary>180. Wide values and precise exit snapshots</summary>
+<summary>199. Wide values and precise exit snapshots</summary>
 
 [Full report and evidence](LAZY_WIDE_RESULTS.md)
 
@@ -5380,9 +5829,9 @@ report. No new live/audio acceptance, HTTPS deployment or push is claimed.
 
 </details>
 
-<a id="report-181"></a>
+<a id="report-200"></a>
 <details>
-<summary>181. Inlining short ARM leaf helpers</summary>
+<summary>200. Inlining short ARM leaf helpers</summary>
 
 [Full report and evidence](LEAF_REGIONS.md)
 
@@ -5397,9 +5846,9 @@ This is 1.270x throughput; the comparison includes the small runner change as we
 
 </details>
 
-<a id="report-182"></a>
+<a id="report-201"></a>
 <details>
-<summary>182. Summarize the hot linked-list scan</summary>
+<summary>201. Summarize the hot linked-list scan</summary>
 
 [Full report and evidence](LIST_SCAN_RESULTS.md)
 
@@ -5412,9 +5861,9 @@ This is 1.270x throughput; the comparison includes the small runner change as we
 
 </details>
 
-<a id="report-183"></a>
+<a id="report-202"></a>
 <details>
-<summary>183. Runtime literal-PC veneer fusion</summary>
+<summary>202. Runtime literal-PC veneer fusion</summary>
 
 [Full report and evidence](LITERAL_PC_RESULTS.md)
 
@@ -5443,9 +5892,9 @@ standard-b: +5.84% throughput versus control; +1.92% throughput versus baseline.
 
 </details>
 
-<a id="report-184"></a>
+<a id="report-203"></a>
 <details>
-<summary>184. Live browser input and virtual-clock pacing</summary>
+<summary>203. Live browser input and virtual-clock pacing</summary>
 
 [Full report and evidence](LIVE_INPUT_RESULTS.md)
 
@@ -5459,9 +5908,9 @@ seconds and checks consumption plus zero retained PCM frames.
 
 </details>
 
-<a id="report-185"></a>
+<a id="report-204"></a>
 <details>
-<summary>185. ARM long-multiply AOT results</summary>
+<summary>204. ARM long-multiply AOT results</summary>
 
 [Full report and evidence](LONG_MULTIPLY_RESULTS.md)
 
@@ -5495,9 +5944,9 @@ as a clean quantitative comparison to earlier CPU profiles or serial wall time.
 
 </details>
 
-<a id="report-186"></a>
+<a id="report-205"></a>
 <details>
-<summary>186. Long-run headroom and memory investigation</summary>
+<summary>205. Long-run headroom and memory investigation</summary>
 
 [Full report and evidence](LONG_RUN_RESULTS.md)
 
@@ -5540,9 +5989,9 @@ optimization was made in this investigation.
 
 </details>
 
-<a id="report-187"></a>
+<a id="report-206"></a>
 <details>
-<summary>187. Lookup and validation follow-up</summary>
+<summary>206. Lookup and validation follow-up</summary>
 
 [Full report and evidence](LOOKUP_FOLLOWUP_RESULTS.md)
 
@@ -5599,9 +6048,9 @@ remains off; nothing is pushed.
 
 </details>
 
-<a id="report-188"></a>
+<a id="report-207"></a>
 <details>
-<summary>188. Outlined code-cache recovery experiment</summary>
+<summary>207. Outlined code-cache recovery experiment</summary>
 
 [Full report and evidence](LOOKUP_OUTLINE_DESIGN.md)
 
@@ -5616,9 +6065,9 @@ regressions also execute under both layouts.
 
 </details>
 
-<a id="report-189"></a>
+<a id="report-208"></a>
 <details>
-<summary>189. Outlined code-cache lookup: acceptance</summary>
+<summary>208. Outlined code-cache lookup: acceptance</summary>
 
 [Full report and evidence](LOOKUP_OUTLINE_RESULTS.md)
 
@@ -5649,9 +6098,9 @@ on the verified grouped-scanner archive.
 
 </details>
 
-<a id="report-190"></a>
+<a id="report-209"></a>
 <details>
-<summary>190. Instruction budgets at ARM loop heads</summary>
+<summary>209. Instruction budgets at ARM loop heads</summary>
 
 [Full report and evidence](LOOP_BUDGET_RESULTS.md)
 
@@ -5705,9 +6154,9 @@ size or prove which individual instruction consumed sampled CPU time.
 
 </details>
 
-<a id="report-192"></a>
+<a id="report-211"></a>
 <details>
-<summary>192. Matched native/WASM control and a precise memory-miss prototype</summary>
+<summary>211. Matched native/WASM control and a precise memory-miss prototype</summary>
 
 [Full report and evidence](MATCHED_COMPILER_RESULTS.md)
 
@@ -5756,9 +6205,9 @@ runs execute **3,975,200,506 guest instructions** and **676 presentations**.
 
 </details>
 
-<a id="report-193"></a>
+<a id="report-212"></a>
 <details>
-<summary>193. Guest memory-access distribution and arena sizing</summary>
+<summary>212. Guest memory-access distribution and arena sizing</summary>
 
 [Full report and evidence](MEMORY_ACCESS_DISTRIBUTION_RESULTS.md)
 
@@ -5784,9 +6233,9 @@ comparisons of startup, gameplay throughput and browser PSS.
 
 </details>
 
-<a id="report-194"></a>
+<a id="report-213"></a>
 <details>
-<summary>194. Memory semantics and connected-path experiments</summary>
+<summary>213. Memory semantics and connected-path experiments</summary>
 
 [Full report and evidence](MEMORY_AND_CONNECTED_RESULTS.md)
 
@@ -5908,9 +6357,9 @@ these historical timings do not justify restoring that metadata dependency.
 
 </details>
 
-<a id="report-195"></a>
+<a id="report-214"></a>
 <details>
-<summary>195. Software page-cache comparison</summary>
+<summary>214. Software page-cache comparison</summary>
 
 [Full report and evidence](MEMORY_CACHE_RESULTS.md)
 
@@ -5991,9 +6440,78 @@ A temporary host-process watcher paused only this experiment’s driver between 
 
 </details>
 
-<a id="report-196"></a>
+<a id="report-215"></a>
 <details>
-<summary>196. Four guest-memory implementations</summary>
+<summary>215. Fit the browser game renderer within 1 GiB</summary>
+
+[Full report and evidence](MEMORY_CAP_1GIB_RESULTS.md)
+
+**Fit the browser game renderer within 1 GiB**
+
+All eight supported games complete their checked gameplay routes under a **1024 MiB game-tab renderer cap**, with zero swap and zero OOMs. The final build passed **16 complete cap routes**, including two independent cold source-install runs and one prepared-install run for each of the three heaviest games. The measured unpaced windows show no material throughput regression; cold startup is faster. This is a capped-operation result, not an uncapped-peak claim.
+
+**Comparable measurements**
+
+K-Rally ranged from 154.2 to 161.0 FPS across the old controls and 155.1 to 167.6 across new runs; this short route varies enough that a precise speedup would be misleading. Asphalt settled repeats bracket the fresh control. Tetris has mixed differences across its three windows (including a faster middle window), so no exact speedup or statistical equivalence is claimed.
+
+| # | Cold startup endpoint | Old seconds | New seconds, two runs |
+| --- | --- | --- | --- |
+| 1 | Asphalt 3 race | 92.62 | 72.59 / 71.90 |
+| 2 | Hooked On boat | 141.58 | 117.17 / 117.54 |
+| 3 | Tetris board | 89.29 | 68.54 / 68.44 |
+
+**Rejected experiments**
+
+- Shrinking the old cache to 64/60 MiB still peaked at 1275 MiB and delayed
+  Asphalt's race to 114.4 seconds. Its 48/40 MiB run OOMed at 1024 MiB.
+- A post-emission local compaction pass lowered the peak to 1310 MiB but made
+  emission take 6.9 seconds instead of about 1.1 seconds. It was removed.
+- Disabling demand-module merging reached 1597 MiB and reduced settled Asphalt
+  throughput to 96.8 FPS. It was removed.
+- ROM recovery alone lowered Asphalt to 1218 MiB and sped startup, but Hooked On
+  still OOMed with a 48/40 MiB cache under the 1 GiB cap.
+- The first shared-exit implementation initialized every cached field. Hooked On
+  fell to 236 FPS. Restricting entry initialization to shared-exit writeback fields
+  restored roughly 250 FPS. The slower implementation is not in the final build.
+- The combined compiler change with 64/60 MiB retention reached Asphalt gameplay
+  but then OOMed during the first timing window. Reaching the race was not counted
+  as a pass.
+
+</details>
+
+<a id="report-216"></a>
+<details>
+<summary>216. Fit the game renderer within 1.3 GiB without losing gameplay throughput</summary>
+
+[Full report and evidence](MEMORY_CAP_WITHOUT_GAMEPLAY_SLOWDOWN.md)
+
+**Fit the game renderer within 1.3 GiB without losing gameplay throughput**
+
+The October 21 candidate completes nine full cold/prepared routes under a
+**1331 MiB game-tab renderer limit**, with zero OOMs and zero OOM kills. The
+three largest established workloads are Asphalt 3, Hooked On and Tetris.
+Their measured unpaced gameplay is faster than the previous 128/120 MiB
+code-cache default. Cold startup differs by about 1–3 seconds; this is not a
+claim that every phase became faster.
+
+**Comparable measurements**
+
+| # | Fresh startup endpoint | Old seconds (two runs) | New seconds (two runs) |
+|---:|---|---:|---:|
+| 1 | Asphalt 3 race loaded | 89.71 / 90.89 | 91.03 / 92.21 |
+| 2 | Hooked On playable boat | 142.14 / 162.39 | 141.27 / 141.75 |
+| 3 | Tetris playable board | 86.94 / 87.03 | 89.64 / 89.32 |
+
+Asphalt's mean cold-start difference is +1.3 seconds and Tetris's is +2.5 seconds
+(about 3%). Hooked On matches the faster control. Its slower control is retained
+as variability evidence, not used to claim a 20-second gain. Prepared Asphalt
+is 57.97 seconds versus 57.56 seconds for the matched control.
+
+</details>
+
+<a id="report-217"></a>
+<details>
+<summary>217. Four guest-memory implementations</summary>
 
 [Full report and evidence](MEMORY_IMPLEMENTATIONS_RESULTS.md)
 
@@ -6060,9 +6578,9 @@ the serial timing campaign. Other host activity is uncontrolled.
 
 </details>
 
-<a id="report-198"></a>
+<a id="report-219"></a>
 <details>
-<summary>198. Mode-3 literal comparison</summary>
+<summary>219. Mode-3 literal comparison</summary>
 
 [Full report and evidence](MODE3_LITERAL_RESULTS.md)
 
@@ -6085,9 +6603,9 @@ Both normal modes record zero code-byte/version checks. Removed region invocatio
 
 </details>
 
-<a id="report-200"></a>
+<a id="report-221"></a>
 <details>
-<summary>200. Mode-3 lookup comparison</summary>
+<summary>221. Mode-3 lookup comparison</summary>
 
 [Full report and evidence](MODE3_LOOKUP_RESULTS.md)
 
@@ -6102,9 +6620,9 @@ Both normal modes record zero code-byte/version checks. Removed region invocatio
 
 </details>
 
-<a id="report-201"></a>
+<a id="report-222"></a>
 <details>
-<summary>201. Remaining costs under the delivered mode-3 policy</summary>
+<summary>222. Remaining costs under the delivered mode-3 policy</summary>
 
 [Full report and evidence](MODE3_REMAINING_RESULTS.md)
 
@@ -6119,9 +6637,9 @@ The first pair uses detailed counters and 1 ms CPU sampling. These expose signif
 
 </details>
 
-<a id="report-202"></a>
+<a id="report-224"></a>
 <details>
-<summary>202. Indirect-call instance layout discriminator</summary>
+<summary>224. Indirect-call instance layout discriminator</summary>
 
 [Full report and evidence](MODULE_LAYOUT_RESULTS.md)
 
@@ -6136,9 +6654,9 @@ not a prediction of savings after real successor validation and lookup.
 
 </details>
 
-<a id="report-203"></a>
+<a id="report-226"></a>
 <details>
-<summary>203. MOV/MVN unused source-register elimination</summary>
+<summary>226. MOV/MVN unused source-register elimination</summary>
 
 [Full report and evidence](MOV_UNUSED_RN_RESULTS.md)
 
@@ -6159,9 +6677,9 @@ Across all trials, mean elapsed time is 14.8919s baseline and 14.3769s candidate
 
 </details>
 
-<a id="report-204"></a>
+<a id="report-227"></a>
 <details>
-<summary>204. Nokia N80 firmware assets</summary>
+<summary>227. Nokia N80 firmware assets</summary>
 
 [Full report and evidence](N80_ASSETS.md)
 
@@ -6184,9 +6702,9 @@ scene captures and non-silent audio. The unchanged 5320 assets also passed a
 
 </details>
 
-<a id="report-205"></a>
+<a id="report-228"></a>
 <details>
-<summary>205. Native Sky Force attribution to guest ARM and C++</summary>
+<summary>228. Native Sky Force attribution to guest ARM and C++</summary>
 
 [Full report and evidence](NATIVE_ATTRIBUTION_RESULTS.md)
 
@@ -6238,9 +6756,26 @@ elapsed times are not an optimization result.
 
 </details>
 
-<a id="report-207"></a>
+<a id="report-230"></a>
 <details>
-<summary>207. Fresh normal-policy control profiles</summary>
+<summary>230. N-Gage package staging in the browser</summary>
+
+[Full report and evidence](NGAGE_STREAM_STAGING_RESULTS.md)
+
+**Identical-binary comparison**
+
+The adopted path avoids a 51.25 MiB WASM-capacity increase at package staging.
+Its sampled PSS rise was about 15 MiB, close to the original path's 12 MiB;
+the different baselines and one run per variant do not establish a physical
+RAM saving. WASM capacity is reserved space, not resident memory. The 92 ms
+package-preparation difference is small beside the much longer guest
+installation and does not establish a reliable startup regression.
+
+</details>
+
+<a id="report-231"></a>
+<details>
+<summary>231. Fresh normal-policy control profiles</summary>
 
 [Full report and evidence](NORMAL_POLICY_PROFILE_V30.md)
 
@@ -6250,9 +6785,9 @@ The next hypothesis is a sparse exact ROM lookup index that removes hash lookup 
 
 </details>
 
-<a id="report-208"></a>
+<a id="report-232"></a>
 <details>
-<summary>208. Worker-owned browser graphics</summary>
+<summary>232. Worker-owned browser graphics</summary>
 
 [Full report and evidence](OFFSCREEN_RESULTS.md)
 
@@ -6267,9 +6802,123 @@ is retained in `OFFSCREEN_EVIDENCE.json` separately from the committed build.
 
 </details>
 
-<a id="report-209"></a>
+<a id="report-233"></a>
 <details>
-<summary>209. Outlined short-budget recovery experiment</summary>
+<summary>233. Full-OPFS startup and file-I/O trace</summary>
+
+[Full report and evidence](OPFS_FS_TRACE_RESULTS.md)
+
+**Workload and capture**
+
+The diagnostic `EKA2L1_WASM_FS_TRACE` build recorded every dispatched
+file-server IPC: normalized and raw opcode, guest process/thread, PC/LR and
+module, sync/async send, path or handle, read position and length, result, and
+handler duration. A probe around the generated WasmFS OPFS imports recorded
+observed host calls on the active worker(s), including path, duration, and
+read position/length. Worker evaluation was not exhaustive, so OPFS call
+counts are observed counts, not a proof that no call was missed. The probe and
+tracer change timing and are not suitable as throughput benchmarks.
+
+**Slowest observed launch: K-Rally**
+
+The mount took 5.33 seconds. The observed host trace contains 20,760 OPFS
+calls during mount, 102,539 between guest-trace start and first visible
+screen, and 32,142 afterward. The
+last phase is almost entirely repeated `get_size_file` and `get_entries` with
+no guest file-server calls, consistent with the logged periodic full-tree save
+scan. Across the capture, `get_size_file` ran 90,547 times on 10,051 unique
+paths (25.98 seconds summed), `read_blob` 22,660 times (18.03 seconds),
+`get_child` 33,691 times (7.59 seconds), and `get_entries` 4,879 times (5.31
+seconds). The firmware skin still dominated individual physical reads:
+13,800 `read_blob` calls and 10.53 seconds summed. K-Rally's
+`E:/Private/A0000BF6/data.pak` caused 5,827 OPFS operations (1.39 seconds
+summed). A 32 KiB 4 KiB-page replay cache would have fully served 96.70% of
+observed host read calls; that is a potential backend-call avoidance rate, not
+a speedup measurement. The replay does not invalidate on writes, so this is an
+optimistic bound.
+
+**Paired client/game trace: Hooked On**
+
+A replay of the observed host reads through a 4 KiB page LRU found that a
+32 KiB cache would have fully served 94.49% of the startup read calls and
+93.67% of the game-path read calls; a 1 MiB cache raised these to 96.70% and
+95.98%. These are *potential backend-call avoidance rates*, not measured
+speedups. The replay does not invalidate on writes, so these are optimistic
+bounds. An 8-page cache is enough for the skin file's observed footprint;
+larger game files need bounded pages plus sequential read-ahead. The first
+misses, metadata work, allocation cost, and write coherence remain.
+
+**Storage design, ordered by measured leverage**
+
+1. Keep a RAM metadata index for sizes and file/directory lookup, reconstructed
+   once from the saved manifest. Put it in the WasmFS-facing backend or OPFS
+   adapter, before `get_size_file` calls `getFile()` and before directory
+   lookups reach OPFS; a guest RFs-only cache would miss direct emulator VFS
+   users. Update it at the VFS mutation boundary for
+   write, truncate, create, delete, rename, and restore. Pin immutable firmware
+   metadata; keep mutable drive metadata versioned across all emulator and I/O
+   workers rather than relying on an uncoordinated per-worker JavaScript map.
+   A size-only prototype can validate the roughly 90,000-call bucket in both
+   traced launches before implementing the rest.
+2. Stop inventorying the full mounted tree every ten seconds. The current
+   `persistent_disk.cpp` scan walks `/data` and issues `lstat` for every entry;
+   the launcher calls it on start and periodically. Maintain a dirty-path and
+   rename journal, flush manifest deltas below foreground read priority, and
+   keep a bounded occasional reconciliation scan for recovery. The two
+   scan-off warm Hooked On runs took 32.29 and 32.27 seconds, versus one nearby
+   scan-on repeat at 35.33 seconds. Earlier scan-on runs took 52-57 seconds,
+   so the small paired gap is suggestive, not a measured speedup guarantee.
+3. Cache tiny read-only files whole (start with the skin file), then add a
+   bounded page cache for larger packages. Start the page cache at 256 KiB and
+   compare 32 KiB and 1 MiB against the same workload; the replay gain beyond
+   256 KiB is small. Read-ahead should follow the observed sequential
+   511/1,024-byte `data0000.pak` reads. The ROM can remain on OPFS as a large
+   file. Do not copy all installed files into RAM to get
+   low latency for a few hot pages.
+4. Make cache misses asynchronous with respect to the **emulated CPU**: queue
+   an owned file request to a dedicated I/O worker, let the guest scheduler run
+   another runnable thread, and post the result back to the emulator thread.
+   A guest synchronous `SendReceive` blocks only its calling guest thread;
+   guest asynchronous requests return with their `TRequestStatus` pending and
+   complete later. Preserve order per open handle, cancellation, session
+   teardown, descriptor lifetime, and write visibility. The current HLE
+   dispatch invokes `process_accepted_msg()` inline, and `file_read()` performs
+   `vfs_file->read_file()` before completing the request. Existing
+   `ipc_context::move_to_new()` supplies a way to retain an IPC context, but
+   completion must occur on the emulator thread after checking its lifetime.
+5. Direct emulator VFS callers such as skin loading need an explicit async
+   prefetch boundary before their synchronous parser. Making only the guest
+   file-server asynchronous would miss the hottest small-file path. A dedicated
+   browser worker may use OPFS sync access handles internally while the CPU
+   remains free; the browser restricts those handles to dedicated workers
+   ([MDN](https://developer.mozilla.org/en-US/docs/Web/API/FileSystemSyncAccessHandle)).
+   Emscripten's [WasmFS API](https://emscripten.org/docs/api_reference/Filesystem-API.html)
+   still exposes synchronous calls to C++, so guest-level overlap requires an
+   explicit suspend/resume boundary above it.
+
+</details>
+
+<a id="report-234"></a>
+<details>
+<summary>234. Selective OPFS storage for installed ROMs</summary>
+
+[Full report and evidence](OPFS_ROM_RESULTS.md)
+
+**Matched selective comparison**
+
+A separate paced test advanced through the Snakes menus, inspected screenshots
+of the actual playfield and then measured ten seconds of gameplay. The matched
+control ran at 16.28 presentations/s and the OPFS variant at 15.98. Both
+advanced guest time at approximately real time and translated one new compiled
+function in the measurement window. One run per variant is insufficient to
+resolve a roughly 2% throughput difference; this establishes no large runtime
+regression. The OPFS copy happens before gameplay, not on guest memory access.
+
+</details>
+
+<a id="report-235"></a>
+<details>
+<summary>235. Outlined short-budget recovery experiment</summary>
 
 [Full report and evidence](OUTLINED_BUDGET_RESULTS.md)
 
@@ -6317,9 +6966,9 @@ suite; the outlining-only test lives with the rejected patch.
 
 </details>
 
-<a id="report-210"></a>
+<a id="report-236"></a>
 <details>
-<summary>210. Owning-core reuse on the graduated runtime</summary>
+<summary>236. Owning-core reuse on the graduated runtime</summary>
 
 [Full report and evidence](OWNER_CURRENT_RESULTS.md)
 
@@ -6340,9 +6989,9 @@ Current Snakes +0.15% CPU throughput with mixed pairs and +0.46% native instruct
 
 </details>
 
-<a id="report-211"></a>
+<a id="report-237"></a>
 <details>
-<summary>211. Interactive browser pacing, 2026-10-01</summary>
+<summary>237. Interactive browser pacing, 2026-10-01</summary>
 
 [Full report and evidence](PACING_RESULTS.md)
 
@@ -6373,9 +7022,9 @@ artifact directories.
 
 </details>
 
-<a id="report-212"></a>
+<a id="report-238"></a>
 <details>
-<summary>212. Publish reservation state with the existing monitor lock</summary>
+<summary>238. Publish reservation state with the existing monitor lock</summary>
 
 [Full report and evidence](PACKED_MONITOR_RESULTS.md)
 
@@ -6390,9 +7039,9 @@ Sky Force improves in all four pairs, from +2.34% to +5.70%, with a +3.83% mean 
 
 </details>
 
-<a id="report-213"></a>
+<a id="report-239"></a>
 <details>
-<summary>213. Browser performance investigation — 2026-09-26</summary>
+<summary>239. Browser performance investigation — 2026-09-26</summary>
 
 [Full report and evidence](PERFORMANCE_RESULTS.md)
 
@@ -6446,9 +7095,9 @@ observed bottleneck; LTO/assertion changes are secondary unmeasured experiments.
 
 </details>
 
-<a id="report-214"></a>
+<a id="report-240"></a>
 <details>
-<summary>214. Persistent browser devices</summary>
+<summary>240. Persistent browser devices</summary>
 
 [Full report and evidence](PERSISTENT_DEVICE_RESULTS.md)
 
@@ -6475,9 +7124,9 @@ coverage of the browser storage protocol, which the two-browser fixture checks.
 
 </details>
 
-<a id="report-215"></a>
+<a id="report-241"></a>
 <details>
-<summary>215. Incoming-pointer lifetime proofs</summary>
+<summary>241. Incoming-pointer lifetime proofs</summary>
 
 [Full report and evidence](POINTER_LIFETIME_RESULTS.md)
 
@@ -6511,9 +7160,9 @@ The TLB, entry-budget-reference and backedge probes are byte-identical.
 
 </details>
 
-<a id="report-216"></a>
+<a id="report-242"></a>
 <details>
-<summary>216. Post-reboot performance revalidation</summary>
+<summary>242. Post-reboot performance revalidation</summary>
 
 [Full report and evidence](POST_REBOOT_RESULTS.md)
 
@@ -6534,9 +7183,9 @@ evidence. Do not add their reported percentages together.
 
 </details>
 
-<a id="report-217"></a>
+<a id="report-243"></a>
 <details>
-<summary>217. Preparing loaded code before guest execution</summary>
+<summary>243. Preparing loaded code before guest execution</summary>
 
 [Full report and evidence](PRECOMPILATION_RESULTS.md)
 
@@ -6576,9 +7225,9 @@ rebuild of the current branch.
 
 </details>
 
-<a id="report-218"></a>
+<a id="report-244"></a>
 <details>
-<summary>218. Conditional integer leaf fusion</summary>
+<summary>244. Conditional integer leaf fusion</summary>
 
 [Full report and evidence](PREDICATED_LEAVES_RESULTS.md)
 
@@ -6612,9 +7261,9 @@ This delivery includes the previously verified upstream merge. Performance compa
 
 </details>
 
-<a id="report-219"></a>
+<a id="report-245"></a>
 <details>
-<summary>219. Hooked On preinstalled filesystem pilot</summary>
+<summary>245. Hooked On preinstalled filesystem pilot</summary>
 
 [Full report and evidence](PREINSTALLED_IMAGE_RESULTS.md)
 
@@ -6648,9 +7297,9 @@ no native/emulated execution policy or compiler code changes in this pilot.
 
 </details>
 
-<a id="report-220"></a>
+<a id="report-246"></a>
 <details>
-<summary>220. Preserve existing inner leaf fusion when selecting prefixes</summary>
+<summary>246. Preserve existing inner leaf fusion when selecting prefixes</summary>
 
 [Full report and evidence](PRESERVE_INNER_RESULTS.md)
 
@@ -6671,9 +7320,9 @@ A separate immutable loader copy uses `instrument_modules.py --metadata-only`, w
 
 </details>
 
-<a id="report-221"></a>
+<a id="report-247"></a>
 <details>
-<summary>221. Keypad Symbian: games six through ten</summary>
+<summary>247. Keypad Symbian: games six through ten</summary>
 
 [Full report and evidence](PRE_TOUCH_GAMES_6_TO_10.md)
 
@@ -6689,9 +7338,9 @@ benchmarks or maximum unpaced throughput.
 
 </details>
 
-<a id="report-222"></a>
+<a id="report-248"></a>
 <details>
-<summary>222. Keypad Symbian: top-five installer recovery</summary>
+<summary>248. Keypad Symbian: top-five installer recovery</summary>
 
 [Full report and evidence](PRE_TOUCH_GAME_INSTALLERS.md)
 
@@ -6728,9 +7377,9 @@ Final LAN evidence is in
 
 </details>
 
-<a id="report-223"></a>
+<a id="report-249"></a>
 <details>
-<summary>223. Five-game unpaced browser measurements</summary>
+<summary>249. Five-game unpaced browser measurements</summary>
 
 [Full report and evidence](PRE_TOUCH_UNPACED_RESULTS.md)
 
@@ -6756,9 +7405,9 @@ that many times faster with equivalent behavior.
 
 </details>
 
-<a id="report-224"></a>
+<a id="report-250"></a>
 <details>
-<summary>224. Profile-driven dispatch optimization: stopping at diminishing returns</summary>
+<summary>250. Profile-driven dispatch optimization: stopping at diminishing returns</summary>
 
 [Full report and evidence](PROFILE_OPTIMIZATION_PLATEAU_RESULTS.md)
 
@@ -6836,9 +7485,9 @@ and verifier checks on the accepted binary already cover their semantics.
 
 </details>
 
-<a id="report-225"></a>
+<a id="report-251"></a>
 <details>
-<summary>225. WASM performance profiling</summary>
+<summary>251. WASM performance profiling</summary>
 
 [Full report and evidence](PROFILING.md)
 
@@ -6864,9 +7513,9 @@ limit follows its configured endpoint; ordinary replays retain the 120s limit.
 
 </details>
 
-<a id="report-226"></a>
+<a id="report-252"></a>
 <details>
-<summary>226. Invariant spans with watched-code protection</summary>
+<summary>252. Invariant spans with watched-code protection</summary>
 
 [Full report and evidence](PROTECTED_PROOFS_RESULTS.md)
 
@@ -6909,9 +7558,9 @@ remains opt-in and unserved. All eighteen observations are retained.
 
 </details>
 
-<a id="report-227"></a>
+<a id="report-253"></a>
 <details>
-<summary>227. Reuse the published page view for exclusive reads</summary>
+<summary>253. Reuse the published page view for exclusive reads</summary>
 
 [Full report and evidence](PUBLISHED_EXCLUSIVE_READ_RESULTS.md)
 
@@ -6926,9 +7575,9 @@ Sky Force retires 0.97% fewer native instructions, but its CPU throughput improv
 
 </details>
 
-<a id="report-228"></a>
+<a id="report-254"></a>
 <details>
-<summary>228. Qt throughput and headroom</summary>
+<summary>254. Qt throughput and headroom</summary>
 
 [Full report and evidence](QT_HEADROOM_RESULTS.md)
 
@@ -6948,9 +7597,9 @@ scenes, hardware or a sustained-session minimum.
 
 </details>
 
-<a id="report-229"></a>
+<a id="report-255"></a>
 <details>
-<summary>229. Qt versus WASM: paced FPS for the ten launcher games</summary>
+<summary>255. Qt versus WASM: paced FPS for the ten launcher games</summary>
 
 [Full report and evidence](QT_VS_WASM_PACED_FPS.md)
 
@@ -6967,9 +7616,9 @@ Measured on 2026-10-11 on the same Intel Core i7-10875H laptop. These are mean s
 
 </details>
 
-<a id="report-230"></a>
+<a id="report-256"></a>
 <details>
-<summary>230. Qt versus WASM: unpaced FPS for the ten launcher games</summary>
+<summary>256. Qt versus WASM: unpaced FPS for the ten launcher games</summary>
 
 [Full report and evidence](QT_VS_WASM_UNPACED_FPS.md)
 
@@ -7044,9 +7693,9 @@ build was used without source changes or a rebuild during this campaign.
 
 </details>
 
-<a id="report-231"></a>
+<a id="report-257"></a>
 <details>
-<summary>231. Compiled RAM code reclamation</summary>
+<summary>257. Compiled RAM code reclamation</summary>
 
 [Full report and evidence](RAM_CODE_RECLAMATION_RESULTS.md)
 
@@ -7067,9 +7716,9 @@ smoke comparison, not a precision throughput campaign.
 
 </details>
 
-<a id="report-232"></a>
+<a id="report-258"></a>
 <details>
-<summary>232. RAM first-use compilation and Thumb register exchange correctness</summary>
+<summary>258. RAM first-use compilation and Thumb register exchange correctness</summary>
 
 [Full report and evidence](RAM_FIRST_USE_COMPILATION_RESULTS.md)
 
@@ -7081,9 +7730,9 @@ All interpreter counts match independent total-minus-compiled counters. Measured
 
 </details>
 
-<a id="report-233"></a>
+<a id="report-259"></a>
 <details>
-<summary>233. RAM first-use compilation serial timing screen</summary>
+<summary>259. RAM first-use compilation serial timing screen</summary>
 
 [Full report and evidence](RAM_FIRST_USE_COMPILATION_TIMING_RESULTS.md)
 
@@ -7114,9 +7763,25 @@ All four exploratory pairs are slower with policy 2 (7.3–11.9% lower throughpu
 
 </details>
 
-<a id="report-234"></a>
+<a id="report-260"></a>
 <details>
-<summary>234. Proved read-span experiment</summary>
+<summary>260. Read-only firmware storage results</summary>
+
+[Full report and evidence](READONLY_FIRMWARE_RESULTS.md)
+
+**Browser measurements**
+
+Measurements used a private HTTP server on port 8299 and separate Chromium
+profiles. The public `.lan` server remained on its control build. These are
+single-run comparisons, so small startup differences are noise, not a claimed
+speedup. Linear-memory capacity is the WASM buffer high-water mark, not total
+browser RSS.
+
+</details>
+
+<a id="report-261"></a>
+<details>
+<summary>261. Proved read-span experiment</summary>
 
 [Full report and evidence](READ_SPANS_RESULTS.md)
 
@@ -7152,9 +7817,9 @@ The served archive remains addv-candidate; no new speedup is delivered.
 
 </details>
 
-<a id="report-235"></a>
+<a id="report-262"></a>
 <details>
-<summary>235. RAM compilation and bounded compiled execution</summary>
+<summary>262. RAM compilation and bounded compiled execution</summary>
 
 [Full report and evidence](REALTIME_AOT_RESULTS.md)
 
@@ -7185,9 +7850,9 @@ Audio-quality work is deferred. PCM equality is retained only as a deterministic
 
 </details>
 
-<a id="report-236"></a>
+<a id="report-263"></a>
 <details>
-<summary>236. Realtime Snakes gameplay in the browser</summary>
+<summary>263. Realtime Snakes gameplay in the browser</summary>
 
 [Full report and evidence](REALTIME_PLAYABILITY.md)
 
@@ -7206,9 +7871,9 @@ The final CPU steps inline distant small ARM leaf helpers into validated regions
 
 </details>
 
-<a id="report-237"></a>
+<a id="report-264"></a>
 <details>
-<summary>237. Recovered optimization graduation</summary>
+<summary>264. Recovered optimization graduation</summary>
 
 [Full report and evidence](RECOVERED_DEFAULTS_RESULTS.md)
 
@@ -7252,9 +7917,9 @@ Paced playability is separate from the controlled unpaced throughput table.
 
 </details>
 
-<a id="report-238"></a>
+<a id="report-265"></a>
 <details>
-<summary>238. Post-merge compiled-region exit census</summary>
+<summary>265. Post-merge compiled-region exit census</summary>
 
 [Full report and evidence](REGION_EXIT_CENSUS_RESULTS.md)
 
@@ -7268,9 +7933,9 @@ without establishing that any such implementation or larger threshold is faster.
 
 </details>
 
-<a id="report-239"></a>
+<a id="report-266"></a>
 <details>
-<summary>239. Fuse connected Thumb regions with shared register locals</summary>
+<summary>266. Fuse connected Thumb regions with shared register locals</summary>
 
 [Full report and evidence](REGION_FUSION_RESULTS.md)
 
@@ -7293,9 +7958,9 @@ All 185 AOT regression tests pass. Fusion coverage includes 27,648 full-state/me
 
 </details>
 
-<a id="report-241"></a>
+<a id="report-268"></a>
 <details>
-<summary>241. Guarded value IR: real kernel gain, no whole-game promotion</summary>
+<summary>268. Guarded value IR: real kernel gain, no whole-game promotion</summary>
 
 [Full report and evidence](REGION_IR_RESULTS.md)
 
@@ -7344,9 +8009,9 @@ matrix/replay successes do not establish correctness for untested copy cycles.
 
 </details>
 
-<a id="report-242"></a>
+<a id="report-269"></a>
 <details>
-<summary>242. Independent region and runner limits</summary>
+<summary>269. Independent region and runner limits</summary>
 
 [Full report and evidence](REGION_LIMITS_RESULTS.md)
 
@@ -7386,9 +8051,9 @@ Initial harness failures are retained: the first runner test put the large ARMul
 
 </details>
 
-<a id="report-243"></a>
+<a id="report-270"></a>
 <details>
-<summary>243. Whole-region memory specialization</summary>
+<summary>270. Whole-region memory specialization</summary>
 
 [Full report and evidence](REGION_MEMORY_RESULTS.md)
 
@@ -7411,9 +8076,9 @@ Every run is retained. No confirmation, live acceptance or deployment followed.
 
 </details>
 
-<a id="report-245"></a>
+<a id="report-272"></a>
 <details>
-<summary>245. Direct register-result stores: rejected experiment</summary>
+<summary>272. Direct register-result stores: rejected experiment</summary>
 
 [Full report and evidence](REGISTER_STORE_RESULTS.md)
 
@@ -7444,9 +8109,9 @@ previous environment or infer an intrinsic universal regression.
 
 </details>
 
-<a id="report-246"></a>
+<a id="report-273"></a>
 <details>
-<summary>246. Keep ROM cache hits inside the compiled runner</summary>
+<summary>273. Keep ROM cache hits inside the compiled runner</summary>
 
 [Full report and evidence](REGISTRY_CHAIN_INLINE_RESULTS.md)
 
@@ -7472,9 +8137,9 @@ Two pairs on a shared host establish only this small screen's result.
 
 </details>
 
-<a id="report-247"></a>
+<a id="report-274"></a>
 <details>
-<summary>247. Registry positive-hit inline layout</summary>
+<summary>274. Registry positive-hit inline layout</summary>
 
 [Full report and evidence](REGISTRY_INLINE_RESULTS.md)
 
@@ -7489,9 +8154,9 @@ Two pairs on a shared host establish only this small screen's result.
 
 </details>
 
-<a id="report-248"></a>
+<a id="report-275"></a>
 <details>
-<summary>248. Registry missing-entry cache</summary>
+<summary>275. Registry missing-entry cache</summary>
 
 [Full report and evidence](REGISTRY_MISS_CACHE_RESULTS.md)
 
@@ -7515,9 +8180,132 @@ This is not a claim that negative caching is universally slower.
 
 </details>
 
-<a id="report-251"></a>
+<a id="report-276"></a>
 <details>
-<summary>251. Retired compiler experiments and instrumentation</summary>
+<summary>276. Browser renderer memory cap (2026-10-18)</summary>
+
+[Full report and evidence](RENDERER_CAP_RESULTS.md)
+
+**Browser renderer memory cap (2026-10-18)**
+
+The two live-release runs finished 102.6 and 85.0 MiB below the limit. Startup
+and race-screen times did not materially regress against the nearby old-build
+control. CPU frequency and host load varied across runs, so the FPS differences
+are not a claim of throughput improvement. The four-worker build had four
+active workers and one extra worker created on demand during launch, without an
+observed launch or gameplay penalty. Snakes and Tetris also completed under
+the cap with the earlier eight-worker candidate. A five-worker candidate
+reached the exact cap on one of two runs; lowering the firmware cutoff to
+32 KiB moved more files but gave no net memory win and slightly delayed startup.
+The four-worker, 64 KiB, mapped build is deployed at `.lan`.
+
+**Reclaim installer code while the guest keeps running**
+
+The old page-handoff numbers came from the previous build and are a historical
+comparison, not paired allocation savings. The in-page Hooked On runs have
+166.3 to 213.1 MiB of headroom. A trial that recycled only after its importer
+passed gameplay but touched the cap twice, so the earlier recycle is necessary
+for a reliable margin. The no-recycle controls reached the same gameplay
+scenes. Their measured unpaced FPS versus the in-page runs was 213.6 versus
+214.4 for Hooked On, 128.2 versus 153.9 for Tetris, and 122.4 versus 117.7
+for Asphalt 3. CPU frequency varied; these single windows do not establish a
+speedup or a material steady-play regression. The post-install compile cache
+must warm again, so first launch can still take longer than a no-recycle run.
+
+**Fresh installation below 1.5 GiB without unpaced FPS loss**
+
+For a controlled Tetris throughput check, the saved pre-change build and the
+new build ran the same prepared-image unpaced route in alternating order at a
+fixed 3.0 GHz. Their FPS were 165.3/163.2 and 164.1/165.5 respectively.
+These prepared-image measurements isolate steady gameplay; the capped rows
+above provide the separate fresh-install acceptance evidence. Hooked On's new
+225.1 FPS lies within its earlier 220.7–289.9 FPS range. Asphalt 3's new
+steady-clock 120.4 FPS exceeds the 108.0 FPS no-startup-cleanup control at
+3.6 GHz. Across these checks there is no measured unpaced FPS loss.
+
+**Tab-only 1.5 GiB cap and retained all-renderer result**
+
+The all-renderer regression capture is at
+`/home/claude/.scratch/eka-4096-all-renderer-harness-regression/`. A separate
+non-fresh Snakes harness attempt stopped at an OPFS `NotFoundError` before
+gameplay; it supplies no Snakes memory or FPS result and is not counted here.
+
+| # | Experiment | All-renderer Asphalt peak, MiB | Throughput observation | Decision |
+|---:|---|---:|---|---|
+| 1 | Merge cold modules at 128 functions | 1460.5; second run OOM at 1536 | First run 118.7 FPS | Rejected for OOM |
+| 2 | Extra 30,000-function startup CPU recycle | 1386.0 / 1509.7 | Fixed 3.0 GHz: 80.1 / 77.9 FPS versus 82.9 / 85.1 controls | Rejected for FPS loss and variable memory gain |
+| 3 | Eager-compile entry points without static successor walk | 1486.3 | 114.6 FPS at about 3.6 GHz in one run | Rejected for weak memory headroom |
+| 4 | 4 MiB WASM memory-growth step | 1507.3 / 1500.4 | 119.9 / 118.6 FPS with varying clocks | Rejected for weak memory headroom |
+| 5 | Merge cold modules at 32 functions | 1523.6 | 114.5 FPS in one run | Rejected for weak memory headroom |
+| 6 | Emscripten `emmalloc` | 1491.2 / 1516.8 | Clocks varied; no comparable FPS claim | Rejected for weak memory headroom |
+
+The one-run FPS figures above do not establish a throughput change. The
+fixed-clock pair in row 2 does, and is why that otherwise promising recycle
+policy was not kept. No experimental emulator setting in this table is in the
+committed release.
+
+**1,331 MiB follow-up: bounded generated-code lifetime**
+
+The matched-binary fixed 3.0 GHz Asphalt prepared panel measured 101.53 FPS
+with recycling versus 104.55 FPS without it, averaged across two five-second
+late-race windows. Race entry took 96.7 versus 52.7 seconds. Thus the
+1,331 MiB result carries a measured 2.9% unpaced-FPS cost and roughly
+44 seconds of extra prepared startup at this clock, and the Hooked On cold
+route still has only 27.5 MiB of demonstrated worst-case headroom. Fresh-route
+FPS samples were taken at varying clocks and cannot establish a throughput
+change. The five historically lighter games were not rerun at this cap.
+
+**Same-worker reclamation supersedes CPU recycling**
+
+The extended Asphalt FPS intervals above checked the racing HUD only at their
+start. Later endpoint inspection found the trial purchase screen. Their FPS
+figures, including the quoted 2.9% difference, therefore cannot establish a
+racing-throughput regression. The recorded memory peaks and race-entry times
+remain observations of those routes. The harness now validates both endpoints;
+new comparisons use the repository's normal shorter warmup.
+
+**Eight-game ranking on the 104/96 MiB default (2026-10-21)**
+
+There is one complete run per game. This establishes the separated top-three
+group for these routes, not an invariant ordering across longer sessions or
+other levels. In particular, the 1.0 MiB gap between Sky Force and K-Rally is too
+small to call a stable ordering. FPS windows are retained as route evidence;
+this sweep does not claim a throughput improvement. Historical all-renderer
+and tmpfs-profile measurements above have different accounting and should not
+be used to calculate percentage improvements against this table.
+
+**1 GiB default after Thumb code reduction (2026-10-21)**
+
+The subsequent default completes all eight games under a 1024 MiB game-tab
+renderer cap. Repeated cold and prepared routes for Asphalt 3, Hooked On and
+Tetris pass with zero swap and zero OOMs. The generated-module budget is 48/40 MiB;
+four-region demand-compilation lookahead is unchanged. Matched unpaced windows
+show no material regression and cold startup improves. These capped outcomes do
+not replace the uncensored ranking above.
+
+</details>
+
+<a id="report-278"></a>
+<details>
+<summary>278. Streaming built-in installer responses</summary>
+
+[Full report and evidence](RESPONSE_STREAMING_RESULTS.md)
+
+**Streaming built-in installer responses**
+
+The cached-response stream increased install-end PSS by 35.3 and 28.6 MiB
+in its two paired runs. The direct-network stream increased pre-install peak
+growth by at least 77.3 MiB relative to the measured control range. Its
+install-end PSS varied by 82.6 MiB between two runs, so that snapshot does
+not support a stable later-memory conclusion. All seven runs had the same
+running WASM capacity. The control itself varied in total startup time, and
+no measured candidate speedup stands out from that variation.
+
+</details>
+
+<a id="report-280"></a>
+<details>
+<summary>280. Retired compiler experiments and instrumentation</summary>
 
 [Full report and evidence](RETIRED_EXPERIMENTS.md)
 
@@ -7529,9 +8317,9 @@ new speedup claim. Historical experiment reports and measurements remain in Git.
 
 </details>
 
-<a id="report-252"></a>
+<a id="report-281"></a>
 <details>
-<summary>252. Second compiler experiment cleanup</summary>
+<summary>281. Second compiler experiment cleanup</summary>
 
 [Full report and evidence](RETIRED_EXPERIMENTS_ROUND2.md)
 
@@ -7544,9 +8332,9 @@ This is a maintenance change, not a measured speedup.
 
 </details>
 
-<a id="report-253"></a>
+<a id="report-282"></a>
 <details>
-<summary>253. Cleanup after the completed controlled sweep</summary>
+<summary>282. Cleanup after the completed controlled sweep</summary>
 
 [Full report and evidence](RETIRED_SWEEP_EXPERIMENTS.md)
 
@@ -7560,9 +8348,9 @@ it cannot enable those policies in the current emulator.
 
 </details>
 
-<a id="report-255"></a>
+<a id="report-284"></a>
 <details>
-<summary>255. Bounded ROM-call timing panel</summary>
+<summary>284. Bounded ROM-call timing panel</summary>
 
 [Full report and evidence](ROM_BOUNDED_CALL_SCREEN_RESULTS.md)
 
@@ -7586,9 +8374,9 @@ No deployment or push.
 
 </details>
 
-<a id="report-256"></a>
+<a id="report-285"></a>
 <details>
-<summary>256. Bounded Thumb ROM calls on the current runtime</summary>
+<summary>285. Bounded Thumb ROM calls on the current runtime</summary>
 
 [Full report and evidence](ROM_CALLS_CURRENT_RESULTS.md)
 
@@ -7610,9 +8398,9 @@ Current-runtime reassessment over 7f5f85273: Snakes -1.45% CPU throughput, Sky F
 
 </details>
 
-<a id="report-257"></a>
+<a id="report-286"></a>
 <details>
-<summary>257. Bounded first-use ROM compilation with slot reuse</summary>
+<summary>286. Bounded first-use ROM compilation with slot reuse</summary>
 
 [Full report and evidence](ROM_FIRST_USE_RECYCLING_RESULTS.md)
 
@@ -7622,9 +8410,9 @@ All interpreted counts match independent total-minus-compiled counters. Report z
 
 </details>
 
-<a id="report-258"></a>
+<a id="report-287"></a>
 <details>
-<summary>258. bounded ROM first-use replacement serial timing screen</summary>
+<summary>287. bounded ROM first-use replacement serial timing screen</summary>
 
 [Full report and evidence](ROM_FIRST_USE_RECYCLING_TIMING_RESULTS.md)
 
@@ -7653,9 +8441,9 @@ Whole benchmark command (browser setup, initialization, guest warmup, measuremen
 
 </details>
 
-<a id="report-260"></a>
+<a id="report-289"></a>
 <details>
-<summary>260. ROM policy screen</summary>
+<summary>289. ROM policy screen</summary>
 
 [Full report and evidence](ROM_LEAF_FUSION_SCREEN_RESULTS.md)
 
@@ -7676,9 +8464,9 @@ route, remain in the evidence.
 
 </details>
 
-<a id="report-261"></a>
+<a id="report-290"></a>
 <details>
-<summary>261. Inline immutable ARM ROM veneers into Thumb callers</summary>
+<summary>290. Inline immutable ARM ROM veneers into Thumb callers</summary>
 
 [Full report and evidence](ROM_LEAF_HANDOFF_RESULTS.md)
 
@@ -7714,9 +8502,9 @@ code hashes, complete disassembly and sampled version identities are preserved.
 
 </details>
 
-<a id="report-263"></a>
+<a id="report-292"></a>
 <details>
-<summary>263. Immutable-ROM module dispatcher serial timing panel</summary>
+<summary>292. Immutable-ROM module dispatcher serial timing panel</summary>
 
 [Full report and evidence](ROM_MODULE_DISPATCH_TIMING_RESULTS.md)
 
@@ -7754,9 +8542,9 @@ Do not promote: both Sky Force pairs on both routes regress (stationary -11.09%/
 
 </details>
 
-<a id="report-264"></a>
+<a id="report-293"></a>
 <details>
-<summary>264. Fold ROM range checks</summary>
+<summary>293. Fold ROM range checks</summary>
 
 [Full report and evidence](ROM_RANGE_RESULTS.md)
 
@@ -7769,9 +8557,9 @@ Do not promote: both Sky Force pairs on both routes regress (stationary -11.09%/
 
 </details>
 
-<a id="report-265"></a>
+<a id="report-294"></a>
 <details>
-<summary>265. Fold the private sparse-registry range check</summary>
+<summary>294. Fold the private sparse-registry range check</summary>
 
 [Full report and evidence](ROM_REGISTRY_RANGE_RESULTS.md)
 
@@ -7786,9 +8574,9 @@ Sky Force improves in three of four pairs with a modest 1.47% mean CPU throughpu
 
 </details>
 
-<a id="report-266"></a>
+<a id="report-295"></a>
 <details>
-<summary>266. Bounded shared Thumb state retention</summary>
+<summary>295. Bounded shared Thumb state retention</summary>
 
 [Full report and evidence](ROM_STATE_COHORT_RESULTS.md)
 
@@ -7798,9 +8586,9 @@ The internal fraction is a decomposition within this candidate, not a claimed co
 
 </details>
 
-<a id="report-267"></a>
+<a id="report-296"></a>
 <details>
-<summary>267. Bounded state retention and total-change timing</summary>
+<summary>296. Bounded state retention and total-change timing</summary>
 
 [Full report and evidence](ROM_STATE_COHORT_TOTAL_TIMING_RESULTS.md)
 
@@ -7831,9 +8619,9 @@ Do not promote mode 2. Both Sky Force routes regress in both orders versus the m
 
 </details>
 
-<a id="report-268"></a>
+<a id="report-297"></a>
 <details>
-<summary>268. Fold immutable ROM syscall stubs into Thumb callers</summary>
+<summary>297. Fold immutable ROM syscall stubs into Thumb callers</summary>
 
 [Full report and evidence](ROM_SYSCALL_HANDOFF_RESULTS.md)
 
@@ -7866,9 +8654,9 @@ CPU time: 18 guest seconds divided by the measured elapsed time.
 
 </details>
 
-<a id="report-269"></a>
+<a id="report-298"></a>
 <details>
-<summary>269. Guest-time route stepping for growth investigation</summary>
+<summary>298. Guest-time route stepping for growth investigation</summary>
 
 [Full report and evidence](ROUTE_STEP_RESULTS.md)
 
@@ -7885,9 +8673,9 @@ dependence. A longer route with observed length differences remains needed.
 
 </details>
 
-<a id="report-270"></a>
+<a id="report-300"></a>
 <details>
-<summary>270. Keep compiled-runner counters private</summary>
+<summary>300. Keep compiled-runner counters private</summary>
 
 [Full report and evidence](RUNNER_LOCALS_RESULTS.md)
 
@@ -7902,9 +8690,9 @@ Both games improve in all four adjacent pairs, so the change earns adoption. Sky
 
 </details>
 
-<a id="report-271"></a>
+<a id="report-301"></a>
 <details>
-<summary>271. Compiled runner specialization and rejected address experiments</summary>
+<summary>301. Compiled runner specialization and rejected address experiments</summary>
 
 [Full report and evidence](RUNNER_SPECIALIZATION_RESULTS.md)
 
@@ -7987,9 +8775,9 @@ All seven frontend smoke checks pass too.
 
 </details>
 
-<a id="report-272"></a>
+<a id="report-302"></a>
 <details>
-<summary>272. Runtime state traffic after state-transfer pruning</summary>
+<summary>302. Runtime state traffic after state-transfer pruning</summary>
 
 [Full report and evidence](RUNTIME_STATE_RESULTS.md)
 
@@ -8057,9 +8845,9 @@ throughput evidence. Actual game counters remain the decision check.
 
 </details>
 
-<a id="report-274"></a>
+<a id="report-304"></a>
 <details>
-<summary>274. CPU time varies along with elapsed time</summary>
+<summary>304. CPU time varies along with elapsed time</summary>
 
 [Full report and evidence](SCHEDULER_DIAGNOSTIC_RESULTS.md)
 
@@ -8097,9 +8885,9 @@ samples.
 
 </details>
 
-<a id="report-275"></a>
+<a id="report-305"></a>
 <details>
-<summary>275. Stable process arena growth</summary>
+<summary>305. Stable process arena growth</summary>
 
 [Full report and evidence](SEGMENTED_ARENA_GROWTH_RESULTS.md)
 
@@ -8126,9 +8914,9 @@ also do not establish a statistical zero-regression guarantee. Public port
 
 </details>
 
-<a id="report-276"></a>
+<a id="report-306"></a>
 <details>
-<summary>276. Shared ARM exit writeback</summary>
+<summary>306. Shared ARM exit writeback</summary>
 
 [Full report and evidence](SHARED_EXIT_RESULTS.md)
 
@@ -8172,9 +8960,9 @@ before the measured window. Cold-start audio is not claimed fixed.
 
 </details>
 
-<a id="report-277"></a>
+<a id="report-307"></a>
 <details>
-<summary>277. Cheaper lowering of existing memory proofs</summary>
+<summary>307. Cheaper lowering of existing memory proofs</summary>
 
 [Full report and evidence](SHARED_SPAN_LOWERING_RESULTS.md)
 
@@ -8224,9 +9012,9 @@ CPU and wall time are retained too. All completed observations are kept.
 
 </details>
 
-<a id="report-278"></a>
+<a id="report-308"></a>
 <details>
-<summary>278. Fixed-size short code comparison experiment</summary>
+<summary>308. Fixed-size short code comparison experiment</summary>
 
 [Full report and evidence](SHORT_SIZES_RESULTS.md)
 
@@ -8248,9 +9036,9 @@ The experiment remains opt-in and unserved.
 
 </details>
 
-<a id="report-279"></a>
+<a id="report-309"></a>
 <details>
-<summary>279. Fresh V8 dispatch census</summary>
+<summary>309. Fresh V8 dispatch census</summary>
 
 [Full report and evidence](SKY_CURRENT_DISPATCH_RESULTS.md)
 
@@ -8268,9 +9056,9 @@ supported as the next bottleneck-directed experiment by these counts.
 
 </details>
 
-<a id="report-280"></a>
+<a id="report-310"></a>
 <details>
-<summary>280. Sky Force on the WASM launcher</summary>
+<summary>310. Sky Force on the WASM launcher</summary>
 
 [Full report and evidence](SKY_FORCE_RESULTS.md)
 
@@ -8296,9 +9084,9 @@ Asset-cache, compiler-policy and audio-worklet regression checks pass.
 
 </details>
 
-<a id="report-281"></a>
+<a id="report-311"></a>
 <details>
-<summary>281. Shared V8 interpreter fallback comparison</summary>
+<summary>311. Shared V8 interpreter fallback comparison</summary>
 
 [Full report and evidence](SKY_INTERPRETER_FALLBACK_RESULTS.md)
 
@@ -8308,9 +9096,9 @@ All four routes use frozen V8 WASM `b463ca09030f7532f40f095783ae7eba427dd4c58050
 
 </details>
 
-<a id="report-282"></a>
+<a id="report-312"></a>
 <details>
-<summary>282. Shared ROM-region policy screen</summary>
+<summary>312. Shared ROM-region policy screen</summary>
 
 [Full report and evidence](SKY_ROM_POLICY_RESULTS.md)
 
@@ -8330,9 +9118,9 @@ ROM improvement did not reproduce here. The realtime target remains unmet.
 
 </details>
 
-<a id="report-283"></a>
+<a id="report-313"></a>
 <details>
-<summary>283. Total shared improvement versus untouched live</summary>
+<summary>313. Total shared improvement versus untouched live</summary>
 
 [Full report and evidence](SKY_TOTAL_CHANGE_RESULTS.md)
 
@@ -8353,9 +9141,9 @@ goal remains unmet; no deployment or push. The served WASM remains unchanged.
 
 </details>
 
-<a id="report-284"></a>
+<a id="report-314"></a>
 <details>
-<summary>284. Slow32 frequency in Snakes and Sky Force</summary>
+<summary>314. Slow32 frequency in Snakes and Sky Force</summary>
 
 [Full report and evidence](SLOW32_CENSUS.md)
 
@@ -8370,9 +9158,9 @@ performance comparisons.
 
 </details>
 
-<a id="report-286"></a>
+<a id="report-316"></a>
 <details>
-<summary>286. Snake growth: coverage gap remains open</summary>
+<summary>316. Snake growth: coverage gap remains open</summary>
 
 [Full report and evidence](SNAKE_GROWTH_STATUS.md)
 
@@ -8401,9 +9189,9 @@ not an unpaced throughput result or proof against the reported slowdown.
 
 </details>
 
-<a id="report-289"></a>
+<a id="report-319"></a>
 <details>
-<summary>289. Generic ARM span page reuse</summary>
+<summary>319. Generic ARM span page reuse</summary>
 
 [Full report and evidence](SPAN_PAGE_REUSE_RESULTS.md)
 
@@ -8474,9 +9262,9 @@ regression or translate directly into cycle savings.
 
 </details>
 
-<a id="report-291"></a>
+<a id="report-322"></a>
 <details>
-<summary>291. Sparse ROM lookup: rejected speed screen</summary>
+<summary>322. Sparse ROM lookup: rejected speed screen</summary>
 
 [Full report and evidence](SPARSE_ROM_LOOKUP_TIMING_RESULTS.md)
 
@@ -8503,9 +9291,9 @@ production setting changes as part of this reassessment.
 
 </details>
 
-<a id="report-292"></a>
+<a id="report-323"></a>
 <details>
-<summary>292. Caller-specific stack returns</summary>
+<summary>323. Caller-specific stack returns</summary>
 
 [Full report and evidence](STACK_RETURN_RESULTS.md)
 
@@ -8542,9 +9330,9 @@ Repeating this unequal-work window does not resolve a sub-percent effect.
 
 </details>
 
-<a id="report-293"></a>
+<a id="report-324"></a>
 <details>
-<summary>293. Hooked On startup bookkeeping</summary>
+<summary>324. Hooked On startup bookkeeping</summary>
 
 [Full report and evidence](STARTUP_BOOKKEEPING_RESULTS.md)
 
@@ -8584,9 +9372,9 @@ average away the outliers or interpret one favorable pair as a universal gain.
 
 </details>
 
-<a id="report-294"></a>
+<a id="report-325"></a>
 <details>
-<summary>294. Startup follow-up: compiler admission and mapping work</summary>
+<summary>325. Startup follow-up: compiler admission and mapping work</summary>
 
 [Full report and evidence](STARTUP_FOLLOWUP_RESULTS.md)
 
@@ -8657,9 +9445,26 @@ boat scene; closing the help dialog alone is insufficient.
 
 </details>
 
-<a id="report-295"></a>
+<a id="report-326"></a>
 <details>
-<summary>295. State transfer pruning and V8 cost validation</summary>
+<summary>326. Fresh N-Gage startup after CPU worker recycling</summary>
+
+[Full report and evidence](STARTUP_WORKER_RECYCLE_ATTRIBUTION.md)
+
+**Fresh N-Gage startup after CPU worker recycling**
+
+| # | Scene | Recycle: completion to scene | Keep worker: completion to scene | Difference | Measured worker handoff | Extra AOT translation + emission + installation | Wall difference left after those timers |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | Tetris board | 42.940 s | 26.206 s | 16.734 s | 0.235 s | 7.877 s | 8.622 s |
+| 2 | Tetris board, CDP CPU profile on | 37.518 s | 22.462 s | 15.056 s | 0.235 s | 7.909 s | 6.912 s |
+| 3 | Hooked On boat | 134.572 s | 109.845 s | 24.727 s | 0.450 s across two recycles | 11.961 s | 12.316 s |
+| 4 | Asphalt 3 warm race | 47.326 s | 35.215 s | 12.111 s | 0.251 s | 16.536 s | -4.676 s |
+
+</details>
+
+<a id="report-327"></a>
+<details>
+<summary>327. State transfer pruning and V8 cost validation</summary>
 
 [Full report and evidence](STATE_LIVENESS_RESULTS.md)
 
@@ -8715,9 +9520,9 @@ and whole-worker checks; they do not support a guaranteed-speedup claim.
 
 </details>
 
-<a id="report-296"></a>
+<a id="report-328"></a>
 <details>
-<summary>296. Static bindings for built-in syscalls</summary>
+<summary>328. Static bindings for built-in syscalls</summary>
 
 [Full report and evidence](STATIC_SVC_BINDINGS_RESULTS.md)
 
@@ -8740,9 +9545,9 @@ These are incremental results, not percentages to add to earlier optimizations.
 
 </details>
 
-<a id="report-298"></a>
+<a id="report-330"></a>
 <details>
-<summary>298. Selecting exact comparators at snapshot construction</summary>
+<summary>330. Selecting exact comparators at snapshot construction</summary>
 
 [Full report and evidence](STORED_COMPARATOR_RESULTS.md)
 
@@ -8773,9 +9578,9 @@ the live archive is unchanged. All six observations remain in the evidence.
 
 </details>
 
-<a id="report-299"></a>
+<a id="report-331"></a>
 <details>
-<summary>299. Complete proved syscall returns without region handoffs</summary>
+<summary>331. Complete proved syscall returns without region handoffs</summary>
 
 [Full report and evidence](SVC_RETURN_CONTINUATION_RESULTS.md)
 
@@ -8811,9 +9616,9 @@ These are 18 guest seconds divided by measured elapsed wall time.
 
 </details>
 
-<a id="report-300"></a>
+<a id="report-332"></a>
 <details>
-<summary>300. Completed sweep and combined graduation measurement</summary>
+<summary>332. Completed sweep and combined graduation measurement</summary>
 
 [Full report and evidence](SWEEP_COMBINED_RESULTS.md)
 
@@ -8860,9 +9665,9 @@ wait; a detected build requires only one second clear before timing resumes.
 
 </details>
 
-<a id="report-301"></a>
+<a id="report-333"></a>
 <details>
-<summary>301. SWI file-hash bypass and deployed startup profile</summary>
+<summary>333. SWI file-hash bypass and deployed startup profile</summary>
 
 [Full report and evidence](SWI_FILE_HASH_BYPASS_RESULTS.md)
 
@@ -8944,9 +9749,9 @@ speedup prediction needs a controlled implementation comparison.
 
 </details>
 
-<a id="report-302"></a>
+<a id="report-334"></a>
 <details>
-<summary>302. Tail prefixes on the graduated branch-veneer runtime</summary>
+<summary>334. Tail prefixes on the graduated branch-veneer runtime</summary>
 
 [Full report and evidence](TAIL_CURRENT_RESULTS.md)
 
@@ -8972,9 +9777,9 @@ native instructions. Its positive average does not establish a reliable gain.
 
 </details>
 
-<a id="report-303"></a>
+<a id="report-335"></a>
 <details>
-<summary>303. Register-only tail-prefix experiment</summary>
+<summary>335. Register-only tail-prefix experiment</summary>
 
 [Full report and evidence](TAIL_PREFIX_RESULTS.md)
 
@@ -9003,9 +9808,28 @@ The feature remains opt-in after the inconsistent serial timings. The checked ce
 
 </details>
 
-<a id="report-304"></a>
+<a id="report-336"></a>
 <details>
-<summary>304. Thumb arithmetic budget groups</summary>
+<summary>336. Current Tetris browser memory profile (2026-10-16)</summary>
+
+[Full report and evidence](TETRIS_CURRENT_MEMORY_PROFILE.md)
+
+**Follow-up: remove the JavaScript module-input copy**
+
+The release was also exercised through the live HTTPS `.lan` launcher after
+deployment. Its Snakes picker path reached gameplay, produced 528 presentations
+in 32.97 host seconds (16.01 presentations/s), accepted keyboard and
+simultaneous touch input, and passed browser-audio checks with no reported
+errors. The browser served the candidate WASM hash above. One earlier fresh
+Chromium launch waited indefinitely for the OPFS-ready signal; a later fresh
+launch and the complete picker test succeeded. The earlier stall is an
+intermittent startup observation, not evidence of a memory or throughput gain.
+
+</details>
+
+<a id="report-337"></a>
+<details>
+<summary>337. Thumb arithmetic budget groups</summary>
 
 [Full report and evidence](THUMB_BUDGET_GROUP_RESULTS.md)
 
@@ -9027,9 +9851,9 @@ history. Live is unchanged and the realtime goal remains open.
 
 </details>
 
-<a id="report-305"></a>
+<a id="report-338"></a>
 <details>
-<summary>305. Bounded Thumb long-call fusion</summary>
+<summary>338. Bounded Thumb long-call fusion</summary>
 
 [Full report and evidence](THUMB_CALL_RESULTS.md)
 
@@ -9045,9 +9869,9 @@ or zero Snakes loss; the candidate remains unpromoted. Static WASM grows by
 
 </details>
 
-<a id="report-306"></a>
+<a id="report-339"></a>
 <details>
-<summary>306. Completing short Thumb calls inside their caller</summary>
+<summary>339. Completing short Thumb calls inside their caller</summary>
 
 [Full report and evidence](THUMB_COMPLETE_CALL_RESULTS.md)
 
@@ -9082,9 +9906,9 @@ Snakes covers 74–86. Each has one faster and one slower adjacent CPU pair.
 
 </details>
 
-<a id="report-307"></a>
+<a id="report-340"></a>
 <details>
-<summary>307. Compact connected Thumb regions</summary>
+<summary>340. Compact connected Thumb regions</summary>
 
 [Full report and evidence](THUMB_CONNECTED_REGION_RESULTS.md)
 
@@ -9102,9 +9926,9 @@ baseline order. All observations are retained. Positive changes mean slower.
 
 </details>
 
-<a id="report-308"></a>
+<a id="report-341"></a>
 <details>
-<summary>308. One budget proof for an inlined Thumb helper</summary>
+<summary>341. One budget proof for an inlined Thumb helper</summary>
 
 [Full report and evidence](THUMB_LEAF_BUDGET_RESULTS.md)
 
@@ -9125,9 +9949,9 @@ Every valid observation remains included, including slower pairs.
 
 </details>
 
-<a id="report-309"></a>
+<a id="report-342"></a>
 <details>
-<summary>309. Remove unused WASM loops from bounded Thumb regions</summary>
+<summary>342. Remove unused WASM loops from bounded Thumb regions</summary>
 
 [Full report and evidence](THUMB_LINEAR_REGION_RESULTS.md)
 
@@ -9142,9 +9966,9 @@ Snakes has two faster pairs, including a +3.40% pair that raises its mean. Sky F
 
 </details>
 
-<a id="report-310"></a>
+<a id="report-343"></a>
 <details>
-<summary>310. Adopt guarded Thumb memory after profiling normal play</summary>
+<summary>343. Adopt guarded Thumb memory after profiling normal play</summary>
 
 [Full report and evidence](THUMB_MEMORY_DEFAULT_RESULTS.md)
 
@@ -9179,9 +10003,9 @@ this throughput comparison. The older v2 timing panel is not pooled with it.
 
 </details>
 
-<a id="report-311"></a>
+<a id="report-344"></a>
 <details>
-<summary>311. Direct memory accesses in compiled Thumb code</summary>
+<summary>344. Direct memory accesses in compiled Thumb code</summary>
 
 [Full report and evidence](THUMB_MEMORY_DESIGN.md)
 
@@ -9208,9 +10032,9 @@ untouched. The current adoption is recorded separately in the linked report.
 
 </details>
 
-<a id="report-312"></a>
+<a id="report-345"></a>
 <details>
-<summary>312. Thumb memory timing: first verified stage</summary>
+<summary>345. Thumb memory timing: first verified stage</summary>
 
 [Full report and evidence](THUMB_MEMORY_TIMING.md)
 
@@ -9227,9 +10051,9 @@ untouched. The current adoption is recorded separately in the linked report.
 
 </details>
 
-<a id="report-313"></a>
+<a id="report-346"></a>
 <details>
-<summary>313. Thumb cache writeback at earlier exits</summary>
+<summary>346. Thumb cache writeback at earlier exits</summary>
 
 [Full report and evidence](THUMB_PREFIX_RESULTS.md)
 
@@ -9251,9 +10075,9 @@ A fresh V6 CPU profile follows the screen as diagnosis, not a speed result.
 
 </details>
 
-<a id="report-314"></a>
+<a id="report-347"></a>
 <details>
-<summary>314. One budget proof for each bounded Thumb path</summary>
+<summary>347. One budget proof for each bounded Thumb path</summary>
 
 [Full report and evidence](THUMB_REGION_BUDGET_RESULTS.md)
 
@@ -9272,9 +10096,9 @@ Retired native instructions fall 2.63% in Sky Force and 0.26% in Snakes. In warm
 
 </details>
 
-<a id="report-315"></a>
+<a id="report-348"></a>
 <details>
-<summary>315. Fuse known Thumb return continuations</summary>
+<summary>348. Fuse known Thumb return continuations</summary>
 
 [Full report and evidence](THUMB_RETURN_FUSION_RESULTS.md)
 
@@ -9297,9 +10121,9 @@ The return-focused matrix passes 76,032 exact chain/state/memory/callback compar
 
 </details>
 
-<a id="report-316"></a>
+<a id="report-349"></a>
 <details>
-<summary>316. Inline short immutable Thumb helpers</summary>
+<summary>349. Inline short immutable Thumb helpers</summary>
 
 [Full report and evidence](THUMB_ROM_LEAF_RESULTS.md)
 
@@ -9314,9 +10138,9 @@ The prototype does not earn adoption: Sky Force loses 2.29% CPU throughput, with
 
 </details>
 
-<a id="report-317"></a>
+<a id="report-350"></a>
 <details>
-<summary>317. One-page Thumb register-transfer proofs</summary>
+<summary>350. One-page Thumb register-transfer proofs</summary>
 
 [Full report and evidence](THUMB_SPAN_RESULTS.md)
 
@@ -9335,9 +10159,9 @@ acceptance, with its measurements kept distinct from the stationary baseline.
 
 </details>
 
-<a id="report-318"></a>
+<a id="report-351"></a>
 <details>
-<summary>318. Thumb compiler startup results</summary>
+<summary>351. Thumb compiler startup results</summary>
 
 [Full report and evidence](THUMB_STARTUP_RESULTS.md)
 
@@ -9402,9 +10226,9 @@ does not establish a runtime gain or unchanged performance for all ten games.
 
 </details>
 
-<a id="report-319"></a>
+<a id="report-352"></a>
 <details>
-<summary>319. Thumb runtime state cache</summary>
+<summary>352. Thumb runtime state cache</summary>
 
 [Full report and evidence](THUMB_STATE_RESULTS.md)
 
@@ -9418,9 +10242,9 @@ versus 12.6529s v3 for six guest seconds). Standard Snakes is slightly slower
 
 </details>
 
-<a id="report-320"></a>
+<a id="report-353"></a>
 <details>
-<summary>320. Thumb continuations with static instruction counts</summary>
+<summary>353. Thumb continuations with static instruction counts</summary>
 
 [Full report and evidence](THUMB_STATIC_REGION_RESULTS.md)
 
@@ -9464,9 +10288,9 @@ allocation and code layout. Those are possible explanations, not measured causes
 
 </details>
 
-<a id="report-321"></a>
+<a id="report-354"></a>
 <details>
-<summary>321. Direct RAM Thumb store continuation</summary>
+<summary>354. Direct RAM Thumb store continuation</summary>
 
 [Full report and evidence](THUMB_STORE_RESULTS.md)
 
@@ -9487,9 +10311,9 @@ compiler source, keeping all V6/V7 correctness and timing evidence for review.
 
 </details>
 
-<a id="report-322"></a>
+<a id="report-355"></a>
 <details>
-<summary>322. Select Thumb continuations by state transfers</summary>
+<summary>355. Select Thumb continuations by state transfers</summary>
 
 [Full report and evidence](THUMB_TRANSFER_GATE_RESULTS.md)
 
@@ -9549,9 +10373,9 @@ are not a proof of fewer native spills, better code layout or less CPU time.
 
 </details>
 
-<a id="report-324"></a>
+<a id="report-357"></a>
 <details>
-<summary>324. Folded data-TLB indexing: historical results</summary>
+<summary>357. Folded data-TLB indexing: historical results</summary>
 
 [Full report and evidence](TLB_HASH_RESULTS.md)
 
@@ -9602,9 +10426,9 @@ Raw reports, provenance and every timing sample are in TLB_HASH_EVIDENCE.json.
 
 </details>
 
-<a id="report-325"></a>
+<a id="report-358"></a>
 <details>
-<summary>325. Scalar alignment guard experiment</summary>
+<summary>358. Scalar alignment guard experiment</summary>
 
 [Full report and evidence](UNALIGNED_SCALAR_RESULTS.md)
 
@@ -9621,9 +10445,9 @@ Direct shows a small repeatable gain: 1.3% less worker CPU in Snakes and 0.8% le
 
 </details>
 
-<a id="report-326"></a>
+<a id="report-359"></a>
 <details>
-<summary>326. Ungated counters capture a slower execution rate</summary>
+<summary>359. Ungated counters capture a slower execution rate</summary>
 
 [Full report and evidence](UNGATED_COUNTER_RESULTS.md)
 
@@ -9648,9 +10472,9 @@ other causes elsewhere in the process.
 
 </details>
 
-<a id="report-327"></a>
+<a id="report-360"></a>
 <details>
-<summary>327. Unsafe code-mutation cost attribution</summary>
+<summary>360. Unsafe code-mutation cost attribution</summary>
 
 [Full report and evidence](UNSAFE_CODE_ATTRIBUTION_RESULTS.md)
 
@@ -9674,9 +10498,9 @@ Incremental guard removal on the scan-free path (throughput change, both versus 
 
 </details>
 
-<a id="report-328"></a>
+<a id="report-361"></a>
 <details>
-<summary>328. Unsafe executable-byte assumption experiment</summary>
+<summary>361. Unsafe executable-byte assumption experiment</summary>
 
 [Full report and evidence](UNSAFE_CODE_RESULTS.md)
 
@@ -9709,9 +10533,9 @@ All four matching-control batch means favor full unsafe mode; seven of eight cor
 
 </details>
 
-<a id="report-330"></a>
+<a id="report-363"></a>
 <details>
-<summary>330. Upstream master integration, 2026-09-30</summary>
+<summary>363. Upstream master integration, 2026-09-30</summary>
 
 [Full report and evidence](UPSTREAM_20260930_RESULTS.md)
 
@@ -9725,9 +10549,9 @@ measurements. The live launcher still serves its separately verified old archive
 
 </details>
 
-<a id="report-331"></a>
+<a id="report-364"></a>
 <details>
-<summary>331. Upstream merge and new deterministic baseline</summary>
+<summary>364. Upstream merge and new deterministic baseline</summary>
 
 [Full report and evidence](UPSTREAM_MERGE_RESULTS.md)
 
@@ -9750,9 +10574,9 @@ AOT is about 1.58x the merged interpreter in this window. Another 21.4% throughp
 
 </details>
 
-<a id="report-332"></a>
+<a id="report-365"></a>
 <details>
-<summary>332. User::After tick deadlines</summary>
+<summary>365. User::After tick deadlines</summary>
 
 [Full report and evidence](USER_AFTER_RESULTS.md)
 
@@ -9797,9 +10621,9 @@ of updates performed in a fixed virtual-time interval.
 
 </details>
 
-<a id="report-333"></a>
+<a id="report-366"></a>
 <details>
-<summary>333. Direct-call switches with production code validation</summary>
+<summary>366. Direct-call switches with production code validation</summary>
 
 [Full report and evidence](VALIDATED_LAYOUT_RESULTS.md)
 
@@ -9822,9 +10646,9 @@ coverage warrants it; it does not support blindly clustering many functions.
 
 </details>
 
-<a id="report-334"></a>
+<a id="report-367"></a>
 <details>
-<summary>334. Safe validity generations and native/browser cost comparison</summary>
+<summary>367. Safe validity generations and native/browser cost comparison</summary>
 
 [Full report and evidence](VALIDITY_AND_COST_RESULTS.md)
 
@@ -9881,9 +10705,9 @@ noisy diagnostic runs, not evidence of a causal speedup.**
 
 </details>
 
-<a id="report-335"></a>
+<a id="report-368"></a>
 <details>
-<summary>335. WasmFS: remove filesystem handoffs to the browser main thread</summary>
+<summary>368. WasmFS: remove filesystem handoffs to the browser main thread</summary>
 
 [Full report and evidence](WASMFS_RESULTS.md)
 
@@ -9960,9 +10784,9 @@ performance equivalence or that every lower observation was noise.
 
 </details>
 
-<a id="report-336"></a>
+<a id="report-369"></a>
 <details>
-<summary>336. Shared WASM cost accounting and Snakes diagnosis</summary>
+<summary>369. Shared WASM cost accounting and Snakes diagnosis</summary>
 
 [Full report and evidence](WASM_COST_ACCOUNTING_RESULTS.md)
 
@@ -10007,9 +10831,9 @@ remain follow-ups, not completed optimizations.
 
 </details>
 
-<a id="report-337"></a>
+<a id="report-370"></a>
 <details>
-<summary>337. Count-free watchdog execution</summary>
+<summary>370. Count-free watchdog execution</summary>
 
 [Full report and evidence](WATCHDOG_RESULTS.md)
 
@@ -10105,9 +10929,9 @@ renderer, which does not establish its physical GPU path.
 
 </details>
 
-<a id="report-338"></a>
+<a id="report-371"></a>
 <details>
-<summary>338. Adjacent long multiply result reuse: rejected</summary>
+<summary>371. Adjacent long multiply result reuse: rejected</summary>
 
 [Full report and evidence](WIDE_REUSE_RESULTS.md)
 
@@ -10142,9 +10966,9 @@ The rejected runtime source and binary are preserved under
 
 </details>
 
-<a id="report-342"></a>
+<a id="report-375"></a>
 <details>
-<summary>342. Asphalt frame-timeline evidence</summary>
+<summary>375. Asphalt frame-timeline evidence</summary>
 
 [Full report and evidence](asphalt-timeline/README.md)
 
@@ -10179,9 +11003,9 @@ as guest time zero. Kinds 1–7 partition the CPU worker's wall time.
 
 </details>
 
-<a id="report-344"></a>
+<a id="report-377"></a>
 <details>
-<summary>344. Runtime service overlap census</summary>
+<summary>377. Runtime service overlap census</summary>
 
 [Full report and evidence](service_overlap/README.md)
 
@@ -10206,9 +11030,9 @@ as guest time zero. Kinds 1–7 partition the CPU worker's wall time.
 
 </details>
 
-<a id="report-345"></a>
+<a id="report-378"></a>
 <details>
-<summary>345. Snakes service overlap, 2026-10-01</summary>
+<summary>378. Snakes service overlap, 2026-10-01</summary>
 
 [Full report and evidence](service_overlap/RESULTS.md)
 
