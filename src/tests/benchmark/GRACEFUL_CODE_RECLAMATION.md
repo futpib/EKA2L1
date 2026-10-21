@@ -14,8 +14,8 @@ hot compiled code intact. It also frees retired C++ cache records.
    the table slots that still belong to it. Replacement transfers ownership;
    removing the last slot retires the module. Module IDs and table slots are
    reused.
-3. Above 32 MiB of live source-module bytes, the runtime selects cold whole
-   modules until at most 24 MiB remains. This is a cache budget, **not** a
+3. Above 128 MiB of live source-module bytes, the runtime selects cold whole
+   modules until at most 120 MiB remains. This is a cache budget, **not** a
    bound on physical V8 or renderer memory. Recency and an aging reuse score
    protect repeatedly used code from one-use startup scans. Usage stores run
    only while compilation is active; after 20 ms without installation, the
@@ -334,7 +334,7 @@ memory and speed, and 128/120 MiB for startup close to the unbounded control.
 These are workload-specific measured choices, not a global optimum or a new
 1,331 MiB-cap default.
 
-Benchmark controls in `254db682f` keep the normal 32/24 MiB policy and expose
+Benchmark controls in `254db682f` kept the then-default 32/24 MiB policy and expose
 `EKA2L1_BENCHMARK_CODE_CACHE_MIB=LIMIT:TARGET` only through the test harness.
 `0:0` selects the unbounded control. The launcher applies the override before
 initialization, validates its range, and rejects changes after initialization.
@@ -381,7 +381,7 @@ seconds while increasing sweep frequency and the observed peak range.
 The ceiling and trim target therefore need separate evaluation.
 
 For prepared launches, 128/120 recovered about 95% of the delay introduced
-by 32/24: approximately 56.3 seconds versus 117.5 at the default and 53.0
+by 32/24: approximately 56.3 seconds versus 117.5 at the former default and 53.0
 unbounded. It retained about 163–168 MiB less peak tab memory than unbounded.
 Moving from 96/88 to 128/120 saved roughly 5.4 seconds at the cost of about
 66–79 MiB in these prepared-run peaks. Beyond 128 MiB, the unbounded endpoint
@@ -401,8 +401,8 @@ varied more; all per-run values and compilation counters are retained in
 throughput guarantee or evidence of a speedup.
 
 The build and browser tests passed, including budget validation and rejecting
-configuration after initialization. No normal-launch defaults changed and
-`.lan` remains on the previously validated 32/24 MiB release.
+configuration after initialization. At the end of this sweep, normal-launch
+defaults were unchanged and `.lan` still served the 32/24 MiB release.
 
 Reproduction uses the existing `renderer-memory-limit.mjs` and
 `arena-growth-benchmark.mjs` harnesses. Set
@@ -418,3 +418,57 @@ scripts, browser logs, full reports, and screenshots are under
 `/home/claude/.scratch/eka-cache-sweep/`; its `panel.sh` uses
 `/home/claude/.scratch/eka-graceful-lifetime/checked-gameplay-routes.json`.
 The compact measurements are tracked in `CODE_CACHE_BUDGET_SWEEP.json`.
+
+
+## Adopt 128/120 MiB as the browser default
+
+Normal browser launches now retain up to 128 MiB of generated module bytes
+and trim cold modules to 120 MiB. No launcher flag is required. Targeted
+benchmark overrides remain available. This adopts the measured startup/memory
+tradeoff; it supersedes the earlier 1331 MiB renderer-cap target.
+
+The rebuilt default binary has WASM SHA-256
+`e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032`
+and JavaScript SHA-256
+`bae17bab293a3d3235fa535158ec6fa01b60e727a4b921e48a8b20a0114d5df2`.
+The browser suite passed. Six default-budget routes and one same-build
+unbounded control completed under a 2048 MiB game-renderer cap, with zero
+limit-hit/OOM events, one CPU-worker start, and no reported runtime errors.
+Every default route ran without a budget override and logged retention just
+below 120 MiB. Fresh profiles and an empty ROM translation cache were used.
+
+| # | Default-budget route | Peak tab RAM, MiB |
+|---:|---|---:|
+| 1 | fresh-asphalt-3-a | 1398.7 |
+| 2 | fresh-hooked-on-a | 1539.1 |
+| 3 | fresh-tetris-a | 1390.5 |
+| 4 | prepared-asphalt-3-a | 1557.3 |
+| 5 | prepared-asphalt-3-b | 1474.3 |
+| 6 | prepared-hooked-on-a | 1532.5 |
+
+The first prepared and fresh Asphalt runs overlapped an Android-emulator and
+Java-build workload. Their successful route and peak-memory observations are
+retained, but their startup/FPS numbers are excluded from performance claims.
+`host-contention.txt` records the competing processes. The later fixed-3-GHz
+prepared repeat and its sequential unbounded control measured:
+
+| # | Policy | Race entry, s | Opening FPS | Later FPS | Peak tab RAM, MiB |
+|---:|---|---:|---:|---:|---:|
+| 1 | Default 128/120 MiB | 57.38 | 81.41 | 94.41 | 1474.3 |
+| 2 | Unbounded control | 53.29 | 82.96 | 90.23 | 1667.7 |
+
+These short windows support comparable gameplay throughput, not a general
+speedup. Fresh Tetris completed three active Marathon windows at
+131.97/127.13/127.17 FPS. Hooked On completed its restart/tutorial route and
+three gameplay windows in both fresh and prepared cases. Final Tetris and
+Hooked On screenshots were inspected, and Asphalt checked the racing HUD at
+both endpoints of each window.
+
+The largest observed default peak was 1557.3 MiB. Thus the earlier roughly
+1490 MiB samples are not a guaranteed bound, and this default is not claimed
+to fit a 1.5 GiB renderer cap. Its logical code budget still permits normal
+collection without restarting the CPU worker.
+
+Raw evidence and frequency-restoring panel scripts are in
+`/home/claude/.scratch/eka-cache-default128/`; compact results are tracked in
+`CODE_CACHE_DEFAULT128.json`.

@@ -855,12 +855,12 @@ static void trim_compiled_modules() {
     // Benchmark overrides are frozen by the frontend before initialization.
     static const std::size_t limit = [] {
         const auto *value = std::getenv("EKA2L1_BENCHMARK_CODE_CACHE_LIMIT_MIB");
-        const auto mib = value ? std::strtoul(value, nullptr, 10) : 32u;
+        const auto mib = value ? std::strtoul(value, nullptr, 10) : 128u;
         return mib ? mib * 1024 * 1024 : std::size_t(-1);
     }();
     static const std::size_t target = [] {
         const auto *value = std::getenv("EKA2L1_BENCHMARK_CODE_CACHE_TARGET_MIB");
-        return (value ? std::strtoul(value, nullptr, 10) : 24u) * 1024 * 1024;
+        return (value ? std::strtoul(value, nullptr, 10) : 120u) * 1024 * 1024;
     }();
     if (resident_modules.bytes() <= limit) return;
     evict_compiled_modules(target);

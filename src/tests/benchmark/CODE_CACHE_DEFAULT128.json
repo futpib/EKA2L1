@@ -1,0 +1,392 @@
+{
+  "cacheLimitMiB": 128,
+  "cacheTrimTargetMiB": 120,
+  "rendererValidationLimitMiB": 2048,
+  "wasmSha256": "e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+  "jsSha256": "bae17bab293a3d3235fa535158ec6fa01b60e727a4b921e48a8b20a0114d5df2",
+  "artifacts": "/home/claude/.scratch/eka-cache-default128",
+  "hostClockKHz": 3000000,
+  "performanceExcluded": [
+    "prepared-asphalt-3-a",
+    "fresh-asphalt-3-a"
+  ],
+  "runs": [
+    {
+      "run": "control-asphalt-3-a",
+      "game": "asphalt-3",
+      "status": "pass",
+      "peakMiB": 1667.65,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "scope": "game-tab renderer",
+      "cappedRendererProcesses": 1,
+      "cpuStarts": 1,
+      "override": true,
+      "retainedMiB": [],
+      "raceSeconds": 53.29,
+      "reports": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 90.23,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "compiledFunctions": 3,
+          "errors": []
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 82.96,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "compiledFunctions": 8,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": "fresh-asphalt-3-a",
+      "game": "asphalt-3",
+      "status": "pass",
+      "peakMiB": 1398.73,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "scope": "game-tab renderer",
+      "cappedRendererProcesses": 1,
+      "cpuStarts": 1,
+      "override": false,
+      "retainedMiB": [
+        119.7,
+        119.8,
+        119.9,
+        120.0
+      ],
+      "raceSeconds": 135.11,
+      "reports": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 90.79,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "compiledFunctions": 7,
+          "errors": []
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 80.41,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "compiledFunctions": 115,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": "fresh-hooked-on-a",
+      "game": "hooked-on",
+      "status": "pass",
+      "peakMiB": 1539.12,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "scope": "game-tab renderer",
+      "cappedRendererProcesses": 1,
+      "cpuStarts": 1,
+      "override": false,
+      "retainedMiB": [
+        119.7,
+        119.8,
+        119.9,
+        120.0
+      ],
+      "raceSeconds": null,
+      "reports": [
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-0",
+          "fps": 192.55,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "compiledFunctions": 0,
+          "errors": []
+        },
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-1",
+          "fps": 198.02,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "compiledFunctions": 0,
+          "errors": []
+        },
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-2",
+          "fps": 213.54,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "compiledFunctions": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": "fresh-tetris-a",
+      "game": "tetris",
+      "status": "pass",
+      "peakMiB": 1390.52,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "scope": "game-tab renderer",
+      "cappedRendererProcesses": 1,
+      "cpuStarts": 1,
+      "override": false,
+      "retainedMiB": [
+        119.3,
+        119.4,
+        119.7,
+        119.8,
+        119.9,
+        120.0
+      ],
+      "raceSeconds": null,
+      "reports": [
+        {
+          "label": "marathon-level-1-long",
+          "fps": 131.97,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "compiledFunctions": 18,
+          "errors": []
+        },
+        {
+          "label": "marathon-level-1-settled-0",
+          "fps": 127.13,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "compiledFunctions": 10,
+          "errors": []
+        },
+        {
+          "label": "marathon-level-1-settled-1",
+          "fps": 127.17,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "compiledFunctions": 21,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": "prepared-asphalt-3-a",
+      "game": "asphalt-3",
+      "status": "pass",
+      "peakMiB": 1557.28,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "scope": "game-tab renderer",
+      "cappedRendererProcesses": 1,
+      "cpuStarts": 1,
+      "override": false,
+      "retainedMiB": [
+        119.4,
+        119.7,
+        119.8,
+        119.9,
+        120.0
+      ],
+      "raceSeconds": 57.19,
+      "reports": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 60.25,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "compiledFunctions": 5,
+          "errors": []
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 68.62,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "compiledFunctions": 8,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": "prepared-asphalt-3-b",
+      "game": "asphalt-3",
+      "status": "pass",
+      "peakMiB": 1474.34,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "scope": "game-tab renderer",
+      "cappedRendererProcesses": 1,
+      "cpuStarts": 1,
+      "override": false,
+      "retainedMiB": [
+        119.5,
+        119.7,
+        119.8,
+        119.9,
+        120.0
+      ],
+      "raceSeconds": 57.38,
+      "reports": [
+        {
+          "label": "instant-play-stationary-sound-on-settled",
+          "fps": 94.41,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "compiledFunctions": 3,
+          "errors": []
+        },
+        {
+          "label": "instant-play-stationary-sound-on",
+          "fps": 81.41,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "compiledFunctions": 13,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "run": "prepared-hooked-on-a",
+      "game": "hooked-on",
+      "status": "pass",
+      "peakMiB": 1532.48,
+      "events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "scope": "game-tab renderer",
+      "cappedRendererProcesses": 1,
+      "cpuStarts": 1,
+      "override": false,
+      "retainedMiB": [
+        119.3,
+        119.4,
+        119.7,
+        119.8,
+        119.9,
+        120.0
+      ],
+      "raceSeconds": null,
+      "reports": [
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-0",
+          "fps": 191.04,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "compiledFunctions": 2,
+          "errors": []
+        },
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-1",
+          "fps": 199.11,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "compiledFunctions": 1,
+          "errors": []
+        },
+        {
+          "label": "costa-rica-stationary-tutorial-dismissed-window-2",
+          "fps": 204.41,
+          "MHz": {
+            "before": 3000,
+            "after": 3000
+          },
+          "wasm": "http://127.0.0.1:8190/eka2l1.wasm?v=e725b6ae547bc7e41923731dbad7c8a9d132e4a81074cd690986206e68616032",
+          "compiledFunctions": 0,
+          "errors": []
+        }
+      ]
+    }
+  ]
+}

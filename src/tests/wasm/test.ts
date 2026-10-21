@@ -196,7 +196,7 @@ async function runTests(): Promise<void> {
       for (const pair of [[-1,0], [513,1], [0,1], [32,0], [32,32], [32,33]])
         if (m._eka2l1_code_cache_configure(...pair) !== -1)
           throw Error('Invalid code-cache budget accepted');
-      for (const pair of [[0,0], [64,60], [32,24]])
+      for (const pair of [[0,0], [64,60], [128,120]])
         if (m._eka2l1_code_cache_configure(...pair) !== 0)
           throw Error('Code-cache benchmark configuration failed');
       for (const [name, expected, valid, invalid] of [
