@@ -1,5 +1,26 @@
 // Touch input shares the keyboard's source ownership, so releasing one finger
 // never releases a key still held by another input device.
+const EKA_TOUCH_PRESETS = {
+    generic: {title:'Custom game', directions:4, actions:[['Select',167]], hold:true},
+    snakes: {title:'Snakes', directions:4, horizontal:true,
+        actions:[['Boost',53],['Slow',56],['Activate',55],['Hard turn',50]],
+        utility:[['Camera',51],['Look left',52],['Look right',54]]},
+    'sky-force': {title:'Sky Force', directions:8, actions:[['Secondary',48],['Fire',53]]},
+    'k-rally': {title:'K-Rally', directions:4, horizontal:true, hold:true,
+        actions:[['Gas',52],['Turbo',55],['Rocket',16],['Mine',17]]},
+    'asphalt-2': {title:'Asphalt 2', directions:4, horizontal:true,
+        actions:[['Turbo',50],['Brake',48]], utility:[['Gas',53],['Camera',133],['Lights',127]]},
+    'hooked-on': {title:'Hooked On', directions:8, actions:[['Cast / Reel',167]]},
+    'asphalt-3': {title:'Asphalt 3', directions:4, horizontal:true,
+        actions:[['Nitro',53],['Brake',56],['Drift left',55],['Drift right',51]],
+        landscape:[53,54,55,49], utility:[['Camera −',133],['Camera +',127]]},
+    tetris: {title:'Tetris', directions:4, cardinal:true, horizontal:true,
+        actions:[['Rotate ↻',167],['Rotate ↺',53],['Hold',48],['Drop',16]]},
+    'super-miners': {title:'Super Miners', directions:4, cardinal:true, actions:[['Action',53]]},
+    'n-gage': {title:'N-Gage', directions:4, actions:[['Select',167]]}
+};
+const EKA_TOUCH_KEYS = [[0,'Hidden'],[167,'Select'],[14,'Left'],[15,'Right'],[16,'Up'],[17,'Down'],
+    ...Array.from({length:10},(_,n)=>[48+n,String(n)]),[133,'*'],[127,'#'],[164,'Left softkey'],[165,'Right softkey'],[1,'Clear']];
 class EkaTouchControls {
     constructor({press, release, releaseAll, sources}) {
         this.press = press; this.release = release; this.releaseAll = releaseAll; this.sources = sources;
@@ -16,10 +37,13 @@ class EkaTouchControls {
                 </div>
             </div>
             <div class="touch-zone" id="action-zone"><div class="touch-cluster" id="action-group">
-                    <button type="button" data-scan="164" aria-label="Left softkey" title="Left softkey">L</button>
-                    <button type="button" data-scan="165" aria-label="Right softkey" title="Right softkey">R</button>
-                <button type="button" id="menu-select" data-scan="167" hidden aria-label="Select">OK</button>
-                <button type="button" id="primary-action" data-scan="167">Select</button>
+                <div class="menu-keys">
+                    <button type="button" data-scan="164" aria-label="Left softkey">L</button>
+                    <button type="button" id="menu-select" data-scan="167" aria-label="Select">OK</button>
+                    <button type="button" data-scan="165" aria-label="Right softkey">R</button>
+                </div>
+                <div class="game-actions">${[0,1,2,3].map(i=>`<button type="button" id="${i===0?'primary-action':'action-'+i}" data-action="${i}"></button>`).join('')}</div>
+                <div id="utility-actions">${[0,1,2].map(i=>`<button type="button" data-utility="${i}"></button>`).join('')}</div>
             </div></div>`;
         document.body.insertAdjacentHTML('beforeend', `
             <dialog id="touch-settings" aria-labelledby="touch-settings-title">
@@ -31,8 +55,10 @@ class EkaTouchControls {
                 <label>Opacity <input aria-label="Opacity" data-pref="opacity" type="range" min="0.35" max="1" step="0.05"></label>
                 <label data-haptics>Haptic feedback <input data-pref="haptics" type="checkbox"></label>
                 <label>Left-handed layout <input data-pref="leftHanded" type="checkbox"></label>
-                <label>Action button <select data-pref="action"><option value="167">Select / joystick press</option><option value="52">4 / accelerate</option><option value="53">5</option><option value="55">7 / turbo</option><option value="48">0</option><option value="133">*</option><option value="127">#</option></select></label>
-                <label>Tap action to hold / release <input data-pref="latch" type="checkbox"></label>
+                <label data-orientation>Game controls <select data-pref="orientation"><option value="auto">Auto (game display)</option><option value="portrait">Portrait bindings</option><option value="landscape">Landscape 270 bindings</option></select></label>
+                <div id="action-bindings">${[0,1,2,3].map(i=>`<label><span data-binding-label="${i}"></span><select data-binding="${i}">${EKA_TOUCH_KEYS.map(([scan,label])=>`<option value="${scan}">${label}</option>`).join('')}</select></label>`).join('')}</div>
+                <label data-utility-setting>Show extra controls <input data-pref="utility" type="checkbox"></label>
+                <label data-hold-setting>Tap primary action to hold / release <input data-pref="latch" type="checkbox"></label>
                 <p>The game keeps running while you edit. Hold mode releases when you open controls, switch apps or leave this page.</p>
                 <div class="dialog-actions"><button id="edit-touch-layout">Move controls</button><button id="reset-touch-layout">Reset</button><button data-close>Done</button></div>
             </dialog>
@@ -44,7 +70,10 @@ class EkaTouchControls {
         this.menuButton = document.getElementById('btn-game-menu');
         this.moveZone = document.getElementById('move-zone'); this.pad = document.getElementById('movement-pad');
         this.actionZone = document.getElementById('action-zone'); this.actions = document.getElementById('action-group');
-        this.primary = document.getElementById('primary-action'); this.knob = document.getElementById('stick-knob');
+        this.primary = document.getElementById('primary-action');
+        this.actionButtons = [...this.actions.querySelectorAll('[data-action]')];
+        this.utilityButtons = [...this.actions.querySelectorAll('[data-utility]')];
+        this.canvas = document.getElementById('canvas'); this.knob = document.getElementById('stick-knob');
         for (const [label, scan] of [['1',49],['2',50],['3',51],['4',52],['5',53],['6',54],['7',55],['8',56],['9',57],['*',133],['0',48],['#',127],['Left softkey',164],['Select',167],['Right softkey',165],['Clear',1]]) {
             const button = document.createElement('button'); button.type = 'button'; button.textContent = label;
             button.dataset.scan = scan; this.keypad.querySelector('.key-grid').append(button);
@@ -81,11 +110,16 @@ class EkaTouchControls {
         this.settings.querySelectorAll('[data-pref]').forEach(input => input.addEventListener('input', () => {
             this.releaseAll();
             this.prefs[input.dataset.pref] = input.type === 'checkbox' ? input.checked
-                : Number(input.value);
-            this.save(); this.layout();
+                : input.dataset.pref==='orientation' ? input.value : Number(input.value);
+            this.syncOrientation(); this.save(); this.fillSettings(); this.layout();
+        }));
+        this.settings.querySelectorAll('[data-binding]').forEach(input=>input.addEventListener('input',()=>{
+            this.releaseAll(); this.bindings[Number(input.dataset.binding)]=Number(input.value);
+            if(!this.canLatch)this.prefs.latch=false;
+            this.save(); this.fillSettings(); this.layout();
         }));
         document.getElementById('reset-touch-layout').onclick = () => {
-            this.releaseAll(); this.prefs = this.defaults(); this.save(); this.fillSettings(); this.layout();
+            this.releaseAll(); this.prefs = this.defaults(); this.syncOrientation(); this.save(); this.fillSettings(); this.layout();
         };
         document.getElementById('edit-touch-layout').onclick = () => { this.settings.close(); this.setEditing(true); };
         this.moveZone.addEventListener('pointerdown', event => this.moveStart(event));
@@ -114,48 +148,88 @@ class EkaTouchControls {
             });
         }
         new ResizeObserver(() => { this.releaseAll(); this.layout(); }).observe(this.deck);
+        new MutationObserver(()=>this.syncOrientation()).observe(this.canvas,{attributes:true,attributeFilter:['width','height']});
         this.configure('');
         this.menu.showModal();
     }
     clamp(value,min,max) { return Math.min(max,Math.max(min,value)); }
     defaults() {
-        return {directions:this.profile==='snakes'?4:8,
-            size:132,gap:12,opacity:.55,leftHanded:false,haptics:true,action:this.profile==='k-rally'?52:167,latch:false,move:{x:.25,y:.75},buttons:{x:.75,y:.75}};
+        const scans=this.preset.actions.map(action=>action[1]);
+        while(scans.length<4)scans.push(0);
+        return {directions:this.preset.directions,size:132,gap:12,opacity:.65,leftHanded:false,haptics:true,
+            bindings:{portrait:scans,landscape:this.preset.landscape?.slice()||scans.slice()},
+            orientation:'auto',utility:false,latch:false,move:{x:.25,y:.75},buttons:{x:.75,y:.92}};
     }
     configure(app) {
         this.releaseAll();
-        this.settings.querySelector('[data-haptics]').hidden=typeof navigator.vibrate!=='function';
         const name=String(app).trim().toLowerCase();
-        this.profile=['0x2000730f','snakes'].includes(name)?'snakes':['0xa020d913','sky force','sky-force'].includes(name)?'sky-force':['0xa0000bf6','k-rally'].includes(name)?'k-rally':'generic';
-        this.storageKey='eka-touch-v1:'+(this.profile==='generic'?(name||'generic'):this.profile);
+        const aliases={'0x2000730f':'snakes','0xa020d913':'sky-force','sky force':'sky-force',
+            '0xa0000bf6':'k-rally','0x2001302c':'asphalt-2','0xa0000bf4':'super-miners'};
+        this.profile=(Object.hasOwn(aliases,name)?aliases[name]:null)||(Object.hasOwn(EKA_TOUCH_PRESETS,name)?name:'generic');
+        this.preset=EKA_TOUCH_PRESETS[this.profile];
+        this.storageKey='eka-touch-v2:'+(this.profile==='generic'?(name||'generic'):this.profile);
         this.prefs=this.defaults();
         try {
-            const saved=JSON.parse(localStorage.getItem(this.storageKey));
-            if (saved && typeof saved==='object') {
-                if ([4,8].includes(saved.directions)) this.prefs.directions=saved.directions;
-                // Migrate saved numeric actions from the old PC keypad scan codes.
-                const action=({141:53,146:48})[saved.action] ?? saved.action;
-                if ([167,52,53,55,48,133,127].includes(action)) this.prefs.action=action;
-                for (const [key,min,max] of [['size',120,190],['gap',4,40],['opacity',.35,1]])
-                    if (Number.isFinite(saved[key])) this.prefs[key]=this.clamp(saved[key],min,max);
-                for (const key of ['leftHanded','latch','haptics']) if (typeof saved[key]==='boolean') this.prefs[key]=saved[key];
-                for (const key of ['move','buttons']) if (Number.isFinite(saved[key]?.x)&&Number.isFinite(saved[key]?.y))
+            const current=localStorage.getItem(this.storageKey);
+            // Old shared N-Gage preferences cannot identify which game they belong to.
+            const legacyName=({'asphalt-2':'0x2001302c','super-miners':'0xa0000bf4'})[this.profile]||this.profile;
+            const legacyKey='eka-touch-v1:'+(this.profile==='generic'?(name||'generic'):legacyName);
+            const saved=JSON.parse(current||localStorage.getItem(legacyKey));
+            if(saved&&typeof saved==='object') {
+                for(const [key,min,max] of [['size',120,190],['gap',4,40],['opacity',.35,1]])
+                    if(Number.isFinite(saved[key]))this.prefs[key]=this.clamp(saved[key],min,max);
+                for(const key of ['leftHanded','haptics','utility'])if(typeof saved[key]==='boolean')this.prefs[key]=saved[key];
+                for(const key of ['move','buttons'])if(Number.isFinite(saved[key]?.x)&&Number.isFinite(saved[key]?.y))
                     this.prefs[key]={x:this.clamp(saved[key].x,0,1),y:this.clamp(saved[key].y,0,1)};
+                if(current) {
+                    if([4,8].includes(saved.directions)&&!this.preset.cardinal)this.prefs.directions=saved.directions;
+                    if(['auto','portrait','landscape'].includes(saved.orientation))this.prefs.orientation=saved.orientation;
+                    for(const orientation of ['portrait','landscape'])for(let i=0;i<4;i++) {
+                        const scan=saved.bindings?.[orientation]?.[i];
+                        if(EKA_TOUCH_KEYS.some(key=>key[0]===scan))this.prefs.bindings[orientation][i]=scan;
+                    }
+                    if(this.preset.hold&&typeof saved.latch==='boolean')this.prefs.latch=saved.latch;
+                } else if(this.profile==='generic') {
+                    const scan=({141:53,146:48})[saved.action]??saved.action;
+                    if(EKA_TOUCH_KEYS.some(key=>key[0]===scan))for(const orientation of ['portrait','landscape'])this.prefs.bindings[orientation][0]=scan;
+                }
             }
         } catch (_) { /* Private browsing and unavailable storage retain usable defaults. */ }
-        document.getElementById('touch-profile').textContent=(this.profile==='generic'?'General-purpose layout':this.profile==='snakes'?'Snakes':this.profile==='k-rally'?'K-Rally':'Sky Force')+' · Saved on this device';
-        this.fillSettings(); this.layout();
+        this.orientation=this.controlOrientation(); this.fillSettings(); this.layout();
     }
+    controlOrientation() {
+        if(this.profile!=='asphalt-3')return 'portrait';
+        return this.prefs.orientation==='auto'?(this.canvas.width>this.canvas.height?'landscape':'portrait'):this.prefs.orientation;
+    }
+    syncOrientation() {
+        if(!this.prefs)return;
+        const orientation=this.controlOrientation();
+        if(orientation===this.orientation)return;
+        this.releaseAll(); this.orientation=orientation; this.fillSettings(); this.layout();
+    }
+    get canLatch() { return !!this.preset.hold&&(this.profile!=='k-rally'||this.bindings[0]===52); }
+    get bindings() { return this.prefs.bindings[this.orientation]; }
+    get primaryScan() { this.syncOrientation(); return this.bindings[0]||167; }
     save() { try { localStorage.setItem(this.storageKey,JSON.stringify(this.prefs)); } catch (_) {} }
     startGame(app) {
         this.configure(app); this.menu.close();
         this.menu.querySelector('[data-close]').hidden=false;
         this.menuButton.hidden=false;
-        document.getElementById('session-title').textContent=this.profile==='snakes'?'Snakes':this.profile==='sky-force'?'Sky Force':this.profile==='k-rally'?'K-Rally':'Game options';
+        document.getElementById('session-title').textContent=this.preset.title;
     }
     fillSettings() {
+        document.getElementById('touch-profile').textContent=this.preset.title+' · Saved on this device';
+        this.settings.querySelector('[data-haptics]').hidden=typeof navigator.vibrate!=='function';
+        this.settings.querySelector('[data-orientation]').hidden=this.profile!=='asphalt-3';
+        this.settings.querySelector('[data-utility-setting]').hidden=!this.preset.utility;
+        this.settings.querySelector('[data-hold-setting]').hidden=!this.canLatch;
+        this.settings.querySelector('[data-pref="directions"]').disabled=!!this.preset.cardinal;
         for (const input of this.settings.querySelectorAll('[data-pref]')) {
             if (input.type==='checkbox') input.checked=this.prefs[input.dataset.pref]; else input.value=this.prefs[input.dataset.pref];
+        }
+        for(let i=0;i<4;i++) {
+            this.settings.querySelector(`[data-binding-label="${i}"]`).textContent=this.preset.actions[i]?.[0]||'Extra action '+(i+1);
+            this.settings.querySelector(`[data-binding="${i}"]`).value=this.bindings[i];
         }
     }
     open(dialog) {
@@ -178,24 +252,29 @@ class EkaTouchControls {
         this.deck.classList.toggle('left-handed',p.leftHanded);
         root.style.setProperty('--control-size',p.size+'px'); root.style.setProperty('--control-gap',p.gap+'px'); root.style.setProperty('--control-opacity',p.opacity);
         this.moveZone.style.order=p.leftHanded?2:0;
+        const extras=!!(p.utility&&this.preset.utility);
+        this.actions.querySelector('#utility-actions').hidden=!extras;
         for (const [group,zone,key] of [[this.pad,this.moveZone,'move'],[this.actions,this.actionZone,'buttons']]) {
-            const w=zone.clientWidth,h=zone.clientHeight, size=Math.max(1,Math.min(p.size,w,h));
-            group.style.setProperty('--actual-size',size+'px');
-            group.style.left=(w-size)*p[key].x+'px'; group.style.top=(h-size)*p[key].y+'px';
+            const w=zone.clientWidth,h=zone.clientHeight;
+            const size=key==='move'?Math.max(1,Math.min(p.size,w,h)):Math.max(132,Math.min(p.size*1.2,w,h-52-(extras?52:0)));
+            const height=key==='move'?size:size+52+(extras?52:0);
+            group.style.setProperty('--actual-size',size+'px'); group.style.height=height+'px';
+            group.style.left=Math.max(0,w-size)*p[key].x+'px'; group.style.top=Math.max(0,h-height)*p[key].y+'px';
         }
-        this.primary.dataset.scan=p.action;
-        document.getElementById('menu-select').hidden=p.action===167;
-        this.actions.classList.toggle('separate-select',p.action!==167);
-        const label=p.action===167?(this.profile==='sky-force'?'Fire / OK':'Select'):({52:this.profile==='k-rally'?'Gas':'4',53:'5',55:'7',48:'0',133:'*',127:'#'})[p.action];
-        this.primary.innerHTML=p.action===167
-            ? (this.profile==='sky-force'
-                ? '<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="9"/><path d="M16 2v8m0 12v8M2 16h8m12 0h8"/></svg>'
-                : '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="m8 16 6 6 11-13"/></svg>')
-            : '<span>'+label+'</span>';
-        this.primary.classList.toggle('hold-mode',p.latch);
-        this.primary.setAttribute('aria-label',(this.profile==='k-rally'&&p.action===52?'Accelerate':label)+(p.latch?' — tap to hold or release':''));
-        if (p.latch) this.primary.setAttribute('aria-pressed',String(this.owned.has('touch:latch')));
+        for(let i=0;i<4;i++) {
+            const button=this.actionButtons[i],scan=this.bindings[i],key=EKA_TOUCH_KEYS.find(k=>k[0]===scan)?.[1];
+            const label=this.preset.actions[i]?.[0]||key;
+            button.hidden=!scan; button.dataset.scan=scan; button.textContent=label;
+            button.setAttribute('aria-label',label+' ('+key+')'); button.title=key;
+        }
+        for(let i=0;i<3;i++) {
+            const action=this.preset.utility?.[i],button=this.utilityButtons[i];
+            button.hidden=!action;button.dataset.scan=action?.[1]||0;button.textContent=action?.[0]||'';
+        }
+        this.primary.classList.toggle('hold-mode',p.latch&&this.canLatch);
+        if(p.latch&&this.canLatch)this.primary.setAttribute('aria-pressed',String(this.owned.has('touch:latch')));
         else this.primary.removeAttribute('aria-pressed');
+        this.reflect();
     }
     set(source,scans) {
         const want=new Set(scans.map(scan=>source+':'+scan));
@@ -216,9 +295,10 @@ class EkaTouchControls {
     bindButton(button) {
         button.addEventListener('pointerdown',event=>{
             if (this.editing||event.button!==0) return;
+            this.syncOrientation();
             event.preventDefault(); button.setPointerCapture(event.pointerId);
             this.haptic(event);
-            if (button===this.primary&&this.prefs.latch) this.toggleLatch();
+            if (button===this.primary&&this.prefs.latch&&this.canLatch) this.toggleLatch();
             else this.set('touch:button:'+event.pointerId,[Number(button.dataset.scan)]);
         });
         for (const name of ['pointerup','pointercancel','lostpointercapture']) button.addEventListener(name,event=>{
@@ -227,17 +307,18 @@ class EkaTouchControls {
         });
         button.addEventListener('click',event=>{
             if (event.detail!==0||this.editing) return;
-            if (button===this.primary&&this.prefs.latch) this.toggleLatch();else this.pulse(Number(button.dataset.scan));
+            if (button===this.primary&&this.prefs.latch&&this.canLatch) this.toggleLatch();else this.pulse(Number(button.dataset.scan));
         });
     }
     toggleLatch() {
         const source='touch:latch';
         if (this.owned.has(source)) {this.release(source);this.owned.delete(source);}
-        else {this.press(source,this.prefs.action);this.owned.add(source);}
+        else {this.press(source,this.primaryScan);this.owned.add(source);}
         this.primary.setAttribute('aria-pressed',String(this.owned.has(source)));this.reflect();
     }
     moveStart(event) {
         if (this.editing||event.button!==0||this.pointers.size) return;
+        this.syncOrientation();
         event.preventDefault();this.moveZone.setPointerCapture(event.pointerId);
         const rect=this.pad.getBoundingClientRect();
         const origin={x:event.clientX,y:event.clientY},zone=this.moveZone.getBoundingClientRect();
@@ -249,16 +330,17 @@ class EkaTouchControls {
     }
     move(event) {
         const p=this.pointers.get(event.pointerId);if (!p) return;
-        event.preventDefault();const dx=event.clientX-p.x,dy=event.clientY-p.y,d=Math.hypot(dx,dy);
+        event.preventDefault();const dx=event.clientX-p.x,dy=p.horizontal?0:event.clientY-p.y,d=Math.hypot(dx,dy);
         const active=d>(p.active?7:12),previousSector=p.sector;p.active=active;
         let scans=[];
         if (active) {
-            const n=this.prefs.directions,step=2*Math.PI/n,angle=Math.atan2(dy,dx);
+            const n=this.preset.cardinal?4:this.prefs.directions,step=2*Math.PI/n,angle=Math.atan2(dy,dx);
             let sector=(Math.round(angle/step)+n)%n;
             if (p.sector!==null) {
                 const delta=Math.atan2(Math.sin(angle-p.sector*step),Math.cos(angle-p.sector*step));
                 if (Math.abs(delta)<step/2+.12) sector=p.sector;
             }
+            if(this.preset.horizontal&&(sector===0||sector===n/2))p.horizontal=true;
             p.sector=sector;
             const directions=n===4?[[15],[17],[14],[16]]:[[15],[15,17],[17],[14,17],[14],[14,16],[16],[15,16]];
             scans=directions[sector];

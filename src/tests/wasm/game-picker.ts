@@ -132,18 +132,18 @@ try {
     await inputSession.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[moved,actionPoint]});
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     report.checks.push({game:id,check:'simultaneous touch movement and action',passed:await page.evaluate(() => {
-      const held=new Set((window as any)._inputSources.values());return held.has(14)&&held.has(167);
+      const held=new Set((window as any)._inputSources.values());return held.has(14)&&held.has((window as any).ekaTouchControls.primaryScan);
     }),state:await page.evaluate(() => ({sources:[...(window as any)._inputSources],pointers:[...(window as any).ekaTouchControls.pointers],trace:(window as any).touchTrace,focus:document.hasFocus(),visibility:document.visibilityState,touches:navigator.maxTouchPoints}))});
     save();
     await page.waitForFunction(() => {
-      const held = new Set((window as any)._inputSources.values()); return held.has(14) && held.has(167);
+      const held = new Set((window as any)._inputSources.values()); return held.has(14) && held.has((window as any).ekaTouchControls.primaryScan);
     });
     await new Promise(resolve => setTimeout(resolve,600));
     await page.screenshot({path:path.join(output,id+'-touch-held.png')});
     assert.ok(await page.evaluate(() => (window as any).touchTrace.some((event:any)=>event.type==='pointerdown'&&event.trusted)));
     await inputSession.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[moved]});
     await page.waitForFunction(() => {
-      const held=new Set((window as any)._inputSources.values());return held.has(14)&&!held.has(167);
+      const held=new Set((window as any)._inputSources.values());return held.has(14)&&!held.has((window as any).ekaTouchControls.primaryScan);
     });
     await inputSession.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
     await page.waitForFunction(() => (window as any)._inputSources.size===0);

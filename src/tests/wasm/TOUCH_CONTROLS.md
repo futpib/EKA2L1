@@ -1,45 +1,69 @@
 # Browser touch controls
 
-For the eight-game settings audit and proposed action presets, see
-[Game control research](GAME_CONTROL_RESEARCH.md). Those presets are proposed,
-not implemented by the current controls described below.
+All eight catalogue games share a floating stick, four stable action positions
+and a separate **L / OK / R** row. The action names and phone keys follow each
+game's original controls; unused action positions are hidden. The
+[game settings audit](GAME_CONTROL_RESEARCH.md) records the inspected key lists.
 
-The game occupies the viewport and retains its original aspect ratio without
-cropping. Translucent thumb controls float over it or in the available letterbox
-space; the layout does not reserve a control deck or persistent toolbars.
+The game fills the viewport with its original aspect ratio, without cropping.
+Translucent controls float over the picture or available letterbox space.
 **☰** opens the launcher, sound, full screen, controls, phone keypad and diagnostics.
 The game keeps running while this menu is open.
 
-Every game uses a floating stick that appears at the initial movement touch.
-Snakes keeps four directions; other apps use eight and a Select action.
-Saved fixed-pad layouts now use the floating stick while retaining other settings.
-The movement area covers the play surface. Sky Force's action
-button maps to Fire / OK. K-Rally gets a Gas action (phone key 4) and a separate
-OK button for menu selection. Any numeric action keeps that separate OK button.
-The floating stick starts at the initial touch and has a neutral zone; direction
-hysteresis prevents small finger movements from rapidly switching sectors.
-These controls send the original guest keys. In particular, Sky Force steering
-is a floating digital stick, not finger-following ship positioning.
+| # | Game | Action buttons | Movement |
+|---|---|---|---|
+| 1 | Snakes | Boost, Slow, Activate, Hard Turn | Relative steering, four directions for menus |
+| 2 | Sky Force | Secondary, Fire | Eight directions |
+| 3 | K-Rally | Gas, Turbo, Rocket, Mine | Four directions, horizontal steering lock |
+| 4 | Asphalt 2 | Turbo, Brake | Four directions, horizontal steering lock |
+| 5 | Hooked On | Cast / Reel | Eight directions, ordinary press/hold/release |
+| 6 | Asphalt 3 | Nitro, Brake, Drift Left, Drift Right | Four directions, horizontal steering lock |
+| 7 | Tetris | Rotate clockwise, Rotate counterclockwise, Hold, Drop | Cardinal only, horizontal movement lock |
+| 8 | Super Miners | Action | Cardinal only, turns without lifting |
 
-The input layer supports simultaneous movement/action, sliding between directions
-without lifting, keyboard/touch ownership of the same key, and visible pressed
-states. The small L/R buttons send the original left/right softkeys.
+Every stick appears where the movement finger touches and disappears on release.
+Snakes, both Asphalt games, K-Rally and Tetris keep a gesture horizontal once it
+has moved sideways. Vertical thumb drift then cannot fire a weapon or drop a
+piece. Lift and start a new vertical gesture for menu navigation. Sky Force and
+Hooked On allow diagonals; Tetris and Super Miners always send one direction at a
+time. These are guest key presses, not finger-following character positioning.
+The games' own autofire and automatic acceleration preferences are preserved.
 
-**☰ → Touch controls** opens settings for four/eight directions, size,
-spacing, opacity, handedness and action-key mapping. **Move controls** lets the
-player drag each group within its area; the onscreen **✓** returns to play. **Reset**
-restores the current game's preset. Settings are stored locally per app, including
-apps launched from custom files. Unsupported or malformed saved values fall back
-to usable defaults; blocked storage does not prevent play.
+Multiple fingers can move and press actions together. Releasing one input does
+not release a key owned by another finger or keyboard key. Blur, cancellation,
+dialogs, layout changes and app changes release held input.
 
-The optional action hold mode toggles on each tap. It starts released, and releases
-on focus loss, hidden pages, opening dialogs, layout changes or game changes.
-**Phone keypad** exposes the numeric phone keys, star/hash, softkeys and Clear. Softkeys
-are labelled by position because their meaning is controlled by the guest game.
-Enter remains Select; Space uses the configured action key. Keyboard numbers
-(including PC number-pad keys) and the phone keypad send phone digit scan codes
-48–57, matching the native frontend. Old saved numeric action settings migrate
-to these codes.
+**☰ → Touch controls** offers sizing, spacing, opacity, handedness and four
+independent action mappings. **Show extra controls** adds a nonmodal utility row:
+camera/look for Snakes, manual Gas/camera/lights for Asphalt 2, camera controls for
+Asphalt 3. Restart stays in the phone keypad, away from normal gameplay actions.
+**Move controls** lets the player drag the groups; **✓** returns to play. **Reset**
+restores the game's preset. L/R retain positional names because the game decides
+their meaning. OK always sends centre Select, independently of action mappings.
+
+Asphalt 3 selects numeric bindings from its guest canvas orientation, not the
+browser viewport. Its Brake and Drift Right keys differ between portrait and
+Landscape 270. A guest display change releases held keys before rebinding.
+The control settings also offer an explicit orientation override, and remember
+separate mappings for each orientation. Arrow rotation remains the emulator's
+responsibility. If action keys are remapped inside a game, match them manually
+in the action selectors here.
+
+Preferences use `eka-touch-v2:<catalogue ID>`, so N-Gage titles have independent
+settings despite sharing a launcher UID. Custom software retains its launch
+identity. Old layout/visual preferences migrate, while obsolete named presets'
+primary keys do not override the new actions. Shared legacy N-Gage settings do
+not get copied into every N-Gage title. Malformed or blocked storage falls back
+to usable defaults.
+
+Optional tap-to-hold is available for K-Rally's Gas and custom games. It starts
+released and releases on focus loss, hidden pages, dialogs or layout changes.
+K-Rally players can latch Gas to free their action thumb for Turbo or weapons;
+remapping Gas to a weapon disables that latch.
+Timed casting, weapons, rotation and drops use ordinary presses and releases.
+**Phone keypad** exposes every digit, star/hash, softkeys and Clear. Enter remains
+Select; Space uses the primary action. Keyboard numbers and the keypad send phone
+digit scan codes 48–57, matching the native frontend.
 
 On browsers with the Vibration API, movement touches, changes of direction and
 action/keypad presses request short 8 ms haptic pulses, at most once every 40 ms.
@@ -56,6 +80,67 @@ JavaScript and CSS are versioned through the existing asset cache. Normal WASM
 builds copy both files alongside the HTML, audio assets and runtime.
 
 ## Verification
+
+### Universal action presets, 2026-10-22
+
+The browser input-contract fixture passed before and after implementation.
+Expanded coverage checks all presets, separate N-Gage settings, legacy migration,
+horizontal gesture locking with fresh vertical menu gestures, orientation changes
+releasing held input, independent orientation mappings, weapon latch prevention,
+utility keys and 44-pixel minimum targets. All visible targets fit at 320×568,
+390×844, 568×320 and 844×390 even with maximum sizing/spacing and utility controls.
+Haptics and blocked-storage cases continue to pass.
+
+All eight games were launched through their actual catalogue entries in fresh
+Chromium profiles using the current deployed WASM runtime and prepared N-Gage
+installations. Hardware ANGLE/Vulkan rendering and trusted CDP touch input were
+used. Every preset action delivered the expected key and advanced the real
+emulator's consumed-input count. Simultaneous movement/action, releasing one
+finger while retaining the other, and final release were checked where relevant.
+The captures were inspected to establish gameplay rather than just loaded menus.
+No captured page errors, guest panics or Wasm runtime errors occurred.
+
+| # | Game | Gameplay evidence and scope |
+|---|---|---|
+| 1 | Snakes | Live level; turning with Boost, Slow, Activate and Hard Turn input. |
+| 2 | Sky Force | Stage 1; movement with Secondary and Fire. |
+| 3 | K-Rally | Tutorial track; touch Gas reaches 61 MPH, Gas with steering, Turbo/Rocket/Mine input. Weapon effects require ammunition and are not independently established by input delivery. |
+| 4 | Asphalt 2 | San Francisco race; Turbo and Brake with steering; brake lights visible. |
+| 5 | Hooked On | Fishing; first tap opens cast-power meter, second casts, held action reels the line back in. No successful fish catch is claimed. |
+| 6 | Asphalt 3 | Racing in Landscape 270 and portrait; all four actions in each. The game's pause-menu Display Mode changes the canvas from 320×240 to 240×320 and automatically selects the portrait bindings. |
+| 7 | Tetris | Marathon board; distinct clockwise/counterclockwise piece shapes, Hold receives the piece, Hard Drop places the next piece. |
+| 8 | Super Miners | Challenge level; cardinal movement plus Action input. Restart is absent from the gameplay cluster. |
+
+These are input integration checks, not full playthroughs or performance/audio
+benchmarks. Special actions without charges are checked against the game's key
+list and consumed input, not claimed to have produced an unavailable effect.
+Screenshot FPS values are affected by explicit guest-time stepping and must not
+be compared. Physical phone comfort and vibration remain separate checks.
+
+Evidence is under `/home/claude/.scratch/eka-controls-implementation/`: each game
+has screenshots, navigation commands, browser logs and a completed `report.json`.
+The final fixture log is `contract-final2.log`. Reproduce a fresh game route with:
+
+```sh
+node src/tests/wasm/game-controls-e2e.mjs tetris NEW_OUTPUT \
+  https://claude-laptop.lan:8188 src/tests/wasm/game-controls-routes.json
+```
+
+The routes record the reviewed navigation and touches; screenshots still need
+review if installation state or game timing changes. Browser profiles are removed
+on completion. The fixture uses a mocked native input API; this eight-game runner
+uses the real emulator. The WASM bytes remain SHA-256
+`af0162b29b63d1c629f7b57c02ca35077c508264b712ccb5832369e16a8fa506`.
+Only the HTML/JS/CSS frontend changes in this deployment.
+
+The same frontend is deployed at <https://claude-laptop.lan:8188/> as release
+`touch-3e8d713517-af0162b2`. Fresh live Snakes and Tetris replays passed all actions,
+input release and both viewport layouts (`live-snakes2/`, `live-tetris2/`). The
+served script hash is
+`3e8d713517b63f986922cde481b95f5e25cb25e5e1d0dffb41cf9d54ee1729be`;
+`deployment.json` also verifies CSS and unchanged runtime bytes. Two probes
+immediately after the service restart encountered connection refused before the
+server listened; they are retained separately from the completed live runs.
 
 ### Dynamic controls and haptics, 2026-10-13
 

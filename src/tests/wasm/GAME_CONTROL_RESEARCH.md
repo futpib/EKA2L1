@@ -1,8 +1,10 @@
 # Browser game controls audit, 2026-10-22
 
-The present controls expose too few actions for most supported games. A common
+The controls at the start of this audit exposed too few actions for most games. A common
 touch interface is practical, with bindings and movement rules selected by game.
-This document proposes that interface; it does not change the deployed controls.
+This document records the audit and proposal before implementation. The common
+interface is now implemented; see [Browser touch controls](TOUCH_CONTROLS.md) for
+the current behavior and verification.
 
 ## Evidence and scope
 
@@ -69,7 +71,7 @@ The emulator already rotates arrow scan codes through
 frontend must not blindly rotate arrows a second time. Exposing semantic game
 actions requires validating the game's current orientation and remapping state.
 
-## Current implementation problems
+## Implementation problems found during the audit
 
 Only Snakes, Sky Force and K-Rally have named presets in
 `src/emu/wasm/touch-controls.js`. Snakes gets four directions; everything else

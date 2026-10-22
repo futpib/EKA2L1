@@ -1,4 +1,4 @@
-// Browser input contract checks. Real game integration lives in game-picker.ts.
+// Browser input contract checks. Real game coverage lives in game-controls-e2e.mjs and game-picker.ts.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -42,7 +42,7 @@ try {
         if(el.type==='checkbox')el.checked=value;else el.value=String(value);
         el.dispatchEvent(new Event('input',{bubbles:true}));
     },{key,value});
-    assert.equal((await prefs()).directions,8);
+    assert.equal((await prefs()).directions,4);
     assert.equal(await page.$eval('#session-panel',e=>(e as HTMLDialogElement).open),false);
     assert.deepEqual(await rect('#canvas'),{x:0,y:0,width:390,height:844});
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
@@ -80,7 +80,8 @@ try {
     const actionX=(await rect('#primary-action')).x;
     await settings('leftHanded',true);assert.ok((await rect('#primary-action')).x<actionX);
     await settings('size',180);await settings('opacity',.55);
-    await settings('latch',true);await settings('action',53);
+    await configure('');await settings('latch',true);
+    await page.select('[data-binding="0"]','53');
     action=await rect('#primary-action');await touch('touchStart',[point(action)]);await touch('touchEnd',[]);
     assert.deepEqual(await down(),[53]);
     await controls();assert.deepEqual(await down(),[]);
@@ -115,7 +116,7 @@ try {
     await new Promise(resolve=>setTimeout(resolve,100));pad=await rect('#movement-pad');
     await touch('touchStart',[point(pad)]);await touch('touchMove',[point(pad,.15,.5)]);await page.evaluate(()=>window.dispatchEvent(new Event('blur')));
     assert.deepEqual(await down(),[]);await touch('touchEnd',[]);
-    await configure('0xa0000bf6');assert.equal((await prefs()).action,52);
+    await configure('0xa0000bf6');assert.equal((await prefs()).bindings.portrait[0],52);
     assert.equal(await page.$eval('#menu-select',e=>(e as HTMLButtonElement).hidden),false);
     await page.focus('#canvas');await page.keyboard.down('Space');assert.deepEqual(await down(),[52]);
     action=await rect('#primary-action');
@@ -127,9 +128,76 @@ try {
     const select=await rect('#menu-select');await touch('touchStart',[point(select)]);
     assert.deepEqual(await down(),[167]);await touch('touchEnd',[]);
     await page.evaluate(()=>localStorage.setItem('eka-touch-v1:sky-force','{"action":141}'));
-    await configure('sky-force');assert.equal((await prefs()).action,53);
+    await configure('sky-force');assert.equal((await prefs()).bindings.portrait[0],48);
+    await page.evaluate(()=>localStorage.setItem('eka-touch-v1:custom-test','{"action":141}'));
+    await configure('custom-test');assert.equal((await prefs()).bindings.portrait[0],53);
+    // A remapped K-Rally weapon must not inherit Gas's optional latch.
+    await configure('k-rally');await settings('latch',true);await page.select('[data-binding="0"]','55');
+    assert.equal((await prefs()).latch,false);
+    assert.equal(await page.$eval('[data-hold-setting]',e=>(e as HTMLElement).hidden),true);
+    action=await rect('#primary-action');await touch('touchStart',[point(action)]);await touch('touchEnd',[]);
+    assert.deepEqual(await down(),[]);
+    await configure('asphalt-2');await settings('utility',true);
+    for(const [i,key] of [53,133,127].entries()) {
+        const r=await rect(`[data-utility="${i}"]`);await touch('touchStart',[point(r)]);
+        assert.deepEqual(await down(),[key]);await touch('touchEnd',[]);
+    }
+    // Catalogue identity separates games launched by the same N-Gage UID.
+    await page.evaluate(()=>localStorage.setItem('eka-touch-v1:0x20003b78','{"action":55,"latch":true}'));
+    const expected:any={snakes:[53,56,55,50],'sky-force':[48,53,0,0],'k-rally':[52,55,16,17],
+        'asphalt-2':[50,48,0,0],'hooked-on':[167,0,0,0],'asphalt-3':[53,56,55,51],
+        tetris:[167,53,48,16],'super-miners':[53,0,0,0],'n-gage':[167,0,0,0]};
+    for(const [name,scans] of Object.entries(expected)) {
+        await page.evaluate(n=>localStorage.removeItem('eka-touch-v2:'+n),name);await configure(name);
+        assert.deepEqual((await prefs()).bindings.portrait,scans,name);
+        assert.equal((await prefs()).latch,false);
+        assert.equal(await page.$eval('#menu-select',e=>(e as HTMLButtonElement).hidden),false);
+        for(let i=0;i<4;i++)if((scans as number[])[i]) {
+            const r=await rect(`[data-action="${i}"]`);
+            await touch('touchStart',[point(r)]);assert.deepEqual(await down(),[(scans as number[])[i]],name+' action '+i);
+            await touch('touchEnd',[]);assert.deepEqual(await down(),[]);
+        }
+    }
+    await configure('tetris');await page.select('[data-binding="2"]','57');
+    await configure('hooked-on');assert.equal((await prefs()).bindings.portrait[2],0);
+    await configure('asphalt-3');assert.equal((await prefs()).bindings.portrait[2],55);
+    await configure('tetris');assert.equal((await prefs()).bindings.portrait[2],57);
+    // A sideways Tetris/racing gesture cannot drift into Up or Down. Menus still work.
+    for(const name of ['snakes','k-rally','asphalt-2','asphalt-3','tetris']) {
+        await configure(name);origin={x:80,y:250,id:1};
+        await touch('touchStart',[origin]);await touch('touchMove',[{...origin,x:120}]);assert.deepEqual(await down(),[15]);
+        await touch('touchMove',[{...origin,x:115,y:100}]);assert.deepEqual(await down(),[15],name);
+        await touch('touchMove',[{...origin,x:82,y:100}]);assert.deepEqual(await down(),[]);
+        await touch('touchEnd',[]);await touch('touchStart',[origin]);
+        await touch('touchMove',[{...origin,y:200}]);assert.deepEqual(await down(),[16]);await touch('touchEnd',[]);
+    }
+    // Only the guest canvas dimensions change Asphalt bindings; viewport rotation does not.
+    await configure('asphalt-3');action=await rect('#action-1');await touch('touchStart',[point(action)]);
+    assert.deepEqual(await down(),[56]);
+    await page.evaluate(()=>{const canvas=document.getElementById('canvas') as HTMLCanvasElement;canvas.width=320;canvas.height=240;});
+    await page.waitForFunction(()=>(window as any).ekaTouchControls.orientation==='landscape');
+    assert.deepEqual(await down(),[]);await touch('touchEnd',[]);
+    assert.equal(await page.$eval('#action-1',e=>e.getAttribute('data-scan')),'54');
+    await page.select('[data-binding="1"]','49');await settings('orientation','portrait');
+    assert.equal(await page.$eval('#action-1',e=>e.getAttribute('data-scan')),'56');
+    await settings('orientation','auto');assert.equal(await page.$eval('#action-1',e=>e.getAttribute('data-scan')),'49');
+    await page.setViewport({width:844,height:390,hasTouch:true});
+    assert.equal(await page.evaluate(()=>(window as any).ekaTouchControls.orientation),'landscape');
+    await page.evaluate(()=>{const canvas=document.getElementById('canvas') as HTMLCanvasElement;canvas.width=240;canvas.height=320;});
+    await page.waitForFunction(()=>(window as any).ekaTouchControls.orientation==='portrait');
+    // All action/utility targets fit even at the largest settings in small orientations.
+    for(const [width,height] of [[320,568],[390,844],[568,320],[844,390]]) {
+        await page.setViewport({width,height,hasTouch:true});
+        for(const name of Object.keys(expected)) {
+            await configure(name);await settings('size',190);await settings('utility',true);await settings('gap',40);
+            const boxes=await page.$$eval('#action-group button',buttons=>buttons.filter(b=>(b as HTMLElement).offsetWidth>0).map(b=>{
+                const r=b.getBoundingClientRect();return {label:b.textContent,x:r.x,y:r.y,w:r.width,h:r.height};}));
+            for(const b of boxes)assert.ok(b.w>=44&&b.h>=44&&b.x>=0&&b.y>=0&&b.x+b.w<=width+1&&b.y+b.h<=height+1,JSON.stringify({name,width,height,b}));
+        }
+    }
+    await page.setViewport({width:390,height:844,hasTouch:true});
     // Malformed persisted values and unavailable storage must not break input.
-    await page.evaluate(()=>localStorage.setItem('eka-touch-v1:generic','{"size":1e99,"mode":"bad","move":{"x":-9,"y":9}}'));
+    await page.evaluate(()=>{localStorage.removeItem('eka-touch-v2:generic');localStorage.setItem('eka-touch-v1:generic','{"size":1e99,"mode":"bad","move":{"x":-9,"y":9}}');});
     await configure('');assert.equal((await prefs()).size,190);
     await page.evaluate(()=>{
         (window as any).vibrations=[];

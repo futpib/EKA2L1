@@ -304,7 +304,7 @@
                 || event.target.closest('input, select, textarea, button') || !(_keyScans[event.code])) return;
             event.preventDefault();
             _pressSource('key:' + event.code, event.code === 'Space'
-                ? (window.ekaTouchControls?.prefs.action || 167) : _keyScans[event.code]);
+                ? (window.ekaTouchControls?.primaryScan || 167) : _keyScans[event.code]);
         });
         window.addEventListener('keyup', function(event) {
             if (_inputSources.has('key:' + event.code)) event.preventDefault();
@@ -570,7 +570,7 @@
                     }
                     _gameRunning = true;
                     EkaAudio.attach(Module);
-                    window.ekaTouchControls.startGame(appName);
+                    window.ekaTouchControls.startGame(_selectedGame?.id || appName);
                     document.getElementById('play-surface').classList.add('playing');
                     document.getElementById('touch-deck').hidden = false;
                     document.getElementById('control-hint').hidden = false;

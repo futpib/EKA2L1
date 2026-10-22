@@ -1,0 +1,46 @@
+{
+  "snakes": [
+    "(async()=>{await step(24000000);await press(167,10000000);await shot(\"menu\");})()",
+    "(async()=>{for(let i=0;i<4;i++){await press(167,8000000);await shot(\"start-\"+i);}})()",
+    "(async()=>{await shot(\"gameplay\");for(const [i,key] of [53,56,55,50].entries())await touchAction(i,key,200000,true);await layout();})()"
+  ],
+  "sky-force": [
+    "(async()=>{await step(30000000);for(let i=0;i<5;i++){await press(167,10000000);await shot(\"start-\"+i);}})()",
+    "(async()=>{await shot(\"gameplay\");await touchAction(0,48,300000,true);await touchAction(1,53,500000,true);await layout();})()"
+  ],
+  "k-rally": [
+    "(async()=>{await step(18000000);await press(167);await step(45000000);await press(167);await step(25000000);await press(167,4000000);await press(17);for(let i=0;i<7;i++)await press(167,3000000);await step(40000000);await shot(\"track\");})()",
+    "(async()=>{await touchAction(0,52,4000000,false);await touchAction(0,52,300000,true);for(const [i,key] of [[1,55],[2,16],[3,17]])await touchAction(i,key,200000,true);await layout();})()"
+  ],
+  "asphalt-2": [
+    "(async()=>{await step(30000000);await shot(\"sound\");})()",
+    "(async()=>{await press(164);await press(167);await press(17);await press(167);await press(167);await shot(\"golf\");await press(167);await shot(\"track\");await press(167,60000000);await shot(\"gameplay\");await touchAction(0,50,200000,true);await touchAction(1,48,500000,true);await layout();})()"
+  ],
+  "hooked-on": [
+    "(async()=>{await step(700000000);await press(164,70000000);await press(165,4000000);await press(167,10000000);await shot(\"language\");})()",
+    "(async()=>{await press(167,20000000);await shot(\"save\");await press(167,10000000);await shot(\"name\");await press(16);await press(164,60000000);await shot(\"intro\");await step(60000000);await press(167);await shot(\"main\");})()",
+    "(async()=>{await press(16,1000000);await press(164,60000000);await shot(\"named\");await step(60000000);await press(167,5000000);await shot(\"main-menu\");})()",
+    "(async()=>{await press(167,70000000);await shot(\"boat-help\");await press(164,1000000);await press(167,35000000);await shot(\"fishing-help\");await press(164,3000000);await shot(\"fishing\");})()",
+    "(async()=>{await touchAction(0,167,150000);await step(1000000);await shot(\"cast-meter\");await touchAction(0,167,150000);await step(15000000);await shot(\"cast\");await touchAction(0,167,10000000);await shot(\"retrieved\");await layout();})()"
+  ],
+  "asphalt-3": [
+    "(async()=>{await step(650000000);await press(164,60000000);await step(10000000);await press(167,5000000,2000000);await step(15000000);await shot(\"loaded\");})()",
+    "(async()=>{await press(167,1000000);await press(164,1000000);await press(167,5000000);await shot(\"race-short\");})()",
+    "(async()=>{await press(164,10000000);await shot(\"main\");await press(167,20000000);await shot(\"race\");})()",
+    "(async()=>{await shot(\"gameplay-landscape\");for(const [i,key] of [53,54,55,49].entries())await touchAction(i,key,300000,i<2);await layout();await press(165,1000000);await shot(\"pause\");})()",
+    "(async()=>{await press(164,1000000,50000);await shot(\"paused\");})()",
+    "(async()=>{for(let i=0;i<4;i++)await press(17,500000,30000);await press(167,1000000,30000);await shot(\"display-mode\");})()",
+    "(async()=>{await press(14,1000000,30000);await shot(\"display-left\");})()",
+    "(async()=>{await press(167,2000000,30000);await shot(\"display-applied\");})()",
+    "(async()=>{assert.equal((await status()).orientation,\"portrait\");await press(167,1000000,30000);await shot(\"gameplay-portrait\");for(const [i,key] of [53,56,55,51].entries())await touchAction(i,key,300000,i<2);await layout();})()"
+  ],
+  "tetris": [
+    "(async()=>{await step(650000000);await press(164,60000000);await press(165,2000000);await press(167,10000000);await shot(\"start\");})()",
+    "(async()=>{await step(10000000);await shot(\"trial\");await press(167,10000000);await shot(\"main\");await press(167,1000000);await press(167,1000000);await press(167,10000000);await shot(\"marathon\");for(let i=0;i<4;i++)await press(164,500000);await press(167,1000000);await shot(\"board\");})()",
+    "(async()=>{await shot(\"gameplay\");await touchAction(0,167,100000,true);await shot(\"clockwise\");await touchAction(1,53,100000,false);await shot(\"counterclockwise\");await touchAction(2,48,100000,false);await shot(\"hold\");await touchAction(3,16,100000,false);await shot(\"drop\");await layout();})()"
+  ],
+  "super-miners": [
+    "(async()=>{await step(30000000);await press(167,3000000);await press(167,3000000);await press(167,1000000);await press(167,1000000);await step(15000000);await shot(\"level\");})()",
+    "(async()=>{await shot(\"gameplay\");await touchAction(0,53,1000000,true);await layout();})()"
+  ]
+}
