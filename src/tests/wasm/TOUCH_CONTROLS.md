@@ -1,5 +1,9 @@
 # Browser touch controls
 
+For the eight-game settings audit and proposed action presets, see
+[Game control research](GAME_CONTROL_RESEARCH.md). Those presets are proposed,
+not implemented by the current controls described below.
+
 The game occupies the viewport and retains its original aspect ratio without
 cropping. Translucent thumb controls float over it or in the available letterbox
 space; the layout does not reserve a control deck or persistent toolbars.
