@@ -2,7 +2,8 @@
   "snakes": [
     "(async()=>{await step(24000000);await press(167,10000000);await shot(\"menu\");})()",
     "(async()=>{for(let i=0;i<4;i++){await press(167,8000000);await shot(\"start-\"+i);}})()",
-    "(async()=>{await shot(\"gameplay\");for(const [i,key] of [53,56,55,50].entries())await touchAction(i,key,200000,true);await layout();})()"
+    "(async()=>{await shot(\"gameplay\");for(const [i,key] of [53,56,55,50].entries())await touchAction(i,key,200000,true);await layout();})()",
+    "(async()=>{for(const [i,key] of [53, 56, 55, 50].entries())await touchAction(i,key,150000,true,true);await nearMisses();await layout();})()"
   ],
   "sky-force": [
     "(async()=>{await step(30000000);for(let i=0;i<5;i++){await press(167,10000000);await shot(\"start-\"+i);}})()",
@@ -37,7 +38,8 @@
   "tetris": [
     "(async()=>{await step(650000000);await press(164,60000000);await press(165,2000000);await press(167,10000000);await shot(\"start\");})()",
     "(async()=>{await step(10000000);await shot(\"trial\");await press(167,10000000);await shot(\"main\");await press(167,1000000);await press(167,1000000);await press(167,10000000);await shot(\"marathon\");for(let i=0;i<4;i++)await press(164,500000);await press(167,1000000);await shot(\"board\");})()",
-    "(async()=>{await shot(\"gameplay\");await touchAction(0,167,100000,true);await shot(\"clockwise\");await touchAction(1,53,100000,false);await shot(\"counterclockwise\");await touchAction(2,48,100000,false);await shot(\"hold\");await touchAction(3,16,100000,false);await shot(\"drop\");await layout();})()"
+    "(async()=>{await shot(\"gameplay\");await touchAction(0,167,100000,true);await shot(\"clockwise\");await touchAction(1,53,100000,false);await shot(\"counterclockwise\");await touchAction(2,48,100000,false);await shot(\"hold\");await touchAction(3,16,100000,false);await shot(\"drop\");await layout();})()",
+    "(async()=>{for(const [i,key] of [167, 53, 48, 16].entries())await touchAction(i,key,150000,true,true);await nearMisses();await layout();})()"
   ],
   "super-miners": [
     "(async()=>{await step(30000000);await press(167,3000000);await press(167,3000000);await press(167,1000000);await press(167,1000000);await step(15000000);await shot(\"level\");})()",

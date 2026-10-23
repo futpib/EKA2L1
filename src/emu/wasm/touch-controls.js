@@ -83,9 +83,27 @@ class EkaTouchControls {
             this.open(this.settings);
         };
         document.getElementById('btn-keypad').onclick = () => { this.setEditing(false); this.open(this.keypad); };
-        this.menuButton.onclick = () => {
+        this.menuButton.onclick = event => {
+            if(event.detail!==0)return;
             if (this.editing) this.setEditing(false); else this.open(this.menu);
         };
+        // Handle pointer taps directly, including outside the visible menu circle.
+        // Keep keyboard/assistive clicks; suppress duplicate native clicks after pointer taps.
+        this.menuButton.addEventListener('pointerdown',event=>{
+            if(event.button!==0||this.menuPointer!=null)return;
+            event.preventDefault();this.menuPointer=event.pointerId;
+            this.menuButton.setPointerCapture(event.pointerId);this.haptic(event);
+        });
+        this.menuButton.addEventListener('pointerup',event=>{
+            if(this.menuPointer!==event.pointerId)return;
+            this.menuPointer=null;
+            const r=this.menuButton.getBoundingClientRect();
+            if(event.clientX>=r.left-12&&event.clientX<=r.right+12
+                &&event.clientY>=r.top-12&&event.clientY<=r.bottom+12)this.menuButton.click();
+        });
+        for(const name of ['pointercancel','lostpointercapture'])this.menuButton.addEventListener(name,event=>{
+            if(this.menuPointer===event.pointerId)this.menuPointer=null;
+        });
         const fullscreen = document.getElementById('btn-fullscreen');
         fullscreen.hidden = !document.fullscreenEnabled;
         fullscreen.onclick = async () => {
@@ -292,15 +310,16 @@ class EkaTouchControls {
         this.lastHaptic=now;
         try {navigator.vibrate(8);} catch (_) {}
     }
+    buttonStart(button,event) {
+        if (this.editing||event.button!==0) return;
+        this.syncOrientation();
+        event.preventDefault(); button.setPointerCapture(event.pointerId);
+        this.haptic(event);
+        if (button===this.primary&&this.prefs.latch&&this.canLatch) this.toggleLatch();
+        else this.set('touch:button:'+event.pointerId,[Number(button.dataset.scan)]);
+    }
     bindButton(button) {
-        button.addEventListener('pointerdown',event=>{
-            if (this.editing||event.button!==0) return;
-            this.syncOrientation();
-            event.preventDefault(); button.setPointerCapture(event.pointerId);
-            this.haptic(event);
-            if (button===this.primary&&this.prefs.latch&&this.canLatch) this.toggleLatch();
-            else this.set('touch:button:'+event.pointerId,[Number(button.dataset.scan)]);
-        });
+        button.addEventListener('pointerdown',event=>this.buttonStart(button,event));
         for (const name of ['pointerup','pointercancel','lostpointercapture']) button.addEventListener(name,event=>{
             this.set('touch:button:'+event.pointerId,[]);
             if (name==='pointercancel' && button===this.primary && this.owned.has('touch:latch')) this.toggleLatch();
@@ -316,10 +335,33 @@ class EkaTouchControls {
         else {this.press(source,this.primaryScan);this.owned.add(source);}
         this.primary.setAttribute('aria-pressed',String(this.owned.has(source)));this.reflect();
     }
+    controlTarget(x,y) {
+        // Resolve overlapping 12px target extensions by distance, never DOM stacking.
+        let nearest=null,distance=Infinity,centreDistance=Infinity;
+        for(const button of this.actions.querySelectorAll('button')) {
+            const r=button.getBoundingClientRect();if(!r.width||!r.height)continue;
+            const dx=Math.max(r.left-x,0,x-r.right),dy=Math.max(r.top-y,0,y-r.bottom);
+            if(dx>12||dy>12)continue;
+            const d=dx*dx+dy*dy,c=(x-r.x-r.width/2)**2+(y-r.y-r.height/2)**2;
+            if(d<distance||(d===distance&&c<centreDistance)) {
+                nearest=button;distance=d;centreDistance=c;
+            }
+        }
+        return nearest;
+    }
     moveStart(event) {
-        if (this.editing||event.button!==0||this.pointers.size) return;
-        this.syncOrientation();
-        event.preventDefault();this.moveZone.setPointerCapture(event.pointerId);
+        if (this.editing||this.modalOpen||event.button!==0) return;
+        this.syncOrientation();event.preventDefault();
+        const button=this.controlTarget(event.clientX,event.clientY);
+        if(button) {this.buttonStart(button,event);return;}
+        // Near misses and gaps in the action cluster stay inert for this contact.
+        const blocked=[this.actions,this.menuButton].some(control=>{
+            const r=control.getBoundingClientRect();
+            return r.width&&r.height&&event.clientX>=r.left-24&&event.clientX<=r.right+24
+                &&event.clientY>=r.top-24&&event.clientY<=r.bottom+24;
+        });
+        if(blocked||this.pointers.size)return;
+        this.moveZone.setPointerCapture(event.pointerId);
         const rect=this.pad.getBoundingClientRect();
         const origin={x:event.clientX,y:event.clientY},zone=this.moveZone.getBoundingClientRect();
         this.pad.style.left=(origin.x-zone.left-rect.width/2)+'px';
@@ -359,7 +401,7 @@ class EkaTouchControls {
     }
     reset() {
         for (const source of this.owned) this.release(source);
-        this.owned.clear();this.pointers.clear();this.drag=null;this.moveZone.classList.remove('active');this.knob.style.transform='';
+        this.owned.clear();this.pointers.clear();this.drag=null;this.menuPointer=null;this.moveZone.classList.remove('active');this.knob.style.transform='';
         this.primary.setAttribute('aria-pressed','false');this.layout();this.reflect();
     }
 }

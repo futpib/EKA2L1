@@ -60,13 +60,13 @@ try {
         await input.send('Input.dispatchTouchEvent',{type,touchPoints:points});
         await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
     };
-    const touchAction=async(index,scan,us=200000,steer=false)=>{
+    const touchAction=async(index,scan,us=200000,steer=false,outside=false)=>{
         await page.setViewport({width:390,height:844,hasTouch:true});await wait(150);
         const before=await status();
-        const point=await page.$eval('[data-action="'+index+'"]',button=>{
+        const point=await page.$eval('[data-action="'+index+'"]',(button,outside)=>{
             const r=button.getBoundingClientRect();if(r.width===0)throw Error('Hidden action');
-            return {x:r.x+r.width/2,y:r.y+r.height/2,id:2};
-        });
+            return {x:outside?r.right+8:r.x+r.width/2,y:r.y+r.height/2,id:2};
+        },outside);
         const origin={x:80,y:300,id:1},moved={...origin,x:40};
         if(steer){await touch('touchStart',[origin]);await touch('touchMove',[moved]);}
         await touch(steer?'touchMove':'touchStart',steer?[moved,point]:[point]);
@@ -76,7 +76,28 @@ try {
         await touch('touchEnd',[]);await step(100000);
         const after=await status();assert.deepEqual(after.held,[]);assert(after.inputs>before.inputs);
         assert(await page.evaluate(()=>controlTouches.some(event=>event.trusted&&event.type==='touch')));
-        report.checks.push({action:index,scan,steer,inputs:after.inputs-before.inputs});
+        report.checks.push({action:index,scan,steer,outside,inputs:after.inputs-before.inputs});
+    };
+    const nearMisses=async()=>{
+        const before=await status();
+        const group=await page.$eval('#action-group',e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height};});
+        const miss={x:group.x-20,y:group.y+group.h/2,id:1};
+        await touch('touchStart',[miss]);await touch('touchMove',[{...miss,x:80,y:150}]);
+        assert.deepEqual((await status()).held,[]);
+        assert.equal(await page.evaluate(()=>ekaTouchControls.pointers.size),0);
+        await touch('touchEnd',[]);await step(200000);
+        assert.equal((await status()).inputs,before.inputs,'A blocked near miss must not send guest input');
+        const menu=await page.$eval('#btn-game-menu',e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y};});
+        await touch('touchStart',[{x:menu.x-20,y:menu.y+22,id:1}]);
+        await touch('touchMove',[{x:menu.x-60,y:menu.y+80,id:1}]);
+        assert.deepEqual((await status()).held,[]);
+        assert.equal(await page.evaluate(()=>ekaTouchControls.pointers.size),0);
+        await touch('touchEnd',[]);
+        await touch('touchStart',[{x:menu.x-8,y:menu.y+22,id:1}]);await touch('touchEnd',[]);
+        assert.equal(await page.$eval('#session-panel',e=>e.open),true);
+        await page.click('#session-panel [data-close]');
+        report.checks.push({check:'near misses do not spawn movement; expanded menu opens',passed:true});
+        await shot('near-misses');
     };
     const layout=async()=>{
         for(const [width,height] of [[390,844],[844,390]]) {

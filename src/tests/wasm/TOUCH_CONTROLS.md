@@ -21,13 +21,26 @@ The game keeps running while this menu is open.
 | 7 | Tetris | Rotate clockwise, Rotate counterclockwise, Hold, Drop | Cardinal only, horizontal movement lock |
 | 8 | Super Miners | Action | Cardinal only, turns without lifting |
 
-Every stick appears where the movement finger touches and disappears on release.
+Away from controls, the stick appears where the movement finger touches and
+disappears on release.
 Snakes, both Asphalt games, K-Rally and Tetris keep a gesture horizontal once it
 has moved sideways. Vertical thumb drift then cannot fire a weapon or drop a
 piece. Lift and start a new vertical gesture for menu navigation. Sky Force and
 Hooked On allow diagonals; Tetris and Super Miners always send one direction at a
 time. These are guest key presses, not finger-following character positioning.
 The games' own autofire and automatic acceleration preferences are preserved.
+
+Action buttons, L/OK/R and optional utility buttons accept touches up to 12 CSS
+pixels beyond their visible rectangles. Where extensions overlap, the nearest
+visible button wins. The game menu also has 12 pixels of invisible target padding.
+The artwork and layout remain the same size.
+
+New movement touches are blocked inside the action cluster (including unused
+slots) and within 24 pixels of the cluster or game menu. A touch in that guard
+area remains inert until lifted, even if dragged into the playfield. An existing
+stick can still be dragged near controls, and a second finger can hit a padded
+action target while steering. These bounds follow resized and moved controls,
+including left-handed layouts.
 
 Multiple fingers can move and press actions together. Releasing one input does
 not release a key owned by another finger or keyboard key. Blur, cancellation,
@@ -80,6 +93,36 @@ JavaScript and CSS are versioned through the existing asset cache. Normal WASM
 builds copy both files alongside the HTML, audio assets and runtime.
 
 ## Verification
+
+### Larger touch targets and protected movement starts, 2026-10-23
+
+The regression test reproduced the original problem: a touch beside the action
+cluster became an Up input when dragged away. The expanded browser fixture now
+passes all nine profiles in portrait/landscape and both handed layouts. It checks
+12px button padding, nearest-button selection in overlapping padding, unchanged
+artwork bounds, a 24px no-spawn guard, utility targets, cancellation, simultaneous
+steering/actions and continued movement through the protected area. Exact mouse
+coordinates also verify padding independently of Chromium's touch adjustment.
+
+The real Snakes and Tetris routes each passed four ordinary action presses and
+four touches eight pixels outside the drawn actions, with steering held. Guard
+misses produced neither joystick state nor consumed guest input. The padded menu
+opened successfully, and all inputs were released. Captures were reviewed during
+gameplay. The first runs exposed a menu path that received pointer events without
+a synthesized click; menu activation now handles pointer release directly while
+preserving keyboard/assistive clicks and ignoring duplicate native clicks.
+Cancelled or dragged-away menu touches remain inactive.
+
+Evidence: `/home/claude/.scratch/eka-touch-targets-20261023/`, with the completed
+game reports in `snakes2/` and `tetris2/`, `final-contract.log`, and deployment
+hashes in `deployment.json`. The committed Snakes/Tetris routes include the new
+near-miss cases. These are desktop Chromium touch-injection checks, not physical
+phone testing or a new performance benchmark. The emulator WASM is unchanged.
+
+Deployed at <https://claude-laptop.lan:8188/> as
+`touch-targets-e5728ebd27-af0162b2`. A fresh live Snakes replay passed all nine
+checks (`live-snakes/`). Served HTML asset versions, JS/CSS hashes and the unchanged
+WASM hash were checked after waiting for the restarted service to listen.
 
 ### Universal action presets, 2026-10-22
 

@@ -171,6 +171,69 @@ try {
         await touch('touchEnd',[]);await touch('touchStart',[origin]);
         await touch('touchMove',[{...origin,y:200}]);assert.deepEqual(await down(),[16]);await touch('touchEnd',[]);
     }
+    // Exact mouse coordinates establish padding without Chromium's touch-target adjustment.
+    await configure('snakes');action=await rect('#primary-action');
+    await page.mouse.move(action.x+action.width+8,action.y+action.height/2);await page.mouse.down();
+    assert.deepEqual(await down(),[53]);await page.mouse.up();assert.deepEqual(await down(),[]);
+    // Adjacent target padding belongs to the nearest artwork, not the later DOM node.
+    const okRect=await rect('#menu-select');
+    for(const [offset,scan] of [[2,167],[6,50]]) {
+        await page.mouse.move(okRect.x+okRect.width/2,okRect.y+okRect.height+offset);
+        await page.mouse.down();assert.deepEqual(await down(),[scan]);await page.mouse.up();
+    }
+    // Invisible target padding accepts near misses; the surrounding group rejects new sticks.
+    for(const [width,height] of [[390,844],[844,390]]) {
+        await page.setViewport({width,height,hasTouch:true});
+        for(const name of Object.keys(expected))for(const leftHanded of [false,true]) {
+            await configure(name);await settings('leftHanded',leftHanded);await settings('size',132);
+            const r=await rect('#primary-action');
+            const hit={x:r.x+r.width+8,y:r.y+r.height/2,id:1};
+            await touch('touchStart',[hit]);
+            assert.deepEqual(await down(),[expected[name][0]],name+' expanded target');
+            assert.equal(await page.evaluate(()=>(window as any).ekaTouchControls.pointers.size),0);
+            await touch('touchMove',[{...hit,x:width/2,y:100}]);
+            assert.deepEqual(await down(),[expected[name][0]],'Near-miss button keeps ownership while sliding away');
+            await touch('touchCancel',[]);assert.deepEqual(await down(),[]);
+            assert.deepEqual(await rect('#primary-action'),r,'Artwork stays the same size');
+            const group=await rect('#action-group');
+            const guard={x:leftHanded?group.x+group.width+20:group.x-20,y:group.y+group.height/2,id:1};
+            await touch('touchStart',[guard]);await touch('touchMove',[{...guard,x:width/2,y:80}]);
+            assert.deepEqual(await down(),[],'A near miss outside target padding must stay inert');
+            assert.equal(await page.evaluate(()=>(window as any).ekaTouchControls.pointers.size),0);
+            await touch('touchEnd',[]);
+        }
+    }
+    await page.setViewport({width:390,height:844,hasTouch:true});await configure('snakes');
+    await settings('leftHanded',false);await settings('utility',true);
+    const util=await rect('[data-utility="0"]');
+    await touch('touchStart',[{x:util.x+util.width/2,y:util.y+util.height+8,id:1}]);
+    assert.deepEqual(await down(),[51]);await touch('touchEnd',[]);
+    // Expanded action hits still work while another finger is steering.
+    origin={x:80,y:200,id:1};action=await rect('#primary-action');
+    const nearAction={x:action.x+action.width+8,y:action.y+action.height/2,id:2};
+    await touch('touchStart',[origin]);await touch('touchMove',[{...origin,x:40}]);
+    await touch('touchStart',[{...origin,x:40},nearAction]);assert.deepEqual(await down(),[14,53]);
+    await touch('touchCancel',[]);assert.deepEqual(await down(),[]);
+    // Menu padding opens the real menu; its outer guard cannot spawn movement.
+    const menuRect=await rect('#btn-game-menu');
+    await touch('touchStart',[{x:menuRect.x-20,y:menuRect.y+22,id:1}]);
+    await touch('touchMove',[{x:menuRect.x-50,y:menuRect.y+80,id:1}]);
+    assert.deepEqual(await down(),[]);await touch('touchEnd',[]);
+    await touch('touchStart',[{x:menuRect.x-8,y:menuRect.y+22,id:1}]);await touch('touchEnd',[]);
+    assert.equal(await page.$eval('#session-panel',e=>(e as HTMLDialogElement).open),true);
+    await page.click('#session-panel [data-close]');
+    await touch('touchStart',[{x:menuRect.x-8,y:menuRect.y+22,id:1}]);await touch('touchCancel',[]);
+    assert.equal(await page.$eval('#session-panel',e=>(e as HTMLDialogElement).open),false);
+    await touch('touchStart',[{x:menuRect.x+22,y:menuRect.y+22,id:1}]);
+    await touch('touchMove',[{x:menuRect.x-60,y:menuRect.y+80,id:1}]);await touch('touchEnd',[]);
+    assert.equal(await page.$eval('#session-panel',e=>(e as HTMLDialogElement).open),false);
+    await page.focus('#btn-game-menu');await page.keyboard.press('Enter');
+    assert.equal(await page.$eval('#session-panel',e=>(e as HTMLDialogElement).open),true);
+    await page.click('#session-panel [data-close]');
+    // Protection applies to new touches only, not an existing movement gesture.
+    await touch('touchStart',[origin]);await touch('touchMove',[{...origin,x:120}]);
+    await touch('touchMove',[{...nearAction,id:1}]);
+    assert.deepEqual(await down(),[15]);await touch('touchEnd',[]);
     // Only the guest canvas dimensions change Asphalt bindings; viewport rotation does not.
     await configure('asphalt-3');action=await rect('#action-1');await touch('touchStart',[point(action)]);
     assert.deepEqual(await down(),[56]);
