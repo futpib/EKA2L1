@@ -33,6 +33,7 @@
 #include <kernel/common.h>
 
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <map>
 #include <stack>
@@ -61,6 +62,7 @@ namespace eka2l1::dispatch {
         EGL_PBUFFER_BIT_EMU = 1,
         EGL_PIXMAP_BIT_EMU = 2,
         EGL_WINDOW_BIT_EMU = 4,
+        EGL_CORE_NATIVE_ENGINE_EMU = 0x305B,
         EGL_MAJOR_VERSION_EMU = 1,
         EGL_MINOR_VERSION_EMU = 4,
         EGL_SUCCESS = 0x3000,
@@ -69,6 +71,7 @@ namespace eka2l1::dispatch {
         EGL_BAD_CONFIG = 0x3005,
         EGL_BAD_CONTEXT_EMU = 0x3006,
         EGL_BAD_DISPLAY_EMU = 0x3008,
+        EGL_BAD_MATCH_EMU = 0x3009,
         EGL_BAD_NATIVE_PIXMAP_EMU = 0x300A,
         EGL_BAD_NATIVE_WINDOW_EMU = 0x300B,
         EGL_BAD_PARAMETER_EMU = 0x300C,
@@ -106,6 +109,7 @@ namespace eka2l1::dispatch {
         EGL_COLOR_BUFFER_TYPE_EMU = 0x303F,
         EGL_RENDERABLE_TYPE_EMU = 0x3040,
         EGL_CONFORMANT_EMU = 0x3042,
+        EGL_CLIENT_APIS_EMU = 0x308D,
         EGL_RGB_BUFFER_EMU = 0x308E,
         EGL_VENDOR_EMU = 0x3053,
         EGL_VERSION_EMU = 0x3054,
@@ -142,6 +146,7 @@ namespace eka2l1::dispatch {
         GL_FRONT_EMU = 0x0404,
         GL_BACK_EMU = 0x0405,
         GL_FRONT_AND_BACK_EMU = 0x0408,
+        GL_OUT_OF_MEMORY = 0x0505,
         GL_INVALID_ENUM = 0x0500,
         GL_INVALID_VALUE = 0x0501,
         GL_INVALID_OPERATION = 0x0502,
@@ -341,6 +346,7 @@ namespace eka2l1::dispatch {
         GL_GENERATE_MIPMAP_EMU = 0x8191,
         GL_REPEAT_EMU = 0x2901,
         GL_CLAMP_TO_EDGE_EMU = 0x812F,
+        GL_DEPTH_COMPONENT_EMU = 0x1902,
         GL_DEPTH_COMPONENT16_EMU = 0x81A5,
         GL_BYTE_EMU = 0x1400,
         GL_SHORT_EMU = 0x1402,
@@ -397,6 +403,13 @@ namespace eka2l1::dispatch {
         GL_CURRENT_NORMAL_EMU = 0x0B02,
         GL_CURRENT_TEXTURE_COORDS_EMU = 0x0B03,
         GL_DEPTH_WRITEMASK_EMU = 0x0B72,
+        GL_DEPTH_RANGE_EMU = 0x0B70,
+        GL_DEPTH_FUNC_EMU = 0x0B74,
+        GL_FRONT_FACE_EMU = 0x0B46,
+        GL_SHADE_MODEL_EMU = 0x0B54,
+        GL_SCISSOR_BOX_EMU = 0x0C10,
+        GL_POLYGON_OFFSET_FACTOR_EMU = 0x8038,
+        GL_POLYGON_OFFSET_UNITS_EMU = 0x2A00,
         GL_DEPTH_CLEAR_EMU = 0x0B73,
         GL_MATRIX_MODE_EMU = 0x0BA0,
         GL_VIEWPORT_EMU = 0x0BA2,
@@ -491,6 +504,7 @@ namespace eka2l1::dispatch {
     static constexpr const char *EGL_STATIC_STRING_VENDOR = "EKA2L1";
     static constexpr const char *EGL_STATIC_STRING_VERSION = "1.4";
     static constexpr const char *EGL_STATIC_STRING_EXTENSION = "EGL_KHR_create_context EGL_NOK_resource_profiling2";
+    static constexpr const char *EGL_STATIC_STRING_CLIENT_APIS = "OpenGL_ES OpenVG";
     static constexpr std::uint32_t EGL_PROF_QUERY_GLOBAL_BIT_NOK_EMU = 0x0001;
     static constexpr std::uint32_t EGL_PROF_QUERY_MEMORY_USAGE_BIT_NOK_EMU = 0x0002;
     static constexpr std::int32_t EGL_PROF_TOTAL_MEMORY_NOK_EMU = 0x3070;
@@ -527,6 +541,8 @@ namespace eka2l1::dispatch {
         std::uint8_t green_bits() const;
         std::uint8_t blue_bits() const;
         std::uint8_t alpha_bits() const;
+        std::uint8_t depth_bits() const { return (config_ & 0x20) ? 16 : 24; }
+        std::uint8_t stencil_bits() const { return (config_ & 0x20) ? 0 : 8; }
 
         target_context_version get_target_context_version();
         void set_target_context_version(const target_context_version ver);
@@ -557,6 +573,8 @@ namespace eka2l1::dispatch {
 
         float current_scale_;
         egl_context *bounded_context_;
+        std::shared_ptr<std::function<void()>> pixmap_readback_;
+        std::function<void()> pixmap_upload_;
 
         explicit egl_surface(epoc::canvas_base *backed_window, epoc::screen *screen, eka2l1::vec2 dim,
             drivers::handle h, egl_config config);

@@ -114,6 +114,10 @@ typedef NS_ENUM(NSInteger, EKA2L1InstallResult) {
 // over it. nil when no device is booted.
 - (nullable NSString *)currentDeviceDriveEPath;
 
+// Host folder of the booted device's own drive C, D or E (case-insensitive
+// letter). nil for other drives or when no device is booted.
+- (nullable NSString *)currentDeviceDrivePath:(unichar)driveLetter;
+
 // Install a device from a raw ROM dump (and optionally an RPKG file). Mirrors
 // the Android launcher::install_device path: install_rpkg when the ROM needs
 // it, else install_rom. Writes into the sandbox storage and persists
@@ -280,6 +284,9 @@ typedef NS_ENUM(NSInteger, EKA2L1PointerPhase) {
 - (void)tapRawKey:(uint32_t)scanCode;
 - (CGRect)guestDisplayRect;
 - (void)setGameController:(nullable GCController *)controller motion:(BOOL)motion vibration:(BOOL)vibration;
+// Fixed accelerometer reading in the emulated device's own axes, in m/s^2
+// (Symbian convention: flat face up reads +9.81 z); nil returns to real motion.
+- (void)setAccelerationOverride:(nullable NSArray<NSNumber *> *)acceleration;
 
 // YES when the booted device's Symbian version drives its UI by touch
 // (S60v5 / Symbian^3 and later). The frontend uses it to pick the fullscreen
@@ -297,7 +304,8 @@ typedef NS_ENUM(NSInteger, EKA2L1PointerPhase) {
                              offset:(CGPoint)offset;
 
 // Available Window Server screen-mode indices plus the current mode. The
-// snapshot keys are `modes` ([NSNumber]) and `current` (NSNumber).
+// snapshot keys are `modes` ([NSNumber]) and `current` (NSNumber), plus
+// `width`/`height`: the picture as presented, in guest pixels after rotation.
 - (NSDictionary<NSString *, id> *)guestScreenModeSnapshot;
 
 // Select the guest's real Window Server screen mode and persist it through the

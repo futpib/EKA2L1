@@ -31,6 +31,7 @@
 #include <common/types.h>
 
 #include <scripting/cpu.h>
+#include <scripting/mem.h>
 #include <scripting/manager.h>
 
 #include <kernel/libmanager.h>
@@ -110,6 +111,30 @@ namespace eka2l1::manager {
         }
     }
 
+    // --- Wave: Against Every Beat (Colorbox) crash fix (wave_crash_fix.lua) ---
+    // Starting a run refreshes a sprite animation that never started (frame -1).
+    // The game then reads 64KB past a heap cell, which only happens to be mapped on the phone.
+    static void wave_skip_unstarted_animation_refresh() {
+        if (static_cast<std::int32_t>(scripting::cpu::get_register(1)) < 0) {
+            scripting::cpu::set_register(15, scripting::cpu::get_pc() + 0x16);
+        }
+    }
+
+    // Only type-0 enemy waves set their fire period, but every live wave is taken modulo it
+    // before the type check. Take the path that check picks anyway instead of dividing by zero.
+    static void wave_skip_zero_fire_period() {
+        if (scripting::cpu::get_register(1) == 0) {
+            scripting::cpu::set_register(15, scripting::cpu::get_pc() - 0x28);
+        }
+    }
+
+    // --- Let's Create! Pottery (Infinite Dreams) startup fix (pottery_startup_fix.lua) ---
+    // CIrrDeviceSymbian never initializes its Close flag, so run() reports the device as
+    // closed whenever the reused heap cell holds a nonzero byte there and nothing is drawn.
+    static void pottery_clear_device_close_flag() {
+        scripting::write_byte(scripting::cpu::get_register(0) + 0xB4, 0);
+    }
+
     void scripts::register_builtin_patches() {
         // The kernel-level hooks must be live for breakpoints to fire.
         register_kernel_hooks();
@@ -175,6 +200,11 @@ namespace eka2l1::manager {
         for (const std::uint32_t addr : { 0x10024F88, 0x10024FDC, 0x10025030 }) {
             register_breakpoint("6r65.app", addr, 0, 0x101FD402, 0xBA80BDA5, ssx_skip_null_client_read);
         }
+
+        register_breakpoint("cboxapp_0x20041fae.exe", 0x956B, 0, 0x20041FAE, 0xCB7985E9, wave_skip_unstarted_animation_refresh);
+        register_breakpoint("cboxapp_0x20041fae.exe", 0x1D44F, 0, 0x20041FAE, 0xCB7985E9, wave_skip_zero_fire_period);
+
+        register_breakpoint("pottery.exe", 0x187410, 0, 0x20042DDE, 0x58A29E91, pottery_clear_device_close_flag);
 
         current_module = nullptr;
 

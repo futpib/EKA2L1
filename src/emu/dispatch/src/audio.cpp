@@ -354,13 +354,14 @@ namespace eka2l1::dispatch {
         bool supplied = eplayer->impl_ && eplayer->impl_->open_custom(custom_good_stream);
         if (!supplied) {
             drivers::audio_driver *driver = sys->get_audio_driver();
-            std::vector<drivers::player_type> types = driver->get_suitable_player_types("");
+            std::vector<drivers::player_type> types = driver->get_suitable_player_types(*custom_good_stream);
 
             for (std::size_t i = 0; i < types.size(); i++) {
                 if (eplayer->impl_ && (eplayer->impl_->get_player_type() == types[i])) {
                     continue;
                 }
                 auto new_player = drivers::new_audio_player(driver, types[i]);
+                custom_good_stream->seek(0, common::seek_where::beg);
                 if (new_player && new_player->open_custom(custom_good_stream)) {
                     eplayer->impl_ = std::move(new_player);
                     supplied = true;
@@ -1487,7 +1488,8 @@ namespace eka2l1::dispatch {
     }
 
     static void set_tone_sequence(dsp_epoc_tone *tone, const std::uint8_t *data, const std::size_t size) {
-        if (!parse_nokia_tone_sequence(data, size, tone->program_)) {
+        if (!parse_nokia_tone_sequence(data, size, tone->program_)
+            && !parse_smart_messaging_ringtone(data, size, tone->program_)) {
             // Kept playable for the guest's sake: it completes at once, silently.
             LOG_WARN(HLE_AUD, "Tone sequence format not supported ({} bytes), it will play as silence", size);
             tone->program_.clear();

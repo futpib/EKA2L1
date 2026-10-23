@@ -209,6 +209,7 @@ namespace eka2l1::dispatch {
                 info_inst->view_model_mat_loc_ = metadata.get_uniform_binding("uViewModelMat");
             } else {
                 info_inst->palette_mat_loc_ = metadata.get_uniform_binding("uPaletteMat");
+                info_inst->weight_scale_loc_ = metadata.get_uniform_binding("uWeightScale");
             }
 
             info_inst->point_size_loc_ = metadata.get_uniform_binding("uPointSize");
@@ -252,6 +253,11 @@ namespace eka2l1::dispatch {
                 }
 
                 clip_plane_name.back()++;
+            }
+
+            if (fragment_statuses & egl_context_es1::FRAGMENT_STATE_LOGIC_OP) {
+                info_inst->logic_op_destination_loc_ = metadata.get_uniform_binding("uLogicOpDestination");
+                info_inst->logic_op_mask_loc_ = metadata.get_uniform_binding("uLogicOpMask");
             }
 
             info_inst->material_ambient_loc_ = metadata.get_uniform_binding("uMaterialAmbient");

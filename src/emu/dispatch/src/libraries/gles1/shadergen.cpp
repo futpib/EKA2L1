@@ -94,19 +94,16 @@ namespace eka2l1::dispatch {
 
         main_body += "void main() {\n";
         if (skinning) {
-            input_decl += fmt::format("layout (location = {}) in uint uMatrixIndices[{}];\n", static_cast<int>(GLES1_EMU_MATRIX_INDEX_ATTRIBUTE), static_cast<int>(GLES1_EMU_MAX_WEIGHTS_PER_VERTEX));
-            input_decl += fmt::format("layout (location = {}) in float uWeights[{}];\n", static_cast<int>(GLES1_EMU_WEIGHT_ATTRIBUTE), static_cast<int>(GLES1_EMU_MAX_WEIGHTS_PER_VERTEX));
+            input_decl += fmt::format("layout (location = {}) in vec4 inMatrixIndices;\n", static_cast<int>(GLES1_EMU_MATRIX_INDEX_ATTRIBUTE));
+            input_decl += fmt::format("layout (location = {}) in vec4 inWeights;\n", static_cast<int>(GLES1_EMU_WEIGHT_ATTRIBUTE));
+            uni_decl += "uniform float uWeightScale;\n";
 
-            std::uint32_t weights_per_vertex_count = (vertex_statuses & egl_context_es1::VERTEX_STATE_SKIN_WEIGHTS_PER_VERTEX_MASK) 
-                >> egl_context_es1::VERTEX_STATE_SKIN_WEIGHTS_PER_VERTEX_BITS_POS;
+            const std::uint32_t weights_per_vertex_count = 1 + ((vertex_statuses & egl_context_es1::VERTEX_STATE_SKIN_WEIGHTS_PER_VERTEX_MASK)
+                >> egl_context_es1::VERTEX_STATE_SKIN_WEIGHTS_PER_VERTEX_BITS_POS);
 
-            main_body += "\tmat4 uViewModelMat = (";
+            main_body += "\tmat4 uViewModelMat = mat4(0.0);\n";
             for (std::uint32_t i = 0; i < weights_per_vertex_count; i++) {
-                main_body += "uWeights[{}] * uPaletteMat[uMatrixIndicies[{}]] ";
-                if (i != weights_per_vertex_count - 1) {
-                    main_body += "+ ";
-                }
-                main_body += ");\n";
+                main_body += fmt::format("\tuViewModelMat += (inWeights[{0}] * uWeightScale) * uPaletteMat[int(inMatrixIndices[{0}])];\n", i);
             }
         }
 
@@ -578,6 +575,22 @@ namespace eka2l1::dispatch {
             }
         }
 
+        if (fragment_statuses & egl_context_es1::FRAGMENT_STATE_LOGIC_OP) {
+            uni_decl += "uniform sampler2D uLogicOpDestination;\n"
+                        "uniform vec4 uLogicOpMask;\n";
+            main_body += "\tuvec4 s = uvec4(clamp(oColor, 0.0, 1.0) * uLogicOpMask + 0.5);\n"
+                         "\tuvec4 d = uvec4(texelFetch(uLogicOpDestination, ivec2(gl_FragCoord.xy), 0) * uLogicOpMask + 0.5);\n"
+                         "\tuvec4 r = uvec4(0u);\n";
+            const auto op = (fragment_statuses >> egl_context_es1::FRAGMENT_STATE_LOGIC_OP_POS) & 15;
+            const char *terms[] = { "s & d", "s & ~d", "~s & d", "~s & ~d" };
+            for (int bit = 0; bit < 4; bit++) {
+                if (op & (1U << bit)) {
+                    main_body += fmt::format("\tr |= {};\n", terms[bit]);
+                }
+            }
+            main_body += "\toColor = vec4(r & uvec4(uLogicOpMask)) / max(uLogicOpMask, vec4(1.0));\n"
+                         "\tif (uLogicOpMask.a == 0.0) oColor.a = 1.0;\n";
+        }
         main_body += "}";
         return input_decl + uni_decl + "out vec4 oColor;\n" + main_body;
     }

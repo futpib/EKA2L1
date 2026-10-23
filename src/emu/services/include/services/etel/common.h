@@ -107,6 +107,7 @@ namespace eka2l1::epoc {
         etel_load_phone_module = 57,
         etel_phone_info_by_index = 59,
         etel_query_tsy_functionality = 60,
+        etel_set_extended_error_granularity = 61,
         etel_line_notify_incoming_call = 71,
         etel_line_cancel_notify_incoming_call = 72,
         etel_phone_init = 75,
@@ -125,6 +126,7 @@ namespace eka2l1::epoc {
         etel_mobile_phone_get_signal_strength = 20060,
         etel_mobile_phone_notify_battery_info_change = 20067,
         etel_mobile_phone_notify_indicator_changes = 20084,
+        etel_mobile_phone_notify_mode_change = 20086,
         etel_mobile_phone_notify_network_registration_status_change = 20092,
         etel_mobile_phone_notify_signal_strength_change = 20097,
         // cancel = original + 500
@@ -132,6 +134,7 @@ namespace eka2l1::epoc {
         etel_mobile_phone_get_network_registration_status_cancel = 20554,
         etel_mobile_phone_notify_battery_info_change_cancel = 20567,
         etel_mobile_phone_notify_indicator_changes_cancel = 20584,
+        etel_mobile_phone_notify_mode_change_cancel = 20586,
         etel_mobile_phone_notify_network_registration_status_change_cancel = 20592,
         etel_mobile_phone_notify_signal_strength_change_cancel = 20597,
         etel_mobile_phone_get_home_network = 22004,

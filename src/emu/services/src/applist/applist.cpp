@@ -25,6 +25,7 @@
 #include <services/fbs/fbs.h>
 
 #include <common/benchmark.h>
+#include <common/algorithm.h>
 #include <common/cvt.h>
 #include <common/log.h>
 #include <common/path.h>
@@ -51,12 +52,15 @@
 #include <config/config.h>
 
 namespace eka2l1 {
-    static const std::array<std::u16string, 10> RECOG_MIME_TYPES = {
+    static const std::array<std::u16string, 13> RECOG_MIME_TYPES = {
         u"image/png",
         u"image/jpeg",
         u"image/bmp",
         u"audio/wav",
         u"audio/mpeg",
+        u"audio/amr",
+        u"audio/amr-wb",
+        u"application/vnd.nokia.ringing-tone",
         u"video/mp4",
         u"text/html",
         u"text/xml",
@@ -851,7 +855,7 @@ namespace eka2l1 {
         ctx.complete(epoc::error_none);
     }
 
-    void applist_server::launch_app(service::ipc_context &ctx) {
+    void applist_server::launch_app(service::ipc_context &ctx, const bool return_thread_id) {
         std::optional<std::u16string> cmd_line = ctx.get_argument_value<std::u16string>(0);
         if (!cmd_line) {
             LOG_ERROR(SERVICE_APPLIST, "Failed to launch a new app! Command line is not available.");
@@ -884,10 +888,12 @@ namespace eka2l1 {
             return;
         }
 
-        if (kern->is_eka1()) {
-            ctx.write_data_to_descriptor_argument<kernel::uid_eka1>(1, static_cast<kernel::uid_eka1>(thread_id));
-        } else {
-            ctx.write_data_to_descriptor_argument<kernel::uid>(1, thread_id);
+        if (return_thread_id) {
+            if (kern->is_eka1()) {
+                ctx.write_data_to_descriptor_argument<kernel::uid_eka1>(1, static_cast<kernel::uid_eka1>(thread_id));
+            } else {
+                ctx.write_data_to_descriptor_argument<kernel::uid>(1, thread_id);
+            }
         }
 
         ctx.complete(epoc::error_none);
@@ -1035,8 +1041,21 @@ namespace eka2l1 {
         app.data_type.uid = 0;
 
         config::state *conf = kern->get_config();
+        symfile document = sys->get_io_system()->open_file(path, READ_MODE | BIN_MODE);
+        data_recog_result recognised{};
+        std::string recognised_type;
 
-        if (conf && conf->mime_detection) {
+        if (document) {
+            ro_file_stream stream(document.get());
+            recognised = recognize_data_impl(stream, path);
+            recognised_type = recognised.type_.type_name_.to_std_string(nullptr);
+            document->close();
+        }
+
+        if (!recognised_type.empty() && (recognised_type != "application/octet-stream")) {
+            app.data_type.data_type = recognised.type_.type_name_;
+            app.uid = find_data_type_handler(regs, recognised_type, 0);
+        } else if (conf && conf->mime_detection) {
             LOG_TRACE(SERVICE_APPLIST, "AppList::AppForDocument datatype stubbed with file extension");
 
             const std::u16string ext = eka2l1::path_extension(path);
@@ -1051,6 +1070,14 @@ namespace eka2l1 {
             }
         } else {
             LOG_TRACE(SERVICE_APPLIST, "AppList::AppForDocument datatype left empty!");
+        }
+
+        if (legacy_level() == APA_LEGACY_LEVEL_OLD) {
+            // 6.x/7.0 clients take the UID and the TDataType in separate buffers in slots 1 and 2.
+            const bool written = ctx.write_data_to_descriptor_argument<epoc::uid>(1, app.uid)
+                && ctx.write_data_to_descriptor_argument<applist_data_type>(2, app.data_type);
+            ctx.complete(written ? epoc::error_none : epoc::error_argument);
+            return;
         }
 
         const int result_slot = (legacy_level() == APA_LEGACY_LEVEL_S60V2) ? 1 : 0;
@@ -1072,8 +1099,8 @@ namespace eka2l1 {
     }
 
     void applist_server::get_app_for_document(service::ipc_context &ctx) {
-        // The 7.0s/8.0 client sends the filename in slot 0 and the 272-byte result in slot 1.
-        const int filename_slot = (legacy_level() == APA_LEGACY_LEVEL_S60V2) ? 0 : 2;
+        // The 6.x-8.0 clients send the filename in slot 0; 7.0s/8.0 take the 272-byte result in slot 1.
+        const int filename_slot = (legacy_level() <= APA_LEGACY_LEVEL_S60V2) ? 0 : 2;
         std::optional<std::u16string> path = ctx.get_argument_value<std::u16string>(filename_slot);
         if (!path.has_value()) {
             ctx.complete(epoc::error_argument);
@@ -1139,6 +1166,26 @@ namespace eka2l1 {
         if ((memcmp(magic4, "RIFF", 4) == 0) && (memcmp(magic8 + 4, "WAVE", 4) == 0)) {
             result.type_.type_name_.assign(nullptr, "audio/wav");
             result.confidence_rating_ = data_recognition_confidence_certain;
+            return result;
+        }
+
+        if ((memcmp(magic4, "#!AM", 4) == 0) && (memcmp(magic8, "R\n", 2) == 0)) {
+            result.type_.type_name_.assign(nullptr, "audio/amr");
+            result.confidence_rating_ = data_recognition_confidence_certain;
+            return result;
+        }
+
+        if ((memcmp(magic4, "#!AM", 4) == 0) && (memcmp(magic8, "R-WB\n", 5) == 0)) {
+            result.type_.type_name_.assign(nullptr, "audio/amr-wb");
+            result.confidence_rating_ = data_recognition_confidence_certain;
+            return result;
+        }
+
+        // Nokia smart messaging ringing tone: one to three command parts, the first ringing-tone programming.
+        if ((common::compare_ignore_case(extension, u".rng") == 0) && (magic4[0] >= 1) && (magic4[0] <= 3)
+            && ((magic4[1] >> 1) == 0x25)) {
+            result.type_.type_name_.assign(nullptr, "application/vnd.nokia.ringing-tone");
+            result.confidence_rating_ = data_recognition_confidence_probable;
             return result;
         }
 
@@ -1334,11 +1381,15 @@ namespace eka2l1 {
                 break;
 
             case applist_request_oldarch_start_app:
-                server<applist_server>()->launch_app(*ctx);
+                server<applist_server>()->launch_app(*ctx, true);
                 break;
 
             case applist_request_oldarch_is_program:
                 server<applist_server>()->is_program(*ctx);
+                break;
+
+            case applist_request_oldarch_app_for_document:
+                server<applist_server>()->get_app_for_document(*ctx);
                 break;
 
             case applist_request_oldarch_app_icon_by_uid_and_size:
@@ -1394,7 +1445,7 @@ namespace eka2l1 {
                 break;
 
             case applist_request_trans_start_app_without_returning_thread_id:
-                server<applist_server>()->launch_app(*ctx);
+                server<applist_server>()->launch_app(*ctx, false);
                 break;
 
             default:
@@ -1567,7 +1618,13 @@ namespace eka2l1 {
         }
 
         if (app_exit_callback) {
-            pr->logon([app_exit_callback, this](kernel::process *pr) {
+            std::u16string app_directory;
+            if (legacy_level() < APA_LEGACY_LEVEL_MORDEN) {
+                if (auto *reg = get_registration(known_uid)) {
+                    app_directory = file_directory(reg->mandatory_info.app_path.to_std_string(nullptr), true);
+                }
+            }
+            pr->logon([app_exit_callback, app_directory, this](kernel::process *pr) {
                 auto child_processes = pr->get_child_processes();
 
                 // Handle case where a subsequence UI process is spawned
@@ -1578,7 +1635,10 @@ namespace eka2l1 {
                         if (child->get_exit_type() == kernel::entity_exit_type::pending) {
                             auto pid = child->get_uid();
 
-                            if (get_registration(pid)) {
+                            // EKA1 application DLLs can hand off to an unregistered EXE in their own directory.
+                            const bool bundled_executable = !app_directory.empty()
+                                && common::compare_ignore_case(app_directory, file_directory(child->get_exe_path(), true)) == 0;
+                            if (get_registration(pid) || bundled_executable) {
                                 child->logon([app_exit_callback](kernel::process *pr) {
                                     app_exit_callback(pr);
                                 });

@@ -1057,6 +1057,14 @@ APPLY_PENDING_ROUTES:
         std::fill(texture_units_.begin(), texture_units_.end(), 0);
     }
 
+    void egl_context_es2::on_buffer_deleted(const std::uint32_t name) {
+        for (auto &attribute : attributes_) {
+            if (attribute.buffer_obj_ == name) {
+                attribute.buffer_obj_ = 0;
+            }
+        }
+    }
+
     void egl_context_es2::destroy(drivers::graphics_driver *driver, drivers::graphics_command_builder &builder) {
         while (!compiled_shader_cleanup_.empty()) {
             builder.destroy(compiled_shader_cleanup_.front());
@@ -1398,7 +1406,7 @@ APPLY_PENDING_ROUTES:
         }
         switch (data_type) {
         case GLES_GET_DATA_TYPE_BOOLEAN:
-            return get_data_impl_es2<std::int32_t>(this, drv, feature, reinterpret_cast<std::int32_t*>(data), 255);
+            return get_data_impl_es2<bool>(this, drv, feature, reinterpret_cast<bool*>(data), 1);
 
         case GLES_GET_DATA_TYPE_FIXED:
             return get_data_impl_es2<gl_fixed>(this, drv, feature, reinterpret_cast<gl_fixed*>(data), 65536);
@@ -1540,10 +1548,10 @@ APPLY_PENDING_ROUTES:
         std::string temp;
 
         for (std::int32_t i = 0; i < count; i++) {
-            if (!length) {
-                temp = strings[i].get(crr_pr);
+            const char *pointer_for_string = strings[i].get(crr_pr);
+            if (!length || (length[i] < 0)) {
+                temp = pointer_for_string;
             } else {
-                const char *pointer_for_string = (*strings).get(crr_pr);
                 temp = std::string(pointer_for_string, pointer_for_string + length[i]);
             }
 
@@ -1993,6 +2001,11 @@ APPLY_PENDING_ROUTES:
             return;
         }
 
+        // Symbian's reference GLES2 passes the unsized format to the host; 16-bit is the closest we support.
+        if (internal_format == GL_DEPTH_COMPONENT_EMU) {
+            internal_format = GL_DEPTH_COMPONENT16_EMU;
+        }
+
         gles_renderbuffer_object *rb_obj = reinterpret_cast<gles_renderbuffer_object*>(obj->get());
         const std::uint32_t err = rb_obj->make_storage(sys->get_graphics_driver(), eka2l1::vec2(width, height), internal_format);
 
@@ -2086,13 +2099,19 @@ APPLY_PENDING_ROUTES:
             return;
         }
 
-        gles_driver_object_instance *obj = ctx->objects_.get(attachment);
-        if (!obj) {
-            controller.push_error(ctx, GL_INVALID_OPERATION);
-            return;
+        // Name 0 detaches whatever is attached at that point.
+        gles_driver_object *attach_obj = nullptr;
+        if (attachment != 0) {
+            gles_driver_object_instance *obj = ctx->objects_.get(attachment);
+            if (!obj) {
+                controller.push_error(ctx, GL_INVALID_OPERATION);
+                return;
+            }
+
+            attach_obj = obj->get();
         }
 
-        std::uint32_t result = fb_obj->set_attachment(obj->get(), attachment_type, face_index);
+        std::uint32_t result = fb_obj->set_attachment(attach_obj, attachment_type, face_index);
         if (result != 0) {
             controller.push_error(ctx, result);
             return;
@@ -2410,6 +2429,11 @@ APPLY_PENDING_ROUTES:
 
         if (!ctx->using_program_) {
             controller.push_error(ctx, GL_INVALID_OPERATION);
+            return;
+        }
+
+        // Spec: data for location -1 is silently ignored.
+        if (binding == -1) {
             return;
         }
 

@@ -374,6 +374,7 @@ namespace eka2l1 {
         std::u16string default_system_font;
 
         std::unordered_map<fbsbitmap_cache_info, fbsbitmap *> shared_bitmaps;
+        std::unordered_map<address, fbsbitmap *> rom_bitmaps_;
 
         std::unique_ptr<epoc::chunk_allocator> shared_chunk_allocator;
         std::unique_ptr<epoc::chunk_allocator> large_chunk_allocator;
@@ -410,7 +411,6 @@ namespace eka2l1 {
         void load_fonts_from_directory(eka2l1::io_system *io, eka2l1::directory *dir);
         void load_linked_fonts_from_directory(eka2l1::io_system *io, const std::u16string &fonts_folder_path);
         void initialize_server();
-        void initialize_palette();
 
         bool add_font(common::ro_stream &stream, const std::string &name, const bool user_font = false);
         bool add_single_font(eka2l1::io_system *io, const std::u16string &path);
@@ -420,6 +420,13 @@ namespace eka2l1 {
         ~fbs_server() override;
 
         service::uid init();
+
+        /**
+         * \brief   Resolve the Color256 table from the ROM's palette or GDI library.
+         *
+         * Call once drive Z is mounted; until then the version-based table is used.
+         */
+        void initialize_palette();
 
         const std::array<std::uint32_t, 256> &palette_256() const {
             return palette_256_;
@@ -450,6 +457,16 @@ namespace eka2l1 {
          */
         fbsbitmap *create_bitmap(fbs_bitmap_data_info &info, const bool alloc_data = true, const bool support_current_display_mod_flag = true,
             const bool support_dirty = true);
+
+        /**
+         * \brief   Get the bitmap a client uses in place from ROM.
+         *
+         * CFbsBitmap::Handle() of such a bitmap is the address of its CBitwiseBitmap,
+         * which the server and the window server must accept like a normal handle.
+         *
+         * \returns The bitmap, or nullptr if the address is not a ROM bitmap.
+         */
+        fbsbitmap *get_rom_bitmap(const address addr);
 
         /**
          * \brief   Turn an NVG extended bitmap into a plain raster one, in place.

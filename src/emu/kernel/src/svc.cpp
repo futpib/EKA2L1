@@ -1624,8 +1624,12 @@ namespace eka2l1::epoc {
 
         desc8 *desname = sema_name_des.get(pr);
         kernel::owner_type owner_kern = (owner == epoc::owner_process) ? kernel::owner_type::process : kernel::owner_type::thread;
+        const std::string name = desname ? desname->to_std_string(pr) : "";
+        if (!name.empty() && kern->get_by_name_and_type<kernel::semaphore>(name, kernel::object_type::sema, true)) {
+            return epoc::error_already_exists;
+        }
 
-        const kernel::handle sema = kern->create_and_add<kernel::semaphore>(owner_kern, pr, !desname ? "" : desname->to_std_string(pr).c_str(),
+        const kernel::handle sema = kern->create_and_add<kernel::semaphore>(owner_kern, pr, name,
                                             init_count, !desname ? kernel::access_type::local_access : kernel::access_type::global_access)
                                         .first;
 
@@ -5912,6 +5916,15 @@ namespace eka2l1::epoc {
         return chn->do_request(request_nof_info, func, args[0], args[1], false);
     }
 
+    BRIDGE_FUNC(std::int32_t, logical_channel_request, const kernel::handle h, const int func,
+        eka2l1::ptr<void> arg1, eka2l1::ptr<void> arg2) {
+        if (func < 0) {
+            return logical_channel_do_request(kern, h, ~func, arg1.cast<epoc::request_status>(),
+                arg2.cast<std::uint32_t>().get(kern->crr_process()));
+        }
+        return logical_channel_do_control(kern, h, func, arg1, arg2);
+    }
+
     // TChannelCreateInfo8, as Exec::ChannelCreate receives it.
     struct logical_channel_create_info {
         epoc::version version;
@@ -6016,6 +6029,7 @@ namespace eka2l1::epoc {
         BRIDGE_REGISTER(0x00800009, set_trap_handler),
         BRIDGE_REGISTER(0x0080000A, debug_mask),
         BRIDGE_REGISTER(0x0080000B, debug_mask_index),
+        BRIDGE_REGISTER(0x0080000C, set_debug_mask),
         BRIDGE_REGISTER(0x0080000D, fast_counter),
         BRIDGE_REGISTER(0x0080000E, ntick_count),
         BRIDGE_REGISTER(0x00800011, user_svr_rom_header_address),
@@ -6077,17 +6091,18 @@ namespace eka2l1::epoc {
         BRIDGE_REGISTER(0x3E, handle_count),
         BRIDGE_REGISTER(0x3F, after),
         BRIDGE_REGISTER(0x41, message_complete),
-        BRIDGE_REGISTER(0x42, message_complete),
-        BRIDGE_REGISTER(0x43, message_complete_handle),
+        BRIDGE_REGISTER(0x42, message_complete_handle),
         BRIDGE_REGISTER(0x46, set_utc_time_and_offset),
         BRIDGE_REGISTER(0x44, time_now),
         BRIDGE_REGISTER(0x4D, session_send_sync),
+        BRIDGE_REGISTER(0x4E, dll_tls),
         BRIDGE_REGISTER(0x4F, hal_function),
         BRIDGE_REGISTER(0x52, process_command_line_length),
         BRIDGE_REGISTER(0x54, get_inactivity_time),
         BRIDGE_REGISTER(0x55, clear_inactivity_time),
         BRIDGE_REGISTER(0x56, debug_print),
         BRIDGE_REGISTER(0x5A, exception_handler),
+        BRIDGE_REGISTER(0x5B, set_exception_handler),
         BRIDGE_REGISTER(0x5E, is_exception_handled),
         BRIDGE_REGISTER(0x5F, process_get_memory_info),
         BRIDGE_REGISTER(0x64, process_type),
@@ -6101,10 +6116,15 @@ namespace eka2l1::epoc {
         BRIDGE_REGISTER(0x6F, mutex_create),
         BRIDGE_REGISTER(0x70, semaphore_create),
         BRIDGE_REGISTER(0x71, thread_open_by_id),
+        BRIDGE_REGISTER(0x72, process_open_by_id),
         BRIDGE_REGISTER(0x73, thread_kill),
         BRIDGE_REGISTER(0x74, thread_logon),
         BRIDGE_REGISTER(0x75, thread_logon_cancel),
+        BRIDGE_REGISTER(0x76, dll_set_tls),
+        BRIDGE_REGISTER(0x77, dll_free_tls),
         BRIDGE_REGISTER(0x78, thread_rename),
+        BRIDGE_REGISTER(0x79, process_rename),
+        BRIDGE_REGISTER(0x7A, process_kill),
         BRIDGE_REGISTER(0x7B, process_logon),
         BRIDGE_REGISTER(0x7C, process_logon_cancel),
         BRIDGE_REGISTER(0x7D, thread_process),
@@ -6359,6 +6379,8 @@ namespace eka2l1::epoc {
 
     // Register 9.1 ABI differences before the shared 9.3 table.
     const eka2l1::hle::func_map svc_register_funcs_v91_diff = {
+        BRIDGE_REGISTER(0x0080000A, locked_inc_32),
+        BRIDGE_REGISTER(0x0080000B, locked_dec_32),
         BRIDGE_REGISTER(0x4D, dll_tls_eka1),
         BRIDGE_REGISTER(0x75, dll_set_tls_no_uid)
     };
@@ -6390,6 +6412,7 @@ namespace eka2l1::epoc {
         BRIDGE_REGISTER(0x02, chunk_size),
         BRIDGE_REGISTER(0x03, chunk_max_size),
         BRIDGE_REGISTER(0x05, tick_count),
+        BRIDGE_REGISTER(0x0A, logical_channel_request),
         BRIDGE_REGISTER(0x0B, math_rand),
         BRIDGE_REGISTER(0x0C, imb_range),
         BRIDGE_REGISTER(0x0E, library_lookup),
@@ -6479,6 +6502,7 @@ namespace eka2l1::epoc {
         BRIDGE_REGISTER(0x7D, server_create),
         BRIDGE_REGISTER(0x7E, session_create),
         BRIDGE_REGISTER(0x7F, session_create_from_handle),
+        BRIDGE_REGISTER(0x82, logical_channel_create),
         BRIDGE_REGISTER(0x83, timer_create),
         BRIDGE_REGISTER(0x84, timer_after_high_res), // Actually TimerHighRes
         BRIDGE_REGISTER(0x85, after_high_res),

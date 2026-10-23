@@ -16,7 +16,7 @@ struct EmulatorView: View {
     @AppStorage(KeypadDefaults.opacityKey) private var keypadOpacity = KeypadDefaults.opacity
     @AppStorage(DisplayLayoutDefaults.portraitKey) private var portraitDisplayLayout = ""
     @AppStorage(DisplayLayoutDefaults.landscapeKey) private var landscapeDisplayLayout = ""
-    @AppStorage("ios.showFPSOverlay") private var showFPSOverlay = true
+    @AppStorage("ios.showFPSOverlay") private var showFPSOverlay = false
     @AppStorage("ios.fpsOverlayX") private var fpsOverlayX = -1.0
     @AppStorage("ios.fpsOverlayY") private var fpsOverlayY = -1.0
     @Environment(\.dismiss) private var dismiss
@@ -262,6 +262,11 @@ struct EmulatorView: View {
             isEditingDisplay = false
             DisplayOrientation.unlock()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .eka2l1RemoteCloseApp)) { _ in
+            guestFatalDetails = nil
+            EKA2L1Bridge.shared.closeRunningApp()
+            dismiss()
+        }
         .alert("emulator.guestFatal", isPresented: Binding(
             get: { guestFatalDetails != nil },
             set: { isPresented in
@@ -489,16 +494,20 @@ struct EmulatorView: View {
 
     // MARK: Actions
 
-    // Snapshot only the render view (no keypad overlay). drawHierarchy uses
-    // the window-server snapshot path, which is what captures GL/Metal layer
-    // content — CALayer.render(in:) would leave the game picture black.
+    // drawHierarchy captures the GL/Metal layer; CALayer.render(in:) leaves it black.
     private func saveScreenshot() {
-        guard let view = hostProxy.viewController?.view else {
+        guard let controller = hostProxy.viewController, let view = controller.viewIfLoaded else {
             sessionMessage = String(localized: "emulator.screenshot.failed")
             return
         }
-        let renderer = UIGraphicsImageRenderer(bounds: view.bounds)
-        let image = renderer.image { _ in
+        let pictureFrame = controller.guestPictureFrame.intersection(view.bounds)
+        guard !pictureFrame.isEmpty else {
+            sessionMessage = String(localized: "emulator.screenshot.failed")
+            return
+        }
+        let renderer = UIGraphicsImageRenderer(size: pictureFrame.size)
+        let image = renderer.image { context in
+            context.cgContext.translateBy(x: -pictureFrame.minX, y: -pictureFrame.minY)
             view.drawHierarchy(in: view.bounds, afterScreenUpdates: false)
         }
         UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)

@@ -233,6 +233,14 @@ struct ContentView: View {
             pendingOpenURLs.append(url)
             processPendingOpenURLs()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .eka2l1RemoteLaunchApp)) { note in
+            guard let uid = note.userInfo?["uid"] as? UInt32 else { return }
+            showingOnboarding = false
+            showingSettings = false
+            showingDeviceManager = false
+            autoLaunchUID = uid
+            showingAutoLaunch = true
+        }
         .onReceive(NotificationCenter.default.publisher(for: .eka2l1AppListInvalidated)) { _ in
             // A settings action (e.g. a system-language switch) changed how the
             // app list should render; re-scan so the new captions show.
@@ -510,6 +518,7 @@ struct ContentView: View {
         if EKA2L1Bridge.shared.start(documentsPath: documentsRoot()) {
             booted = true
             store.refresh()
+            DebugControl.start(store: store)
             reportFailedBootDevice()
             selectLaunchRomThenAutoLaunch()
             processPendingOpenURLs()
@@ -852,15 +861,19 @@ struct ContentView: View {
 // is case-insensitive — .ROM and .rom land on the same types.
 //
 // Never fall back to .data: that re-enables every file in the picker, which is
-// exactly what filtering is meant to prevent. An empty list (only possible if
-// our own declaration went missing) leaves the picker offering nothing, which
-// is the honest failure.
+// exactly what filtering is meant to prevent. If our declaration never reached
+// LaunchServices (TrollStore registers apps itself), the picker types the file
+// as the extension's data-conforming dynamic type. types(tag:) answers with a
+// different dynamic type that matches nothing, so dynamic results are dropped.
 private func importTypes(extension ext: String, declaredAs identifier: String) -> [UTType] {
     var types: [UTType] = []
     if let declared = UTType(identifier) { types.append(declared) }
     for type in UTType.types(tag: ext, tagClass: .filenameExtension, conformingTo: nil)
-    where !types.contains(type) {
+    where !type.isDynamic && !types.contains(type) {
         types.append(type)
+    }
+    if types.isEmpty, let fallback = UTType(filenameExtension: ext, conformingTo: .data) {
+        types.append(fallback)
     }
     return types
 }

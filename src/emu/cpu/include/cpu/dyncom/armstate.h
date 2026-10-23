@@ -18,6 +18,7 @@
 #pragma once
 
 #include <array>
+#include <cstring>
 #include <memory>
 #include <common/bytes.h>
 #include <common/types.h>

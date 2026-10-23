@@ -1604,6 +1604,11 @@ namespace eka2l1 {
                     one_mode_only = true;
                 }
 
+                // WSERV takes "-1 -1" (dynamic) and "0 0" (HAL default) as the screen device size.
+                if (((scr_mode.size.x == -1) && (scr_mode.size.y == -1)) || ((scr_mode.size.x == 0) && (scr_mode.size.y == 0))) {
+                    scr_mode.size = default_screen_size;
+                }
+
                 current_mode_str = std::to_string(total_mode);
 
                 scr_mode.disp_mode = scr_mode_global;
@@ -1796,7 +1801,7 @@ namespace eka2l1 {
     static constexpr std::uint64_t DIRECT_FRAMEBUFFER_REFRESH_INTERVAL_US = 1000000 / 60;
 
     void window_server::map_direct_framebuffer(epoc::screen *scr) {
-        if (!kern->is_eka1() || !scr->screen_buffer_chunk) {
+        if (scr->is_screenplay_architecture() || !scr->screen_buffer_chunk) {
             return;
         }
         scr->mark_direct_framebuffer_mapped();
@@ -2091,10 +2096,8 @@ namespace eka2l1 {
                 if (!make_key_event(input_mapping.key_input_map, input_event, guest_event)) {
                     make_mouse_event(original_input_evt, guest_event, get_current_focus_screen());
 
-                    if (update_pointer_position(guest_event) && !touch_shipper.deliver_to_grab_window(kern, guest_event)) {
-                        touch_shipper.add_new_event(guest_event);
-                        root_current->walk_tree(&touch_shipper, epoc::window_tree_walk_style::bonjour_children_and_previous_siblings);
-                        touch_shipper.clear();
+                    if (update_pointer_position(guest_event)) {
+                        touch_shipper.deliver(kern, root_current, get_focus(), guest_event);
                     }
                 } else {
                     if (input_event.key_.state_ != drivers::key_state::repeat) {
@@ -2629,7 +2632,7 @@ namespace eka2l1 {
     }
 
     epoc::bitwise_bitmap *window_server::get_bitmap(const std::uint32_t h) {
-        fbsbitmap *bmp = get_fbs_server()->get<fbsbitmap>(h);
+        fbsbitmap *bmp = get_raw_fbsbitmap(h);
         if (bmp) {
             bmp = bmp->final_clean();
             return bmp->bitmap_;
@@ -2639,7 +2642,12 @@ namespace eka2l1 {
     }
 
     fbsbitmap *window_server::get_raw_fbsbitmap(const std::uint32_t h) {
-        return get_fbs_server()->get<fbsbitmap>(h);
+        fbs_server *fbss = get_fbs_server();
+        if (fbsbitmap *bmp = fbss->get<fbsbitmap>(h)) {
+            return bmp;
+        }
+
+        return fbss->get_rom_bitmap(h);
     }
 
     void window_server::set_keyboard_repeat_rate(const std::uint64_t initial_time, const std::uint64_t next_time) {

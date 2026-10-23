@@ -18,9 +18,11 @@ using namespace eka2l1::dispatch;
 
 namespace {
     struct point_buffer_context : egl_context_es1 {
+        using egl_context_es_shared::retrieve_vertex_buffer_slot;
         ~point_buffer_context() {
             // Synthetic contexts bypass the controller's object teardown.
             objects_.clear();
+            buffers_.clear();
         }
     };
 }
@@ -77,8 +79,9 @@ TEST_CASE("GLES1 point size queries preserve pixel units and fixed point precisi
     REQUIRE(fixed == 163840);
     REQUIRE(context.get_data(nullptr, GL_POINT_SIZE_EMU, &integer, GLES_GET_DATA_TYPE_INTEGER));
     REQUIRE(integer == 3);
-    REQUIRE(context.get_data(nullptr, GL_POINT_SIZE_EMU, &integer, GLES_GET_DATA_TYPE_BOOLEAN));
-    REQUIRE(integer == 1);
+    std::uint8_t boolean = 0;
+    REQUIRE(context.get_data(nullptr, GL_POINT_SIZE_EMU, &boolean, GLES_GET_DATA_TYPE_BOOLEAN));
+    REQUIRE(boolean == 1);
     context.point_size_ = 7.0f;
     REQUIRE(context.get_data(nullptr, GL_POINT_SIZE_EMU, &integer, GLES_GET_DATA_TYPE_INTEGER));
     REQUIRE(integer == 7);
@@ -190,9 +193,9 @@ TEST_CASE("GLES1 rejects unavailable point size buffers before preparing a draw"
     point_buffer_context context;
     egl_controller controller(nullptr);
     context.associated_thread_uid_ = 7;
-    gles_driver_object_instance vertex_buffer = std::make_unique<gles_driver_buffer>(context);
-    vertex_buffer->assign_handle(1);
-    context.vertex_attrib_.buffer_obj_ = static_cast<std::uint32_t>(context.objects_.add(vertex_buffer));
+    REQUIRE(context.bind_buffer(GL_ARRAY_BUFFER_EMU, 1) == 0);
+    context.binded_buffer(true)->assign_handle(1);
+    context.vertex_attrib_.buffer_obj_ = 1;
     context.point_size_attrib_.buffer_obj_ = 999;
     context.vertex_statuses_ |= egl_context_es1::VERTEX_STATE_CLIENT_VERTEX_ARRAY
         | egl_context_es1::VERTEX_STATE_CLIENT_POINT_SIZE_ARRAY;
@@ -268,9 +271,9 @@ TEST_CASE("GLES1 point arrays retain VBO offsets and are ignored for triangle dr
         egl_controller controller(&driver);
         point_buffer_context context;
         context.associated_thread_uid_ = 9;
-        gles_driver_object_instance buffer = std::make_unique<gles_driver_buffer>(context);
-        buffer->assign_handle(42);
-        const auto name = static_cast<std::uint32_t>(context.objects_.add(buffer));
+        const std::uint32_t name = 1;
+        REQUIRE(context.bind_buffer(GL_ARRAY_BUFFER_EMU, name) == 0);
+        context.binded_buffer(true)->assign_handle(42);
         context.vertex_attrib_ = { 3, GL_FLOAT_EMU, 16, 0, name };
         context.point_size_attrib_ = { 1, static_cast<std::uint32_t>(type), 16, 12, name };
         context.vertex_statuses_ |= egl_context_es1::VERTEX_STATE_CLIENT_VERTEX_ARRAY | egl_context_es1::VERTEX_STATE_CLIENT_POINT_SIZE_ARRAY;
@@ -317,10 +320,11 @@ TEST_CASE("GLES1 point parameter state follows the ES 1.1 defaults and conversio
     REQUIRE(fixed[0] == 32768);
     REQUIRE(fixed[1] == 16384);
     REQUIRE(fixed[2] == 8192);
-    REQUIRE(context.get_data(&driver, GL_POINT_DISTANCE_ATTENUATION_EMU, fixed, GLES_GET_DATA_TYPE_BOOLEAN));
-    REQUIRE(fixed[0] == 1);
-    REQUIRE(fixed[1] == 1);
-    REQUIRE(fixed[2] == 1);
+    std::uint8_t boolean[3]{};
+    REQUIRE(context.get_data(&driver, GL_POINT_DISTANCE_ATTENUATION_EMU, boolean, GLES_GET_DATA_TYPE_BOOLEAN));
+    REQUIRE(boolean[0] == 1);
+    REQUIRE(boolean[1] == 1);
+    REQUIRE(boolean[2] == 1);
 }
 
 TEST_CASE("GLES1 point limits reject negative values and preserve the native size range", "[gles1]") {
@@ -501,4 +505,162 @@ TEST_CASE("GLES copies use framebuffer scale without scaling ordinary texture of
     REQUIRE(copy.data_[6] == (std::uint64_t(6) << 32 | 4));
     REQUIRE(copy.data_[7] == 0);
     delete[] commands.base_;
+}
+
+// OpenGL ES 1.1 sections 2.9 and 2.9.2 allow creation by binding an unused name.
+TEST_CASE("GLES buffers accept unused names independently of textures", "[gles1][gles2]") {
+    point_buffer_context context;
+    gles_driver_object_instance texture = std::make_unique<gles_driver_texture>(context);
+    const auto name = static_cast<std::uint32_t>(context.objects_.add(texture));
+    auto *texture_object = context.objects_.get(name)->get();
+
+    REQUIRE(context.bind_buffer(GL_ARRAY_BUFFER_EMU, name) == 0);
+    auto *buffer = context.binded_buffer(true);
+    REQUIRE(buffer != nullptr);
+    REQUIRE(context.is_buffer(name));
+    REQUIRE(buffer->data_size() == 0);
+    REQUIRE(buffer->handle_value() == 0);
+    REQUIRE(context.objects_.get(name)->get() == texture_object);
+
+    buffer->assign_handle(42);
+    std::vector<eka2l1::drivers::handle> vertex_buffers;
+    gles_vertex_attrib attribute{ 3, GL_SHORT_EMU, 10, 4, name };
+    std::uint32_t slot = 99;
+    int offset = -1;
+    bool transient = false;
+    REQUIRE(context.retrieve_vertex_buffer_slot(vertex_buffers, nullptr, nullptr, attribute, 3, 6, slot, offset, transient));
+    REQUIRE(vertex_buffers == std::vector<eka2l1::drivers::handle>{42});
+    REQUIRE(slot == 0);
+    REQUIRE(offset == 34);
+    REQUIRE_FALSE(transient);
+
+    REQUIRE(context.bind_buffer(GL_ELEMENT_ARRAY_BUFFER_EMU, name) == 0);
+    REQUIRE(context.binded_buffer(false) == buffer);
+    REQUIRE(context.bind_buffer(GL_ARRAY_BUFFER_EMU, 0) == 0);
+    REQUIRE(context.binded_buffer(true) == nullptr);
+    REQUIRE(context.binded_buffer(false) == buffer);
+    REQUIRE(context.buffers_.size() == 1);
+
+    REQUIRE(context.bind_buffer(GL_ARRAY_BUFFER_EMU, 0xFFFFFFFE) == 0);
+    REQUIRE(context.binded_buffer(true) != buffer);
+    REQUIRE(context.buffers_.size() == 2);
+    REQUIRE(context.bind_buffer(GL_TEXTURE_2D_EMU, 123) == GL_INVALID_ENUM);
+    REQUIRE(context.binded_array_buffer_handle_ == 0xFFFFFFFE);
+    REQUIRE(context.buffers_.size() == 2);
+}
+
+TEST_CASE("GLES1 logic operation defaults, queries and invalid enums follow the GL contract", "[gles1][logicop]") {
+    egl_context_es1 context;
+    bool enabled = true;
+    REQUIRE(context.is_enabled(GL_COLOR_LOGIC_OP_EMU, enabled));
+    REQUIRE_FALSE(enabled);
+    std::uint32_t op = 0;
+    REQUIRE(context.get_data(nullptr, GL_LOGIC_OP_MODE_EMU, &op, GLES_GET_DATA_TYPE_INTEGER));
+    REQUIRE(op == GL_COPY_EMU);
+    REQUIRE_FALSE(context.needs_logic_op_emulation());
+    REQUIRE(context.enable(GL_COLOR_LOGIC_OP_EMU));
+    REQUIRE_FALSE(context.needs_logic_op_emulation());
+    for (std::uint32_t operation = 0x1500; operation <= 0x150F; operation++) {
+        REQUIRE(context.set_logic_op(operation));
+        gl_fixed fixed = 0;
+        REQUIRE(context.get_data(nullptr, GL_LOGIC_OP_MODE_EMU, &fixed, GLES_GET_DATA_TYPE_FIXED));
+        REQUIRE(fixed == operation);
+        REQUIRE(context.needs_logic_op_emulation() == (operation != GL_COPY_EMU));
+    }
+    REQUIRE_FALSE(context.set_logic_op(0x14FF));
+    REQUIRE_FALSE(context.set_logic_op(0x1510));
+    REQUIRE(context.logic_op_ == GL_SET_EMU);
+    REQUIRE(context.disable(GL_COLOR_LOGIC_OP_EMU));
+    REQUIRE_FALSE(context.needs_logic_op_emulation());
+}
+
+TEST_CASE("Logic operations suppress host blending without changing the guest blend state", "[gles1][logicop]") {
+    egl_context_es1 context;
+    REQUIRE(context.enable(GL_BLEND_EMU));
+    REQUIRE(context.enable(GL_COLOR_LOGIC_OP_EMU));
+    REQUIRE(context.enable(GL_BLEND_EMU));
+    bool enabled = false;
+    REQUIRE(context.is_enabled(GL_BLEND_EMU, enabled));
+    REQUIRE(enabled);
+    REQUIRE(context.disable(GL_COLOR_LOGIC_OP_EMU));
+    auto commands = context.cmd_builder_.retrieve_command_list();
+    REQUIRE(commands.size_ == 4);
+    const bool expected[] = { true, false, false, true };
+    for (std::size_t i = 0; i < commands.size_; i++) {
+        eka2l1::drivers::graphics_feature feature;
+        bool host_enabled = false;
+        eka2l1::drivers::unpack_u64_to_2u32(commands.base_[i].data_[0], feature, host_enabled);
+        REQUIRE(feature == eka2l1::drivers::graphics_feature::blend);
+        REQUIRE(host_enabled == expected[i]);
+    }
+    delete[] commands.base_;
+}
+
+TEST_CASE("Logic draws preserve strip winding, fan order, loop closure and incomplete primitives", "[gles1][logicop]") {
+    using mode = eka2l1::drivers::graphics_primitive_mode;
+    REQUIRE(gles1_logic_op_indices(mode::triangle_strip, 5) == std::vector<std::uint32_t>{0,1,2, 2,1,3, 2,3,4});
+    REQUIRE(gles1_logic_op_indices(mode::triangle_fan, 5) == std::vector<std::uint32_t>{0,1,2, 0,2,3, 0,3,4});
+    REQUIRE(gles1_logic_op_indices(mode::triangles, 5) == std::vector<std::uint32_t>{0,1,2});
+    REQUIRE(gles1_logic_op_indices(mode::lines, 5) == std::vector<std::uint32_t>{0,1,2,3});
+    REQUIRE(gles1_logic_op_indices(mode::line_strip, 3) == std::vector<std::uint32_t>{0,1,1,2});
+    REQUIRE(gles1_logic_op_indices(mode::line_loop, 3) == std::vector<std::uint32_t>{0,1,1,2,2,0});
+    REQUIRE(gles1_logic_op_indices(mode::points, 3) == std::vector<std::uint32_t>{0,1,2});
+    REQUIRE(gles1_logic_op_indices(mode::line_loop, 1).empty());
+    REQUIRE(gles1_logic_op_indices(mode::triangle_strip, 2).empty());
+    REQUIRE(gles1_logic_op_indices(mode::triangle_fan, 0).empty());
+    const std::uint8_t bytes[] = { 5, 4, 3, 2 };
+    const std::uint16_t words[] = { 500, 400, 300, 200 };
+    REQUIRE(gles1_logic_op_indices(mode::triangle_strip, 4, bytes, 1) == std::vector<std::uint32_t>{5,4,3, 3,4,2});
+    REQUIRE(gles1_logic_op_indices(mode::triangle_strip, 4, reinterpret_cast<const std::uint8_t *>(words), 2)
+        == std::vector<std::uint32_t>{500,400,300, 300,400,200});
+}
+
+TEST_CASE("GLES1 matrix palettes start with identity transforms and undefined arrays", "[gles1][skinning]") {
+    egl_context_es1 context;
+    REQUIRE(context.matrix_index_attrib_.size_ == 0);
+    REQUIRE(context.matrix_index_attrib_.data_type_ == GL_UNSIGNED_BYTE_EMU);
+    REQUIRE(context.weight_attrib_.size_ == 0);
+    REQUIRE(context.weight_attrib_.data_type_ == GL_FLOAT_EMU);
+    for (const auto &matrix : context.palette_mats_) {
+        REQUIRE(matrix == glm::mat4(1.0f));
+    }
+}
+
+TEST_CASE("GLES1 skinning arrays preserve byte indices and signed fixed weights", "[gles1][skinning]") {
+    using namespace eka2l1::drivers;
+    for (const auto type : { GL_FLOAT_EMU, GL_FIXED_EMU }) {
+        for (int units = 1; units <= GLES1_EMU_MAX_WEIGHTS_PER_VERTEX; ++units) {
+            point_draw_driver driver;
+            egl_controller controller(&driver);
+            point_buffer_context context;
+            const std::uint32_t name = 1;
+            REQUIRE(context.bind_buffer(GL_ARRAY_BUFFER_EMU, name) == 0);
+            context.binded_buffer(true)->assign_handle(42);
+            context.vertex_attrib_ = { 3, GL_FLOAT_EMU, 32, 0, name };
+            context.matrix_index_attrib_ = { units, GL_UNSIGNED_BYTE_EMU, 32, 12, name };
+            context.weight_attrib_ = { units, static_cast<std::uint32_t>(type), 32, 16, name };
+            context.vertex_statuses_ |= egl_context_es1::VERTEX_STATE_CLIENT_VERTEX_ARRAY
+                | egl_context_es1::VERTEX_STATE_SKINNING_ENABLE
+                | egl_context_es1::VERTEX_STATE_CLIENT_MATRIX_INDEX_ARRAY
+                | egl_context_es1::VERTEX_STATE_CLIENT_WEIGHT_ARRAY
+                | (static_cast<std::uint64_t>(units - 1) << egl_context_es1::VERTEX_STATE_SKIN_WEIGHTS_PER_VERTEX_BITS_POS);
+            REQUIRE(context.prepare_for_draw(&driver, controller, nullptr, 3, 5, graphics_primitive_mode::triangles));
+            REQUIRE(driver.inputs.size() == 3);
+            const auto &indices = driver.inputs[1];
+            const auto &weights = driver.inputs[2];
+            REQUIRE(indices.location == GLES1_EMU_MATRIX_INDEX_ATTRIBUTE);
+            REQUIRE(indices.offset == 108);
+            REQUIRE_FALSE(indices.is_normalized());
+            input_descriptor expected;
+            expected.set_format(units, data_format::byte);
+            REQUIRE(indices.format == expected.format);
+            REQUIRE(weights.location == GLES1_EMU_WEIGHT_ATTRIBUTE);
+            REQUIRE(weights.offset == 112);
+            REQUIRE_FALSE(weights.is_normalized());
+            expected.set_format(units, type == GL_FIXED_EMU ? data_format::sint : data_format::sfloat);
+            REQUIRE(weights.format == expected.format);
+            auto commands = context.cmd_builder_.retrieve_command_list();
+            driver.submit_command_list(commands);
+        }
+    }
 }

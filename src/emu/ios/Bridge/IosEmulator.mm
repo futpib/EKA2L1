@@ -54,6 +54,7 @@
 #include <drivers/camera/camera_collection.h>
 #include <drivers/sensor/sensor.h>
 #include <drivers/sensor/backend/ios/controller_motion.h>
+#include <drivers/sensor/backend/ios/motion_override.h>
 #include <services/window/screen.h>
 #include <kernel/kernel.h>
 #include <kernel/process.h>
@@ -1250,7 +1251,14 @@ namespace eka2l1::ios {
 }
 
 - (NSString *)currentDeviceDriveEPath {
-    if (!_state || !_state->mounted || !_state->symsys) {
+    return [self currentDeviceDrivePath:'e'];
+}
+
+- (NSString *)currentDeviceDrivePath:(unichar)driveLetter {
+    const unichar letter = static_cast<unichar>(tolower(driveLetter));
+    // Not gated on `mounted`: the os loop stays parked after an app closes, but
+    // the device and its drive folders are unchanged.
+    if (!_state || !_state->symsys || (letter < 'c') || (letter > 'e')) {
         return nil;
     }
     auto *dvc = _state->symsys->get_device_manager();
@@ -1258,7 +1266,8 @@ namespace eka2l1::ios {
         return nil;
     }
     std::lock_guard<std::mutex> dvc_lock(dvc->lock);
-    const std::string path = _state->symsys->get_device_drive_path(drive_e);
+    const std::string path = _state->symsys->get_device_drive_path(
+        static_cast<drive_number>(drive_c + (letter - 'c')));
     if (path.empty()) {
         return nil;
     }
@@ -1790,7 +1799,6 @@ namespace eka2l1::ios {
         return NO;
     }
     eka2l1::epoc::apa::command_line cmdline;
-    cmdline.launch_cmd_ = eka2l1::epoc::apa::command_create;
 
     eka2l1::kernel::uid launched_thread_id = 0;
     const std::uint64_t generation = ++_state->launch_generation;
@@ -2380,6 +2388,16 @@ namespace eka2l1::ios {
     eka2l1::drivers::hwrm::set_controller_haptic_source(vibration ? (__bridge void *)controller : nullptr);
 }
 
+- (void)setAccelerationOverride:(NSArray<NSNumber *> *)acceleration {
+    if (!_state) return;
+    if (acceleration.count != 3) {
+        eka2l1::drivers::set_motion_acceleration_override(_state->sensor_driver.get(), nullptr);
+        return;
+    }
+    const double values[3] = { acceleration[0].doubleValue, acceleration[1].doubleValue, acceleration[2].doubleValue };
+    eka2l1::drivers::set_motion_acceleration_override(_state->sensor_driver.get(), values);
+}
+
 - (void)submitPointerEventAtX:(CGFloat)x
                             y:(CGFloat)y
                         phase:(EKA2L1PointerPhase)phase
@@ -2529,6 +2547,7 @@ namespace eka2l1::ios {
 
     NSMutableArray<NSNumber *> *modes = [NSMutableArray array];
     NSInteger current = -1;
+    eka2l1::vec2 size;
     std::unique_lock<std::recursive_mutex> session_lock(_state->session_mutex, std::try_to_lock);
     if (session_lock.owns_lock() && _state->winserv) {
         if (eka2l1::epoc::screen *screen = _state->winserv->get_current_focus_screen()) {
@@ -2536,9 +2555,13 @@ namespace eka2l1::ios {
             for (int mode = 0; mode < screen->total_screen_mode(); ++mode) {
                 [modes addObject:@(mode)];
             }
+            size = screen->current_mode().size;
+            if ((screen->ui_rotation % 180) != 0) {
+                std::swap(size.x, size.y);
+            }
         }
     }
-    return @{ @"modes": modes, @"current": @(current) };
+    return @{ @"modes": modes, @"current": @(current), @"width": @(size.x), @"height": @(size.y) };
 }
 
 - (void)setGuestScreenModeForAppUID:(uint32_t)uid

@@ -50,6 +50,22 @@
 #include <lunasvg.h>
 
 namespace eka2l1::epoc {
+    bool bitmap_cache::set_bitmap_writer(bitwise_bitmap *bitmap, const std::shared_ptr<std::function<void()>> &writer) {
+        for (auto it = bitmap_writers_.begin(); it != bitmap_writers_.end();) {
+            if (it->second.expired()) {
+                it = bitmap_writers_.erase(it);
+            } else {
+                ++it;
+            }
+        }
+        auto &current = bitmap_writers_[bitmap];
+        if (!current.expired()) {
+            return false;
+        }
+        current = writer;
+        return true;
+    }
+
     bitmap_cache::bitmap_cache(kernel_system *kern_)
         : fbss_(nullptr)
         , kern(kern_) {
@@ -79,6 +95,15 @@ namespace eka2l1::epoc {
         flush_retired(builder);
         eka2l1::drivers::command_list retrieved = builder.retrieve_command_list();
         drv->submit_command_list(retrieved);
+    }
+
+    std::shared_ptr<drivers::handle> bitmap_cache::retain_texture(const drivers::handle texture) {
+        return std::shared_ptr<drivers::handle>(new drivers::handle(texture),
+            [retired = retired_](drivers::handle *handle) {
+                const std::lock_guard<std::mutex> lock(retired->mutex);
+                retired->handles.push_back(*handle);
+                delete handle;
+            });
     }
 
     void bitmap_cache::flush_retired(drivers::graphics_command_builder &builder) {
@@ -302,6 +327,15 @@ namespace eka2l1::epoc {
             return 0;
         }
 
+        auto writer = bitmap_writers_.find(bmp);
+        if (writer != bitmap_writers_.end()) {
+            if (auto synchronize = writer->second.lock()) {
+                (*synchronize)();
+            } else {
+                bitmap_writers_.erase(writer);
+            }
+        }
+
         std::int64_t idx = 0;
         std::uint64_t crr_timestamp = common::get_current_utc_time_in_microseconds_since_0ad();
 
@@ -366,12 +400,7 @@ namespace eka2l1::epoc {
 
             driver_textures[idx] = drivers::create_bitmap(driver, bmp->header_.size_pixels, suit_bpp);
             if (snapshot) {
-                texture_snapshots[idx] = std::shared_ptr<drivers::handle>(new drivers::handle(driver_textures[idx]),
-                    [retired = retired_](drivers::handle *handle) {
-                        const std::lock_guard<std::mutex> lock(retired->mutex);
-                        retired->handles.push_back(*handle);
-                        delete handle;
-                    });
+                texture_snapshots[idx] = retain_texture(driver_textures[idx]);
             }
         }
 

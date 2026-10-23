@@ -13,8 +13,10 @@ set(CORE_TEST_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/graphics/openvg.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utils/descriptor_copy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/graphics/gles1.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/graphics/gles_queries.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/mem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/vfs.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/kernel/svc.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/kernel/ipc_arg.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/kernel/timer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/kernel/preserved_image.cpp
@@ -39,6 +41,7 @@ set(CORE_TEST_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/services/fbs/fontmatch.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/services/fbs/linkedfont.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/services/svg_icon.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/services/hwrm/haptics.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/services/sensor/buffering.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/services/sensor/rotation.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/services/window/surface.cpp
@@ -56,6 +59,7 @@ set(CORE_TEST_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/services/internet/connmonitor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/services/internet/tls.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/services/loader.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/services/notifier.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/services/posix.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/services/timezone/rules.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/services/centralrepo/creiniloader.cpp

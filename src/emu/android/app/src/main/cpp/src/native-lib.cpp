@@ -214,6 +214,17 @@ Java_com_github_eka2l1_emu_Emulator_getCurrentDevice(JNIEnv *env, jclass clazz) 
     return state->launcher->get_current_device();
 }
 
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_github_eka2l1_emu_Emulator_isTouchScreenDevice(JNIEnv *env, jclass clazz, jstring firmware_code) {
+    std::string code;
+    if (firmware_code) {
+        const char *cstr = env->GetStringUTFChars(firmware_code, nullptr);
+        code = cstr;
+        env->ReleaseStringUTFChars(firmware_code, cstr);
+    }
+    return state->launcher->is_touch_screen_device(code);
+}
+
 extern "C" JNIEXPORT jint JNICALL
 Java_com_github_eka2l1_emu_Emulator_installDevice(JNIEnv *env, jclass clazz, jstring rpkg_path,
     jstring rom_path, jboolean install_rpkg, jboolean isolate_drives) {
@@ -435,8 +446,8 @@ Java_com_github_eka2l1_emu_Emulator_installNGageGame(JNIEnv *env, jclass clazz, 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_github_eka2l1_emu_Emulator_submitQuestionDialogResponse(JNIEnv *env, jclass clazz,
-                                                                 jint value) {
-    state->launcher->on_question_dialog_finished(value);
+                                                                 jlong id, jint value) {
+    state->launcher->on_question_dialog_finished(static_cast<std::uint64_t>(id), value);
 }
 
 extern "C"
