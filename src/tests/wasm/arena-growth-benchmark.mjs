@@ -24,7 +24,6 @@ if(preparedLauncher&&(!persistentDisk||freshLauncher||process.env.EKA2L1_BENCHMA
 const games=JSON.parse(fs.readFileSync(new URL('./games.json',import.meta.url)));
 const entry=games.find(g=>g.id===game);
 if (!entry || !out || !process.argv[4]) throw Error('Usage: node arena-growth-benchmark.mjs GAME NEW_OUTPUT SERVER_URL');
-if(freshLauncher&&!entry.ngage)throw Error('Fresh launcher route requires an N-Gage game');
 fs.mkdirSync(out);
 if(codeCache)fs.writeFileSync(out+'/code-cache.json',JSON.stringify({limitMiB:codeCache[0],targetMiB:codeCache[1]})+'\n');
 const assetDir=process.env.EKA2L1_ASSET_DIR || '/tmp/eka2l1-serve';
@@ -75,14 +74,14 @@ const guardedWait=async predicate=>{
  const timer=setInterval(()=>{if(errors.length)abort.abort(new Error(errors.join('\n')));},250);
  try{return await page.waitForFunction(predicate,{signal:abort.signal});}finally{clearInterval(timer);}
 };
-await page.evaluateOnNewDocument((transient,fresh,prepared,skipRecycle,cache)=>{
+await page.evaluateOnNewDocument((transient,fresh,prepared,skipRecycle,cache,ngage)=>{
  window.ekaBenchmarkCodeCache=cache;
  window.ekaTransientSession=transient;
  window.ekaForceFreshInstall=fresh;
  window.ekaBenchmarkSkipCpuRecycle=skipRecycle;
- if(fresh)window.ekaBenchmarkRouteUs=1000000000000;
+ if(fresh)window.ekaBenchmarkRouteUs=ngage?1000000000000:6000000;
  if(prepared)window.ekaBenchmarkRouteUs=6000000;
-},!persistentDisk,freshLauncher,preparedLauncher,skipCpuRecycle,codeCache);
+},!persistentDisk,freshLauncher,preparedLauncher,skipCpuRecycle,codeCache,!!entry.ngage);
 await page.goto(new URL('?game='+(freshLauncher||preparedLauncher?game:'custom'),process.argv[4]).href,{waitUntil:'domcontentloaded'});
 if(allocationProfile || fullMemory || process.env.EKA2L1_BROWSER_MEMORY==='1')browserMemoryTimer=setInterval(async()=>{
  try{const processes=await browserMemory();browserMemorySamples.push({ms:performance.now(),processes,pssKiB:processes.reduce((n,p)=>n+p.pssKiB,0)});}catch{}
@@ -127,7 +126,7 @@ if(freshLauncher) {
  installedImage=launchGame?.image;
  assert(installedImage,'This game has no prepared installation on this server');
 }else for(const [selector,file] of [['#rom-file','SYM.ROM'],['#rpkg-file','SYM.RPKG'],['#sis-file',entry.ngage?.runtime.file ?? entry.file]])await(await page.$(selector)).uploadFile(path.join(assetDir,file));
-if(preparedLauncher){
+if(preparedLauncher||(freshLauncher&&!entry.ngage)){
  await guardedWait(()=>window._gameRunning);
 }else if(!freshLauncher){
  await page.$eval('#app-name',(e,v)=>e.value=v,entry.uid);

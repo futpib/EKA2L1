@@ -147,7 +147,7 @@ package listed in `games.json`. Wait for installation to finish, then choose
 Choose **Instant Play** to reach Costa Rica. Without a prepared image, the
 client imports the package on every fresh launch.
 
-The Hooked On prepared-image pilot restores installed device/game files before
+Prepared images restore installed device/game files before
 emulator initialization. It skips device/SIS installation and N-Gage import;
 game logos, initial setup and ARM-to-WASM compilation still run. Normal launches
 seed an empty saved device; subsequent launches restore its writable files.
@@ -157,20 +157,39 @@ Create an image using a launcher with the normal installer path:
 
 ```sh
 node capture-installed-image.mjs https://claude-laptop.lan:8188/ hooked-on /absolute/path/to/new-image-directory
+# Ordinary SIS games install without launching the game or its first-run UI.
+node capture-installed-image.mjs http://127.0.0.1:8080/ snakes /absolute/path/to/new-snakes-directory /absolute/path/to/assets
 EKA2L1_PREINSTALLED_DIR=/absolute/path/to/new-image-directory node serve.ts 8188
 node installed-image.test.ts
 ```
 
 The capture tool requires local source assets in `/tmp/eka2l1-serve` (or its
 optional final argument). It checks their hashes, completes a clean installation,
-waits for client registration, dismisses the completed installation dialogue,
+for N-Gage waits for client registration, dismisses the completed installation dialogue,
 then shuts down to close file handles and captures `/data` before the game is
 launched. Review `installation-complete.png`. The directory contains
-`hooked-on.img.gz`, `hooked-on.json` and raw capture evidence. Only the first two
+`GAME.img.gz`, `GAME.json` and raw capture evidence. Only the first two
 are needed by the server. The server checks the image hash and exact ROM,
-RPKG, game-container and runtime-package identities; mismatches fail startup.
+RPKG and game-package identities (plus the runtime package for N-Gage); mismatches fail startup.
 Games with no image keep their installer path. Keep generated firmware/game
 images outside Git. See the [pilot measurements](../benchmark/PREINSTALLED_IMAGE_RESULTS.md).
+
+Capture uses a reusable 256 KiB read buffer. Restore uses a 256 KiB decode
+buffer and a 256 KiB native write buffer, with bulk copies and explicit offsets
+instead of the SDK's per-byte `FS.write` loop. The JSON header is separately
+capped at 16 MiB. Restore streams the
+gzip response directly, writing ROMs of at least 4 MiB and Z-drive files of at
+least 64 KiB into their final OPFS locations when available. Other files use
+WasmFS memory as before. Symlinks are published after the complete stream is
+validated; failed restores remove partial files and never enable device saving.
+Optional mode/timestamp metadata is preserved by the launcher; older v1 images
+remain readable. This is not a general copy-on-write filesystem or guest-memory
+snapshot, and guest ROM mapping still consumes memory.
+
+A prepared-only server may omit original installers: image source identities
+select the same persistent device and installed-package keys. Reopening a saved
+device skips the image completely, preserving player saves. A forced fresh
+installation still requires the original source endpoints.
 
 All bundled choices share the stock Nokia 5320 ROM/RPKG. Games are installed and
 launched by UID, avoiding ambiguous captions. Sky Force is the original game's
@@ -404,7 +423,7 @@ The client ID is specific to the tested Chromium 154 launch. The harness
 asserts that it selects the unique game-tab renderer; an incorrect ID fails
 the route. Omitting `EKA2L1_TAB_RENDERER_CLIENT_ID` instead caps all renderer
 processes, a different measurement. `EKA2L1_BENCHMARK_FRESH_LAUNCHER=1`
-forces an N-Gage source install even when a prepared image is available.
+forces a SIS or N-Gage source install even when a prepared image is available.
 The Tetris Marathon measurement uses a
 five-second playable window so it stays inside the harness's guest-time ceiling.
 This requires a Linux cgroup-v2 user manager and Chromium's

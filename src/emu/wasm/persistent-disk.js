@@ -80,6 +80,12 @@ globalThis.EkaDeviceDisk = class {
             return this.firmwareOffloadRoot + '/' + path.slice('/data/drives/z/'.length);
         return this.romOffloadRoot + '/' + path.split('/')[3] + '/SYM.ROM';
     }
+    installedImageTarget(entry) {
+        if (this.manifest) throw new Error('Cannot restore an installed image over a saved device');
+        if (!this.romOffloadRoot || !this.firmwareOffloadRoot || !this.validOffloadedPath(entry.path)) return entry.path;
+        const threshold = entry.path.startsWith('/data/drives/z/') ? 64 * 1024 : 4 * 1024 * 1024;
+        return entry.size >= threshold ? this.offloadTarget(entry.path) : entry.path;
+    }
     exists(path) {
         try { this.filesystem.stat(path); return true; }
         catch (error) { if (error.errno === 44) return false; throw error; }

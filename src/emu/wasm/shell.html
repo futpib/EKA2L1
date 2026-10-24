@@ -236,8 +236,8 @@
         async function prepareDeviceStorage(game) {
             if (window.ekaTransientSession || Module._eka2l1_route_phase() !== -1) return null;
             while (!Module._eka2l1_opfs_status?.()) await new Promise(resolve => setTimeout(resolve, 10));
-            var rom = assetHash('/preload/rom');
-            var rpkg = assetHash('/preload/rpkg');
+            var rom = game?.image?.sources.rom || assetHash('/preload/rom');
+            var rpkg = game?.image?.sources.rpkg || assetHash('/preload/rpkg');
             if (!game) {
                 var romFile = document.getElementById('rom-file').files[0];
                 var rpkgFile = document.getElementById('rpkg-file').files[0];
@@ -351,8 +351,8 @@
                 window.ekaRomCachePreparation = EkaRomCache.prepare(selected.romCache);
                 var disk = await prepareDeviceStorage(selected);
                 var useImage = selected.image && !disk?.manifest && !window.ekaForceFreshInstall;
-                var needsSis = !disk?.installed[assetHash(selected.sis)];
-                var needsNgage = selected.ngage && !disk?.installed[assetHash(selected.ngage)];
+                var needsSis = !disk?.installed[selected.image?.sources.runtime || selected.image?.sources.game || assetHash(selected.sis)];
+                var needsNgage = selected.ngage && !disk?.installed[selected.image?.sources.game || assetHash(selected.ngage)];
                 if (window.ekaBenchmarkRouteUs && (needsNgage
                         ? Module._eka2l1_route_configure_64(window.ekaBenchmarkRouteUs >>> 0,
                             Math.floor(window.ekaBenchmarkRouteUs / 4294967296))
@@ -421,13 +421,30 @@
                 if (Module.ccall('eka2l1_live_configure', 'number', [], []) !== 0)
                     throw new Error('Live configuration failed');
                 if (installedImage) {
+                    if (disk?.manifest) throw new Error('Cannot restore an installed image over a saved device');
                     Module.setStatus('Loading installed game...');
-                    var restored = await EkaInstalledImage.restore(
-                        await window.ekaDownload(installedImage.url), installedImage, FS);
+                    var imageBuffer = Module._malloc(EkaInstalledImage.chunkBytes);
+                    if (!imageBuffer) throw new Error('Could not allocate installed image buffer');
+                    var restored;
+                    try { restored = await EkaInstalledImage.restore(
+                        await window.ekaDownload(installedImage.url, {stream:true}), installedImage, FS, {
+                            write: (stream, bytes, count, offset) => {
+                                new Uint8Array(wasmMemory.buffer, imageBuffer, count).set(bytes.subarray(0, count));
+                                return Module._eka2l1_disk_write(stream.fd, imageBuffer, count, offset);
+                            },
+                            destination: disk ? entry => disk.installedImageTarget(entry) : undefined,
+                            metadata: entry => {
+                                if (entry.mode !== undefined && entry.modified !== undefined
+                                        && Module.ccall('eka2l1_disk_set_metadata', 'number', ['string','number','number'],
+                                            [entry.path, entry.mode, entry.modified]) !== 0)
+                                    throw new Error('Could not restore installed file metadata: ' + entry.path);
+                            }
+                        }); } finally { Module._free(imageBuffer); }
                     console.log('[installed-image] Restored ' + restored.files + ' files (' + restored.bytes + ' bytes)');
+                    window.ekaInstalledImageResult = restored;
                     if (disk) {
                         disk.installed[installedImage.sources.game] = true;
-                        disk.installed[installedImage.sources.runtime] = true;
+                        if (installedImage.sources.runtime) disk.installed[installedImage.sources.runtime] = true;
                     }
                 }
                 // Initialize after restoring devices.yml and installed registries.
@@ -475,6 +492,7 @@
                     }
                     sisInput.value = '';
                     if (ret !== 0) {
+                        if (!appName) throw new Error('SIS installation failed: ' + ret);
                         if (ngagePackage) throw new Error('N-Gage runtime installation failed: ' + ret);
                         Module.printErr('SIS install returned ' + ret + ' (may already be in ROM)');
                     } else if (disk && sisHash) {
@@ -579,6 +597,7 @@
                     setRunningStatus(appName);
                 }
                 if (!window.ekaPendingNgage) enableDeviceSaving();
+                return true;
             } catch(e) {
                 if (ngageTimer) clearInterval(ngageTimer);
                 if (disk) disk.installTimer = null;
@@ -586,6 +605,7 @@
                 Module.setStatus('Error: ' + e.message);
                 Module.printErr(e.toString());
                 btn.disabled = false;
+                return false;
             }
         }
     </script>

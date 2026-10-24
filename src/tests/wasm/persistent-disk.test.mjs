@@ -36,6 +36,33 @@ const open = id => page.evaluate(async id => {
 }, id);
 try {
     await load(); await open('device-A');
+    await page.evaluate(() => {
+        // Exercise the prepared-image writer on real WasmFS and OPFS, including
+        // explicit offsets, a partial final chunk, and a failed descriptor.
+        const chunk = 256 * 1024, size = chunk * 4 + 17;
+        const buffer = Module._malloc(chunk);
+        if (!buffer) throw Error('bulk buffer allocation failed');
+        FS.mkdirTree('/data/c');
+        try {
+            for (const path of ['/data/c/bulk', ...(disk.romOffloadRoot ? ['/opfs/bulk-write-test'] : [])]) {
+                const stream = FS.open(path, 'w');
+                try {
+                    for (let offset=0;offset<size;offset+=chunk) {
+                        const count=Math.min(chunk,size-offset),bytes=new Uint8Array(count);
+                        for(let i=0;i<count;i++)bytes[i]=(offset+i)*17%251;
+                        HEAPU8.set(bytes,buffer);
+                        if(Module._eka2l1_disk_write(stream.fd,buffer,count,offset)!==count)throw Error('bulk short write');
+                    }
+                    HEAPU8[buffer]=123;
+                    if(Module._eka2l1_disk_write(stream.fd,buffer,1,7)!==1)throw Error('bulk offset write failed');
+                } finally { FS.close(stream); }
+                const bytes=FS.readFile(path);
+                if(bytes.length!==size||bytes.some((byte,i)=>byte!==(i===7?123:i*17%251)))throw Error('bulk bytes differ');
+                FS.unlink(path);
+            }
+            if(Module._eka2l1_disk_write(-1,buffer,1,0)!==-1)throw Error('bad descriptor accepted');
+        } finally { Module._free(buffer); }
+    });
     const original = await page.evaluate(async () => {
         FS.mkdirTree('/data/c');
         for (const [name, value] of [['save','original save'],['empty',''],['remove','delete me']])

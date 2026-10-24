@@ -108,6 +108,11 @@ namespace {
 }
 
 extern "C" {
+// The SDK's JS FS.write copies each byte in a loop. Prepared images can bulk
+// copy into one reusable WASM buffer and write it at an explicit file offset.
+EMSCRIPTEN_KEEPALIVE int eka2l1_disk_write(int fd, const void *bytes, unsigned size, unsigned offset) {
+    return pwrite(fd, bytes, size, offset);
+}
 __wasi_errno_t __real___wasi_fd_write(__wasi_fd_t, const __wasi_ciovec_t *, size_t, __wasi_size_t *);
 __wasi_errno_t __real___wasi_fd_pwrite(__wasi_fd_t, const __wasi_ciovec_t *, size_t, __wasi_filesize_t, __wasi_size_t *);
 // Observe filesystem writes, not guest instructions or memory stores. Versions

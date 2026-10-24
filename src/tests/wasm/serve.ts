@@ -90,11 +90,11 @@ if (fs.existsSync(romCacheDir)) {
 }
 if (process.env.EKA2L1_PREINSTALLED_DIR) {
   for (const game of games) {
-    if (!game.ngage) continue;
     const prepared = await loadInstalledImage(process.env.EKA2L1_PREINSTALLED_DIR,game.id,{
       rom:'89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490',
       rpkg:'58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531',
-      game:game.ngage.sha256,runtime:game.ngage.runtime.sha256,
+      game:game.ngage?.sha256 || game.sha256,
+      ...(game.ngage ? {runtime:game.ngage.runtime.sha256} : {}),
     });
     if (!prepared) continue;
     installedImages.set(game.id,prepared.image);
