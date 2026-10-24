@@ -23,10 +23,13 @@ const sources = {
   game:entry.ngage?.sha256 || entry.sha256,
   ...(entry.ngage ? {runtime:entry.ngage.runtime.sha256} : {}),
 };
-const browser = await puppeteer.launch({executablePath:'/usr/bin/chromium', headless:true,
+const browser = await puppeteer.launch({executablePath:process.env.PUPPETEER_EXECUTABLE_PATH||'/usr/bin/chromium', headless:true,
   args:['--host-resolver-rules=MAP claude-laptop.lan 127.0.0.1', '--no-sandbox',
-    '--disable-dev-shm-usage', '--use-gl=angle', '--use-angle=vulkan',
-    '--enable-features=Vulkan', '--enable-gpu', '--ignore-gpu-blocklist',
+    '--disable-dev-shm-usage', '--use-gl=angle',
+    ...(process.env.EKA2L1_SOFTWARE_GL==='1'
+      ? ['--use-angle=swiftshader','--enable-unsafe-swiftshader']
+      : ['--use-angle=vulkan','--enable-features=Vulkan']),
+    '--enable-gpu', '--ignore-gpu-blocklist',
     '--disable-background-timer-throttling']});
 try {
   const page = await browser.newPage();
