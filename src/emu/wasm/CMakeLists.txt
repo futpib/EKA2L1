@@ -1,4 +1,6 @@
 add_executable(eka2l1_wasm main.cpp persistent_disk.cpp)
+include(${PROJECT_SOURCE_DIR}/cmake/wasmfs-opfs.cmake)
+eka2l1_fix_opfs_startup(eka2l1_wasm)
 
 option(EKA2L1_WASM_ALLOCATION_PROFILE "Attribute live C++ allocations in a diagnostic browser build" OFF)
 if(EKA2L1_WASM_ALLOCATION_PROFILE)
