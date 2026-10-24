@@ -220,7 +220,14 @@ namespace eka2l1::loader {
             dir.entries.push_back(read_rom_entry(romf, &dir, stream));
 
             if (stream->tell() % 4 != 0) {
-                stream->seek(2, common::seek_where::cur);
+                // Keep the stdio read buffer: seeking over each name's padding
+                // discards it and turns a directory scan into thousands of OPFS
+                // worker round trips in the browser.
+                std::uint16_t padding;
+                if (stream->read(&padding, sizeof(padding)) != sizeof(padding)) {
+                    LOG_ERROR(LOADER, "Can't read directory entry padding!");
+                    break;
+                }
             }
         }
 

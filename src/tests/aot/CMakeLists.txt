@@ -11,6 +11,11 @@ target_compile_definitions(test_source_maps PRIVATE EKA2L1_AOT_SOURCE_MAPS=1)
 target_link_libraries(test_source_maps PRIVATE zlibstatic)
 
 if(EMSCRIPTEN)
+    add_executable(test_rom_directory test_rom_directory.cpp)
+    target_link_libraries(test_rom_directory PRIVATE epocloader common)
+    target_link_options(test_rom_directory PRIVATE -pthread "SHELL:-s ALLOW_MEMORY_GROWTH=1")
+    set_target_properties(test_rom_directory PROPERTIES SUFFIX ".js")
+
     add_executable(test_device_disk ../wasm/persistent-disk-fixture.cpp ../wasm/opfs-startup-delay.cpp ../../emu/wasm/persistent_disk.cpp)
     include(${PROJECT_SOURCE_DIR}/cmake/wasmfs-opfs.cmake)
     eka2l1_fix_opfs_startup(test_device_disk)
