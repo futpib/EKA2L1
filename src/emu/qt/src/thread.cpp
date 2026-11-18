@@ -30,6 +30,8 @@
 #include <drivers/audio/deterministic.h>
 #include <common/deterministic.h>
 #include <common/performance.h>
+#include <common/guest_profile.h>
+#include <cpu/dyncom/arm_dyncom_dec.h>
 #include <fstream>
 #include <system/deterministic.h>
 #include <cpu/dyncom/arm_dyncom_interpreter.h>
@@ -372,6 +374,7 @@ namespace eka2l1::desktop {
         if (state.should_emu_quit) return;
 
         const char *profile_output = common::benchmark::enabled() ? std::getenv("EKA2L1_QT_PROFILE_OUTPUT") : nullptr;
+        const char *guest_profile_output = common::benchmark::enabled() ? std::getenv("EKA2L1_QT_GUEST_PROFILE_OUTPUT") : nullptr;
         if (common::benchmark::enabled()) {
             state.benchmark_ready.wait();
             start_benchmark_input(state.symsys.get(), state.winserv);
@@ -386,7 +389,7 @@ namespace eka2l1::desktop {
 #if ENABLE_SEH_HANDLER
             try {
 #endif
-                if (profile_output) {
+                if (profile_output || guest_profile_output) {
                     const auto us = common::benchmark::virtual_us.load();
                     const auto instructions = common::benchmark::instructions.load();
                     // No attach pause is needed for an unsampled serial run.
@@ -399,10 +402,22 @@ namespace eka2l1::desktop {
                     }
                     if (common::performance::checkpoint(us, instructions)) {
                         common::native_profile::stop();
-                        std::ofstream out(profile_output);
-                        out << common::performance::report() << '\n';
-                        out.close();
-                        std::_Exit(out ? 0 : 3);
+                        bool written = true;
+                        if (profile_output) {
+                            std::ofstream out(profile_output);
+                            out << common::performance::report() << '\n';
+                            out.close();
+                            written = static_cast<bool>(out);
+                        }
+                        if (guest_profile_output) {
+                            std::ofstream out(guest_profile_output);
+                            out << "{\"schema\":1,\"scope\":\"Diagnostic native guest instruction samples; not throughput\",\"measurement\":"
+                                << common::performance::report() << ",\"guest\":"
+                                << common::guest_profile::state.report(::dyncom_instruction_name) << "}\n";
+                            out.close();
+                            written = written && static_cast<bool>(out);
+                        }
+                        std::_Exit(written ? 0 : 3);
                     }
                 }
                 state.symsys->loop();

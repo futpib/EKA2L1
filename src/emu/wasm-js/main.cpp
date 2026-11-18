@@ -3,6 +3,8 @@
  * This file is part of EKA2L1 project and is licensed under GPLv3 or later.
  */
 
+#include "slice-census.h"
+
 #include <common/cvt.h>
 #include <common/deterministic.h>
 #include <common/log.h>
@@ -58,6 +60,7 @@ namespace {
         std::uint32_t launched_uid = 0;
         std::uint64_t present_virtual_us = 0, present_instructions = 0;
         std::string code_witness = "null";
+        std::unique_ptr<cooperative_diagnostics::slice_census> census;
         int width = 0, height = 0;
         bool running = false, busy = false, capture = false;
     };
@@ -171,6 +174,20 @@ EMSCRIPTEN_KEEPALIVE int eka2l1_js_capture(int enabled) {
     });
 }
 
+EMSCRIPTEN_KEEPALIVE int eka2l1_js_diagnostics(int enabled) {
+    return checked([&]() {
+        if (state->running || (enabled != 0 && enabled != 1)) return -1;
+        state->census = enabled ? std::make_unique<cooperative_diagnostics::slice_census>() : nullptr;
+        return 0;
+    });
+}
+
+EMSCRIPTEN_KEEPALIVE const char *eka2l1_js_census() {
+    if (!state || state->busy || !state->census) return "{}";
+    state->report = state->census->json();
+    return state->report.c_str();
+}
+
 EMSCRIPTEN_KEEPALIVE int eka2l1_js_launch(std::uint32_t uid) {
     return checked([&]() {
         if (state->running) return -1;
@@ -228,7 +245,7 @@ EMSCRIPTEN_KEEPALIVE int eka2l1_js_tick(unsigned iterations, unsigned wall_ms) {
         unsigned completed = 0;
         do {
             std::uint32_t pc = 0, begin = 0, size = 0;
-            const bool inspect = state->capture && state->code_witness == "null";
+            const bool inspect = (state->capture || state->census) && state->code_witness == "null";
             const auto before = inspect ? common::benchmark::instructions.load() : 0;
             if (inspect) {
                 auto *thread = state->system->get_kernel_system()->crr_thread();
@@ -240,7 +257,11 @@ EMSCRIPTEN_KEEPALIVE int eka2l1_js_tick(unsigned iterations, unsigned wall_ms) {
                     pc = state->system->get_cpu()->get_pc();
                 }
             }
-            if (!state->system->loop()) { state->running = false; break; }
+            cooperative_diagnostics::slice_census::token sample{};
+            if (state->census) sample = state->census->begin(*state->system, common::benchmark::instructions.load());
+            const bool running = state->system->loop();
+            if (state->census) state->census->finish(sample, common::benchmark::instructions.load());
+            if (!running) { state->running = false; break; }
             const auto after = size ? common::benchmark::instructions.load() : 0;
             if (size && pc >= begin && std::uint64_t(pc) < std::uint64_t(begin) + size && after > before) {
                 std::ostringstream witness;
@@ -278,7 +299,7 @@ EMSCRIPTEN_KEEPALIVE int eka2l1_js_audio(std::int16_t *out, unsigned frames) {
 EMSCRIPTEN_KEEPALIVE const char *eka2l1_js_status() {
     if (!state || state->busy) return "{}";
     std::ostringstream out;
-    const auto allocation = mallinfo();
+    const bool diagnostics = state->capture || state->census;
     out << "{\"running\":" << (state->running ? "true" : "false")
         << ",\"virtual_us\":" << common::benchmark::virtual_us.load()
         << ",\"instructions\":" << common::benchmark::instructions.load()
@@ -288,12 +309,19 @@ EMSCRIPTEN_KEEPALIVE const char *eka2l1_js_status() {
         << ",\"width\":" << state->width << ",\"height\":" << state->height
         << ",\"capture\":" << (state->capture ? "true" : "false")
         << ",\"code_witness\":" << state->code_witness
-        << ",\"heap\":{\"allocated\":" << allocation.uordblks
-        << ",\"free\":" << allocation.fordblks << ",\"arena\":" << allocation.arena
-        << ",\"end\":" << emscripten_get_heap_size()
-        << ",\"break\":" << reinterpret_cast<std::uintptr_t>(sbrk(0)) << "}"
-        << ",\"audio\":" << drivers::clocked_audio_stats() << "}";
-    if (state->capture && state->system->get_cpu()) {
+        << ",\"diagnostics\":" << (state->census ? "true" : "false")
+        << ",\"heap\":";
+    if (diagnostics) {
+        const auto allocation = mallinfo();
+        out << "{\"allocated\":" << allocation.uordblks
+            << ",\"free\":" << allocation.fordblks << ",\"arena\":" << allocation.arena
+            << ",\"end\":" << emscripten_get_heap_size()
+            << ",\"break\":" << reinterpret_cast<std::uintptr_t>(sbrk(0)) << "}";
+    } else {
+        out << "null";
+    }
+    out << ",\"audio\":" << drivers::clocked_audio_stats() << "}";
+    if (diagnostics && state->system->get_cpu()) {
         const auto cache = static_cast<arm::dyncom_core *>(state->system->get_cpu())->interpreter_cache_stats();
         auto report = out.str();
         report.pop_back();

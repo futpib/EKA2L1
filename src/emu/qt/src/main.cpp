@@ -40,6 +40,9 @@
 #include <QTranslator>
 
 #include <memory>
+#include <cstdlib>
+#include <stdexcept>
+#include <common/guest_profile.h>
 
 #if EKA2L1_PLATFORM(UNIX)
 // The AppImage bundles Qt's GStreamer backend but none of the plugins it needs,
@@ -76,6 +79,28 @@ int main(int argc, char *argv[]) {
         common::performance::capture_mode = 2;
         common::performance::start_us = 78000000;
         common::performance::end_us = 96000000;
+        common::benchmark::retain_audio = false;
+    }
+    if (eka2l1::common::benchmark::enabled() && std::getenv("EKA2L1_QT_GUEST_PROFILE_OUTPUT")) {
+        namespace common = eka2l1::common;
+        const auto number = [](const char *name, std::uint64_t fallback, std::uint64_t low, std::uint64_t high) {
+            const char *value = std::getenv(name);
+            if (!value) return fallback;
+            char *end = nullptr;
+            const auto parsed = std::strtoull(value, &end, 10);
+            if (end == value || *end || parsed < low || parsed > high)
+                throw std::runtime_error(std::string("Invalid guest profile option: ") + name);
+            return static_cast<std::uint64_t>(parsed);
+        };
+        common::guest_profile::enabled = true;
+        common::guest_profile::state.stride = number("EKA2L1_QT_GUEST_PROFILE_STRIDE", 16381, 1, 1000000);
+        common::performance::enabled = true;
+        common::performance::detailed = true;
+        common::performance::capture_mode = 2;
+        common::performance::start_us = number("EKA2L1_QT_GUEST_PROFILE_START_US", 0, 0, 120000000);
+        common::performance::end_us = number("EKA2L1_QT_GUEST_PROFILE_END_US", 61000000, 1, 120000000);
+        if (common::performance::start_us >= common::performance::end_us)
+            throw std::runtime_error("Guest profile window must advance");
         common::benchmark::retain_audio = false;
     }
 #if EKA2L1_PLATFORM(UNIX)
