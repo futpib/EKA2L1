@@ -5,9 +5,9 @@
 #include <vector>
 
 namespace eka2l1::arm::aot::memory_experiment {
-    // Frozen before guest initialization: WASM defaults to direct memory (2).
-    // Native cores retain TLB (0); direct host pointers address WASM memory.
-#ifdef __EMSCRIPTEN__
+    // Frozen before guest initialization: WASM AOT defaults to direct memory (2).
+    // Native and cooperative interpreter cores retain TLB (0).
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_COOPERATIVE_JS)
     inline unsigned mode = 2;
 #else
     inline unsigned mode = 0;
