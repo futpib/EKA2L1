@@ -157,6 +157,14 @@ else()
             dynarmic)
 endif()
 
+if(EKA2L1_COOPERATIVE_JS AND EKA2L1_COUNTED_JS)
+    target_compile_definitions(cpu PRIVATE EKA2L1_COUNTED_JS=1)
+    target_sources(cpu PRIVATE
+        include/cpu/aot/counted_js.h
+        src/aot/counted_js.cpp
+        src/aot/counted_bridge.cpp)
+endif()
+
 target_include_directories(cpu PUBLIC include)
 target_include_directories(cpu PRIVATE ${capstone_INCLUDE_DIRS})
 

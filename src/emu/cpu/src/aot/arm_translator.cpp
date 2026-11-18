@@ -64,6 +64,8 @@ namespace eka2l1::arm::aot {
         source_emission source;
         std::vector<std::uint32_t> *dispatch_entries = nullptr;
         bool successor_thumb = false;
+        bool counted = false;
+        std::uint32_t source_count = 0;
         bool region = false;
         bool direct_block_memory = false;
         bool defer_memory = false, restartable_access = false;
@@ -364,14 +366,15 @@ namespace eka2l1::arm::aot {
             if (dispatch_entries && (why == exit_census::control || why == exit_census::source_end))
                 dispatch_entries->push_back(pc | (successor_thumb ? 1u : 0u));
             store_i32_const(S::PC, static_cast<std::int32_t>(pc));
-            i32_const(why == exit_census::unsupported
+            if (counted) i32_const(static_cast<std::int32_t>(source_index));
+            else i32_const(why == exit_census::unsupported
                 || why == exit_census::memory || why == exit_census::status ? 0 : 1);
             ret(why);
             bail_count++;
         }
 
         void bail_preserve_pc() {
-            i32_const(1);
+            i32_const(counted ? source_count + 1 : 1);
             ret();
             bail_count++;
         }
@@ -980,7 +983,7 @@ namespace eka2l1::arm::aot {
         std::uint32_t start_address,
         const sibling_map *siblings,
         const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region, const leaf_resolver *leaves, bool defer_memory, bool allow_memory_proof, arm_ir_policy ir_policy = arm_ir_policy::write_spans,
-        stack_return_context *stack_return = nullptr)
+        stack_return_context *stack_return = nullptr, bool counted = false)
     {
         region = region && bounded;
         // Bounded blocks exit on branches instead of recursively calling siblings.
@@ -1004,6 +1007,7 @@ namespace eka2l1::arm::aot {
         const std::uint32_t TMP_CARRY = 8;
 
         arm_emit w{result.body};
+        w.counted = counted;
         w.dispatch_entries = &tr.dispatch_entries;
         w.source.marks = &result.sources;
         w.region = region && bounded;
@@ -1214,7 +1218,7 @@ namespace eka2l1::arm::aot {
         bool has_backedge = false;
         std::set<std::uint32_t> safepoints;
         for (const auto &instruction : instructions) {
-            if (instruction.leaf) continue; // Inlined leaves are straight-line.
+            if (counted || instruction.leaf) continue; // Counted entries exit every original block.
             const auto inst = instruction.opcode;
             if (((inst >> 25) & 7) != 5 || ((inst >> 24) & 1)) continue;
             const auto displacement = static_cast<std::int32_t>(inst << 8) >> 6;
@@ -1374,6 +1378,7 @@ namespace eka2l1::arm::aot {
             const auto instruction_index = static_cast<std::size_t>(&instruction - instructions.data());
             const auto i = instruction.offset;
             if (!region) insn_idx = static_cast<std::uint32_t>(i / 4);
+            w.source_count = insn_idx;
             if (bounded && !region && stop_after_store && w.memory_write) break;
             const auto inst = instruction.opcode;
             const auto insn_addr = instruction.address;
@@ -1474,11 +1479,13 @@ namespace eka2l1::arm::aot {
                     w.op(op_i32_or); w.op(op_i32_eqz);
                     w.op(op_if); w.op(type_void);
                     w.bail(insn_addr, insn_idx, exit_census::guard); w.op(op_end);
+                    if (!counted) {
                     w.load_i32(S::NIRQ); w.op(op_i32_eqz);
                     w.load_i32(S::CPSR); w.i32_const(0x80);
                     w.op(op_i32_and); w.op(op_i32_eqz); w.op(op_i32_and);
                     w.op(op_if); w.op(type_void);
                     w.bail(insn_addr, insn_idx, exit_census::interrupt); w.op(op_end);
+                    }
                     w.i32_const(0); w.set_local(arm_emit::CALLBACK);
                     w.op(op_end);
                 }
@@ -1595,6 +1602,11 @@ namespace eka2l1::arm::aot {
             // outer loop services the trap after the region returns. Even
             // a false predicate returns this boundary without invoking kernel.
             if (bounded && cond < 15 && (inst & 0x0f000000u) == 0x0f000000u) {
+                if (counted) {
+                    w.bail_unsupported(insn_addr, insn_idx);
+                    decoded_end_offset = static_cast<std::uint32_t>(i);
+                    break;
+                }
                 const auto descriptor = svc_pending | (((insn_addr + 4) & 4095) ? 0 : svc_page_end) | (inst & 0x00ffffffu);
                 w.store_i32_const(S::AOT_EXIT, descriptor);
                 const bool predicate = emit_cond_check(w, cond, TMP1, TMP2);
@@ -2803,6 +2815,28 @@ namespace eka2l1::arm::aot {
         tr.end_address = start_address + decoded_end_offset;
         tr.bail_count = w.bail_count;
         return tr;
+    }
+
+    translate_result translate_counted_arm_block(
+        const std::uint8_t *code, std::size_t size, std::uint32_t address) {
+        if (!code || !size || (size & 3) || (address & 3) || size > 512
+            || size > 4096 - (address & 4095)) return {};
+        // Stop at the original decoder's first control boundary. No linked
+        // regions, in-function loops, summaries, or speculative span proofs.
+        for (std::size_t n = 0; n < size; n += 4) {
+            std::uint32_t op; std::memcpy(&op, code + n, 4);
+            const unsigned group = (op >> 25) & 7, alu = (op >> 21) & 15;
+            const bool terminal = group == 5 || (op & 0x0f000000u) == 0x0f000000u
+                || (op & 0x0ffffff0u) == 0x012fff10u
+                || (op & 0x0ffffff0u) == 0x012fff30u
+                || (group == 4 && (op & (1u << 20)) && (op & 0x8000))
+                || (((op >> 26) & 3) == 1 && (op & (1u << 20)) && ((op >> 12) & 15) == 15)
+                || (((op >> 26) & 3) == 0 && ((op >> 12) & 15) == 15 && (alu < 8 || alu > 11));
+            if (terminal) { size = n + 4; break; }
+        }
+        return translate_arm_block_impl(code, size, address, nullptr, nullptr,
+            true, false, true, false, nullptr, false, false,
+            arm_ir_policy::disabled, nullptr, true);
     }
 
     // A list scan overwrites its comparison flags on each backedge. Keep the

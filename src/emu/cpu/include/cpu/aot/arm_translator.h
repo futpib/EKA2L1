@@ -27,6 +27,12 @@ namespace eka2l1::arm::aot {
     enum class arm_ir_policy { disabled, write_spans };
     inline bool arm_indirect_calls = true;
 
+    // One original ARM basic block, returning exact executed-prefix counts.
+    // The caller admits only a whole-block budget; short budgets stay interpreted.
+    // SVCs and unsupported instructions return before their original handler.
+    translate_result translate_counted_arm_block(
+        const std::uint8_t *code, std::size_t code_size, std::uint32_t start_address);
+
     // Translate a block of ARM-mode code into a WASM function body.
     // ARM instructions are 32-bit fixed-width with condition codes in bits [31:28].
     //

@@ -25,6 +25,10 @@
 #include <common/performance.h>
 #include <cpu/aot/aot_runtime.h>
 #include <cpu/aot/watchdog.h>
+#if defined(EKA2L1_COOPERATIVE_JS) && defined(EKA2L1_COUNTED_JS)
+#include <cpu/aot/counted_js.h>
+#endif
+
 
 namespace eka2l1::arm {
     dyncom_core::dyncom_core(arm::exclusive_monitor *monitor, const std::size_t page_bits)
@@ -39,6 +43,9 @@ namespace eka2l1::arm {
     }
 
     dyncom_core::~dyncom_core() {
+#if defined(EKA2L1_COOPERATIVE_JS) && defined(EKA2L1_COUNTED_JS)
+        counted_js::forget(state_.get());
+#endif
     }
 
 #if defined(EKA2L1_COOPERATIVE_JS)

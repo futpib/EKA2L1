@@ -4,6 +4,7 @@
  */
 
 #include "slice-census.h"
+#include "code-capture.h"
 
 #include <common/cvt.h>
 #include <common/deterministic.h>
@@ -12,6 +13,10 @@
 #include <config/app_settings.h>
 #include <config/config.h>
 #include <cpu/arm_interface.h>
+#if defined(EKA2L1_COUNTED_JS)
+#include <cpu/aot/counted_js.h>
+extern "C" int eka2l1_counted_configure(int diagnostics);
+#endif
 #include <cpu/dyncom/arm_dyncom.h>
 #include <drivers/audio/clocked.h>
 #include <drivers/graphics/graphics.h>
@@ -35,6 +40,7 @@
 #include <emscripten/heap.h>
 #include <algorithm>
 #include <cstdlib>
+#include <iomanip>
 #include <memory>
 #include <malloc.h>
 #include <sstream>
@@ -61,6 +67,7 @@ namespace {
         std::uint64_t present_virtual_us = 0, present_instructions = 0;
         std::string code_witness = "null";
         std::unique_ptr<cooperative_diagnostics::slice_census> census;
+        std::vector<cooperative_diagnostics::mapped_code_capture> mapped_code;
         int width = 0, height = 0;
         bool running = false, busy = false, capture = false;
     };
@@ -81,6 +88,16 @@ namespace {
         state->running = false;
         state->busy = false;
         return -1;
+    }
+
+    std::string json_quote(const std::string &text) {
+        std::ostringstream out; out << '"';
+        for (const unsigned char c : text) {
+            if (c == '"' || c == '\\') out << '\\' << c;
+            else if (c < 32) out << "\\u" << std::hex << std::setw(4) << std::setfill('0') << unsigned(c) << std::dec;
+            else out << c;
+        }
+        out << '"'; return out.str();
     }
 
     void present() {
@@ -186,6 +203,72 @@ EMSCRIPTEN_KEEPALIVE const char *eka2l1_js_census() {
     if (!state || state->busy || !state->census) return "{}";
     state->report = state->census->json();
     return state->report.c_str();
+}
+
+EMSCRIPTEN_KEEPALIVE int eka2l1_js_counted(int diagnostics) {
+    return checked([&]() {
+        if (state->running || (diagnostics != 0 && diagnostics != 1)) return -1;
+#if defined(EKA2L1_COUNTED_JS)
+        return eka2l1_counted_configure(diagnostics);
+#else
+        return -1;
+#endif
+    });
+}
+EMSCRIPTEN_KEEPALIVE const char *eka2l1_js_counted_status() {
+    if (!state || state->busy) return "{}";
+#if defined(EKA2L1_COUNTED_JS)
+    const bool detailed = arm::counted_js::diagnostics();
+    std::ostringstream out;
+    out << "{\"available\":true,\"enabled\":" << (arm::counted_js::enabled ? "true" : "false")
+        << ",\"diagnostics\":" << (detailed ? "true" : "false") << ",\"calls\":";
+    if (detailed) out << arm::counted_js::calls(); else out << "null";
+    out << ",\"instructions\":";
+    if (detailed) out << arm::counted_js::instructions(); else out << "null";
+    out << '}'; state->report = out.str(); return state->report.c_str();
+#else
+    return "{\"available\":false,\"enabled\":false,\"diagnostics\":false,\"calls\":null,\"instructions\":null}";
+#endif
+}
+
+// Explicit once-only paused-boundary code export for offline translation.
+EMSCRIPTEN_KEEPALIVE int eka2l1_js_code_capture(std::uint32_t process_uid, const char *names) {
+    return checked([&]() {
+        if (!state->running || !process_uid || !names || !*names || !state->mapped_code.empty()) return -1;
+        const std::string requested(names);
+        if (requested.size() > 4096) return -1;
+        std::vector<std::string> modules;
+        std::size_t begin = 0;
+        do {
+            const auto end = requested.find(',', begin);
+            const auto name = requested.substr(begin, end == std::string::npos ? end : end - begin);
+            if (name.empty()) return -1;
+            modules.push_back(name);
+            if (end == std::string::npos) break;
+            begin = end + 1;
+        } while (true);
+        state->mapped_code = cooperative_diagnostics::capture_mapped_code(*state->system,
+            process_uid, modules, common::benchmark::virtual_us.load(), common::benchmark::instructions.load());
+        return int(state->mapped_code.size());
+    });
+}
+EMSCRIPTEN_KEEPALIVE const char *eka2l1_js_code_metadata() {
+    if (!state || state->busy) return "[]";
+    std::ostringstream out; out << '[';
+    bool comma = false;
+    for (const auto &row : state->mapped_code) {
+        if (comma) out << ',';
+        comma = true;
+        out << "{\"name\":" << json_quote(row.name) << ",\"process_name\":" << json_quote(row.process_name)
+            << ",\"uid\":" << row.uid << ",\"process_uid\":" << row.process_uid
+            << ",\"asid\":" << row.asid << ",\"base\":" << row.base << ",\"bytes\":" << row.bytes
+            << ",\"generation\":" << row.generation << ",\"virtual_us\":" << row.virtual_us
+            << ",\"instructions\":" << row.instructions << ",\"rom\":" << (row.rom ? "true" : "false") << '}';
+    }
+    out << ']'; state->report = out.str(); return state->report.c_str();
+}
+EMSCRIPTEN_KEEPALIVE const void *eka2l1_js_code_data(unsigned index) {
+    return state && !state->busy && index < state->mapped_code.size() ? state->mapped_code[index].code.data() : nullptr;
 }
 
 EMSCRIPTEN_KEEPALIVE int eka2l1_js_launch(std::uint32_t uid) {
@@ -338,6 +421,9 @@ EMSCRIPTEN_KEEPALIVE const char *eka2l1_js_error() { return state ? state->error
 EMSCRIPTEN_KEEPALIVE int eka2l1_js_shutdown() {
     if (!state || state->busy) return -1;
     state->system.reset();
+#if defined(EKA2L1_COUNTED_JS)
+    arm::counted_js::reset();
+#endif
     state->graphics.reset();
     state->audio.reset();
     state.reset();

@@ -1,4 +1,7 @@
 add_executable(eka2l1_js main.cpp platform.cpp)
+if(EKA2L1_COUNTED_JS)
+    target_compile_definitions(eka2l1_js PRIVATE EKA2L1_COUNTED_JS=1)
+endif()
 get_property(EKA2L1_JS_PATCH_TARGET GLOBAL PROPERTY LAST_SYMBIAN_PROJECT_TARGET)
 add_dependencies(eka2l1_js ${EKA2L1_JS_PATCH_TARGET})
 target_include_directories(eka2l1_js PRIVATE ${PROJECT_SOURCE_DIR}/src/external/glm)

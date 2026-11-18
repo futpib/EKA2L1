@@ -65,6 +65,13 @@ namespace eka2l1::arm::aot {
         const std::vector<wasm_func_def> &funcs,
         const std::vector<wasm_import_func> &imports)
     {
+        return build_wasm_module(funcs, imports, true);
+    }
+
+    std::vector<std::uint8_t> build_wasm_module(
+        const std::vector<wasm_func_def> &funcs,
+        const std::vector<wasm_import_func> &imports, bool shared_memory)
+    {
         std::vector<std::uint8_t> module;
 
         // Header
@@ -158,7 +165,7 @@ namespace eka2l1::arm::aot {
             emit_str(sec, "memory");
             sec.push_back(0x02); // memory
             // Shared memory limits: flags=0x03 (has_max | shared), min, max
-            sec.push_back(0x03); // flags: has_max + shared
+            sec.push_back(shared_memory ? 0x03 : 0x01); // has_max; shared only when requested
             leb128(sec, 256);    // min pages
             leb128(sec, 65536);  // max pages
 

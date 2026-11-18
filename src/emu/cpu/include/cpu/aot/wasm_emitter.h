@@ -228,4 +228,9 @@ namespace eka2l1::arm::aot {
     std::vector<std::uint8_t> build_wasm_module(
         const std::vector<wasm_func_def> &funcs,
         const std::vector<wasm_import_func> &imports = {});
+
+    // Explicit ordinary memory is used only for offline JavaScript lowering.
+    std::vector<std::uint8_t> build_wasm_module(
+        const std::vector<wasm_func_def> &funcs,
+        const std::vector<wasm_import_func> &imports, bool shared_memory);
 }

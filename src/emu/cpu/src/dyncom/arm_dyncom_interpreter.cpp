@@ -35,6 +35,10 @@
 #include <cpu/aot/aot_runtime.h>
 #include <cpu/aot/watchdog.h>
 #include <cpu/aot/svc_return.h>
+#if defined(EKA2L1_COOPERATIVE_JS) && defined(EKA2L1_COUNTED_JS)
+#include <cpu/aot/counted_js.h>
+#endif
+
 
 #define RM BITS(sht_oper, 0, 3)
 #define RS BITS(sht_oper, 8, 11)
@@ -1749,6 +1753,11 @@ static unsigned int InterpreterTranslateInstruction(ARMul_State *cpu, const std:
         return 0;
     }
     inst_base = arm_instruction_trans[idx](cpu, inst, idx);
+#if defined(EKA2L1_COOPERATIVE_JS) && defined(EKA2L1_COUNTED_JS)
+    if (inst_base && eka2l1::arm::counted_js::enabled)
+        eka2l1::arm::counted_js::decoded_word(cpu, phys_addr, inst,
+            reinterpret_cast<char *>(inst_base) - &cpu->trans_cache_buf[0]);
+#endif
     if (eka2l1::common::guest_profile::enabled) guest_profile_instruction(cpu, phys_addr, inst_base->idx, 1);
 
     return inst_size;
@@ -1766,6 +1775,10 @@ static int InterpreterTranslateBlock(ARMul_State *cpu, std::size_t &bb_start, st
     TransExtData ret = TransExtData::NON_BRANCH;
     int size = 0; // instruction size of basic block
     bb_start = cpu->trans_cache_buf_top;
+#if defined(EKA2L1_COOPERATIVE_JS) && defined(EKA2L1_COUNTED_JS)
+    if (eka2l1::arm::counted_js::enabled)
+        eka2l1::arm::counted_js::begin_decode(cpu);
+#endif
 
     std::uint32_t phys_addr = addr;
     std::uint32_t pc_start = cpu->Reg[15];
@@ -1823,6 +1836,10 @@ static int InterpreterTranslateBlock(ARMul_State *cpu, std::size_t &bb_start, st
     };
 
     cpu->instruction_cache[cpu->make_instruction_cache_key(pc_start)] = bb_start;
+#if defined(EKA2L1_COOPERATIVE_JS) && defined(EKA2L1_COUNTED_JS)
+    if (eka2l1::arm::counted_js::enabled)
+        eka2l1::arm::counted_js::finish_decode(cpu, bb_start);
+#endif
 
     return KEEP_GOING;
 }
@@ -2610,6 +2627,27 @@ DISPATCH : {
     else
         cpu->Reg[15] &= 0xfffffffc;
 
+#if defined(EKA2L1_COOPERATIVE_JS) && defined(EKA2L1_COUNTED_JS)
+    if constexpr (!Watchdog && !Instrumented) if (eka2l1::arm::counted_js::enabled) {
+        const auto progress = eka2l1::arm::counted_js::execute(cpu, num_instrs);
+        const auto count = progress & 0xffu;
+        if (count) {
+            num_instrs += count;
+            link = nullptr;
+            // Even an exhausted branch reaches the original dispatch: target
+            // alignment and its original prefetch/fault must still happen.
+            if (progress & 0x100u) goto DISPATCH;
+            if (num_instrs >= cpu->NumInstrsToExecute) goto END;
+            // A precise partial return resumes the SAME decoded instruction
+            // stream, without introducing a new interrupt/dispatch boundary.
+            if (eka2l1::arm::counted_js::resume(cpu, ptr)) {
+                inst_base = reinterpret_cast<arm_inst *>(&cpu->trans_cache_buf[ptr]);
+                GOTO_NEXT_INST;
+            }
+            goto DISPATCH;
+        }
+    }
+#endif
 #if !defined(EKA2L1_COOPERATIVE_JS)
     // Deferred AOT instantiation: must happen on the worker thread
     {
