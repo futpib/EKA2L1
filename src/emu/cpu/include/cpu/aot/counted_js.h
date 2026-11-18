@@ -4,11 +4,12 @@
 
 struct ARMul_State;
 namespace eka2l1::arm::counted_js {
+    inline constexpr unsigned entry_limit = 5120;
     using executor = std::uint32_t (*)(ARMul_State *, std::uint32_t);
     extern bool enabled;
     void reset();
     bool add(std::uint32_t asid, std::uint32_t pc, const std::uint32_t *words,
-             std::size_t count, std::uint32_t function, bool shared = false);
+             std::size_t count, std::uint32_t function, bool shared = false, bool thumb = false);
     void install(executor execute, bool diagnostics = false);
     void begin_decode(ARMul_State *cpu);
     void decoded_word(ARMul_State *cpu, std::uint32_t pc, std::uint32_t word, std::size_t ptr);

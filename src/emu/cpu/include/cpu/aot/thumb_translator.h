@@ -162,6 +162,10 @@ namespace eka2l1::arm::aot {
     // Returns a wasm_func_def ready to be included in a WASM module.
     // Returns empty body on failure.
     // If complete is false, the function bails to the interpreter partway through.
+    // Exact original basic-block counts; no linked regions or call inlining.
+    translate_result translate_counted_thumb_block(
+        const std::uint8_t *code, std::size_t size, std::uint32_t address);
+
     translate_result translate_thumb_block(
         const std::uint8_t *code,
         std::size_t code_size,

@@ -1727,6 +1727,9 @@ static unsigned int InterpreterTranslateInstruction(ARMul_State *cpu, const std:
     if (eka2l1::common::performance::counting()) ++eka2l1::common::performance::decoded_instructions;
     std::uint32_t inst_size = 4;
     std::uint32_t inst = cpu->ReadCode(phys_addr & 0xFFFFFFFC);
+#if defined(EKA2L1_COOPERATIVE_JS) && defined(EKA2L1_COUNTED_JS)
+    const std::uint32_t original_word = cpu->TFlag ? (inst >> ((phys_addr & 2) * 8)) & 0xffffu : inst;
+#endif
 
     // If we are in Thumb mode, we'll translate one Thumb instruction to the corresponding ARM
     // instruction
@@ -1736,6 +1739,11 @@ static unsigned int InterpreterTranslateInstruction(ARMul_State *cpu, const std:
 
         // We have translated the Thumb branch instruction in the Thumb decoder
         if (state == ThumbDecodeStatus::BRANCH) {
+#if defined(EKA2L1_COOPERATIVE_JS) && defined(EKA2L1_COUNTED_JS)
+            if (inst_base && eka2l1::arm::counted_js::enabled)
+                eka2l1::arm::counted_js::decoded_word(cpu, phys_addr, original_word,
+                    reinterpret_cast<char *>(inst_base) - &cpu->trans_cache_buf[0]);
+#endif
             if (eka2l1::common::guest_profile::enabled) guest_profile_instruction(cpu, phys_addr, inst_base->idx, 1);
             return inst_size;
         }
@@ -1755,7 +1763,7 @@ static unsigned int InterpreterTranslateInstruction(ARMul_State *cpu, const std:
     inst_base = arm_instruction_trans[idx](cpu, inst, idx);
 #if defined(EKA2L1_COOPERATIVE_JS) && defined(EKA2L1_COUNTED_JS)
     if (inst_base && eka2l1::arm::counted_js::enabled)
-        eka2l1::arm::counted_js::decoded_word(cpu, phys_addr, inst,
+        eka2l1::arm::counted_js::decoded_word(cpu, phys_addr, original_word,
             reinterpret_cast<char *>(inst_base) - &cpu->trans_cache_buf[0]);
 #endif
     if (eka2l1::common::guest_profile::enabled) guest_profile_instruction(cpu, phys_addr, inst_base->idx, 1);

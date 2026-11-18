@@ -8,8 +8,8 @@ static void publish(ARMul_State *cpu) {
 }
 extern "C" {
 EMSCRIPTEN_KEEPALIVE int eka2l1_counted_register(unsigned asid, unsigned pc, const unsigned *words,
-                                               unsigned count, unsigned function, unsigned shared) {
-    return eka2l1::arm::counted_js::add(asid, pc, words, count, function, shared != 0);
+                                               unsigned count, unsigned function, unsigned shared, unsigned thumb) {
+    return eka2l1::arm::counted_js::add(asid, pc, words, count, function, shared != 0, thumb != 0);
 }
 #define READ(bits) \
 EMSCRIPTEN_KEEPALIVE unsigned eka2l1_counted_read##bits(ARMul_State *cpu, unsigned address) { \
@@ -22,7 +22,7 @@ WRITE(8, std::uint8_t) WRITE(16, std::uint16_t) WRITE(32, std::uint32_t)
 #undef READ
 #undef WRITE
 }
-EM_JS(int, counted_setup, (), {
+EM_JS(int, counted_setup, (unsigned maximum), {
     try {
         const factory = Module['countedBlockFactory'];
         if (typeof factory !== 'function') return 0;
@@ -31,22 +31,23 @@ EM_JS(int, counted_setup, (), {
             tlb_read16: Module['_eka2l1_counted_read16'], tlb_write16: Module['_eka2l1_counted_write16'],
             tlb_read8: Module['_eka2l1_counted_read8'], tlb_write8: Module['_eka2l1_counted_write8']}});
         if (!product || !Array.isArray(product.entries) || !Array.isArray(product.functions)
-            || !product.entries.length || product.entries.length > 4096
+            || !product.entries.length || product.entries.length > maximum
             || product.functions.some(f => typeof f !== 'function')) throw Error('Invalid counted factory');
         for (const row of product.entries) {
             if (!row || !Number.isInteger(row.pc) || row.pc < 0 || row.pc > 0xffffffff
                 || !Number.isInteger(row.asid) || row.asid < 0 || row.asid > 0xffffffff
                 || !Number.isInteger(row.function) || row.function < 0 || row.function >= product.functions.length
                 || (row.shared !== undefined && typeof row.shared !== 'boolean')
+                || (row.thumb !== undefined && typeof row.thumb !== 'boolean')
                 || row.complete !== true
                 || !Array.isArray(row.words) || !row.words.length || row.words.length > 128
-                || row.words.some(w => !Number.isInteger(w) || w < 0 || w > 0xffffffff))
+                || row.words.some(w => !Number.isInteger(w) || w < 0 || w > (row.thumb === true ? 0xffff : 0xffffffff)))
                 throw Error('Invalid counted entry');
             const pointer = Module['_malloc'](row.words.length * 4);
             if (!pointer) throw Error('Counted manifest allocation failed');
             try {
                 HEAPU32.set(row.words, pointer >>> 2);
-                if (!Module['_eka2l1_counted_register'](row.asid, row.pc, pointer, row.words.length, row.function, row.shared === true ? 1 : 0))
+                if (!Module['_eka2l1_counted_register'](row.asid, row.pc, pointer, row.words.length, row.function, row.shared === true ? 1 : 0, row.thumb === true ? 1 : 0))
                     throw Error('Counted registration rejected');
             } finally { Module['_free'](pointer); }
         }
@@ -65,7 +66,7 @@ EM_JS(unsigned, counted_call, (ARMul_State *cpu, unsigned function_index), {
 extern "C" {
 EMSCRIPTEN_KEEPALIVE int eka2l1_counted_configure(int diagnostics) {
     eka2l1::arm::counted_js::reset();
-    const int entries = counted_setup();
+    const int entries = counted_setup(eka2l1::arm::counted_js::entry_limit);
     if (entries > 0) eka2l1::arm::counted_js::install(counted_call, diagnostics != 0);
     else eka2l1::arm::counted_js::reset();
     return entries;

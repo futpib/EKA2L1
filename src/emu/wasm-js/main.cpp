@@ -252,6 +252,63 @@ EMSCRIPTEN_KEEPALIVE int eka2l1_js_code_capture(std::uint32_t process_uid, const
         return int(state->mapped_code.size());
     });
 }
+EMSCRIPTEN_KEEPALIVE int eka2l1_js_code_capture_selected(const char *selection) {
+    return checked([&]() {
+        if (!state->running || !selection || !*selection || !state->mapped_code.empty()) return -1;
+        const std::string requested(selection);
+        if (requested.size() > 8192 || requested.back() == ';') return -1;
+        const auto virtual_us = common::benchmark::virtual_us.load();
+        const auto instructions = common::benchmark::instructions.load();
+        const auto generation = mem::mapping_generation.load(std::memory_order_acquire);
+        std::vector<cooperative_diagnostics::mapped_code_capture> captured;
+        std::set<std::pair<std::uint32_t, std::string>> identities;
+        std::uint64_t total = 0;
+        std::size_t begin = 0;
+        do {
+            const auto end = requested.find(';', begin);
+            const auto group = requested.substr(begin, end == std::string::npos ? end : end - begin);
+            const auto colon = group.find(':');
+            if (colon == std::string::npos || !colon || colon + 1 == group.size()) return -1;
+            const auto uid_text = group.substr(0, colon);
+            if (uid_text.find_first_not_of("0123456789") != std::string::npos) return -1;
+            const auto parsed_uid = std::stoul(uid_text);
+            if (!parsed_uid || parsed_uid > 0xffffffffu) return -1;
+            const auto process_uid = static_cast<std::uint32_t>(parsed_uid);
+            const auto names = group.substr(colon + 1);
+            std::vector<std::string> modules;
+            std::size_t name_begin = 0;
+            do {
+                const auto name_end = names.find(',', name_begin);
+                const auto name = names.substr(name_begin, name_end == std::string::npos ? name_end : name_end - name_begin);
+                if (name.empty() || name.size() > 128
+                        || std::any_of(name.begin(), name.end(), [](unsigned char c) {
+                            return c < 32 || c > 126 || c == ':' || c == '/' || c == '\\';
+                        })
+                        || !identities.emplace(process_uid, cooperative_diagnostics::code_capture_name(name)).second)
+                    return -1;
+                modules.push_back(name);
+                if (identities.size() > 32) return -1;
+                if (name_end == std::string::npos) break;
+                name_begin = name_end + 1;
+            } while (true);
+            auto rows = cooperative_diagnostics::capture_mapped_code(*state->system,
+                process_uid, modules, virtual_us, instructions);
+            for (auto &row : rows) {
+                if (row.generation != generation || (total += row.bytes) > 64u * 1024u * 1024u)
+                    throw std::runtime_error("Grouped mapped-code capture identity or extent changed");
+                captured.push_back(std::move(row));
+            }
+            if (end == std::string::npos) break;
+            begin = end + 1;
+        } while (true);
+        if (common::benchmark::virtual_us.load() != virtual_us
+                || common::benchmark::instructions.load() != instructions
+                || mem::mapping_generation.load(std::memory_order_acquire) != generation)
+            throw std::runtime_error("Grouped mapped-code capture boundary changed");
+        state->mapped_code = std::move(captured);
+        return int(state->mapped_code.size());
+    });
+}
 EMSCRIPTEN_KEEPALIVE const char *eka2l1_js_code_metadata() {
     if (!state || state->busy) return "[]";
     std::ostringstream out; out << '[';

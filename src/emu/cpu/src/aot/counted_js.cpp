@@ -12,7 +12,7 @@
 namespace eka2l1::arm::counted_js {
     struct entry {
         std::uint32_t asid, pc, function;
-        bool shared;
+        bool shared, thumb;
         std::vector<std::uint32_t> words;
     };
     struct stamp {
@@ -35,6 +35,10 @@ namespace eka2l1::arm::counted_js {
         bool pending_resume = false;
         std::size_t resume_ptr = 0;
     };
+    static_assert(sizeof(entry) <= 64 && sizeof(stamp) <= 64);
+#if defined(EKA2L1_COOPERATIVE_JS)
+    static_assert(sizeof(std::size_t) == 4);
+#endif
     bool enabled = false;
     static executor invoke = nullptr;
     static executor untracked = nullptr;
@@ -50,7 +54,7 @@ namespace eka2l1::arm::counted_js {
     static ARMul_State *decoding = nullptr;
     static std::size_t decoding_entry = 0, decoded = 0;
     static std::vector<std::size_t> decoded_pointers;
-    static bool matches = false;
+    static bool matches = false, decoding_thumb = false;
     static std::uint64_t decoding_mapping = 0;
     static std::uint32_t decoding_generation = 0, decoding_asid = 0;
     static std::uint32_t first_pc = 0, last_pc = 0;
@@ -93,14 +97,14 @@ namespace eka2l1::arm::counted_js {
         return owner.last_space;
     }
     static std::size_t find(ARMul_State *cpu) {
-        if (cpu->TFlag || cpu->Reg[15] < first_pc || cpu->Reg[15] > last_pc) return entries.size();
+        if (cpu->Reg[15] < first_pc || cpu->Reg[15] > last_pc) return entries.size();
         const auto key = cpu->make_instruction_cache_key(cpu->Reg[15]);
         if (key == last_key) return last_index;
         const auto found = indices.find(key);
         last_key = key;
         if (found != indices.end()) last_index = found->second;
         else {
-            const auto shared = shared_indices.find(cpu->Reg[15]);
+            const auto shared = shared_indices.find(cpu->Reg[15] | (cpu->TFlag ? 1u : 0u));
             last_index = shared == shared_indices.end() ? entries.size() : shared->second;
         }
         return last_index;
@@ -112,14 +116,16 @@ namespace eka2l1::arm::counted_js {
         call_count = instruction_count = 0;
     }
     bool add(std::uint32_t asid, std::uint32_t pc, const std::uint32_t *words,
-             std::size_t count, std::uint32_t function, bool shared) {
-        if (enabled || !words || !count || count > 128 || entries.size() == 4096
-            || (pc & 3) || count * 4 > 4096 - (pc & 4095)) return false;
-        for (const auto &item : entries) if (item.asid == asid && item.pc == pc) return false;
-        if (shared && shared_indices.find(pc) != shared_indices.end()) return false;
-        indices.emplace((std::uint64_t(asid) << 32) | pc, entries.size());
-        if (shared) shared_indices.emplace(pc, entries.size());
-        entries.push_back({asid, pc, function, shared, std::vector<std::uint32_t>(words, words + count)});
+             std::size_t count, std::uint32_t function, bool shared, bool thumb) {
+        if (enabled || !words || !count || count > 128 || entries.size() == entry_limit
+            || (pc & (thumb ? 1u : 3u)) || count * (thumb ? 2u : 4u) > 4096 - (pc & 4095)) return false;
+        if (thumb && std::any_of(words, words + count, [](auto word) { return word > 0xffff; })) return false;
+        const auto tagged_pc = pc | (thumb ? 1u : 0u);
+        for (const auto &item : entries) if (item.asid == asid && item.pc == pc && item.thumb == thumb) return false;
+        if (shared && shared_indices.find(tagged_pc) != shared_indices.end()) return false;
+        indices.emplace((std::uint64_t(asid) << 32) | tagged_pc, entries.size());
+        if (shared) shared_indices.emplace(tagged_pc, entries.size());
+        entries.push_back({asid, pc, function, shared, thumb, std::vector<std::uint32_t>(words, words + count)});
         first_pc = entries.size() == 1 ? pc : std::min(first_pc, pc);
         last_pc = std::max(last_pc, pc);
         return true;
@@ -136,13 +142,13 @@ namespace eka2l1::arm::counted_js {
         if (index == entries.size()) return;
         decoding = cpu; decoding_entry = index; decoded = 0; matches = true; decoded_pointers.clear();
         decoding_mapping = mapping(cpu); decoding_generation = cpu->trans_gen;
-        decoding_asid = cpu->instruction_cache_asid;
+        decoding_asid = cpu->instruction_cache_asid; decoding_thumb = cpu->TFlag;
     }
     void decoded_word(ARMul_State *cpu, std::uint32_t pc, std::uint32_t word, std::size_t ptr) {
         if (decoding != cpu) return;
         const auto &item = entries[decoding_entry];
         matches = matches && decoded < item.words.size()
-            && pc == item.pc + decoded * 4 && word == item.words[decoded];
+            && pc == item.pc + decoded * (item.thumb ? 2u : 4u) && word == item.words[decoded];
         if (decoded < item.words.size()) decoded_pointers.push_back(ptr);
         ++decoded;
     }
@@ -152,11 +158,13 @@ namespace eka2l1::arm::counted_js {
         if (!space) { decoding = nullptr; return; }
         auto &proof = space->stamps[decoding_entry];
         const auto &item = entries[decoding_entry];
+        const auto bytes = item.words.size() * (item.thumb ? 2u : 4u);
         core::code_mapping view;
         const bool mapped = cpu->parent()->resolve_code && cpu->parent()->resolve_code(item.pc, view)
-            && view.bytes && view.size >= item.words.size() * 4 && view.address_space == decoding_asid
-            && reinterpret_cast<std::uintptr_t>(view.bytes) <= 0xffffffffu - item.words.size() * 4;
-        proof = {matches && decoded == item.words.size() && !cpu->TFlag
+            && view.bytes && view.size >= bytes && view.address_space == decoding_asid
+            && reinterpret_cast<std::uintptr_t>(view.bytes) <= 0xffffffffu - bytes;
+        proof = {matches && decoded == item.words.size() && bool(cpu->TFlag) == item.thumb
+            && decoding_thumb == item.thumb
             && cpu->instruction_cache_asid == decoding_asid && (item.shared || decoding_asid == item.asid)
             && cpu->NumInstrsToExecute
             && decoding_generation == cpu->trans_gen && decoding_mapping == mapping(cpu) && mapped,
@@ -169,6 +177,7 @@ namespace eka2l1::arm::counted_js {
         const auto index = find(cpu);
         if (index == entries.size()) return 0;
         const auto &item = entries[index];
+        const auto stride = item.thumb ? 2u : 4u;
         if (cpu->NumInstrsToExecute < prefix || cpu->NumInstrsToExecute - prefix < item.words.size()) return 0;
         auto &owner = cache(cpu);
         owner.pending_resume = false;
@@ -180,7 +189,7 @@ namespace eka2l1::arm::counted_js {
         if (proof.mapping != current_mapping) {
             core::code_mapping view;
             const bool same = cpu->parent()->resolve_code && cpu->parent()->resolve_code(item.pc, view)
-                && view.address_space == cpu->instruction_cache_asid && view.size >= item.words.size() * 4
+                && view.address_space == cpu->instruction_cache_asid && view.size >= item.words.size() * stride
                 && reinterpret_cast<std::uintptr_t>(view.bytes) == proof.host;
             if (!same) { proof.accepted = false; return 0; }
             // Unrelated mappings do not invalidate this existing decoded view.
@@ -198,7 +207,7 @@ namespace eka2l1::arm::counted_js {
         cpu->aot_tlb = tlb && tlb->page_bits == 12
             ? static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(tlb->entries)) : 0;
         cpu->aot_exit = 0;
-        cpu->aot_code_begin = proof.host; cpu->aot_code_end = proof.host + item.words.size() * 4;
+        cpu->aot_code_begin = proof.host; cpu->aot_code_end = proof.host + item.words.size() * stride;
         cpu->Cpsr = (cpu->Cpsr & 0x0fffffdfu) | (cpu->NFlag << 31) | (cpu->ZFlag << 30)
             | (cpu->CFlag << 29) | (cpu->VFlag << 28) | (cpu->TFlag << 5);
         const auto count = invoke(cpu, item.function);
@@ -207,7 +216,7 @@ namespace eka2l1::arm::counted_js {
         if (count > item.words.size() || count > remaining)
             throw std::runtime_error("Counted executor exceeded admitted block");
         if (count && count < item.words.size() && cpu->NumInstrsToExecute) {
-            if (cpu->Reg[15] != item.pc + count * 4 || proof.instructions.size() != item.words.size())
+            if (cpu->Reg[15] != item.pc + count * stride || proof.instructions.size() != item.words.size())
                 throw std::runtime_error("Unexpected counted partial boundary");
             owner.pending_resume = true; owner.resume_ptr = proof.instructions[count];
         }

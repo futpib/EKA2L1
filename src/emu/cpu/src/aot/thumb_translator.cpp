@@ -97,6 +97,8 @@ namespace eka2l1::arm::aot {
         bool direct_memory = false;
         static constexpr unsigned ADDRESS = 7, VALUE = 8, HOST = 9, ENTRY = 10, SPAN_HOST = 11;
         static constexpr unsigned M=12;
+        bool counted = false;
+        unsigned source_count = 0;
         bool span_active = false;
         bool memory_write = false;
         bool direct_memory_used = false;
@@ -205,9 +207,11 @@ namespace eka2l1::arm::aot {
             cache.barrier_at(b.size(), true);
             load_i32(S::NUM_INSTRS_TO_EXECUTE); load_i32(S::NUM_INSTRS_TO_EXECUTE + 4);
             op(op_i32_or); op(op_i32_eqz);
-            load_i32(S::NIRQ); op(op_i32_eqz);
-            load_i32(S::CPSR); i32_const(0x80); op(op_i32_and); op(op_i32_eqz);
-            op(op_i32_and); op(op_i32_or);
+            if (!counted) {
+                load_i32(S::NIRQ); op(op_i32_eqz);
+                load_i32(S::CPSR); i32_const(0x80); op(op_i32_and); op(op_i32_eqz);
+                op(op_i32_and); op(op_i32_or);
+            }
             op(op_if); op(type_void); store_i32_const(S::AOT_EXIT, 1); op(op_end);
             if(memory_experiment::enabled() && !cache.enabled) direct_memory_setup(*this);
         }
@@ -370,7 +374,7 @@ namespace eka2l1::arm::aot {
             if (dispatch_entries && (why == exit_census::control || why == exit_census::source_end))
                 dispatch_entries->push_back(pc | (successor_thumb ? 1u : 0u));
             store_i32_const(S::PC, static_cast<std::int32_t>(pc));
-            i32_const(!source_index || why == exit_census::unsupported ? 0 : 1);
+            i32_const(counted ? source_index : (!source_index || why == exit_census::unsupported ? 0 : 1));
             ret(why);
             bail_count++;
         }
@@ -380,7 +384,7 @@ namespace eka2l1::arm::aot {
         // Leaves the state's PC alone so the interpreter dispatches at the
         // computed target instead of re-running the current instruction.
         void bail_preserve_pc() {
-            i32_const(1);
+            i32_const(counted ? source_count + 1 : 1);
             ret();
             bail_count++;
         }
@@ -978,6 +982,7 @@ namespace eka2l1::arm::aot {
             w.op(op_br); leb(w.b, depth);
         };
         const auto branch = [&](std::uint32_t target, unsigned count, bool checked = false) {
+            if (w.counted) { w.bail(target, count); return; }
             std::uint16_t first = 0;
             const bool room = fusion && count < 128 && fusion->emitted < thumb_fusion_context::instruction_limit
                 && tr.fused_edges < 8 && !fusion->path.count(target) && !(target & 1);
@@ -1174,6 +1179,7 @@ namespace eka2l1::arm::aot {
                 fusion->path.insert(insn_addr);
                 ++fusion->emitted;
             }
+            w.source_count = insn_idx;
             w.census_pc=insn_addr|1;w.census_opcode=insn;
             w.source.pc = insn_addr | 1; w.source.kind = source_kind::guest;
 
@@ -1212,12 +1218,14 @@ namespace eka2l1::arm::aot {
                             w.op(op_if); w.op(type_void);
                             w.bail(insn_addr + 2, insn_idx + 1, exit_census::guard);
                             w.op(op_end);
-                            w.load_i32(S::NIRQ); w.op(op_i32_eqz);
-                            w.load_i32(S::CPSR); w.i32_const(0x80);
-                            w.op(op_i32_and); w.op(op_i32_eqz); w.op(op_i32_and);
-                            w.op(op_if); w.op(type_void);
-                            w.bail(insn_addr + 2, insn_idx + 1, exit_census::interrupt);
-                            w.op(op_end);
+                            if (!w.counted) {
+                                w.load_i32(S::NIRQ); w.op(op_i32_eqz);
+                                w.load_i32(S::CPSR); w.i32_const(0x80);
+                                w.op(op_i32_and); w.op(op_i32_eqz); w.op(op_i32_and);
+                                w.op(op_if); w.op(type_void);
+                                w.bail(insn_addr + 2, insn_idx + 1, exit_census::interrupt);
+                                w.op(op_end);
+                            }
                             auto target = insn_addr + 4 + displacement + ((suffix & 0x7FF) << 1);
                             if (kind == 0xE800) { target &= ~3u; w.store_i32_const(S::TFLAG, 0); }
                             w.store_i32_const(S::LR, (insn_addr + 4) | 1);
@@ -3965,6 +3973,11 @@ namespace eka2l1::arm::aot {
                 std::uint8_t cond = (insn >> 8) & 0xF;
 
                 if (bounded && cond == 15) {
+                    if (w.counted) {
+                        w.bail_unsupported(insn_addr, insn_idx);
+                        decoded_end_offset = static_cast<std::uint32_t>(i);
+                        break;
+                    }
                     w.store_i32_const(S::AOT_EXIT, svc_pending | svc_taken
                         | (((insn_addr + 2) & 4095) ? 0 : svc_page_end) | (insn & 255));
 
@@ -4796,7 +4809,8 @@ namespace eka2l1::arm::aot {
         std::uint32_t start_address,
         const sibling_map *siblings,
         const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers,
-        const code_window *immutable_code, const leaf_resolver *leaves, bool compiled_recovery)
+        const code_window *immutable_code, const leaf_resolver *leaves, bool compiled_recovery,
+        bool counted = false)
     {
         // Bounded blocks exit on branches instead of recursively calling siblings.
         // Keep guest-visible instructions (including veneers) in the execution stream.
@@ -4825,6 +4839,7 @@ namespace eka2l1::arm::aot {
         const std::uint32_t DTMP1 = 9;
 
         emit w{result.body};
+        w.counted = counted;
         w.dispatch_entries = &tr.dispatch_entries;
         w.source.marks = &result.sources;
         w.direct_memory = direct_memory;
@@ -4860,6 +4875,31 @@ namespace eka2l1::arm::aot {
         tr.complete = !w.unsupported;
         tr.bail_count = w.bail_count;
         return tr;
+    }
+
+    translate_result translate_counted_thumb_block(
+        const std::uint8_t *code, std::size_t size, std::uint32_t address) {
+        if (!code || !size || (size & 1) || (address & 1) || size > 256
+            || size > 4096 - (address & 4095)) return {};
+        // Match original ARMv5 Thumb halfword boundaries, including separate
+        // long-call prefix/suffix instructions and a page-ending prefix.
+        for (std::size_t n = 0; n < size; n += 2) {
+            const unsigned op = code[n] | (unsigned(code[n + 1]) << 8);
+            const unsigned half = op & 0xf800;
+            // Keep Thumb-2 hints/control encodings with the original decoder.
+            // This entry implements only the current narrow ARMv5/v6 forms.
+            if ((op & 0xf000) == 0xb000 && !((op & 0xff00) == 0xb000
+                || (op & 0xff00) == 0xb200 || (op & 0xfe00) == 0xb400
+                || (op & 0xff00) == 0xba00 || (op & 0xfe00) == 0xbc00)) return {};
+            const unsigned high_dest = (op & 7) | ((op >> 4) & 8);
+            const bool terminal = (op & 0xf000) == 0xd000 || half == 0xe000
+                || half == 0xf800 || (half == 0xe800 && !(op & 1))
+                || (op & 0xff00) == 0x4700 || (op & 0xff00) == 0xbd00
+                || (((op & 0xff00) == 0x4400 || (op & 0xff00) == 0x4600) && high_dest == 15);
+            if (terminal) { size = n + 2; break; }
+        }
+        return translate_thumb_block_impl(code, size, address, nullptr, nullptr,
+            true, false, true, nullptr, nullptr, false, true);
     }
 
     translate_result translate_thumb_block(
