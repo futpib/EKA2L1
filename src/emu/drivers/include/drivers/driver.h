@@ -23,6 +23,7 @@
 #include <cstdint>
 #include <condition_variable>
 #include <mutex>
+#include <stdexcept>
 
 namespace eka2l1 {
     class graphics_driver;
@@ -110,6 +111,9 @@ namespace eka2l1::drivers {
         }
 
         virtual void wait_for(int *status) {
+#if defined(EKA2L1_COOPERATIVE_JS)
+            if (*status == -100) throw std::runtime_error("Cooperative driver command did not complete synchronously");
+#else
             std::unique_lock<std::mutex> ulock(mut_);
 
             if (*status == 0) {
@@ -117,14 +121,19 @@ namespace eka2l1::drivers {
             }
 
             cond_.wait(ulock, [&]() { return (*status != -100) || aborted(); });
+#endif
         }
 
         void finish(int *status, const int code) {
             if (status) {
+#if defined(EKA2L1_COOPERATIVE_JS)
+                *status = code;
+#else
                 std::unique_lock<std::mutex> ulock(mut_);
 
                 *status = code;
                 cond_.notify_all();
+#endif
             }
         }
     };

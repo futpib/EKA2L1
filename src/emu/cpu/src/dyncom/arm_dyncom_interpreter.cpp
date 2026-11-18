@@ -2610,6 +2610,7 @@ DISPATCH : {
     else
         cpu->Reg[15] &= 0xfffffffc;
 
+#if !defined(EKA2L1_COOPERATIVE_JS)
     // Deferred AOT instantiation: must happen on the worker thread
     {
         if (!aot_modules_instantiated) {
@@ -2617,6 +2618,7 @@ DISPATCH : {
             eka2l1::arm::aot::instantiate_staged_modules();
         }
     }
+#endif
 
 AOT_RESUME:
     if constexpr (Watchdog) if (eka2l1::arm::aot::watchdog::requested()) goto END;
@@ -5777,7 +5779,7 @@ INIT_INST_LENGTH : {
 // instrumented body whenever they are enabled, and keep its original dynamic
 // counting checks. Normal execution carries no diagnostic branch per dispatch.
 unsigned InterpreterMainLoop(ARMul_State *cpu, std::uint32_t &num_instrs) {
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_COOPERATIVE_JS)
     if (cpu->NumInstrsToExecute != 1)
         return InterpreterMainLoopImpl<false, true>(cpu, num_instrs);
 #endif

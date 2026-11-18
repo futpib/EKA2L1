@@ -18,6 +18,9 @@
 
 #include <common/platform.h>
 #include <cstdint>
+#if defined(EKA2L1_COOPERATIVE_JS)
+#include <stdexcept>
+#endif
 
 #if EKA2L1_PLATFORM(WIN32)
 #include <windows.h>
@@ -129,7 +132,9 @@ namespace eka2l1::common {
     }
 
     void set_thread_priority(const thread_priority pri) {
-#if EKA2L1_PLATFORM(DARWIN)
+#if defined(EKA2L1_COOPERATIVE_JS)
+        throw std::runtime_error("Host thread priority is unavailable in the cooperative JavaScript profile");
+#elif EKA2L1_PLATFORM(DARWIN)
         // Darwin schedules by QoS class, and pthread_setschedparam() is not a
         // weaker way of saying the same thing: per <pthread/qos.h>, a call to it
         // "will unset the QOS class" and the thread is then "permanently

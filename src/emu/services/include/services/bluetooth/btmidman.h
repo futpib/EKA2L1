@@ -30,7 +30,8 @@ namespace eka2l1::config {
 namespace eka2l1::epoc::bt {
     enum midman_type {
         MIDMAN_PHYSICAL_BT = 0,
-        MIDMAN_INET_BT = 1
+        MIDMAN_INET_BT = 1,
+        MIDMAN_LOCAL_BT = 2
     };
 
     /**

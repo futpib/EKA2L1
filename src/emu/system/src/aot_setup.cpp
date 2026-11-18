@@ -89,6 +89,10 @@ namespace eka2l1::arm::aot {
 #endif
 
     void initialize(eka2l1::system *sys, const std::string &config_override) {
+#if defined(EKA2L1_COOPERATIVE_JS)
+        compiler_enabled = false;
+        return;
+#endif
         // Native reference captures retain their interpreter baseline.
 #ifndef __EMSCRIPTEN__
         if (common::benchmark::enabled() && !std::getenv("EKA2L1_BENCHMARK_AOT")) return;

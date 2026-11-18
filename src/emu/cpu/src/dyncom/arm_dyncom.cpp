@@ -41,23 +41,35 @@ namespace eka2l1::arm {
     dyncom_core::~dyncom_core() {
     }
 
+#if defined(EKA2L1_COOPERATIVE_JS)
+    dyncom_core::interpreter_cache_info dyncom_core::interpreter_cache_stats() const {
+        return { state_->trans_cache_buf ? std::size_t(TRANS_CACHE_SIZE) : 0, state_->trans_cache_buf_top,
+            state_->instruction_cache.size(), state_->instruction_cache.bucket_count() };
+    }
+#endif
+
     void dyncom_core::run(const std::uint32_t instruction_count) {
 #ifdef __EMSCRIPTEN__
         guest_code_dispatched = false;
 #endif
+#if !defined(EKA2L1_COOPERATIVE_JS)
         aot::prepare_compiled_code(*this);
+#endif
         publish_memory_view();
         ticks_executed_ = 0;
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_COOPERATIVE_JS)
         state_->NumInstrsToExecute = UINT32_MAX;
 #else
         state_->NumInstrsToExecute = instruction_count;
 #endif
 
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_COOPERATIVE_JS)
         guest_code_dispatched = aot::run_compiled_cpu(state_.get());
 #else
         InterpreterMainLoop(state_.get(), ticks_executed_);
+#ifdef __EMSCRIPTEN__
+        guest_code_dispatched = ticks_executed_ != 0;
+#endif
 #endif
     }
 
@@ -69,7 +81,7 @@ namespace eka2l1::arm {
         publish_memory_view();
         ticks_executed_ = 0;
         state_->NumInstrsToExecute = 1;
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_COOPERATIVE_JS)
         aot::run_compiled_step(state_.get());
         guest_code_dispatched = true;
 #else

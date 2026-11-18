@@ -71,6 +71,11 @@ namespace eka2l1::drivers {
 
     class ogl_graphics_driver : public shared_graphics_driver {
         eka2l1::request_queue<command_list> list_queue;
+#if defined(EKA2L1_COOPERATIVE_JS)
+        std::queue<command_list> cooperative_lists_;
+        bool cooperative_dispatching_ = false;
+        void dispatch_cooperative_lists();
+#endif
 
         std::unique_ptr<ogl_shader_program> sprite_program;
         std::unique_ptr<ogl_shader_program> brush_program;

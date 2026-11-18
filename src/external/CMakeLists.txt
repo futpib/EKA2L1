@@ -334,7 +334,7 @@ if (NOT EKA2L1_IOS)
     # src/emu/drivers/.../audiounit_ios). cubeb's bundled cubeb_audiounit.cpp
     # targets macOS CoreAudio HAL and doesn't cleanly compile on the iOS SDK.
     add_subdirectory(cubeb)
-    if(EMSCRIPTEN)
+    if(EMSCRIPTEN AND NOT EKA2L1_COOPERATIVE_JS)
         target_compile_options(speex PRIVATE -msimd128
             "SHELL:-include ${PROJECT_SOURCE_DIR}/src/emu/drivers/include/drivers/audio/speex_wasm_simd.h")
     endif()

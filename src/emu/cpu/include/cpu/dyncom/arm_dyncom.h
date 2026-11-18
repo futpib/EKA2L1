@@ -48,6 +48,16 @@ namespace eka2l1::arm {
             return &mem_cache_;
         }
 
+#if defined(EKA2L1_COOPERATIVE_JS)
+        struct interpreter_cache_info {
+            std::size_t reserved_bytes;
+            std::size_t used_bytes;
+            std::size_t blocks;
+            std::size_t buckets;
+        };
+        interpreter_cache_info interpreter_cache_stats() const;
+#endif
+
         void run(const std::uint32_t instruction_count) override;
         void stop() override;
 

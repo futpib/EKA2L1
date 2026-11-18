@@ -17,7 +17,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#if !defined(EKA2L1_COOPERATIVE_JS)
 #include <services/bluetooth/protocols/btmidman_inet.h>
+#endif
 #include <services/bluetooth/btmidman.h>
 
 namespace eka2l1::epoc::bt {
@@ -27,6 +29,14 @@ namespace eka2l1::epoc::bt {
     }
     
     std::unique_ptr<midman> make_bluetooth_midman(const eka2l1::config::state &conf, const std::uint32_t reserved_stack_type) {
+#if defined(EKA2L1_COOPERATIVE_JS)
+        class local_midman final : public midman {
+        public:
+            midman_type type() const override { return MIDMAN_LOCAL_BT; }
+        };
+        return std::make_unique<local_midman>();
+#else
         return std::make_unique<midman_inet>(conf);
+#endif
     }
 }

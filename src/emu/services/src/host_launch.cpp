@@ -34,6 +34,10 @@ namespace eka2l1::service {
     static const std::u16string BROWSER_APP_HOST_NAME_MAP = u"browser";
 
     bool handle_launch_browser(kernel::process *pr, const epoc::apa::command_line &cmd_line) {
+#if defined(EKA2L1_COOPERATIVE_JS)
+        LOG_WARN(SERVICE_APPLIST, "External browser is unavailable in cooperative JavaScript");
+        return false;
+#else
         kernel_system *kern = pr->get_kernel_object_owner();
         
         if (cmd_line.server_differentiator_ != 0) {
@@ -47,6 +51,7 @@ namespace eka2l1::service {
         }
 
         return true;
+#endif
     }
 
     using handle_host_launch_callback = std::function<bool(kernel::process*, const epoc::apa::command_line &)>;

@@ -17,12 +17,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#if defined(EKA2L1_COOPERATIVE_JS)
+#include <services/bluetooth/protocols/btlink/local.h>
+#else
 #include <services/bluetooth/protocols/btlink/btlink_inet.h>
 #include <services/bluetooth/protocols/l2cap/l2cap_inet.h>
 #include <services/bluetooth/protocols/rfcomm/rfcomm_inet.h>
 #include <services/bluetooth/protocols/sdp/sdp_inet.h>
 #include <services/bluetooth/protocols/overall.h>
 #include <services/internet/protocols/inet.h>
+#endif
 #include <services/socket/server.h>
 
 #include <common/log.h>
@@ -31,7 +35,12 @@ namespace eka2l1::epoc::bt {
     void add_bluetooth_stack_protocols(socket_server *sock, epoc::bt::midman *mm, const bool oldarch) {
         // Local device-name and link-manager queries are needed even when
         // network discovery is disabled, including single-player browser games.
-        std::unique_ptr<epoc::socket::protocol> btlink_pr = std::make_unique<btlink_inet_protocol>(mm, oldarch);
+        std::unique_ptr<epoc::socket::protocol> btlink_pr =
+#if defined(EKA2L1_COOPERATIVE_JS)
+            std::make_unique<btlink_local_protocol>(mm, oldarch);
+#else
+            std::make_unique<btlink_inet_protocol>(mm, oldarch);
+#endif
         if (!sock->add_protocol(btlink_pr)) {
             LOG_ERROR(SERVICE_BLUETOOTH, "Failed to add BTLink protocol");
         }

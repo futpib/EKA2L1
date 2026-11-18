@@ -75,7 +75,7 @@ set(SOURCE_DYNCOM
 
 # Browser production contains only the compiled CPU. The standalone WASM
 # correctness target links the independent interpreter directly as its oracle.
-if (NOT EMSCRIPTEN)
+if (NOT EMSCRIPTEN OR EKA2L1_COOPERATIVE_JS)
     list(APPEND SOURCE_DYNCOM
         src/dyncom/arm_dyncom_dec.cpp
         src/dyncom/arm_dyncom_interpreter.cpp
@@ -178,7 +178,7 @@ if (EKA2L1_BUILD_DYNCOM_DIFFTEST)
     target_link_libraries(dyncom_difftest PRIVATE cpu common dynarmic)
 
 endif()
-if (EMSCRIPTEN)
+if (EMSCRIPTEN AND NOT EKA2L1_COOPERATIVE_JS)
     set_source_files_properties(src/aot/code_compare.cpp PROPERTIES COMPILE_OPTIONS "-msimd128")
 endif()
 

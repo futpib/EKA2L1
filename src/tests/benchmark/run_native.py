@@ -67,6 +67,8 @@ def main():
                    help='Application UID to launch (default: installed Snakes 0x2000730F)')
     p.add_argument('--rom-app', action='store_true',
                    help='Launch ROM-bundled Snakes without installing Snakes.sis')
+    p.add_argument('--dyncom', action='store_true',
+                   help='Use the counted Dyncom interpreter for the native reference')
     p.add_argument('--input', type=Path, default=Path(__file__).with_name('snakes.input'))
     p.add_argument('--frames', type=int, default=1000)
     p.add_argument('--repeat', type=int, default=2)
@@ -106,6 +108,9 @@ def main():
     if code not in (0, 255) or 'Device installed:' not in (a.output / 'install.log').read_text():
         raise RuntimeError('Device install failed; see install.log')
     report = {'shared_audio': env.get('EKA2L1_SHARED_AUDIO') == '1',
+              'cpu_backend': 'dyncom' if a.dyncom else 'default',
+              'clock_policy': 'instruction-counted deterministic benchmark',
+              'runner_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
               'app_uid': f'0x{a.app_uid:08X}', 'rom_app': a.rom_app,
               'git_head': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
               'dirty_worktree': bool(subprocess.check_output(['git', 'status', '--porcelain'], cwd=ROOT)),
@@ -122,7 +127,8 @@ def main():
         env.update(XDG_DATA_HOME=str(directory / 'state/data'), XDG_CONFIG_HOME=str(directory / 'state/config'))
         # N80 firmware also registers a different built-in game named Snakes.
         install = [] if a.rom_app else ['--install', a.assets / 'Snakes.sis']
-        code, elapsed = run([a.binary, *install, '--run', f'0x{a.app_uid:08X}',
+        cpu = ['--dyncom'] if a.dyncom else []
+        code, elapsed = run([a.binary, *cpu, *install, '--run', f'0x{a.app_uid:08X}',
                              '--dump-frames', frames], env, directory / 'run.log', a.timeout)
         if code:
             raise RuntimeError(f'Run {i} exited {code}; see {directory}/run.log')

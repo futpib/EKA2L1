@@ -42,9 +42,15 @@ namespace eka2l1::drivers {
         cmd_list.size_ = 1;
         *cmd_list.base_ = cmd;
 
+#if defined(EKA2L1_COOPERATIVE_JS)
+        drv->submit_command_list(cmd_list);
+        drv->wait_for(&status);
+        if (status == -100) throw std::runtime_error("Cooperative graphics command has no completion");
+#else
         std::unique_lock<std::mutex> ulock(drv->mut_);
         drv->submit_command_list(cmd_list);
         drv->cond_.wait(ulock, [&]() { return status != -100; });
+#endif
 
         return status;
     }

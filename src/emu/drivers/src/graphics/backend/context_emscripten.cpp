@@ -34,7 +34,12 @@ namespace eka2l1::drivers::graphics {
         emscripten_webgl_init_context_attributes(&attrs);
         attrs.majorVersion = 2;
         attrs.minorVersion = 0;
+#if defined(EKA2L1_COOPERATIVE_JS)
+        // Guest display alpha is not browser compositor transparency.
+        attrs.alpha = false;
+#else
         attrs.alpha = true;
+#endif
         attrs.depth = true;
         attrs.stencil = true;
         attrs.antialias = false;

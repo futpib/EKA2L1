@@ -36,6 +36,11 @@ namespace eka2l1 {
             return;
         }
 
+#if defined(EKA2L1_COOPERATIVE_JS)
+        LOG_WARN(SERVICE_INTERNET, "External browser is unavailable in cooperative JavaScript");
+        ctx->complete(epoc::error_not_supported);
+        return;
+#else
         const std::string url = common::ucs2_to_utf8(std::u16string(reinterpret_cast<char16_t*>(open_url_params->substr(16).data()),
             (open_url_params->length() - 16) / 2));
 
@@ -45,6 +50,8 @@ namespace eka2l1 {
 
             return;
         }
+
+#endif
 
         // NOTE: Complete this with error none would trigger the read web browser state opcode. Indicate that the browser has been closed.
     }

@@ -46,12 +46,12 @@
 #include <xxhash.h>
 #include <zlib.h>
 
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_COOPERATIVE_JS)
 #include <emscripten/emscripten.h>
 #endif
 
 namespace eka2l1::arm::aot {
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_COOPERATIVE_JS)
 static_assert(offsetof(ARMul_State, NumInstrsToExecute) == state_offsets::NUM_INSTRS_TO_EXECUTE);
 #endif
 compilation_counters compilation;
@@ -103,7 +103,7 @@ static std::vector<precompile_image> precompile_images;
 static std::atomic<bool> precompile_pending{false};
 static std::string rom_cache_path, rom_cache_build, rom_cache_export_path;
 static std::atomic<int> rom_cache_state{0};
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_COOPERATIVE_JS)
 static void release_retired_functions();
 static void merge_cold_modules();
 static void release_process_code();
@@ -133,7 +133,7 @@ int rom_cache_status() { return rom_cache_state.load(std::memory_order_acquire);
 void queue_precompile_image(std::uint32_t space, std::uint32_t base,
         const std::uint8_t *bytes, std::uint32_t size, std::vector<std::uint32_t> entries,
         std::vector<std::uint32_t> flat_entries) {
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_COOPERATIVE_JS)
     if (!hot_compilation_enabled || !bytes || !size || std::uint64_t(base) + size > 0x100000000ull) return;
     // Start from loader-provided entries. Scanning instruction words as
     // addresses eagerly compiles unrelated ROM/code destinations.
@@ -161,7 +161,11 @@ static void flush_hot_blocks() {
 void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32_t size, bool enabled) {
     hot_rom = host; hot_rom_base = base; hot_rom_size = size;
     global_registry().configure_rom_index(base, size, true);
+#if defined(EKA2L1_COOPERATIVE_JS)
+    hot_compilation_enabled = false;
+#else
     hot_compilation_enabled = enabled;
+#endif
     completed_function_count = 0;
     retired_function_count = 0;
     compilation.translation_us = 0; compilation.emission_us = 0; compilation.installation_us = 0;
@@ -184,7 +188,7 @@ void invalidate_ram_code(std::uint32_t address, std::size_t size) {
 }
 
 void retire_process_code(std::uint32_t address_space) {
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_COOPERATIVE_JS)
     const std::lock_guard<std::mutex> lock(precompile_mutex);
     retired_processes.push_back(address_space);
     process_retirement_pending.store(true, std::memory_order_release);
@@ -301,7 +305,7 @@ std::uint32_t execute_single(ARMul_State *cpu, aot_func function) {
     return function(cpu);
 }
 
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_COOPERATIVE_JS)
 static void discover_successors(core &cpu, const translate_result &tr, bool thumb,
         std::vector<std::uint32_t> &successors, bool include_literals = true) {
     successors.insert(successors.end(), tr.dispatch_entries.begin(), tr.dispatch_entries.end());
@@ -449,7 +453,7 @@ static void compile_at(core &cpu, std::uint32_t key, std::vector<std::uint32_t> 
 #endif
 
 void prepare_compiled_code(core &cpu) {
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_COOPERATIVE_JS)
     if (process_retirement_pending.load(std::memory_order_acquire)) release_process_code();
     // Previous CPU runs have returned every generated frame. Unmap callbacks
     // only queued retirement, so no table slot is reused while it is executing.
@@ -511,7 +515,7 @@ void prepare_compiled_code(core &cpu) {
 }
 
 void observe_hot_pc(ARMul_State *cpu) {
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_COOPERATIVE_JS)
     if (!hot_compilation_enabled) return;
     ++hot_dispatches;
     if (hot_dispatches & 31) return;
@@ -521,7 +525,7 @@ void observe_hot_pc(ARMul_State *cpu) {
 }
 
 aot_func compile_missing(ARMul_State *cpu) {
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_COOPERATIVE_JS)
     flush_hot_blocks();
     trim_compiled_modules();
     const auto root = cpu->Reg[15] | cpu->TFlag;
@@ -554,7 +558,7 @@ aot_func compile_missing(ARMul_State *cpu) {
 }
 
 aot_func compile_single_instruction(ARMul_State *cpu, int decode_thumb) {
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_COOPERATIVE_JS)
     const auto thumb = decode_thumb < 0 ? cpu->TFlag : static_cast<unsigned>(decode_thumb);
     const auto key = cpu->Reg[15] | thumb;
     if (auto *entry = single_cache.find(key, *cpu->parent())) return entry->function;
@@ -579,7 +583,7 @@ aot_func compile_single_instruction(ARMul_State *cpu, int decode_thumb) {
 #endif
 }
 
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_COOPERATIVE_JS)
 
 // Generated arithmetic keeps NZCVT separate from the packed CPSR. Publish them
 // after the emitter's state barrier and before a memory/exception callback reads

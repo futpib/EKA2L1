@@ -828,7 +828,7 @@ namespace eka2l1 {
             }
         }
 
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_COOPERATIVE_JS)
         const bool paced_clock = common::benchmark::paced;
         if (paced_clock) timing_->start_host_clock();
         bool pending_watchdog = false;
@@ -840,7 +840,7 @@ namespace eka2l1 {
                 // Requests raised while pacing or idle do not preempt a CPU
                 // slice that has not started. Otherwise pacing can repeatedly
                 // advance guest time without executing any guest code.
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_COOPERATIVE_JS)
                 pending_watchdog = arm::aot::watchdog::request.exchange(0, std::memory_order_relaxed);
 #endif
                 cpu->run(timing_->deterministic()
@@ -855,14 +855,14 @@ namespace eka2l1 {
 #endif
             }
 
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) || defined(EKA2L1_COOPERATIVE_JS)
             to_run->add_ticks(cpu->get_num_instruction_executed());
 #endif
         }
 
         if (timing_->deterministic()) {
             common::performance::scope timer_scope(common::performance::timers);
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_COOPERATIVE_JS)
             {
                 const bool preempted = arm::aot::watchdog::request.exchange(0, std::memory_order_relaxed);
                 const bool compiled_during_slice = arm::aot::compiled_function_count() != compiled_before;
@@ -901,7 +901,7 @@ namespace eka2l1 {
         if (!kern_->should_terminate()) {
             common::performance::scope scheduler_scope(common::performance::scheduler);
             kern_->reschedule();
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_COOPERATIVE_JS)
             if (paced_clock && !kern_->crr_thread()) {
                 // Keep polling external work at least every millisecond, but
                 // do not add a full polling interval to a nearer timer deadline.

@@ -34,7 +34,12 @@ namespace eka2l1::arm {
     class exclusive_monitor;
 }
 
+#if defined(EKA2L1_COOPERATIVE_JS)
+// Decoded blocks are disposable; the existing page-bounded flush retains 2 MiB of headroom.
+#define TRANS_CACHE_SIZE (16 * 1024 * 1024)
+#else
 #define TRANS_CACHE_SIZE (64 * 1024 * 2000)
+#endif
 
 // Signal levels
 enum { LOW = 0,

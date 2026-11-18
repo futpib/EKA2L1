@@ -27,6 +27,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <sstream>
+#include <stdexcept>
 
 #include <drivers/graphics/backend/ogl/common_ogl.h>
 #include <drivers/graphics/backend/ogl/graphics_ogl.h>
@@ -44,6 +45,7 @@
 #elif EKA2L1_PLATFORM(EMSCRIPTEN)
 #include <emscripten/html5_webgl.h>
 #include <emscripten/emscripten.h>
+#if !defined(EKA2L1_COOPERATIVE_JS)
 #include <pthread.h>
 EM_JS(void, start_graphics_tasks, (int callback, void *driver), {
     const tasks = new MessageChannel();
@@ -58,6 +60,7 @@ EM_JS(void, start_graphics_tasks, (int callback, void *driver), {
     };
     tasks.port2.postMessage(0);
 });
+#endif
 #endif
 
 #define IMGUI_IMPL_OPENGL_LOADER_GLAD
@@ -1929,8 +1932,46 @@ namespace eka2l1::drivers {
 
             return;
         }
+#if defined(EKA2L1_COOPERATIVE_JS)
+        if (cooperative_dispatching_) {
+            for (std::size_t i = 0; i < list.size_; ++i) {
+                if (list.base_[i].status_) {
+                    delete[] list.base_;
+                    throw std::runtime_error("Reentrant synchronous graphics command");
+                }
+            }
+        }
+        if (cooperative_lists_.size() >= 128) {
+            delete[] list.base_;
+            throw std::runtime_error("Cooperative graphics queue capacity");
+        }
+        cooperative_lists_.push(list);
+        dispatch_cooperative_lists();
+#else
         list_queue.push(list);
+#endif
     }
+
+#if defined(EKA2L1_COOPERATIVE_JS)
+    void ogl_graphics_driver::dispatch_cooperative_lists() {
+        if (cooperative_dispatching_) return;
+        cooperative_dispatching_ = true;
+        try {
+            while (!cooperative_lists_.empty() && !should_stop) {
+                const command_list list = cooperative_lists_.front();
+                cooperative_lists_.pop();
+                std::unique_ptr<command[]> storage(list.base_);
+                common::performance::scope dispatch_scope(common::performance::graphics_dispatch);
+                for (std::size_t i = 0; i < list.size_; ++i) dispatch(list.base_[i]);
+            }
+        } catch (...) {
+            cooperative_dispatching_ = false;
+            abort();
+            throw;
+        }
+        cooperative_dispatching_ = false;
+    }
+#endif
 
     void ogl_graphics_driver::display(command &cmd) {
         static int display_count = 0;
@@ -2117,7 +2158,10 @@ namespace eka2l1::drivers {
     }
 
     void ogl_graphics_driver::run() {
-#if EKA2L1_PLATFORM(EMSCRIPTEN)
+#if defined(EKA2L1_COOPERATIVE_JS)
+        // The browser tick owns the current context and drains submissions.
+        dispatch_cooperative_lists();
+#elif EKA2L1_PLATFORM(EMSCRIPTEN)
         // OffscreenCanvas presents only when its owning worker yields to JS.
         const auto process_frame = +[](void *opaque) -> int {
             auto *driver = static_cast<ogl_graphics_driver *>(opaque);
@@ -2162,6 +2206,14 @@ namespace eka2l1::drivers {
     }
 
     void ogl_graphics_driver::abort() {
+#if defined(EKA2L1_COOPERATIVE_JS)
+        while (!cooperative_lists_.empty()) {
+            const command_list list = cooperative_lists_.front();
+            cooperative_lists_.pop();
+            for (std::size_t i = 0; i < list.size_; ++i) finish(list.base_[i].status_, -1);
+            delete[] list.base_;
+        }
+#endif
         list_queue.abort();
         should_stop = true;
 
@@ -2174,7 +2226,12 @@ namespace eka2l1::drivers {
             return;
         }
 
+#if defined(EKA2L1_COOPERATIVE_JS)
+        dispatch_cooperative_lists();
+        if (*status == -100) throw std::runtime_error("Cooperative graphics command did not complete synchronously");
+#else
         driver::wait_for(status);
+#endif
     }
 
     std::string ogl_graphics_driver::get_active_upscale_shader() const {
