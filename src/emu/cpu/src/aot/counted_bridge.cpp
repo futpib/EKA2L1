@@ -8,8 +8,8 @@ static void publish(ARMul_State *cpu) {
 }
 extern "C" {
 EMSCRIPTEN_KEEPALIVE int eka2l1_counted_register(unsigned asid, unsigned pc, const unsigned *words,
-                                               unsigned count, unsigned function) {
-    return eka2l1::arm::counted_js::add(asid, pc, words, count, function);
+                                               unsigned count, unsigned function, unsigned shared) {
+    return eka2l1::arm::counted_js::add(asid, pc, words, count, function, shared != 0);
 }
 #define READ(bits) \
 EMSCRIPTEN_KEEPALIVE unsigned eka2l1_counted_read##bits(ARMul_State *cpu, unsigned address) { \
@@ -37,6 +37,7 @@ EM_JS(int, counted_setup, (), {
             if (!row || !Number.isInteger(row.pc) || row.pc < 0 || row.pc > 0xffffffff
                 || !Number.isInteger(row.asid) || row.asid < 0 || row.asid > 0xffffffff
                 || !Number.isInteger(row.function) || row.function < 0 || row.function >= product.functions.length
+                || (row.shared !== undefined && typeof row.shared !== 'boolean')
                 || row.complete !== true
                 || !Array.isArray(row.words) || !row.words.length || row.words.length > 128
                 || row.words.some(w => !Number.isInteger(w) || w < 0 || w > 0xffffffff))
@@ -45,7 +46,7 @@ EM_JS(int, counted_setup, (), {
             if (!pointer) throw Error('Counted manifest allocation failed');
             try {
                 HEAPU32.set(row.words, pointer >>> 2);
-                if (!Module['_eka2l1_counted_register'](row.asid, row.pc, pointer, row.words.length, row.function))
+                if (!Module['_eka2l1_counted_register'](row.asid, row.pc, pointer, row.words.length, row.function, row.shared === true ? 1 : 0))
                     throw Error('Counted registration rejected');
             } finally { Module['_free'](pointer); }
         }

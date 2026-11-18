@@ -12,6 +12,7 @@
 namespace eka2l1::arm::counted_js {
     struct entry {
         std::uint32_t asid, pc, function;
+        bool shared;
         std::vector<std::uint32_t> words;
     };
     struct stamp {
@@ -22,9 +23,15 @@ namespace eka2l1::arm::counted_js {
         std::uint32_t host = 0;
         std::vector<std::size_t> instructions;
     };
+    struct address_space_cache {
+        std::uint32_t asid;
+        std::vector<stamp> stamps;
+    };
     struct cpu_cache {
         ARMul_State *cpu;
-        std::vector<stamp> stamps;
+        std::vector<std::unique_ptr<address_space_cache>> spaces;
+        address_space_cache *last_space = nullptr;
+        std::uint64_t last_asid = ~std::uint64_t(0);
         bool pending_resume = false;
         std::size_t resume_ptr = 0;
     };
@@ -34,16 +41,18 @@ namespace eka2l1::arm::counted_js {
     static bool tracking = false;
     static std::vector<entry> entries;
     static std::unordered_map<std::uint64_t, std::size_t> indices;
+    static std::unordered_map<std::uint32_t, std::size_t> shared_indices;
     static std::uint64_t last_key = ~std::uint64_t(0);
     static std::size_t last_index = 0;
     static std::vector<std::unique_ptr<cpu_cache>> caches;
     static cpu_cache *last = nullptr;
+    static std::size_t stamp_spaces = 0;
     static ARMul_State *decoding = nullptr;
     static std::size_t decoding_entry = 0, decoded = 0;
     static std::vector<std::size_t> decoded_pointers;
     static bool matches = false;
     static std::uint64_t decoding_mapping = 0;
-    static std::uint32_t decoding_generation = 0;
+    static std::uint32_t decoding_generation = 0, decoding_asid = 0;
     static std::uint32_t first_pc = 0, last_pc = 0;
     static std::uint64_t call_count = 0, instruction_count = 0;
     static std::uint32_t tracked(ARMul_State *cpu, std::uint32_t function) {
@@ -60,31 +69,57 @@ namespace eka2l1::arm::counted_js {
         if (last && last->cpu == cpu) return *last;
         for (auto &item : caches) if (item->cpu == cpu) { last = item.get(); return *last; }
         if (caches.size() == 16) throw std::runtime_error("Counted CPU cache bound exceeded");
-        caches.push_back(std::make_unique<cpu_cache>(cpu_cache{cpu, std::vector<stamp>(entries.size())}));
+        caches.push_back(std::make_unique<cpu_cache>(cpu_cache{cpu}));
         last = caches.back().get();
         return *last;
+    }
+    // Candidate words can be shared; decoded visibility and admission cannot.
+    // Retain each actual ASID's independently authenticated original entry.
+    static address_space_cache *stamps(ARMul_State *cpu) {
+        auto &owner = cache(cpu);
+        const auto asid = cpu->instruction_cache_asid;
+        if (owner.last_asid == asid && (owner.last_space || stamp_spaces == 16)) return owner.last_space;
+        owner.last_asid = asid;
+        for (auto &space : owner.spaces) if (space->asid == asid) {
+            owner.last_space = space.get(); return owner.last_space;
+        }
+        // Bound total stamp vectors by the original sixteen-CPU allocation
+        // budget. New ASIDs fall back without evicting authenticated entries.
+        if (stamp_spaces == 16) { owner.last_space = nullptr; return nullptr; }
+        owner.spaces.push_back(std::make_unique<address_space_cache>(
+            address_space_cache{asid, std::vector<stamp>(entries.size())}));
+        ++stamp_spaces;
+        owner.last_space = owner.spaces.back().get();
+        return owner.last_space;
     }
     static std::size_t find(ARMul_State *cpu) {
         if (cpu->TFlag || cpu->Reg[15] < first_pc || cpu->Reg[15] > last_pc) return entries.size();
         const auto key = cpu->make_instruction_cache_key(cpu->Reg[15]);
         if (key == last_key) return last_index;
         const auto found = indices.find(key);
-        last_key = key; last_index = found == indices.end() ? entries.size() : found->second;
+        last_key = key;
+        if (found != indices.end()) last_index = found->second;
+        else {
+            const auto shared = shared_indices.find(cpu->Reg[15]);
+            last_index = shared == shared_indices.end() ? entries.size() : shared->second;
+        }
         return last_index;
     }
     void reset() {
         enabled = false; invoke = untracked = nullptr; tracking = false; decoding = nullptr; last = nullptr;
-        caches.clear(); entries.clear(); first_pc = last_pc = 0;
-        indices.clear(); last_key = ~std::uint64_t(0); last_index = 0;
+        caches.clear(); stamp_spaces = 0; entries.clear(); first_pc = last_pc = 0;
+        indices.clear(); shared_indices.clear(); last_key = ~std::uint64_t(0); last_index = 0;
         call_count = instruction_count = 0;
     }
     bool add(std::uint32_t asid, std::uint32_t pc, const std::uint32_t *words,
-             std::size_t count, std::uint32_t function) {
+             std::size_t count, std::uint32_t function, bool shared) {
         if (enabled || !words || !count || count > 128 || entries.size() == 4096
             || (pc & 3) || count * 4 > 4096 - (pc & 4095)) return false;
         for (const auto &item : entries) if (item.asid == asid && item.pc == pc) return false;
+        if (shared && shared_indices.find(pc) != shared_indices.end()) return false;
         indices.emplace((std::uint64_t(asid) << 32) | pc, entries.size());
-        entries.push_back({asid, pc, function, std::vector<std::uint32_t>(words, words + count)});
+        if (shared) shared_indices.emplace(pc, entries.size());
+        entries.push_back({asid, pc, function, shared, std::vector<std::uint32_t>(words, words + count)});
         first_pc = entries.size() == 1 ? pc : std::min(first_pc, pc);
         last_pc = std::max(last_pc, pc);
         return true;
@@ -101,6 +136,7 @@ namespace eka2l1::arm::counted_js {
         if (index == entries.size()) return;
         decoding = cpu; decoding_entry = index; decoded = 0; matches = true; decoded_pointers.clear();
         decoding_mapping = mapping(cpu); decoding_generation = cpu->trans_gen;
+        decoding_asid = cpu->instruction_cache_asid;
     }
     void decoded_word(ARMul_State *cpu, std::uint32_t pc, std::uint32_t word, std::size_t ptr) {
         if (decoding != cpu) return;
@@ -112,14 +148,17 @@ namespace eka2l1::arm::counted_js {
     }
     void finish_decode(ARMul_State *cpu, std::size_t ptr) {
         if (decoding != cpu) return;
-        auto &proof = cache(cpu).stamps[decoding_entry];
+        auto *space = stamps(cpu);
+        if (!space) { decoding = nullptr; return; }
+        auto &proof = space->stamps[decoding_entry];
         const auto &item = entries[decoding_entry];
         core::code_mapping view;
         const bool mapped = cpu->parent()->resolve_code && cpu->parent()->resolve_code(item.pc, view)
-            && view.bytes && view.size >= item.words.size() * 4 && view.address_space == item.asid
+            && view.bytes && view.size >= item.words.size() * 4 && view.address_space == decoding_asid
             && reinterpret_cast<std::uintptr_t>(view.bytes) <= 0xffffffffu - item.words.size() * 4;
         proof = {matches && decoded == item.words.size() && !cpu->TFlag
-            && cpu->instruction_cache_asid == item.asid && cpu->NumInstrsToExecute
+            && cpu->instruction_cache_asid == decoding_asid && (item.shared || decoding_asid == item.asid)
+            && cpu->NumInstrsToExecute
             && decoding_generation == cpu->trans_gen && decoding_mapping == mapping(cpu) && mapped,
             cpu->trans_gen, decoding_mapping, ptr,
             mapped ? static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(view.bytes)) : 0, decoded_pointers};
@@ -133,13 +172,15 @@ namespace eka2l1::arm::counted_js {
         if (cpu->NumInstrsToExecute < prefix || cpu->NumInstrsToExecute - prefix < item.words.size()) return 0;
         auto &owner = cache(cpu);
         owner.pending_resume = false;
-        auto &proof = owner.stamps[index];
+        auto *space = stamps(cpu);
+        if (!space) return 0;
+        auto &proof = space->stamps[index];
         if (!proof.accepted || proof.generation != cpu->trans_gen) return 0;
         const auto current_mapping = mapping(cpu);
         if (proof.mapping != current_mapping) {
             core::code_mapping view;
             const bool same = cpu->parent()->resolve_code && cpu->parent()->resolve_code(item.pc, view)
-                && view.address_space == item.asid && view.size >= item.words.size() * 4
+                && view.address_space == cpu->instruction_cache_asid && view.size >= item.words.size() * 4
                 && reinterpret_cast<std::uintptr_t>(view.bytes) == proof.host;
             if (!same) { proof.accepted = false; return 0; }
             // Unrelated mappings do not invalidate this existing decoded view.
@@ -182,6 +223,7 @@ namespace eka2l1::arm::counted_js {
     void forget(ARMul_State *cpu) {
         if (decoding == cpu) decoding = nullptr;
         if (last && last->cpu == cpu) last = nullptr;
+        for (const auto &owner : caches) if (owner->cpu == cpu) stamp_spaces -= owner->spaces.size();
         caches.erase(std::remove_if(caches.begin(), caches.end(),
             [cpu](const auto &item) { return item->cpu == cpu; }), caches.end());
     }
