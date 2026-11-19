@@ -2,6 +2,7 @@
 #include <cpu/dyncom/armstate.h>
 #include <cpu/dyncom/arm_dyncom.h>
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <limits>
 #include <memory>
@@ -46,8 +47,14 @@ namespace eka2l1::arm::counted_js {
     static std::vector<entry> entries;
     static std::unordered_map<std::uint64_t, std::size_t> indices;
     static std::unordered_map<std::uint32_t, std::size_t> shared_indices;
-    static std::uint64_t last_key = ~std::uint64_t(0);
-    static std::size_t last_index = 0;
+    struct lookup_slot {
+        std::uint32_t asid = 0, pc = 0, index = 0;
+        bool valid = false;
+    };
+    static_assert(sizeof(lookup_slot) <= 16);
+    static constexpr std::size_t lookup_sets = 2048;
+    static std::array<std::array<lookup_slot, 2>, lookup_sets> lookup_cache{};
+    static std::array<std::uint8_t, lookup_sets> lookup_replace{};
     static std::vector<std::unique_ptr<cpu_cache>> caches;
     static cpu_cache *last = nullptr;
     static std::size_t stamp_spaces = 0;
@@ -98,21 +105,32 @@ namespace eka2l1::arm::counted_js {
     }
     static std::size_t find(ARMul_State *cpu) {
         if (cpu->Reg[15] < first_pc || cpu->Reg[15] > last_pc) return entries.size();
+        const auto asid = cpu->instruction_cache_asid;
+        const auto pc = cpu->Reg[15] | (cpu->TFlag ? 1u : 0u);
+        const auto set = ((pc >> 1) ^ (pc >> 12) ^ asid) & (lookup_sets - 1);
+        for (const auto &slot : lookup_cache[set])
+            if (slot.valid && slot.asid == asid && slot.pc == pc) return slot.index;
         const auto key = cpu->make_instruction_cache_key(cpu->Reg[15]);
-        if (key == last_key) return last_index;
         const auto found = indices.find(key);
-        last_key = key;
-        if (found != indices.end()) last_index = found->second;
+        std::size_t index;
+        if (found != indices.end()) index = found->second;
         else {
-            const auto shared = shared_indices.find(cpu->Reg[15] | (cpu->TFlag ? 1u : 0u));
-            last_index = shared == shared_indices.end() ? entries.size() : shared->second;
+            const auto shared = shared_indices.find(pc);
+            index = shared == shared_indices.end() ? entries.size() : shared->second;
         }
-        return last_index;
+        // Memoize immutable registry candidates, including misses. Every actual
+        // decoded-entry and mapping/L1 admission check still runs in execute.
+        auto &next = lookup_replace[set];
+        lookup_cache[set][next] = {asid, pc, static_cast<std::uint32_t>(index), true};
+        next ^= 1;
+        return index;
     }
     void reset() {
         enabled = false; invoke = untracked = nullptr; tracking = false; decoding = nullptr; last = nullptr;
         caches.clear(); stamp_spaces = 0; entries.clear(); first_pc = last_pc = 0;
-        indices.clear(); shared_indices.clear(); last_key = ~std::uint64_t(0); last_index = 0;
+        indices.clear(); shared_indices.clear();
+        for (auto &set : lookup_cache) for (auto &slot : set) slot.valid = false;
+        lookup_replace.fill(0);
         call_count = instruction_count = 0;
     }
     bool add(std::uint32_t asid, std::uint32_t pc, const std::uint32_t *words,
