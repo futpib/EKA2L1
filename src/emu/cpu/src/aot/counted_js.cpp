@@ -448,15 +448,12 @@ namespace eka2l1::arm::counted_js {
             std::size_t index, stamp &proof) {
         const auto &item = entries[index];
         const auto stride = item.thumb ? 2u : 4u;
-        auto &owner = cache(cpu);
         const auto remaining = cpu->NumInstrsToExecute - prefix;
         auto *tlb = cpu->mem_cache_;
         cpu->aot_tlb = tlb && tlb->page_bits == 12
             ? static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(tlb->entries)) : 0;
         cpu->aot_exit = 0;
         cpu->aot_code_begin = proof.host; cpu->aot_code_end = proof.host + item.words.size() * stride;
-        cpu->Cpsr = (cpu->Cpsr & 0x0fffffdfu) | (cpu->NFlag << 31) | (cpu->ZFlag << 30)
-            | (cpu->CFlag << 29) | (cpu->VFlag << 28) | (cpu->TFlag << 5);
         const auto count = invoke(cpu, item.function);
         if (!count)
             throw std::runtime_error("Counted executor returned zero after admission");
@@ -465,6 +462,7 @@ namespace eka2l1::arm::counted_js {
         if (count && count < item.words.size() && cpu->NumInstrsToExecute) {
             if (cpu->Reg[15] != item.pc + count * stride || proof.instructions.size() != item.words.size())
                 throw std::runtime_error("Unexpected counted partial boundary");
+            auto &owner = cache(cpu);
             owner.pending_resume = true; owner.resume_ptr = proof.instructions[count];
         }
         cpu->Cpsr = (cpu->Cpsr & 0x0fffffdfu) | (cpu->NFlag << 31) | (cpu->ZFlag << 30)
