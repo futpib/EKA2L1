@@ -545,6 +545,21 @@ namespace eka2l1::arm::counted_js {
         return count | (count == item.words.size() ? 0x100u : 0u);
     }
 #if defined(EKA2L1_COUNTED_DIRECT_JS)
+    direct_js::configuration_layout direct_configuration() {
+        const auto address = [](const auto *value) {
+            return static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(value));
+        };
+        return {address(entries.data()), static_cast<std::uint32_t>(entries.size()), sizeof(entry),
+            offsetof(entry, loop_function), offsetof(entry, region_index), sizeof(stamp),
+            sizeof(ARMul_State), offsetof(ARMul_State, Reg) + 15 * sizeof(std::uint32_t),
+            offsetof(ARMul_State, trans_gen), offsetof(ARMul_State, instruction_cache_asid),
+            offsetof(ARMul_State, mem_cache_), offsetof(ARMul_State, block_l1_cache),
+            sizeof(ARMul_State::block_l1_entry), offsetof(ARMul_State::block_l1_entry, ptr),
+            offsetof(ARMul_State, NumInstrsToExecute), offsetof(ARMul_State, NirqSig),
+            offsetof(ARMul_State, Cpsr), offsetof(ARMul_State, TFlag), offsetof(ARMul_State, aot_tlb),
+            offsetof(ARMul_State, aot_code_begin), offsetof(ARMul_State, aot_code_end),
+            offsetof(ARMul_State, aot_exit), address(direct_js::epoch_address())};
+    }
     static std::uint32_t invoke_direct(ARMul_State *cpu, std::uint32_t prefix,
             std::size_t index, address_space_cache &space) {
         const auto &item = entries[index];
@@ -560,16 +575,10 @@ namespace eka2l1::arm::counted_js {
         cpu->aot_tlb = tlb && tlb->page_bits == 12 ? address(tlb->entries) : 0;
         auto *epoch = direct_js::epoch_address();
         direct_js::invocation_context context{
-            address(space.stamps.data()), sizeof(stamp), static_cast<std::uint32_t>(entries.size()),
+            address(space.stamps.data()), address(cpu->parent()->code_mapping_generation),
             static_cast<std::uint32_t>(index), static_cast<std::uint32_t>(std::min<std::uint64_t>(
-                cpu->NumInstrsToExecute - prefix, direct_js::progress_limit)), prefix,
-            address(&cpu->trans_gen), address(cpu->parent()->code_mapping_generation),
-            address(&cpu->instruction_cache_asid), address(&cpu->mem_cache_), address(cpu->block_l1_cache),
-            sizeof(ARMul_State::block_l1_entry), offsetof(ARMul_State::block_l1_entry, ptr),
-            address(&cpu->NumInstrsToExecute), address(&cpu->NirqSig), address(&cpu->Cpsr), address(&cpu->TFlag),
-            address(&cpu->aot_tlb), address(&cpu->aot_code_begin), address(&cpu->aot_code_end), address(&cpu->aot_exit),
-            address(epoch), *epoch, address(entries.data()), sizeof(entry), offsetof(entry, loop_function),
-            offsetof(entry, region_index), static_cast<std::uint32_t>(index), 0, 0};
+                cpu->NumInstrsToExecute - prefix, direct_js::progress_limit)), prefix, *epoch,
+            static_cast<std::uint32_t>(index), 0, 0};
         const auto budget = context.budget, lifetime = *epoch;
         const auto result = direct_js::invoke(cpu, &context);
         // Zero is permitted only before any function ran. Effects never retry.

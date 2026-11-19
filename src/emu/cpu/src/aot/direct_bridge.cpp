@@ -4,7 +4,8 @@
 #include <cstddef>
 #include <emscripten/emscripten.h>
 
-static_assert(sizeof(eka2l1::arm::direct_js::invocation_context) == 120);
+static_assert(sizeof(eka2l1::arm::direct_js::invocation_context) == 36);
+static_assert(sizeof(eka2l1::arm::direct_js::configuration_layout) == 92);
 
 EM_JS(void, direct_clear, (int clear_error), {
     if (clear_error) Module['__directError'] = null;
@@ -12,7 +13,7 @@ EM_JS(void, direct_clear, (int clear_error), {
     delete Module['__directActiveCPU'];
     delete Module['__directActiveContext'];
 });
-EM_JS(int, direct_setup, (unsigned maximum, unsigned pc_offset), {
+EM_JS(int, direct_setup, (unsigned maximum, const void *layout), {
     try {
         const metadata = Module['__countedDirectEntries'], functions = Module['__countedFunctions'];
         if (!Array.isArray(metadata) || !metadata.length || metadata.length > maximum
@@ -39,36 +40,54 @@ EM_JS(int, direct_setup, (unsigned maximum, unsigned pc_offset), {
         const range = (pointer, length) => Number.isSafeInteger(pointer) && pointer > 0
             && !(pointer & 3) && Number.isSafeInteger(length) && length > 0
             && pointer <= HEAPU8.length - length;
+        if (!range(layout, 92)) throw Error('Invalid direct configuration pointer');
+        if (typeof Module['__directPrepare'] === 'function') Module['__directPrepare'](maximum, layout);
+        const l = layout >>> 2, heap = HEAPU32;
+        const entries = heap[l], entryCount = heap[l+1], entryStride = heap[l+2];
+        const loopOffset = heap[l+3], regionOffset = heap[l+4], stampStride = heap[l+5];
+        const cpuSize = heap[l+6], pcOffset = heap[l+7], generationOffset = heap[l+8];
+        const asidOffset = heap[l+9], tlbPointerOffset = heap[l+10], l1Offset = heap[l+11];
+        const l1Stride = heap[l+12], l1PointerOffset = heap[l+13], quantumOffset = heap[l+14];
+        const irqOffset = heap[l+15], cpsrOffset = heap[l+16], tflagOffset = heap[l+17];
+        const aotTlbOffset = heap[l+18], codeBeginOffset = heap[l+19], codeEndOffset = heap[l+20];
+        const aotExitOffset = heap[l+21], epochPointer = heap[l+22];
+        const field = (offset, size = 4) => !(offset & 3) && offset <= cpuSize-size;
+        if (entryCount !== metadata.length || stampStride < 24 || (stampStride & 3)
+                || entryStride < 4 || (entryStride & 3) || !cpuSize || (cpuSize & 3) || cpuSize > HEAPU8.length
+                || l1Stride < 12 || (l1Stride & 3) || (l1PointerOffset & 3) || l1PointerOffset+4 > l1Stride
+                || (loopOffset & 3) || loopOffset+4 > entryStride
+                || (regionOffset & 3) || regionOffset+4 > entryStride
+                || !range(entries, entryCount*entryStride) || !range(epochPointer, 4)
+                || !field(pcOffset) || !field(generationOffset) || !field(asidOffset)
+                || !field(tlbPointerOffset) || !field(l1Offset, 2048*l1Stride)
+                || !field(quantumOffset, 8) || !field(irqOffset) || !field(cpsrOffset)
+                || !field(tflagOffset) || !field(aotTlbOffset) || !field(codeBeginOffset)
+                || !field(codeEndOffset) || !field(aotExitOffset))
+            throw Error('Invalid direct configuration layout');
         Module['__directExecute'] = (cpu, context) => {
             const heap = HEAPU32, bytes = HEAPU8;
-            if (!range(context, 120) || !range(cpu + pc_offset, 4)) throw Error('Invalid direct invocation pointers');
+            if (!Number.isInteger(context) || context <= 0 || (context & 3) || context > bytes.length-36
+                    || !Number.isInteger(cpu) || cpu <= 0 || (cpu & 3) || cpu > bytes.length-cpuSize)
+                throw Error('Invalid direct invocation pointers');
             const c = context >>> 2;
-            const stamps = heap[c], stampStride = heap[c+1], entryCount = heap[c+2], start = heap[c+3];
-            const budget = heap[c+4], prefix = heap[c+5], generation = heap[c+6], mapping = heap[c+7];
-            const asid = heap[c+8], tlbPointer = heap[c+9], l1 = heap[c+10], l1Stride = heap[c+11], l1PointerOffset = heap[c+12];
-            const quantum = heap[c+13], irq = heap[c+14], cpsr = heap[c+15], tflag = heap[c+16];
-            const aotTlb = heap[c+17], codeBegin = heap[c+18], codeEnd = heap[c+19], aotExit = heap[c+20];
-            const epochPointer = heap[c+21], epoch = heap[c+22], entries = heap[c+23], entryStride = heap[c+24];
-            const loopOffset = heap[c+25], regionOffset = heap[c+26];
-            if (entryCount !== metadata.length || start >= entryCount || !budget || budget > 65535
-                    || stampStride < 24 || (stampStride & 3) || entryStride < 4 || (entryStride & 3)
-                    || l1Stride < 12 || (l1Stride & 3) || (l1PointerOffset & 3) || l1PointerOffset + 4 > l1Stride
-                    || (loopOffset & 3) || loopOffset + 4 > entryStride
-                    || (regionOffset & 3) || regionOffset + 4 > entryStride
-                    || !range(stamps, entryCount * stampStride) || !range(entries, entryCount * entryStride)
-                    || !range(l1, 2048 * l1Stride) || !range(generation, 4) || (mapping && !range(mapping, 8))
-                    || !range(asid, 4) || !range(tlbPointer, 4) || !range(quantum, 8) || !range(irq, 4)
-                    || !range(cpsr, 4) || !range(tflag, 4) || !range(aotTlb, 4) || !range(codeBegin, 4)
-                    || !range(codeEnd, 4) || !range(aotExit, 4) || !range(epochPointer, 4))
+            const stamps = heap[c], mapping = heap[c+1], start = heap[c+2];
+            const budget = heap[c+3], prefix = heap[c+4], epoch = heap[c+5];
+            if (start >= entryCount || !budget || budget > 65535
+                    || !stamps || (stamps & 3) || stamps > bytes.length-entryCount*stampStride
+                    || (mapping && ((mapping & 3) || mapping > bytes.length-8)))
                 throw Error('Invalid direct invocation context');
+            const generation = cpu+generationOffset, asid = cpu+asidOffset, tlbPointer = cpu+tlbPointerOffset;
+            const l1 = cpu+l1Offset, quantum = cpu+quantumOffset, irq = cpu+irqOffset;
+            const cpsr = cpu+cpsrOffset, tflag = cpu+tflagOffset, aotTlb = cpu+aotTlbOffset;
+            const codeBegin = cpu+codeBeginOffset, codeEnd = cpu+codeEndOffset, aotExit = cpu+aotExitOffset;
             if (heap[epochPointer >>> 2] !== epoch) throw Error('Stale direct lifetime');
             const gen = heap[generation >>> 2], mapLow = mapping ? heap[mapping >>> 2] : 0;
             const mapHigh = mapping ? heap[(mapping >>> 2)+1] : 0, actualASID = heap[asid >>> 2];
             const owner = heap[tlbPointer >>> 2], quantumValue = heap[quantum >>> 2], mode = heap[tflag >>> 2];
-            const controls = heap[cpsr >>> 2] & 0x3df, tlb = heap[aotTlb >>> 2], pcWord = (cpu + pc_offset) >>> 2;
+            const controls = heap[cpsr >>> 2] & 0x3df, tlb = heap[aotTlb >>> 2], pcWord = (cpu + pcOffset) >>> 2;
             if (mode > 1 || heap[(quantum >>> 2)+1] || prefix > quantumValue || budget > quantumValue-prefix)
                 throw Error('Invalid direct quantum');
-            let index = start, total = 0, blocks = 0, complete = false;
+            let index = start, lastIndex = start, lastPrefix = 0, total = 0, blocks = 0, complete = false;
             while (blocks < 4096) {
                 const row = metadata[index], stride = row.thumb ? 2 : 4;
                 if (row.excluded || (row.thumb ? 1 : 0) !== mode || row.words > budget-total)
@@ -98,7 +117,7 @@ EM_JS(int, direct_setup, (unsigned maximum, unsigned pc_offset), {
                         || heap[tflag >>> 2] !== (row.thumb ? 1 : 0)))
                     throw Error('Invalid direct partial PC');
                 total += count; ++blocks; complete = count === row.words;
-                heap[c+27] = index; heap[c+28] = count; heap[c+29] = blocks;
+                lastIndex = index; lastPrefix = count;
                 if (!complete || row.dispatch || total === budget || blocks === 4096 || heap[aotExit >>> 2]
                         || heap[generation >>> 2] !== gen || heap[asid >>> 2] !== actualASID
                         || heap[tlbPointer >>> 2] !== owner || heap[quantum >>> 2] !== quantumValue
@@ -111,6 +130,7 @@ EM_JS(int, direct_setup, (unsigned maximum, unsigned pc_offset), {
                 index = found === undefined ? shared.get(key) : found;
                 if (index === undefined) break;
             }
+            if (total) { heap[c+6] = lastIndex; heap[c+7] = lastPrefix; heap[c+8] = blocks; }
             return total | (complete ? 65536 : 0);
         };
         Module['__directError'] = null;
@@ -126,7 +146,7 @@ EM_JS(unsigned, direct_call, (ARMul_State *cpu, void *context), {
         const result = Module['__directExecute'](cpu, context);
         if (!Number.isInteger(result) || result < 0 || result > 0x1ffff
                 || (result === 0 ? (!Number.isInteger(context) || context <= 0 || (context & 3)
-                    || context > HEAPU8.length-120 || HEAPU32[(context >>> 2)+28] || HEAPU32[(context >>> 2)+29])
+                    || context > HEAPU8.length-36 || HEAPU32[(context >>> 2)+7] || HEAPU32[(context >>> 2)+8])
                     : !(result & 65535)))
             throw Error('Invalid direct progress');
         return result >>> 0;
@@ -141,7 +161,8 @@ EMSCRIPTEN_KEEPALIVE int eka2l1_direct_configure(int diagnostics) {
     using namespace eka2l1::arm;
     direct_js::reset(); direct_clear(1);
     if ((diagnostics != 0 && diagnostics != 1) || !counted_js::enabled) return -1;
-    const int result = direct_setup(counted_js::entry_limit, offsetof(ARMul_State, Reg) + 15 * sizeof(std::uint32_t));
+    const auto layout = counted_js::direct_configuration();
+    const int result = direct_setup(counted_js::entry_limit, &layout);
     if (result > 0) direct_js::install(invoke_direct, diagnostics != 0);
     else { direct_js::reset(); direct_clear(0); }
     return result;

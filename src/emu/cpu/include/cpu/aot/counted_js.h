@@ -3,6 +3,7 @@
 #include <cstdint>
 
 struct ARMul_State;
+namespace eka2l1::arm::direct_js { struct configuration_layout; }
 namespace eka2l1::arm::region_js { struct member; }
 namespace eka2l1::arm::loop_js { struct packed_pixel_pattern; }
 namespace eka2l1::arm::counted_js {
@@ -10,6 +11,9 @@ namespace eka2l1::arm::counted_js {
     using executor = std::uint32_t (*)(ARMul_State *, std::uint32_t);
     extern bool enabled;
     void reset();
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+    direct_js::configuration_layout direct_configuration();
+#endif
     bool add(std::uint32_t asid, std::uint32_t pc, const std::uint32_t *words,
              std::size_t count, std::uint32_t function, bool shared = false, bool thumb = false);
     void install(executor execute, bool diagnostics = false);
