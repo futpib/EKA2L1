@@ -19,7 +19,7 @@ else()
     set(EXCLUSIVE_QT_COMPONENTS OpenGL)
 endif()
 
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets LinguistTools Svg Network GuiPrivate ${EXCLUSIVE_QT_COMPONENTS} REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets LinguistTools Svg Network ${EXCLUSIVE_QT_COMPONENTS} REQUIRED)
 
 # displaywidget.cpp includes <qpa/qplatformnativeinterface.h> on X11/Wayland.
 # Some distributions expose those private headers only through Qt6::GuiPrivate,
@@ -205,7 +205,6 @@ target_link_libraries(eka2l1_qt PRIVATE
     Qt${QT_VERSION_MAJOR}::Svg
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Network
-    Qt${QT_VERSION_MAJOR}::GuiPrivate
     ${EXCLUSIVE_QT_LIBRARIES}
     common
     config
