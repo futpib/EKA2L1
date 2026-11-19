@@ -165,6 +165,13 @@ if(EKA2L1_COOPERATIVE_JS AND EKA2L1_COUNTED_JS)
         src/aot/counted_bridge.cpp)
 endif()
 
+if(EKA2L1_COOPERATIVE_JS AND EKA2L1_WORD_INCREMENT_JS)
+    target_compile_definitions(cpu PRIVATE EKA2L1_WORD_INCREMENT_JS=1)
+    target_sources(cpu PRIVATE
+        include/cpu/aot/word_increment.h
+        src/aot/word_increment.cpp)
+endif()
+
 target_include_directories(cpu PUBLIC include)
 target_include_directories(cpu PRIVATE ${capstone_INCLUDE_DIRS})
 

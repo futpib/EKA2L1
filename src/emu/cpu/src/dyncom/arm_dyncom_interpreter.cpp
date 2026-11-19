@@ -30,6 +30,9 @@
 #include <cstdlib>
 #include <cstring>
 
+#if defined(EKA2L1_COOPERATIVE_JS) && defined(EKA2L1_WORD_INCREMENT_JS)
+#include <cpu/aot/word_increment.h>
+#endif
 #include <cpu/arm_interface.h>
 #include <cpu/aot/aot_registry.h>
 #include <cpu/aot/aot_runtime.h>
@@ -1727,7 +1730,7 @@ static unsigned int InterpreterTranslateInstruction(ARMul_State *cpu, const std:
     if (eka2l1::common::performance::counting()) ++eka2l1::common::performance::decoded_instructions;
     std::uint32_t inst_size = 4;
     std::uint32_t inst = cpu->ReadCode(phys_addr & 0xFFFFFFFC);
-#if defined(EKA2L1_COOPERATIVE_JS) && defined(EKA2L1_COUNTED_JS)
+#if defined(EKA2L1_COOPERATIVE_JS) && (defined(EKA2L1_COUNTED_JS) || defined(EKA2L1_WORD_INCREMENT_JS))
     const std::uint32_t original_word = cpu->TFlag ? (inst >> ((phys_addr & 2) * 8)) & 0xffffu : inst;
 #endif
 
@@ -1761,6 +1764,10 @@ static unsigned int InterpreterTranslateInstruction(ARMul_State *cpu, const std:
         return 0;
     }
     inst_base = arm_instruction_trans[idx](cpu, inst, idx);
+#if defined(EKA2L1_COOPERATIVE_JS) && defined(EKA2L1_WORD_INCREMENT_JS)
+    if (inst_base && eka2l1::arm::word_increment::enabled)
+        eka2l1::arm::word_increment::decoded_word(cpu, phys_addr, original_word);
+#endif
 #if defined(EKA2L1_COOPERATIVE_JS) && defined(EKA2L1_COUNTED_JS)
     if (inst_base && eka2l1::arm::counted_js::enabled)
         eka2l1::arm::counted_js::decoded_word(cpu, phys_addr, original_word,
@@ -1783,6 +1790,9 @@ static int InterpreterTranslateBlock(ARMul_State *cpu, std::size_t &bb_start, st
     TransExtData ret = TransExtData::NON_BRANCH;
     int size = 0; // instruction size of basic block
     bb_start = cpu->trans_cache_buf_top;
+#if defined(EKA2L1_COOPERATIVE_JS) && defined(EKA2L1_WORD_INCREMENT_JS)
+    if (eka2l1::arm::word_increment::enabled) eka2l1::arm::word_increment::begin_decode(cpu);
+#endif
 #if defined(EKA2L1_COOPERATIVE_JS) && defined(EKA2L1_COUNTED_JS)
     if (eka2l1::arm::counted_js::enabled)
         eka2l1::arm::counted_js::begin_decode(cpu);
@@ -1844,6 +1854,9 @@ static int InterpreterTranslateBlock(ARMul_State *cpu, std::size_t &bb_start, st
     };
 
     cpu->instruction_cache[cpu->make_instruction_cache_key(pc_start)] = bb_start;
+#if defined(EKA2L1_COOPERATIVE_JS) && defined(EKA2L1_WORD_INCREMENT_JS)
+    if (eka2l1::arm::word_increment::enabled) eka2l1::arm::word_increment::finish_decode(cpu, bb_start);
+#endif
 #if defined(EKA2L1_COOPERATIVE_JS) && defined(EKA2L1_COUNTED_JS)
     if (eka2l1::arm::counted_js::enabled)
         eka2l1::arm::counted_js::finish_decode(cpu, bb_start);
@@ -2635,6 +2648,16 @@ DISPATCH : {
     else
         cpu->Reg[15] &= 0xfffffffc;
 
+#if defined(EKA2L1_COOPERATIVE_JS) && defined(EKA2L1_WORD_INCREMENT_JS)
+    if constexpr (!Watchdog && !Instrumented) if (eka2l1::arm::word_increment::enabled) {
+        const auto count = eka2l1::arm::word_increment::execute(cpu, num_instrs);
+        if (count) {
+            num_instrs += count; link = nullptr;
+            // Retain original target prefetch even after an exhausted quantum.
+            goto DISPATCH;
+        }
+    }
+#endif
 #if defined(EKA2L1_COOPERATIVE_JS) && defined(EKA2L1_COUNTED_JS)
     if constexpr (!Watchdog && !Instrumented) if (eka2l1::arm::counted_js::enabled) {
         const auto progress = eka2l1::arm::counted_js::execute(cpu, num_instrs);

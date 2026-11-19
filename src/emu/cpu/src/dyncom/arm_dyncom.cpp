@@ -30,6 +30,10 @@
 #endif
 
 
+#if defined(EKA2L1_COOPERATIVE_JS) && defined(EKA2L1_WORD_INCREMENT_JS)
+#include <cpu/aot/word_increment.h>
+#endif
+
 namespace eka2l1::arm {
     dyncom_core::dyncom_core(arm::exclusive_monitor *monitor, const std::size_t page_bits)
         : monitor_(monitor)
@@ -43,6 +47,9 @@ namespace eka2l1::arm {
     }
 
     dyncom_core::~dyncom_core() {
+#if defined(EKA2L1_COOPERATIVE_JS) && defined(EKA2L1_WORD_INCREMENT_JS)
+        word_increment::forget(state_.get());
+#endif
 #if defined(EKA2L1_COOPERATIVE_JS) && defined(EKA2L1_COUNTED_JS)
         counted_js::forget(state_.get());
 #endif
