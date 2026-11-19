@@ -98,4 +98,13 @@ EMSCRIPTEN_KEEPALIVE int eka2l1_loop_configure(int diagnostics) {
 EMSCRIPTEN_KEEPALIVE void eka2l1_loop_disable() { eka2l1::arm::loop_js::reset(); }
 EMSCRIPTEN_KEEPALIVE double eka2l1_loop_calls() { return eka2l1::arm::loop_js::calls(); }
 EMSCRIPTEN_KEEPALIVE double eka2l1_loop_instructions() { return eka2l1::arm::loop_js::instructions(); }
+#if defined(EKA2L1_PACKED_PIXEL_JS)
+EMSCRIPTEN_KEEPALIVE int eka2l1_loop_packed_pixel_configure(int enabled) {
+    if (enabled != 0 && enabled != 1) return -1;
+    return eka2l1::arm::loop_js::configure_packed_pixel(enabled != 0);
+}
+EMSCRIPTEN_KEEPALIVE double eka2l1_loop_packed_pixel_calls() { return eka2l1::arm::loop_js::packed_pixel_calls(); }
+EMSCRIPTEN_KEEPALIVE double eka2l1_loop_packed_pixel_instructions() { return eka2l1::arm::loop_js::packed_pixel_iterations() * 18; }
+EMSCRIPTEN_KEEPALIVE double eka2l1_loop_packed_pixel_declines() { return eka2l1::arm::loop_js::packed_pixel_declines(); }
+#endif
 }

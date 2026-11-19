@@ -1,5 +1,8 @@
 #include <cpu/aot/counted_js.h>
 #include <cpu/aot/loop_pattern.h>
+#if defined(EKA2L1_PACKED_PIXEL_JS)
+#include <cpu/aot/packed_pixel_pattern.h>
+#endif
 #include <cpu/aot/region_pattern.h>
 #if defined(EKA2L1_COUNTED_REGION_JS)
 #include <cpu/aot/region_js.h>
@@ -25,6 +28,9 @@ namespace eka2l1::arm::counted_js {
         bool shared, thumb;
         std::vector<std::uint32_t> words;
         std::uint32_t loop_function = ~std::uint32_t(0);
+#if defined(EKA2L1_PACKED_PIXEL_JS)
+        std::uint32_t packed_pixel = ~std::uint32_t(0);
+#endif
         std::uint32_t region_index = ~std::uint32_t(0), region_member = 0;
     };
     struct stamp {
@@ -72,6 +78,9 @@ namespace eka2l1::arm::counted_js {
     static executor untracked = nullptr;
     static bool tracking = false;
     static std::vector<entry> entries;
+#if defined(EKA2L1_PACKED_PIXEL_JS)
+    static std::vector<loop_js::packed_pixel_pattern> packed_pixels;
+#endif
 #if defined(EKA2L1_COUNTED_REGION_JS)
     struct region_record {
         std::uint32_t function, count;
@@ -171,6 +180,9 @@ namespace eka2l1::arm::counted_js {
 #endif
         enabled = false; invoke = untracked = nullptr; tracking = false; decoding = nullptr; last = nullptr;
         caches.clear(); stamp_spaces = 0; entries.clear(); first_pc = last_pc = 0;
+#if defined(EKA2L1_PACKED_PIXEL_JS)
+        packed_pixels.clear();
+#endif
         indices.clear(); shared_indices.clear();
 #if defined(EKA2L1_COUNTED_REGION_JS)
         regions.clear();
@@ -419,12 +431,29 @@ namespace eka2l1::arm::counted_js {
             if (item.loop_function != ~std::uint32_t(0) || item.region_index != ~std::uint32_t(0)) return false;
             // The high bit distinguishes the explicitly versioned progress ABI.
             item.loop_function = function | 0x80000000u;
+#if defined(EKA2L1_PACKED_PIXEL_JS)
+            loop_js::packed_pixel_pattern pattern;
+            if (loop_js::recognize_packed_pixel(words, count, pattern)) {
+                pattern.table = loop_js::prepare_packed_pixel(pattern);
+                if (pattern.table != 255) {
+                    item.packed_pixel = packed_pixels.size(); packed_pixels.push_back(pattern);
+                }
+            }
+#endif
             return true;
         }
         return false;
     }
     void clear_loops() {
-        for (auto &item : entries) item.loop_function = ~std::uint32_t(0);
+        for (auto &item : entries) {
+            item.loop_function = ~std::uint32_t(0);
+#if defined(EKA2L1_PACKED_PIXEL_JS)
+            item.packed_pixel = ~std::uint32_t(0);
+#endif
+        }
+#if defined(EKA2L1_PACKED_PIXEL_JS)
+        packed_pixels.clear();
+#endif
     }
     bool admit_loop(ARMul_State *cpu, std::uint32_t prefix, loop_admission &result) {
         if (!enabled) return false;
@@ -436,6 +465,9 @@ namespace eka2l1::arm::counted_js {
         result = {item.pc, static_cast<std::uint32_t>(item.words.size()),
             item.loop_function & 0x7fffffffu, proof->host,
             bool(item.loop_function & 0x80000000u), proof->instructions.data()};
+#if defined(EKA2L1_PACKED_PIXEL_JS)
+        if (item.packed_pixel < packed_pixels.size()) result.packed_pixel = &packed_pixels[item.packed_pixel];
+#endif
         return true;
     }
     void resume_loop(ARMul_State *cpu, const loop_admission &proof, std::uint32_t remainder) {
@@ -486,9 +518,12 @@ namespace eka2l1::arm::counted_js {
         if (!admit(cpu, prefix, index, proof)) return 0;
         const auto &item = entries[index];
         if (loop_js::enabled && item.loop_function != ~std::uint32_t(0)) {
-            const loop_admission admitted{item.pc, static_cast<std::uint32_t>(item.words.size()),
+            loop_admission admitted{item.pc, static_cast<std::uint32_t>(item.words.size()),
                 item.loop_function & 0x7fffffffu, proof->host,
                 bool(item.loop_function & 0x80000000u), proof->instructions.data()};
+#if defined(EKA2L1_PACKED_PIXEL_JS)
+            if (item.packed_pixel < packed_pixels.size()) admitted.packed_pixel = &packed_pixels[item.packed_pixel];
+#endif
             return loop_js::execute_admitted(cpu, prefix, admitted);
         }
 #if defined(EKA2L1_COUNTED_REGION_JS)

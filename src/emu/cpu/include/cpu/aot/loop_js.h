@@ -11,6 +11,15 @@ namespace eka2l1::arm::loop_js {
     using executor = std::uint32_t (*)(ARMul_State *, std::uint32_t function,
                                       const invocation_context *context);
     extern bool enabled;
+#if defined(EKA2L1_PACKED_PIXEL_JS)
+    struct packed_pixel_pattern;
+    extern bool packed_pixel_enabled;
+    int configure_packed_pixel(bool enabled);
+    std::uint8_t prepare_packed_pixel(const packed_pixel_pattern &pattern);
+    std::uint64_t packed_pixel_calls();
+    std::uint64_t packed_pixel_iterations();
+    std::uint64_t packed_pixel_declines();
+#endif
     void reset();
     void install(executor execute, bool diagnostics = false);
     // Exact cumulative original count, at an original complete block boundary.

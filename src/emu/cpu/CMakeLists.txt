@@ -174,6 +174,11 @@ if(EKA2L1_COOPERATIVE_JS AND EKA2L1_COUNTED_LOOP_JS)
         src/aot/loop_bridge.cpp)
 endif()
 
+if(EKA2L1_COOPERATIVE_JS AND EKA2L1_PACKED_PIXEL_JS)
+    target_compile_definitions(cpu PRIVATE EKA2L1_PACKED_PIXEL_JS=1)
+    target_sources(cpu PRIVATE include/cpu/aot/packed_pixel_pattern.h)
+endif()
+
 if(EKA2L1_COOPERATIVE_JS AND EKA2L1_COUNTED_REGION_JS)
     target_compile_definitions(cpu PRIVATE EKA2L1_COUNTED_REGION_JS=1)
     target_sources(cpu PRIVATE

@@ -20,6 +20,9 @@ extern "C" int eka2l1_counted_configure(int diagnostics);
 #if defined(EKA2L1_COUNTED_LOOP_JS)
 #include <cpu/aot/loop_js.h>
 extern "C" int eka2l1_loop_configure(int diagnostics);
+#if defined(EKA2L1_PACKED_PIXEL_JS)
+extern "C" int eka2l1_loop_packed_pixel_configure(int enabled);
+#endif
 #endif
 #if defined(EKA2L1_COUNTED_REGION_JS)
 #include <cpu/aot/region_js.h>
@@ -289,6 +292,36 @@ EMSCRIPTEN_KEEPALIVE const char *eka2l1_js_loop_status() {
     out << '}'; state->report = out.str(); return state->report.c_str();
 #else
     return "{\"available\":false,\"enabled\":false,\"diagnostics\":false,\"calls\":null,\"instructions\":null}";
+#endif
+}
+
+EMSCRIPTEN_KEEPALIVE int eka2l1_js_packed_pixel(int enabled) {
+    return checked([&]() {
+        if (state->running || (enabled != 0 && enabled != 1)) return -1;
+#if defined(EKA2L1_PACKED_PIXEL_JS)
+        return eka2l1_loop_packed_pixel_configure(enabled);
+#else
+        return -1;
+#endif
+    });
+}
+EMSCRIPTEN_KEEPALIVE const char *eka2l1_js_packed_pixel_status() {
+    if (!state || state->busy) return "{}";
+#if defined(EKA2L1_PACKED_PIXEL_JS)
+    const bool detailed = state->loop_diagnostics;
+    std::ostringstream out;
+    out << "{\"available\":true,\"enabled\":" << (arm::loop_js::packed_pixel_enabled ? "true" : "false")
+        << ",\"diagnostics\":" << (detailed ? "true" : "false") << ",\"calls\":";
+    if (detailed) out << arm::loop_js::packed_pixel_calls(); else out << "null";
+    out << ",\"iterations\":";
+    if (detailed) out << arm::loop_js::packed_pixel_iterations(); else out << "null";
+    out << ",\"instructions\":";
+    if (detailed) out << arm::loop_js::packed_pixel_iterations() * 18; else out << "null";
+    out << ",\"declines\":";
+    if (detailed) out << arm::loop_js::packed_pixel_declines(); else out << "null";
+    out << '}'; state->report = out.str(); return state->report.c_str();
+#else
+    return "{\"available\":false,\"enabled\":false,\"diagnostics\":false,\"calls\":null,\"iterations\":null,\"instructions\":null,\"declines\":null}";
 #endif
 }
 
