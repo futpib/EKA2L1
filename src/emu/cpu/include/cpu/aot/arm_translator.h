@@ -30,6 +30,14 @@ namespace eka2l1::arm::aot {
     // One original ARM basic block, returning exact executed-prefix counts.
     // The caller admits only a whole-block budget; short budgets stay interpreted.
     // SVCs and unsupported instructions return before their original handler.
+    // Distinct pure-register self-loop progress ABI: exact cumulative count.
+    // Module must import env.loop_budget(state_ptr)->remaining once per call.
+    translate_result translate_counted_arm_memory_loop(
+        const std::uint8_t *code, std::size_t size, std::uint32_t address);
+
+    translate_result translate_counted_arm_loop(
+        const std::uint8_t *code, std::size_t size, std::uint32_t address);
+
     translate_result translate_counted_arm_block(
         const std::uint8_t *code, std::size_t code_size, std::uint32_t start_address);
 

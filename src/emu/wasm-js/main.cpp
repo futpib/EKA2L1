@@ -17,6 +17,10 @@
 #include <cpu/aot/counted_js.h>
 extern "C" int eka2l1_counted_configure(int diagnostics);
 #endif
+#if defined(EKA2L1_COUNTED_LOOP_JS)
+#include <cpu/aot/loop_js.h>
+extern "C" int eka2l1_loop_configure(int diagnostics);
+#endif
 #if defined(EKA2L1_WORD_INCREMENT_JS)
 #include <cpu/aot/word_increment.h>
 #endif
@@ -73,6 +77,9 @@ namespace {
         std::vector<cooperative_diagnostics::mapped_code_capture> mapped_code;
         int width = 0, height = 0;
         bool running = false, busy = false, capture = false;
+#if defined(EKA2L1_COUNTED_LOOP_JS)
+        bool loop_diagnostics = false;
+#endif
 #if defined(EKA2L1_WORD_INCREMENT_JS)
         bool word_increment_diagnostics = false;
 #endif
@@ -215,6 +222,10 @@ EMSCRIPTEN_KEEPALIVE int eka2l1_js_counted(int diagnostics) {
     return checked([&]() {
         if (state->running || (diagnostics != 0 && diagnostics != 1)) return -1;
 #if defined(EKA2L1_COUNTED_JS)
+#if defined(EKA2L1_COUNTED_LOOP_JS)
+        arm::loop_js::reset();
+        state->loop_diagnostics = false;
+#endif
         return eka2l1_counted_configure(diagnostics);
 #else
         return -1;
@@ -231,6 +242,35 @@ EMSCRIPTEN_KEEPALIVE const char *eka2l1_js_counted_status() {
     if (detailed) out << arm::counted_js::calls(); else out << "null";
     out << ",\"instructions\":";
     if (detailed) out << arm::counted_js::instructions(); else out << "null";
+    out << '}'; state->report = out.str(); return state->report.c_str();
+#else
+    return "{\"available\":false,\"enabled\":false,\"diagnostics\":false,\"calls\":null,\"instructions\":null}";
+#endif
+}
+
+EMSCRIPTEN_KEEPALIVE int eka2l1_js_loop(int diagnostics) {
+    return checked([&]() {
+        if (state->running || (diagnostics != 0 && diagnostics != 1)) return -1;
+#if defined(EKA2L1_COUNTED_LOOP_JS)
+        state->loop_diagnostics = false;
+        const int entries = eka2l1_loop_configure(diagnostics);
+        if (entries > 0) state->loop_diagnostics = diagnostics != 0;
+        return entries;
+#else
+        return -1;
+#endif
+    });
+}
+EMSCRIPTEN_KEEPALIVE const char *eka2l1_js_loop_status() {
+    if (!state || state->busy) return "{}";
+#if defined(EKA2L1_COUNTED_LOOP_JS)
+    const bool detailed = state->loop_diagnostics;
+    std::ostringstream out;
+    out << "{\"available\":true,\"enabled\":" << (arm::loop_js::enabled ? "true" : "false")
+        << ",\"diagnostics\":" << (detailed ? "true" : "false") << ",\"calls\":";
+    if (detailed) out << arm::loop_js::calls(); else out << "null";
+    out << ",\"instructions\":";
+    if (detailed) out << arm::loop_js::instructions(); else out << "null";
     out << '}'; state->report = out.str(); return state->report.c_str();
 #else
     return "{\"available\":false,\"enabled\":false,\"diagnostics\":false,\"calls\":null,\"instructions\":null}";
@@ -517,6 +557,9 @@ EMSCRIPTEN_KEEPALIVE const char *eka2l1_js_error() { return state ? state->error
 EMSCRIPTEN_KEEPALIVE int eka2l1_js_shutdown() {
     if (!state || state->busy) return -1;
     state->system.reset();
+#if defined(EKA2L1_COUNTED_LOOP_JS)
+    arm::loop_js::reset();
+#endif
 #if defined(EKA2L1_COUNTED_JS)
     arm::counted_js::reset();
 #endif

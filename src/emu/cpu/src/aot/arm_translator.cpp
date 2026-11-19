@@ -19,6 +19,7 @@
 
 #include <common/code_tracking.h>
 #include <cpu/aot/arm_translator.h>
+#include <cpu/aot/loop_pattern.h>
 #include <cpu/aot/aot_runtime.h>
 #include <cpu/aot/watchdog.h>
 #include <cpu/aot/state_locals.h>
@@ -65,6 +66,10 @@ namespace eka2l1::arm::aot {
         std::vector<std::uint32_t> *dispatch_entries = nullptr;
         bool successor_thumb = false;
         bool counted = false;
+        bool counted_loop = false;
+        bool counted_word_loop = false;
+        std::uint32_t loop_words = 0;
+        static constexpr unsigned LOOP_COUNT = 14, LOOP_BUDGET = 15;
         std::uint32_t source_count = 0;
         bool region = false;
         bool direct_block_memory = false;
@@ -121,6 +126,20 @@ namespace eka2l1::arm::aot {
         void tee_local(std::uint32_t i) { op(op_local_tee); leb(b, i); }
         void i32_const(std::int32_t v) { op(op_i32_const); sleb(b, v); }
 
+        void raw_load_i32(std::uint32_t offset) {
+            state_ptr(); op(op_i32_load); leb(b, 2); leb(b, offset);
+        }
+        void loop_context_changed() {
+            const unsigned addresses[] = {16,17,17,18,19,19,20,21};
+            const unsigned offsets[] = {0,0,4,0,0,4,0,0};
+            for (unsigned n = 0; n < 8; ++n) {
+                get_local(addresses[n]); op(op_i32_load); leb(b,2); leb(b,offsets[n]);
+                get_local(22+n); op(op_i32_ne);
+                if (n) op(op_i32_or);
+            }
+            raw_load_i32(S::AOT_TLB); get_local(30); op(op_i32_ne); op(op_i32_or);
+            raw_load_i32(S::TFLAG); op(op_i32_or);
+        }
         void load_i32(std::uint32_t offset) {
             source_scope provenance(source, source_kind::state);
             if (cache.accepts(offset)) { get_local(cache.local(offset)); return; }
@@ -176,7 +195,7 @@ namespace eka2l1::arm::aot {
             op(op_call); leb(b, func_idx);
             cache.barrier_at(b.size(), true);
             if(memory_experiment::enabled() && !cache.enabled) direct_memory_setup(*this);
-            if (region) {
+            if (region && !counted_word_loop) {
                 store_i32_const(S::AOT_EXIT, 1); census_effect(1);
             }
             if (direct_block_memory) { i32_const(1); set_local(CALLBACK); }
@@ -366,7 +385,13 @@ namespace eka2l1::arm::aot {
             if (dispatch_entries && (why == exit_census::control || why == exit_census::source_end))
                 dispatch_entries->push_back(pc | (successor_thumb ? 1u : 0u));
             store_i32_const(S::PC, static_cast<std::int32_t>(pc));
-            if (counted) i32_const(static_cast<std::int32_t>(source_index));
+            if (counted_loop) {
+                get_local(LOOP_COUNT); i32_const(source_index); op(op_i32_add);
+                if (counted_word_loop && (source_index == 0 || source_index == loop_words)) {
+                    i32_const(65536); op(op_i32_or);
+                }
+            }
+            else if (counted) i32_const(static_cast<std::int32_t>(source_index));
             else i32_const(why == exit_census::unsupported
                 || why == exit_census::memory || why == exit_census::status ? 0 : 1);
             ret(why);
@@ -374,7 +399,11 @@ namespace eka2l1::arm::aot {
         }
 
         void bail_preserve_pc() {
-            i32_const(counted ? source_count + 1 : 1);
+            if (counted_loop) {
+                get_local(LOOP_COUNT); i32_const(source_count + 1); op(op_i32_add);
+                if (counted_word_loop && source_count + 1 == loop_words) { i32_const(65536); op(op_i32_or); }
+            }
+            else i32_const(counted ? source_count + 1 : 1);
             ret();
             bail_count++;
         }
@@ -983,7 +1012,7 @@ namespace eka2l1::arm::aot {
         std::uint32_t start_address,
         const sibling_map *siblings,
         const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region, const leaf_resolver *leaves, bool defer_memory, bool allow_memory_proof, arm_ir_policy ir_policy = arm_ir_policy::write_spans,
-        stack_return_context *stack_return = nullptr, bool counted = false)
+        stack_return_context *stack_return = nullptr, bool counted = false, bool counted_loop = false, bool counted_word_loop = false)
     {
         region = region && bounded;
         // Bounded blocks exit on branches instead of recursively calling siblings.
@@ -996,7 +1025,7 @@ namespace eka2l1::arm::aot {
 
         // A fixed i64 prefix keeps its index independent of lazily allocated i32 register locals.
         // Locals: 0=state_ptr(param), 1=wide result, 2..8=i32 scratch.
-        const bool direct_blocks = bounded && cache_registers && !region;
+        const bool direct_blocks = bounded && cache_registers && (!region || counted_word_loop);
         result.num_locals = memory_experiment::enabled() ? 15 : region || direct_blocks ? 12 : 7;
         result.num_prefix_i64_locals = 1;
         result.num_f32_locals = 0;
@@ -1007,7 +1036,10 @@ namespace eka2l1::arm::aot {
         const std::uint32_t TMP_CARRY = 8;
 
         arm_emit w{result.body};
-        w.counted = counted;
+        w.counted = counted; w.counted_loop = counted_loop;
+        w.counted_word_loop = counted_word_loop; w.loop_words = code_size / 4;
+        if (counted_loop) result.num_locals += 2;
+        if (counted_word_loop) result.num_locals += 15;
         w.dispatch_entries = &tr.dispatch_entries;
         w.source.marks = &result.sources;
         w.region = region && bounded;
@@ -1232,6 +1264,11 @@ namespace eka2l1::arm::aot {
             loop_last = std::max(loop_last, instruction.address);
         }
         direct_loop = direct_loop && has_backedge;
+        if (counted_loop) {
+            // The public loop intake proved one original self-backedge.
+            direct_loop = true; loop_start = start_address;
+            loop_last = start_address + static_cast<std::uint32_t>(code_size) - 4;
+        }
         for (const auto target : forward_targets_set)
             if (target > loop_start && target <= loop_last) direct_loop = false;
         if (direct_loop && loop_last >= loop_start + 4) {
@@ -1300,6 +1337,32 @@ namespace eka2l1::arm::aot {
         w.set_local(PC_IDX);
 
         if (direct_blocks) { w.i32_const(0); w.set_local(arm_emit::CALLBACK); }
+
+        if (counted_loop) {
+            w.i32_const(0); w.set_local(arm_emit::LOOP_COUNT);
+            // Distinct loop ABI: one pure imported remaining-budget query.
+            // No guest callback or per-edge bridge is emitted in this domain.
+            w.state_ptr();
+            if (counted_word_loop) w.i32_const(0);
+            w.op(op_call); leb(result.body, counted_word_loop ? 6 : 0);
+            w.set_local(arm_emit::LOOP_BUDGET);
+            if (counted_word_loop) {
+                for (unsigned field = 1; field <= 6; ++field) {
+                    w.state_ptr(); w.i32_const(field); w.op(op_call); leb(result.body, 6);
+                    w.set_local(15 + field);
+                }
+                const unsigned addresses[] = {16,17,17,18,19,19,20,21};
+                const unsigned offsets[] = {0,0,4,0,0,4,0,0};
+                for (unsigned n = 0; n < 8; ++n) {
+                    w.get_local(addresses[n]); w.op(op_i32_load); leb(result.body,2); leb(result.body,offsets[n]);
+                    w.set_local(22+n);
+                }
+                w.raw_load_i32(S::AOT_TLB); w.set_local(30);
+            }
+            w.get_local(arm_emit::LOOP_BUDGET); w.i32_const(code_size / 4); w.op(op_i32_lt_u);
+            w.get_local(arm_emit::LOOP_BUDGET); w.i32_const(65535); w.op(op_i32_gt_u); w.op(op_i32_or);
+            w.op(op_if); w.op(type_void); w.bail(start_address, 0); w.op(op_end);
+        }
 
         std::uint32_t proof_call_offset = 0;
         if (prove_memory) {
@@ -1479,6 +1542,10 @@ namespace eka2l1::arm::aot {
                     w.op(op_i32_or); w.op(op_i32_eqz);
                     w.op(op_if); w.op(type_void);
                     w.bail(insn_addr, insn_idx, exit_census::guard); w.op(op_end);
+                    if (counted_word_loop) {
+                        w.loop_context_changed(); w.op(op_if); w.op(type_void);
+                        w.bail(insn_addr, insn_idx, exit_census::guard); w.op(op_end);
+                    }
                     if (!counted) {
                     w.load_i32(S::NIRQ); w.op(op_i32_eqz);
                     w.load_i32(S::CPSR); w.i32_const(0x80);
@@ -1712,13 +1779,33 @@ namespace eka2l1::arm::aot {
                     if (cond_opened) w.op(op_end);
                 } else if ((!bounded && target >= start_address && target < start_address + code_size) || (region && target >= start_address && target < start_address + code_size && (target == start_address || fit != fwd_idx.end()))) {
                     if (region) {
+                        if (counted_loop) {
+                            w.get_local(arm_emit::LOOP_COUNT); w.i32_const(insn_idx + 1);
+                            w.op(op_i32_add); w.set_local(arm_emit::LOOP_COUNT);
+                            // Every backedge is an original block boundary.
+                            // A short remaining quantum returns before another
+                            // whole block; the original interpreter handles its prefix.
+                            w.get_local(arm_emit::LOOP_BUDGET); w.get_local(arm_emit::LOOP_COUNT);
+                            w.op(op_i32_sub); w.i32_const(code_size / 4); w.op(op_i32_lt_u);
+                            w.op(op_if); w.op(type_void); w.bail(target, 0); w.op(op_end);
+                            w.load_i32(S::NIRQ); w.op(op_i32_eqz);
+                            w.load_i32(S::CPSR); w.i32_const(0x80); w.op(op_i32_and); w.op(op_i32_eqz);
+                            w.op(op_i32_and); w.op(op_if); w.op(type_void);
+                            w.bail(target, 0, exit_census::interrupt); w.op(op_end);
+                            if (counted_word_loop) {
+                                w.loop_context_changed();
+                                w.op(op_if); w.op(type_void); w.bail(target,0,exit_census::guard); w.op(op_end);
+                            }
+                        }
                         if (!direct_loop) {
                             w.i32_const(target == start_address ? 0 : fit->second+1); w.set_local(PC_IDX);
                         }
-                        w.load_i32(S::NIRQ); w.op(op_i32_eqz);
-                        w.load_i32(S::CPSR); w.i32_const(0x80); w.op(op_i32_and); w.op(op_i32_eqz);
-                        w.op(op_i32_and);
-                        w.op(op_if); w.op(type_void); w.bail(target,insn_idx+1,exit_census::interrupt); w.op(op_end);
+                        if (!counted_loop) {
+                            w.load_i32(S::NIRQ); w.op(op_i32_eqz);
+                            w.load_i32(S::CPSR); w.i32_const(0x80); w.op(op_i32_and); w.op(op_i32_eqz);
+                            w.op(op_i32_and);
+                            w.op(op_if); w.op(type_void); w.bail(target,insn_idx+1,exit_census::interrupt); w.op(op_end);
+                        }
                     }
                     // Backward branch within block: br to loop
                     std::uint32_t loop_depth = direct_loop ? w.scope_depth - direct_loop_depth
@@ -2837,6 +2924,38 @@ namespace eka2l1::arm::aot {
         return translate_arm_block_impl(code, size, address, nullptr, nullptr,
             true, false, true, false, nullptr, false, false,
             arm_ir_policy::disabled, nullptr, true);
+    }
+
+    translate_result translate_counted_arm_loop(
+        const std::uint8_t *code, std::size_t size, std::uint32_t address) {
+        if (memory_experiment::enabled() || !code || size < 8 || (size & 3) || (address & 3) || size > 512
+            || size > 4096 - (address & 4095)) return {};
+        std::vector<std::uint32_t> words(size / 4);
+        std::memcpy(words.data(), code, size);
+        if (!loop_js::pure_loop_words(words.data(), words.size(), address)) return {};
+        auto result = translate_arm_block_impl(code, size, address, nullptr, nullptr,
+            true, false, true, true, nullptr, false, false,
+            arm_ir_policy::disabled, nullptr, true, true);
+        if (!result.complete || !result.entry_supported || !result.dependencies.empty()
+            || result.func.outlined_callee || !result.func.outlined_calls.empty()) return {};
+        result.func.export_name += "_counted_loop";
+        return result;
+    }
+
+    translate_result translate_counted_arm_memory_loop(
+        const std::uint8_t *code, std::size_t size, std::uint32_t address) {
+        if (memory_experiment::enabled() || !code || size < 8 || (size & 3) || (address & 3) || size > 512
+            || size > 4096 - (address & 4095)) return {};
+        std::vector<std::uint32_t> words(size / 4);
+        std::memcpy(words.data(), code, size);
+        if (!loop_js::word_loop_words(words.data(), words.size(), address)) return {};
+        auto result = translate_arm_block_impl(code, size, address, nullptr, nullptr,
+            true, false, true, true, nullptr, false, false,
+            arm_ir_policy::disabled, nullptr, true, true, true);
+        if (!result.complete || !result.entry_supported || !result.dependencies.empty()
+            || result.func.outlined_callee || !result.func.outlined_calls.empty()) return {};
+        result.func.export_name += "_counted_memory_loop";
+        return result;
     }
 
     // A list scan overwrites its comparison flags on each backedge. Keep the

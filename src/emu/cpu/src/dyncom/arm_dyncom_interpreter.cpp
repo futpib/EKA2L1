@@ -40,6 +40,9 @@
 #include <cpu/aot/svc_return.h>
 #if defined(EKA2L1_COOPERATIVE_JS) && defined(EKA2L1_COUNTED_JS)
 #include <cpu/aot/counted_js.h>
+#if defined(EKA2L1_COUNTED_LOOP_JS)
+#include <cpu/aot/loop_js.h>
+#endif
 #endif
 
 
@@ -2660,14 +2663,23 @@ DISPATCH : {
 #endif
 #if defined(EKA2L1_COOPERATIVE_JS) && defined(EKA2L1_COUNTED_JS)
     if constexpr (!Watchdog && !Instrumented) if (eka2l1::arm::counted_js::enabled) {
+#if defined(EKA2L1_COUNTED_LOOP_JS)
+        const auto progress = eka2l1::arm::counted_js::execute_dispatch(cpu, num_instrs);
+        const auto count = progress & 0xffffu;
+#else
         const auto progress = eka2l1::arm::counted_js::execute(cpu, num_instrs);
         const auto count = progress & 0xffu;
+#endif
         if (count) {
             num_instrs += count;
             link = nullptr;
             // Even an exhausted branch reaches the original dispatch: target
             // alignment and its original prefetch/fault must still happen.
+#if defined(EKA2L1_COUNTED_LOOP_JS)
+            if (progress & eka2l1::arm::loop_js::complete_bit) goto DISPATCH;
+#else
             if (progress & 0x100u) goto DISPATCH;
+#endif
             if (num_instrs >= cpu->NumInstrsToExecute) goto END;
             // A precise partial return resumes the SAME decoded instruction
             // stream, without introducing a new interrupt/dispatch boundary.

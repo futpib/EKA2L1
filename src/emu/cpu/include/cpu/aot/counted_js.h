@@ -11,6 +11,23 @@ namespace eka2l1::arm::counted_js {
     bool add(std::uint32_t asid, std::uint32_t pc, const std::uint32_t *words,
              std::size_t count, std::uint32_t function, bool shared = false, bool thumb = false);
     void install(executor execute, bool diagnostics = false);
+    // Alternate pure-loop functions reuse the existing immutable candidate and
+    // actual-ASID original-decoder stamps; no second cache owns code visibility.
+    struct loop_admission {
+        std::uint32_t pc, words, function, host;
+        bool word_memory;
+        const std::size_t *instructions;
+    };
+    bool bind_loop(std::uint32_t asid, std::uint32_t pc, const std::uint32_t *words,
+                   std::size_t count, std::uint32_t function);
+    bool bind_word_loop(std::uint32_t asid, std::uint32_t pc, const std::uint32_t *words,
+                        std::size_t count, std::uint32_t function);
+    void clear_loops();
+    bool admit_loop(ARMul_State *cpu, std::uint32_t prefix, loop_admission &result);
+    void resume_loop(ARMul_State *cpu, const loop_admission &proof, std::uint32_t remainder);
+    // One lookup/admission for either existing generic or loop executor.
+    // Low16 count, bit16 completed original block boundary.
+    std::uint32_t execute_dispatch(ARMul_State *cpu, std::uint32_t prefix);
     void begin_decode(ARMul_State *cpu);
     void decoded_word(ARMul_State *cpu, std::uint32_t pc, std::uint32_t word, std::size_t ptr);
     void finish_decode(ARMul_State *cpu, std::size_t ptr);

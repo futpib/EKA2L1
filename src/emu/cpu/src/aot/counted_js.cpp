@@ -1,4 +1,8 @@
 #include <cpu/aot/counted_js.h>
+#include <cpu/aot/loop_pattern.h>
+#if defined(EKA2L1_COUNTED_LOOP_JS)
+#include <cpu/aot/loop_js.h>
+#endif
 #include <cpu/dyncom/armstate.h>
 #include <cpu/dyncom/arm_dyncom.h>
 #include <algorithm>
@@ -15,6 +19,7 @@ namespace eka2l1::arm::counted_js {
         std::uint32_t asid, pc, function;
         bool shared, thumb;
         std::vector<std::uint32_t> words;
+        std::uint32_t loop_function = ~std::uint32_t(0);
     };
     struct stamp {
         bool accepted = false;
@@ -190,26 +195,25 @@ namespace eka2l1::arm::counted_js {
             mapped ? static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(view.bytes)) : 0, decoded_pointers};
         decoding = nullptr;
     }
-    std::uint32_t execute(ARMul_State *cpu, std::uint32_t prefix) {
-        if (!enabled) return 0;
-        const auto index = find(cpu);
-        if (index == entries.size()) return 0;
+    // Both executors use exactly the same original decoded visibility proof.
+    static bool admit(ARMul_State *cpu, std::uint32_t prefix, std::size_t index, stamp *&accepted) {
         const auto &item = entries[index];
         const auto stride = item.thumb ? 2u : 4u;
-        if (cpu->NumInstrsToExecute < prefix || cpu->NumInstrsToExecute - prefix < item.words.size()) return 0;
+        if (cpu->NumInstrsToExecute < prefix || cpu->NumInstrsToExecute - prefix < item.words.size()) return false;
         auto &owner = cache(cpu);
         owner.pending_resume = false;
         auto *space = stamps(cpu);
-        if (!space) return 0;
+        if (!space) return false;
         auto &proof = space->stamps[index];
-        if (!proof.accepted || proof.generation != cpu->trans_gen) return 0;
+        accepted = &proof;
+        if (!proof.accepted || proof.generation != cpu->trans_gen) return false;
         const auto current_mapping = mapping(cpu);
         if (proof.mapping != current_mapping) {
             core::code_mapping view;
             const bool same = cpu->parent()->resolve_code && cpu->parent()->resolve_code(item.pc, view)
                 && view.address_space == cpu->instruction_cache_asid && view.size >= item.words.size() * stride
                 && reinterpret_cast<std::uintptr_t>(view.bytes) == proof.host;
-            if (!same) { proof.accepted = false; return 0; }
+            if (!same) { proof.accepted = false; return false; }
             // Unrelated mappings do not invalidate this existing decoded view.
             // Revalidate only its physical identity, once per mapping generation.
             proof.mapping = current_mapping;
@@ -219,7 +223,60 @@ namespace eka2l1::arm::counted_js {
         // instruction visibility in both routes, without re-reading new bytes.
         const auto key = cpu->make_instruction_cache_key(cpu->Reg[15]);
         const auto &slot = cpu->block_l1_cache[ARMul_State::block_l1_index(key)];
-        if (slot.key != key || slot.ptr != proof.ptr) return 0;
+        if (slot.key != key || slot.ptr != proof.ptr) return false;
+        return true;
+    }
+    bool bind_loop(std::uint32_t asid, std::uint32_t pc, const std::uint32_t *words,
+            std::size_t count, std::uint32_t function) {
+        if (!enabled || function >= entry_limit
+            || !loop_js::pure_loop_words(words, count, pc)) return false;
+        for (auto &item : entries) if (item.asid == asid && item.pc == pc && !item.thumb
+                && item.words.size() == count && std::equal(item.words.begin(), item.words.end(), words)) {
+            if (item.loop_function != ~std::uint32_t(0)) return false;
+            item.loop_function = function;
+            return true;
+        }
+        return false;
+    }
+    bool bind_word_loop(std::uint32_t asid, std::uint32_t pc, const std::uint32_t *words,
+            std::size_t count, std::uint32_t function) {
+        if (!enabled || function >= entry_limit
+            || !loop_js::word_loop_words(words, count, pc)) return false;
+        for (auto &item : entries) if (item.asid == asid && item.pc == pc && !item.thumb
+                && item.words.size() == count && std::equal(item.words.begin(), item.words.end(), words)) {
+            if (item.loop_function != ~std::uint32_t(0)) return false;
+            // The high bit distinguishes the explicitly versioned progress ABI.
+            item.loop_function = function | 0x80000000u;
+            return true;
+        }
+        return false;
+    }
+    void clear_loops() {
+        for (auto &item : entries) item.loop_function = ~std::uint32_t(0);
+    }
+    bool admit_loop(ARMul_State *cpu, std::uint32_t prefix, loop_admission &result) {
+        if (!enabled) return false;
+        const auto index = find(cpu);
+        if (index == entries.size() || entries[index].loop_function == ~std::uint32_t(0)) return false;
+        stamp *proof = nullptr;
+        if (!admit(cpu, prefix, index, proof)) return false;
+        const auto &item = entries[index];
+        result = {item.pc, static_cast<std::uint32_t>(item.words.size()),
+            item.loop_function & 0x7fffffffu, proof->host,
+            bool(item.loop_function & 0x80000000u), proof->instructions.data()};
+        return true;
+    }
+    void resume_loop(ARMul_State *cpu, const loop_admission &proof, std::uint32_t remainder) {
+        if (!remainder || remainder >= proof.words || !proof.instructions)
+            throw std::runtime_error("Invalid original loop resume prefix");
+        auto &owner = cache(cpu);
+        owner.pending_resume = true; owner.resume_ptr = proof.instructions[remainder];
+    }
+    static std::uint32_t invoke_generic(ARMul_State *cpu, std::uint32_t prefix,
+            std::size_t index, stamp &proof) {
+        const auto &item = entries[index];
+        const auto stride = item.thumb ? 2u : 4u;
+        auto &owner = cache(cpu);
         const auto remaining = cpu->NumInstrsToExecute - prefix;
         auto *tlb = cpu->mem_cache_;
         cpu->aot_tlb = tlb && tlb->page_bits == 12
@@ -242,6 +299,32 @@ namespace eka2l1::arm::counted_js {
             | (cpu->CFlag << 29) | (cpu->VFlag << 28) | (cpu->TFlag << 5);
         return count | (count == item.words.size() ? 0x100u : 0u);
     }
+    std::uint32_t execute(ARMul_State *cpu, std::uint32_t prefix) {
+        if (!enabled) return 0;
+        const auto index = find(cpu);
+        if (index == entries.size()) return 0;
+        stamp *proof = nullptr;
+        if (!admit(cpu, prefix, index, proof)) return 0;
+        return invoke_generic(cpu, prefix, index, *proof);
+    }
+#if defined(EKA2L1_COUNTED_LOOP_JS)
+    std::uint32_t execute_dispatch(ARMul_State *cpu, std::uint32_t prefix) {
+        if (!enabled) return 0;
+        const auto index = find(cpu);
+        if (index == entries.size()) return 0;
+        stamp *proof = nullptr;
+        if (!admit(cpu, prefix, index, proof)) return 0;
+        const auto &item = entries[index];
+        if (loop_js::enabled && item.loop_function != ~std::uint32_t(0)) {
+            const loop_admission admitted{item.pc, static_cast<std::uint32_t>(item.words.size()),
+                item.loop_function & 0x7fffffffu, proof->host,
+                bool(item.loop_function & 0x80000000u), proof->instructions.data()};
+            return loop_js::execute_admitted(cpu, prefix, admitted);
+        }
+        const auto progress = invoke_generic(cpu, prefix, index, *proof);
+        return (progress & 0xffu) | ((progress & 0x100u) ? loop_js::complete_bit : 0u);
+    }
+#endif
     bool resume(ARMul_State *cpu, std::size_t &ptr) {
         auto &owner = cache(cpu);
         if (!owner.pending_resume) return false;
