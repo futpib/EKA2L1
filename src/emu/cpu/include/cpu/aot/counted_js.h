@@ -3,6 +3,7 @@
 #include <cstdint>
 
 struct ARMul_State;
+namespace eka2l1::arm::region_js { struct member; }
 namespace eka2l1::arm::counted_js {
     inline constexpr unsigned entry_limit = 5120;
     using executor = std::uint32_t (*)(ARMul_State *, std::uint32_t);
@@ -38,4 +39,6 @@ namespace eka2l1::arm::counted_js {
     std::uint64_t calls();
     std::uint64_t instructions();
     bool diagnostics();
+    bool bind_region(const region_js::member *members, std::size_t count, std::uint32_t function);
+    void clear_regions();
 }

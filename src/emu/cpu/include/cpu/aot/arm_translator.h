@@ -27,6 +27,12 @@ namespace eka2l1::arm::aot {
     enum class arm_ir_policy { disabled, write_spans };
     inline bool arm_indirect_calls = true;
 
+    struct counted_region_block {
+        std::uint32_t pc;
+        std::vector<std::uint32_t> words;
+    };
+    translate_result translate_counted_arm_region(const std::vector<counted_region_block> &blocks);
+
     // One original ARM basic block, returning exact executed-prefix counts.
     // The caller admits only a whole-block budget; short budgets stay interpreted.
     // SVCs and unsupported instructions return before their original handler.

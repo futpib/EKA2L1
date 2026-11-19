@@ -20,6 +20,7 @@
 #include <common/code_tracking.h>
 #include <cpu/aot/arm_translator.h>
 #include <cpu/aot/loop_pattern.h>
+#include <cpu/aot/region_pattern.h>
 #include <cpu/aot/aot_runtime.h>
 #include <cpu/aot/watchdog.h>
 #include <cpu/aot/state_locals.h>
@@ -59,6 +60,12 @@ namespace eka2l1::arm::aot {
         }
     }
 
+    struct region_compile_context {
+        const std::vector<counted_region_block> *blocks;
+        unsigned member;
+        state_local_cache cache;
+    };
+
     struct arm_emit {
         std::vector<std::uint8_t> &b;
         state_local_cache cache;
@@ -68,6 +75,7 @@ namespace eka2l1::arm::aot {
         bool counted = false;
         bool counted_loop = false;
         bool counted_word_loop = false;
+        region_compile_context *packet = nullptr;
         std::uint32_t loop_words = 0;
         static constexpr unsigned LOOP_COUNT = 14, LOOP_BUDGET = 15;
         std::uint32_t source_count = 0;
@@ -129,7 +137,62 @@ namespace eka2l1::arm::aot {
         void raw_load_i32(std::uint32_t offset) {
             state_ptr(); op(op_i32_load); leb(b, 2); leb(b, offset);
         }
+        void packet_field(unsigned offset) {
+            get_local(17); op(op_i32_load); leb(b,2); leb(b,offset);
+        }
+        void packet_l1_changed(unsigned member) {
+            const auto pc = packet->blocks->at(member).pc;
+            const auto base = 28 + member * 20;
+            packet_field(base); op(op_i32_load); leb(b,2); leb(b,0);
+            i32_const(pc); op(op_i32_ne);
+            packet_field(base); op(op_i32_load); leb(b,2); leb(b,4);
+            get_local(25); op(op_i32_ne); op(op_i32_or);
+            packet_field(base+4); op(op_i32_load); leb(b,2); leb(b,0);
+            packet_field(base+8); op(op_i32_ne); op(op_i32_or);
+        }
+        void packet_context_changed() {
+            const unsigned addresses[] = {18,19,19,20,21};
+            const unsigned offsets[] = {0,0,4,0,0};
+            for (unsigned n = 0; n < 5; ++n) {
+                get_local(addresses[n]); op(op_i32_load); leb(b,2); leb(b,offsets[n]);
+                get_local(22+n); op(op_i32_ne);
+                if (n) op(op_i32_or);
+            }
+            raw_load_i32(S::AOT_TLB); get_local(27); op(op_i32_ne); op(op_i32_or);
+            raw_load_i32(S::NUM_INSTRS_TO_EXECUTE); get_local(28); op(op_i32_ne); op(op_i32_or);
+            raw_load_i32(S::NUM_INSTRS_TO_EXECUTE+4); get_local(29); op(op_i32_ne); op(op_i32_or);
+            raw_load_i32(S::TFLAG); op(op_i32_or);
+            packet_l1_changed(packet->member); op(op_i32_or);
+        }
+        void packet_progress(unsigned prefix, bool complete) {
+            get_local(LOOP_COUNT); i32_const(prefix); op(op_i32_add);
+            i32_const((packet->member << 17) | (prefix << 20) | (complete ? 65536 : 0));
+            op(op_i32_or); ret(); ++bail_count;
+        }
+        bool packet_edge(std::uint32_t target, unsigned prefix, unsigned why) {
+            if (!packet || prefix != loop_words
+                    || (why != exit_census::control && why != exit_census::source_end)) return false;
+            const auto &blocks = *packet->blocks;
+            const auto found = std::find_if(blocks.begin(),blocks.end(),
+                [target](const auto &item) { return item.pc == target; });
+            if (found == blocks.end()) return false;
+            const unsigned next = static_cast<unsigned>(found-blocks.begin());
+            get_local(LOOP_BUDGET); get_local(LOOP_COUNT); op(op_i32_sub);
+            i32_const(prefix + found->words.size()); op(op_i32_lt_u);
+            load_i32(S::NIRQ); op(op_i32_eqz);
+            load_i32(S::CPSR); i32_const(0x80); op(op_i32_and); op(op_i32_eqz);
+            op(op_i32_and); op(op_i32_or);
+            packet_context_changed(); op(op_i32_or);
+            packet_field(20); i32_const(1u<<next); op(op_i32_and); op(op_i32_eqz); op(op_i32_or);
+            packet_l1_changed(next); op(op_i32_or);
+            op(op_if); op(type_void); packet_progress(prefix,true); op(op_end);
+            get_local(LOOP_COUNT); i32_const(prefix); op(op_i32_add); set_local(LOOP_COUNT);
+            i32_const(next); set_local(16);
+            op(op_br); leb(b,scope_depth+1);
+            return true;
+        }
         void loop_context_changed() {
+            if (packet) { packet_context_changed(); return; }
             const unsigned addresses[] = {16,17,17,18,19,19,20,21};
             const unsigned offsets[] = {0,0,4,0,0,4,0,0};
             for (unsigned n = 0; n < 8; ++n) {
@@ -385,6 +448,10 @@ namespace eka2l1::arm::aot {
             if (dispatch_entries && (why == exit_census::control || why == exit_census::source_end))
                 dispatch_entries->push_back(pc | (successor_thumb ? 1u : 0u));
             store_i32_const(S::PC, static_cast<std::int32_t>(pc));
+            if (packet) {
+                if (!packet_edge(pc, source_index, why)) packet_progress(source_index, source_index == loop_words);
+                return;
+            }
             if (counted_loop) {
                 get_local(LOOP_COUNT); i32_const(source_index); op(op_i32_add);
                 if (counted_word_loop && (source_index == 0 || source_index == loop_words)) {
@@ -399,6 +466,7 @@ namespace eka2l1::arm::aot {
         }
 
         void bail_preserve_pc() {
+            if (packet) { packet_progress(source_count+1,source_count+1 == loop_words); return; }
             if (counted_loop) {
                 get_local(LOOP_COUNT); i32_const(source_count + 1); op(op_i32_add);
                 if (counted_word_loop && source_count + 1 == loop_words) { i32_const(65536); op(op_i32_or); }
@@ -1012,7 +1080,7 @@ namespace eka2l1::arm::aot {
         std::uint32_t start_address,
         const sibling_map *siblings,
         const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region, const leaf_resolver *leaves, bool defer_memory, bool allow_memory_proof, arm_ir_policy ir_policy = arm_ir_policy::write_spans,
-        stack_return_context *stack_return = nullptr, bool counted = false, bool counted_loop = false, bool counted_word_loop = false)
+        stack_return_context *stack_return = nullptr, bool counted = false, bool counted_loop = false, bool counted_word_loop = false, region_compile_context *packet = nullptr)
     {
         region = region && bounded;
         // Bounded blocks exit on branches instead of recursively calling siblings.
@@ -1036,13 +1104,14 @@ namespace eka2l1::arm::aot {
         const std::uint32_t TMP_CARRY = 8;
 
         arm_emit w{result.body};
+        w.packet = packet;
         w.counted = counted; w.counted_loop = counted_loop;
         w.counted_word_loop = counted_word_loop; w.loop_words = code_size / 4;
         if (counted_loop) result.num_locals += 2;
         if (counted_word_loop) result.num_locals += 15;
         w.dispatch_entries = &tr.dispatch_entries;
         w.source.marks = &result.sources;
-        w.region = region && bounded;
+        w.region = (region || packet) && bounded;
         w.direct_block_memory = direct_blocks;
         w.defer_memory = w.region && defer_memory;
         w.cache.enabled = bounded && cache_registers;
@@ -1072,6 +1141,10 @@ namespace eka2l1::arm::aot {
             w.cache = stack_return->cache;
             w.cache.barriers.clear(); w.cache.written.clear();
             w.outer_return_depth = stack_return->outer_depth;
+        } else if (packet) {
+            w.cache = packet->cache;
+            w.cache.barriers.clear(); w.cache.written.clear();
+            w.outer_return_depth = 2;
         } else if (!stack_calls.empty()) {
             w.cache.program_counter = true;
             for (unsigned field = 0; field <= S::AOT_EXIT; field += 4)
@@ -1557,7 +1630,7 @@ namespace eka2l1::arm::aot {
                     w.op(op_end);
                 }
                 if (!region) w.store_i32_const(S::PC, insn_addr);
-                if (region && check_exit) {
+                if ((region || packet) && check_exit) {
                     w.load_i32(S::AOT_EXIT);
                     w.op(op_if); w.op(type_void);
                     w.bail(insn_addr, insn_idx, exit_census::guard);
@@ -2876,7 +2949,7 @@ namespace eka2l1::arm::aot {
         if (bounded) w.bail(start_address + decoded_end_offset, insn_idx, decoded_end_offset>=code_size?exit_census::source_end:exit_census::emission_end);
         else { w.i32_const(1); w.ret(); }
 
-        if (!stack_return) finish_memory_locals(w);
+        if (!stack_return && !packet) finish_memory_locals(w);
         if (prove_memory) {
             std::vector<std::uint8_t> prefix;
             w.cache.transfer(prefix, true);
@@ -2889,7 +2962,9 @@ namespace eka2l1::arm::aot {
             fallback.func.export_name += "_memory_fallback";
             result.outlined_callee = std::make_shared<wasm_func_def>(std::move(fallback.func));
         }
-        if (stack_return) {
+        if (packet) {
+            packet->cache = std::move(w.cache);
+        } else if (stack_return) {
             stack_return->cache = std::move(w.cache);
             stack_return->direct_memory = w.direct_memory_used;
         } else {
@@ -2955,6 +3030,70 @@ namespace eka2l1::arm::aot {
         if (!result.complete || !result.entry_supported || !result.dependencies.empty()
             || result.func.outlined_callee || !result.func.outlined_calls.empty()) return {};
         result.func.export_name += "_counted_memory_loop";
+        return result;
+    }
+
+    translate_result translate_counted_arm_region(const std::vector<counted_region_block> &blocks) {
+        if (memory_experiment::enabled() || blocks.size() < 2 || blocks.size() > 8) return {};
+        for (std::size_t n = 0; n < blocks.size(); ++n) {
+            const auto &item = blocks[n];
+            if (!region_js::block_words(item.words.data(),item.words.size(),item.pc)) return {};
+            for (std::size_t j = 0; j < n; ++j) if (blocks[j].pc == item.pc) return {};
+        }
+        translate_result result;
+        result.func.export_name = "counted_region";
+        result.func.num_prefix_i64_locals = 1;
+        result.func.num_locals = 62;
+        arm_emit w{result.func.body};
+        w.source.marks = &result.func.sources;
+        w.cache.enabled = w.cache.runtime_fields = w.cache.program_counter = w.cache.shared_return = true;
+        w.cache.first_local = 64;
+        // One bank is shared by every member. Helpers retain the same precise
+        // barriers; only a ready direct edge avoids publishing/reloading it.
+        for (unsigned field = 0; field <= S::AOT_EXIT; field += 4)
+            if (w.cache.accepts(field)) w.cache.local(field);
+        w.state_ptr(); w.op(op_call); leb(result.func.body,6); w.set_local(17);
+        w.packet_field(0); w.set_local(arm_emit::LOOP_BUDGET);
+        w.packet_field(24); w.set_local(16);
+        w.i32_const(0); w.set_local(arm_emit::LOOP_COUNT);
+        for (unsigned n = 0; n < 4; ++n) { w.packet_field(4+n*4); w.set_local(18+n); }
+        const unsigned addresses[] = {18,19,19,20,21};
+        const unsigned offsets[] = {0,0,4,0,0};
+        for (unsigned n = 0; n < 5; ++n) {
+            w.get_local(addresses[n]); w.op(op_i32_load); leb(result.func.body,2); leb(result.func.body,offsets[n]);
+            w.set_local(22+n);
+        }
+        w.raw_load_i32(S::AOT_TLB); w.set_local(27);
+        w.raw_load_i32(S::NUM_INSTRS_TO_EXECUTE); w.set_local(28);
+        w.raw_load_i32(S::NUM_INSTRS_TO_EXECUTE+4); w.set_local(29);
+        w.op(op_loop); w.op(type_void);
+        for (unsigned member = 0; member < blocks.size(); ++member) {
+            w.get_local(16); w.i32_const(member); w.op(op_i32_eq); w.op(op_if); w.op(type_void);
+            w.packet_field(28+member*20+12); w.store_i32_from_stack(S::AOT_CODE_BEGIN,2);
+            w.packet_field(28+member*20+16); w.store_i32_from_stack(S::AOT_CODE_END,2);
+            const auto &block = blocks[member];
+            region_compile_context context{&blocks,member,w.cache};
+            const auto translated = translate_arm_block_impl(reinterpret_cast<const std::uint8_t *>(block.words.data()),
+                block.words.size()*4,block.pc,nullptr,nullptr,true,false,true,false,nullptr,false,false,
+                arm_ir_policy::disabled,nullptr,true,false,true,&context);
+            if (!translated.complete || !translated.entry_supported || translated.end_address != block.pc+block.words.size()*4
+                    || !translated.dependencies.empty() || translated.func.outlined_callee || !translated.func.outlined_calls.empty()) return {};
+            const auto offset = result.func.body.size();
+            copy_source_marks(translated.func.sources,0,translated.func.body.size(),offset,result.func.sources);
+            result.func.body.insert(result.func.body.end(),translated.func.body.begin(),translated.func.body.end());
+            for (auto barrier : context.cache.barriers) {
+                barrier.position += offset; w.cache.barriers.push_back(barrier);
+            }
+            w.cache.written.merge(context.cache.written);
+            w.op(op_end);
+        }
+        // Only invalid transport can select no member. Fail closed; the runtime
+        // never interprets a zero result after an invocation with effects.
+        w.i32_const(0); w.ret();
+        w.op(op_end);
+        w.i32_const(0); w.ret();
+        w.cache.finish(result.func);
+        result.complete = result.entry_supported = true;
         return result;
     }
 

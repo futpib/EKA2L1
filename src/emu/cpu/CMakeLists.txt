@@ -174,6 +174,15 @@ if(EKA2L1_COOPERATIVE_JS AND EKA2L1_COUNTED_LOOP_JS)
         src/aot/loop_bridge.cpp)
 endif()
 
+if(EKA2L1_COOPERATIVE_JS AND EKA2L1_COUNTED_REGION_JS)
+    target_compile_definitions(cpu PRIVATE EKA2L1_COUNTED_REGION_JS=1)
+    target_sources(cpu PRIVATE
+        include/cpu/aot/region_js.h
+        include/cpu/aot/region_pattern.h
+        src/aot/region_js.cpp
+        src/aot/region_bridge.cpp)
+endif()
+
 if(EKA2L1_COOPERATIVE_JS AND EKA2L1_WORD_INCREMENT_JS)
     target_compile_definitions(cpu PRIVATE EKA2L1_WORD_INCREMENT_JS=1)
     target_sources(cpu PRIVATE

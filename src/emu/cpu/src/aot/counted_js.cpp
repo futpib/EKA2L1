@@ -1,5 +1,9 @@
 #include <cpu/aot/counted_js.h>
 #include <cpu/aot/loop_pattern.h>
+#include <cpu/aot/region_pattern.h>
+#if defined(EKA2L1_COUNTED_REGION_JS)
+#include <cpu/aot/region_js.h>
+#endif
 #if defined(EKA2L1_COUNTED_LOOP_JS)
 #include <cpu/aot/loop_js.h>
 #endif
@@ -10,6 +14,7 @@
 #include <atomic>
 #include <limits>
 #include <memory>
+#include <new>
 #include <stdexcept>
 #include <unordered_map>
 #include <vector>
@@ -20,6 +25,7 @@ namespace eka2l1::arm::counted_js {
         bool shared, thumb;
         std::vector<std::uint32_t> words;
         std::uint32_t loop_function = ~std::uint32_t(0);
+        std::uint32_t region_index = ~std::uint32_t(0), region_member = 0;
     };
     struct stamp {
         bool accepted = false;
@@ -29,9 +35,25 @@ namespace eka2l1::arm::counted_js {
         std::uint32_t host = 0;
         std::vector<std::size_t> instructions;
     };
+#if defined(EKA2L1_COUNTED_REGION_JS)
+    struct region_template {
+        region_js::invocation_context context{};
+        std::uint64_t mapping = 0;
+        std::uint32_t generation = 0;
+        bool valid = false;
+        bool active = false;
+    };
+#if defined(EKA2L1_COOPERATIVE_JS)
+    static_assert(sizeof(region_template) <= 256);
+#endif
+#endif
     struct address_space_cache {
         std::uint32_t asid;
         std::vector<stamp> stamps;
+#if defined(EKA2L1_COUNTED_REGION_JS)
+        std::vector<region_template> region_templates;
+        bool regions_unavailable = false;
+#endif
     };
     struct cpu_cache {
         ARMul_State *cpu;
@@ -50,6 +72,13 @@ namespace eka2l1::arm::counted_js {
     static executor untracked = nullptr;
     static bool tracking = false;
     static std::vector<entry> entries;
+#if defined(EKA2L1_COUNTED_REGION_JS)
+    struct region_record {
+        std::uint32_t function, count;
+        std::array<std::size_t,region_js::member_limit> indices{};
+    };
+    static std::vector<region_record> regions;
+#endif
     static std::unordered_map<std::uint64_t, std::size_t> indices;
     static std::unordered_map<std::uint32_t, std::size_t> shared_indices;
     struct lookup_slot {
@@ -76,6 +105,12 @@ namespace eka2l1::arm::counted_js {
         if (count) { ++call_count; instruction_count += count; }
         return count;
     }
+#if defined(EKA2L1_COUNTED_REGION_JS)
+    static void require_idle_regions(const cpu_cache &owner) {
+        for (const auto &space : owner.spaces) for (const auto &item : space->region_templates)
+            if (item.active) throw std::runtime_error("Lifetime change during region invocation");
+    }
+#endif
 
     static std::uint64_t mapping(ARMul_State *cpu) {
         const auto *generation = cpu->parent()->code_mapping_generation;
@@ -131,9 +166,15 @@ namespace eka2l1::arm::counted_js {
         return index;
     }
     void reset() {
+#if defined(EKA2L1_COUNTED_REGION_JS)
+        for (const auto &owner : caches) require_idle_regions(*owner);
+#endif
         enabled = false; invoke = untracked = nullptr; tracking = false; decoding = nullptr; last = nullptr;
         caches.clear(); stamp_spaces = 0; entries.clear(); first_pc = last_pc = 0;
         indices.clear(); shared_indices.clear();
+#if defined(EKA2L1_COUNTED_REGION_JS)
+        regions.clear();
+#endif
         for (auto &set : lookup_cache) for (auto &slot : set) slot.valid = false;
         lookup_replace.fill(0);
         call_count = instruction_count = 0;
@@ -181,6 +222,10 @@ namespace eka2l1::arm::counted_js {
         if (!space) { decoding = nullptr; return; }
         auto &proof = space->stamps[decoding_entry];
         const auto &item = entries[decoding_entry];
+#if defined(EKA2L1_COUNTED_REGION_JS)
+        if (item.region_index < space->region_templates.size())
+            space->region_templates[item.region_index].valid = false;
+#endif
         const auto bytes = item.words.size() * (item.thumb ? 2u : 4u);
         core::code_mapping view;
         const bool mapped = cpu->parent()->resolve_code && cpu->parent()->resolve_code(item.pc, view)
@@ -196,10 +241,12 @@ namespace eka2l1::arm::counted_js {
         decoding = nullptr;
     }
     // Both executors use exactly the same original decoded visibility proof.
+    template<bool check_budget = true, bool check_l1 = true>
     static bool admit(ARMul_State *cpu, std::uint32_t prefix, std::size_t index, stamp *&accepted) {
         const auto &item = entries[index];
         const auto stride = item.thumb ? 2u : 4u;
-        if (cpu->NumInstrsToExecute < prefix || cpu->NumInstrsToExecute - prefix < item.words.size()) return false;
+        if constexpr (check_budget)
+            if (cpu->NumInstrsToExecute < prefix || cpu->NumInstrsToExecute - prefix < item.words.size()) return false;
         auto &owner = cache(cpu);
         owner.pending_resume = false;
         auto *space = stamps(cpu);
@@ -221,18 +268,143 @@ namespace eka2l1::arm::counted_js {
         // The stamp was installed only with this original decoded entry. Cache
         // clears bump trans_gen; raw writes without IMB retain the same decoded
         // instruction visibility in both routes, without re-reading new bytes.
-        const auto key = cpu->make_instruction_cache_key(cpu->Reg[15]);
-        const auto &slot = cpu->block_l1_cache[ARMul_State::block_l1_index(key)];
-        if (slot.key != key || slot.ptr != proof.ptr) return false;
+        if constexpr (check_l1) {
+            const auto key = cpu->make_instruction_cache_key(item.pc);
+            const auto &slot = cpu->block_l1_cache[ARMul_State::block_l1_index(key)];
+            if (slot.key != key || slot.ptr != proof.ptr) return false;
+        }
         return true;
     }
+#if defined(EKA2L1_COUNTED_REGION_JS)
+    bool bind_region(const region_js::member *members, std::size_t count, std::uint32_t function) {
+        if (!enabled || !members || count < 2 || count > region_js::member_limit
+                || function >= entry_limit || regions.size() >= entry_limit) return false;
+        region_record record{function,static_cast<std::uint32_t>(count)};
+        for (std::size_t n = 0; n < count; ++n) {
+            const auto &member = members[n];
+            if (member.asid != members[0].asid || !region_js::block_words(member.words,member.count,member.pc)) return false;
+            const auto key = (std::uint64_t(member.asid) << 32) | member.pc;
+            const auto found = indices.find(key);
+            if (found == indices.end()) return false;
+            const auto &item = entries[found->second];
+            if (item.thumb || item.words.size() != member.count
+                    || !std::equal(item.words.begin(),item.words.end(),member.words)
+                    || item.loop_function != ~std::uint32_t(0) || item.region_index != ~std::uint32_t(0)) return false;
+            for (std::size_t j = 0; j < n; ++j) if (record.indices[j] == found->second) return false;
+            record.indices[n] = found->second;
+        }
+        for (std::size_t n = 0; n < count; ++n) {
+            entries[record.indices[n]].region_index = static_cast<std::uint32_t>(regions.size());
+            entries[record.indices[n]].region_member = static_cast<std::uint32_t>(n);
+        }
+        regions.push_back(record);
+        return true;
+    }
+    void clear_regions() {
+        for (const auto &owner : caches) require_idle_regions(*owner);
+        for (auto &item : entries) item.region_index = ~std::uint32_t(0);
+        regions.clear();
+        for (auto &owner : caches) for (auto &space : owner->spaces) {
+            space->region_templates.clear(); space->regions_unavailable = false;
+        }
+    }
+    static void publish_region_state(ARMul_State *cpu) {
+        cpu->Cpsr = (cpu->Cpsr & 0x0fffffdfu) | (cpu->NFlag << 31) | (cpu->ZFlag << 30)
+            | (cpu->CFlag << 29) | (cpu->VFlag << 28) | (cpu->TFlag << 5);
+    }
+    static std::uint32_t invoke_region(ARMul_State *cpu, std::uint32_t prefix, std::size_t index,
+            const stamp &start_proof) {
+        const auto &entry = entries[index];
+        const auto &record = regions.at(entry.region_index);
+        auto *generation = cpu->parent()->code_mapping_generation;
+        if (!generation) return 0;
+        const auto address = [](const auto *value) {
+            return static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(value));
+        };
+        // The caller has already admitted this start through this actual space.
+        auto &space = *cache(cpu).last_space;
+        if (space.regions_unavailable) return 0;
+        if (space.region_templates.empty()) {
+            try { space.region_templates.resize(regions.size()); }
+            catch (const std::bad_alloc &) { space.regions_unavailable = true; return 0; }
+        }
+        auto &prepared = space.region_templates.at(entry.region_index);
+        if (prepared.active) throw std::runtime_error("Nested cached region invocation");
+        auto &context = prepared.context;
+        if (!prepared.valid || prepared.generation != start_proof.generation
+                || prepared.mapping != start_proof.mapping) {
+            context = {};
+            context.generation = address(&cpu->trans_gen); context.mapping = address(generation);
+            context.asid = address(&cpu->instruction_cache_asid); context.tlb = address(&cpu->mem_cache_);
+            for (unsigned n = 0; n < record.count; ++n) {
+                const auto member = record.indices[n];
+                const auto &item = entries[member];
+                const auto key = cpu->make_instruction_cache_key(item.pc);
+                const auto &slot = cpu->block_l1_cache[ARMul_State::block_l1_index(key)];
+                auto &target = context.members[n];
+                target.l1_key = address(&slot.key); target.l1_pointer = address(&slot.ptr);
+                stamp *accepted = nullptr;
+                if (member != index && !admit<false,false>(cpu,0,member,accepted)) continue;
+                const auto *proof = member == index ? &start_proof : accepted;
+                context.ready |= 1u << n;
+                target.decoded_pointer = static_cast<std::uint32_t>(proof->ptr);
+                target.host_begin = proof->host;
+                target.host_end = proof->host + static_cast<std::uint32_t>(item.words.size()*4);
+            }
+            prepared.generation = start_proof.generation; prepared.mapping = start_proof.mapping;
+            prepared.valid = true;
+        }
+        context.budget = static_cast<std::uint32_t>(std::min<std::uint64_t>(
+            cpu->NumInstrsToExecute-prefix,region_js::progress_limit));
+        context.start = entry.region_member;
+        if (!(context.ready & (1u << context.start))) return 0;
+        struct active_scope {
+            bool &active;
+            explicit active_scope(bool &value) : active(value) { active = true; }
+            ~active_scope() { active = false; }
+        } active(prepared.active);
+        auto *tlb = cpu->mem_cache_;
+        cpu->aot_tlb = tlb && tlb->page_bits == 12 ? address(tlb->entries) : 0;
+        cpu->aot_exit = 0; publish_region_state(cpu);
+        const auto progress = region_js::invoke_admitted(cpu,record.function,context);
+        const auto count = progress & region_js::progress_limit;
+        const auto member = (progress >> region_js::member_shift) & 7u;
+        const auto part = (progress >> region_js::prefix_shift) & 255u;
+        const bool complete = progress & region_js::complete_bit;
+        if ((progress >> 28) || !count || count > context.budget || member >= record.count
+                || !(context.ready & (1u << member))) throw std::runtime_error("Invalid region cumulative progress");
+        const auto &last_item = entries[record.indices[member]];
+        if (!part || part > last_item.words.size() || count < part
+                || (complete ? part != last_item.words.size()
+                    : part == last_item.words.size() || cpu->TFlag || cpu->Reg[15] != last_item.pc+part*4))
+            throw std::runtime_error("Invalid region original prefix");
+        if (complete) {
+            const auto terminal = last_item.words.back();
+            if ((terminal & 0x0e000000u) == 0x0a000000u) {
+                const auto displacement = static_cast<std::int32_t>(terminal << 8) >> 6;
+                const auto fallthrough = last_item.pc + static_cast<std::uint32_t>(last_item.words.size()*4);
+                const auto target = fallthrough + 4u + static_cast<std::uint32_t>(displacement);
+                if (cpu->TFlag || (cpu->Reg[15] != target && cpu->Reg[15] != fallthrough))
+                    throw std::runtime_error("Invalid region direct boundary");
+            } else if (cpu->TFlag > 1u || (cpu->Reg[15] & 1u) != cpu->TFlag)
+                throw std::runtime_error("Invalid region interworking boundary");
+        }
+        if (!complete && cpu->NumInstrsToExecute) {
+            auto &owner = cache(cpu);
+            owner.pending_resume = true;
+            owner.resume_ptr = space.stamps[record.indices[member]].instructions.at(part);
+        }
+        publish_region_state(cpu); region_js::record(count);
+        return count | (complete ? region_js::complete_bit : 0u);
+    }
+#endif
     bool bind_loop(std::uint32_t asid, std::uint32_t pc, const std::uint32_t *words,
             std::size_t count, std::uint32_t function) {
         if (!enabled || function >= entry_limit
             || !loop_js::pure_loop_words(words, count, pc)) return false;
         for (auto &item : entries) if (item.asid == asid && item.pc == pc && !item.thumb
                 && item.words.size() == count && std::equal(item.words.begin(), item.words.end(), words)) {
-            if (item.loop_function != ~std::uint32_t(0)) return false;
+            if (item.loop_function != ~std::uint32_t(0) || item.region_index != ~std::uint32_t(0)) return false;
             item.loop_function = function;
             return true;
         }
@@ -244,7 +416,7 @@ namespace eka2l1::arm::counted_js {
             || !loop_js::word_loop_words(words, count, pc)) return false;
         for (auto &item : entries) if (item.asid == asid && item.pc == pc && !item.thumb
                 && item.words.size() == count && std::equal(item.words.begin(), item.words.end(), words)) {
-            if (item.loop_function != ~std::uint32_t(0)) return false;
+            if (item.loop_function != ~std::uint32_t(0) || item.region_index != ~std::uint32_t(0)) return false;
             // The high bit distinguishes the explicitly versioned progress ABI.
             item.loop_function = function | 0x80000000u;
             return true;
@@ -321,6 +493,12 @@ namespace eka2l1::arm::counted_js {
                 bool(item.loop_function & 0x80000000u), proof->instructions.data()};
             return loop_js::execute_admitted(cpu, prefix, admitted);
         }
+#if defined(EKA2L1_COUNTED_REGION_JS)
+        if (region_js::enabled && item.region_index != ~std::uint32_t(0)) {
+            const auto progress = invoke_region(cpu,prefix,index,*proof);
+            if (progress) return progress;
+        }
+#endif
         const auto progress = invoke_generic(cpu, prefix, index, *proof);
         return (progress & 0xffu) | ((progress & 0x100u) ? loop_js::complete_bit : 0u);
     }
@@ -331,6 +509,9 @@ namespace eka2l1::arm::counted_js {
         owner.pending_resume = false; ptr = owner.resume_ptr; return true;
     }
     void forget(ARMul_State *cpu) {
+#if defined(EKA2L1_COUNTED_REGION_JS)
+        for (const auto &owner : caches) if (owner->cpu == cpu) require_idle_regions(*owner);
+#endif
         if (decoding == cpu) decoding = nullptr;
         if (last && last->cpu == cpu) last = nullptr;
         for (const auto &owner : caches) if (owner->cpu == cpu) stamp_spaces -= owner->spaces.size();
