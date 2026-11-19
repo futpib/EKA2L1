@@ -17,6 +17,10 @@
 #include <cpu/aot/counted_js.h>
 extern "C" int eka2l1_counted_configure(int diagnostics);
 #endif
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+#include <cpu/aot/direct_js.h>
+extern "C" int eka2l1_direct_configure(int diagnostics);
+#endif
 #if defined(EKA2L1_COUNTED_LOOP_JS)
 #include <cpu/aot/loop_js.h>
 extern "C" int eka2l1_loop_configure(int diagnostics);
@@ -85,6 +89,7 @@ namespace {
         int width = 0, height = 0;
         bool running = false, busy = false, capture = false;
 #if defined(EKA2L1_COUNTED_LOOP_JS)
+        bool direct_diagnostics = false;
         bool loop_diagnostics = false;
 #endif
 #if defined(EKA2L1_COUNTED_REGION_JS)
@@ -232,6 +237,10 @@ EMSCRIPTEN_KEEPALIVE int eka2l1_js_counted(int diagnostics) {
     return checked([&]() {
         if (state->running || (diagnostics != 0 && diagnostics != 1)) return -1;
 #if defined(EKA2L1_COUNTED_JS)
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+        arm::direct_js::reset();
+        state->direct_diagnostics = false;
+#endif
 #if defined(EKA2L1_COUNTED_REGION_JS)
         arm::region_js::reset();
         state->region_diagnostics = false;
@@ -266,6 +275,10 @@ EMSCRIPTEN_KEEPALIVE int eka2l1_js_loop(int diagnostics) {
     return checked([&]() {
         if (state->running || (diagnostics != 0 && diagnostics != 1)) return -1;
 #if defined(EKA2L1_COUNTED_LOOP_JS)
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+        arm::direct_js::reset();
+        state->direct_diagnostics = false;
+#endif
 #if defined(EKA2L1_COUNTED_REGION_JS)
         arm::region_js::reset();
         state->region_diagnostics = false;
@@ -322,6 +335,37 @@ EMSCRIPTEN_KEEPALIVE const char *eka2l1_js_packed_pixel_status() {
     out << '}'; state->report = out.str(); return state->report.c_str();
 #else
     return "{\"available\":false,\"enabled\":false,\"diagnostics\":false,\"calls\":null,\"iterations\":null,\"instructions\":null,\"declines\":null}";
+#endif
+}
+
+EMSCRIPTEN_KEEPALIVE int eka2l1_js_direct(int diagnostics) {
+    return checked([&]() {
+        if (state->running || (diagnostics != 0 && diagnostics != 1)) return -1;
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+        state->direct_diagnostics = false;
+        const int result = eka2l1_direct_configure(diagnostics);
+        if (result == 1) state->direct_diagnostics = diagnostics != 0;
+        return result;
+#else
+        return -1;
+#endif
+    });
+}
+EMSCRIPTEN_KEEPALIVE const char *eka2l1_js_direct_status() {
+    if (!state || state->busy) return "{}";
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+    const bool detailed = state->direct_diagnostics;
+    std::ostringstream out;
+    out << "{\"available\":true,\"enabled\":" << (arm::direct_js::enabled ? "true" : "false")
+        << ",\"diagnostics\":" << (detailed ? "true" : "false") << ",\"calls\":";
+    if (detailed) out << arm::direct_js::calls(); else out << "null";
+    out << ",\"instructions\":";
+    if (detailed) out << arm::direct_js::instructions(); else out << "null";
+    out << ",\"blocks\":";
+    if (detailed) out << arm::direct_js::blocks(); else out << "null";
+    out << '}'; state->report = out.str(); return state->report.c_str();
+#else
+    return "{\"available\":false,\"enabled\":false,\"diagnostics\":false,\"calls\":null,\"instructions\":null,\"blocks\":null}";
 #endif
 }
 
@@ -634,6 +678,9 @@ EMSCRIPTEN_KEEPALIVE const char *eka2l1_js_error() { return state ? state->error
 EMSCRIPTEN_KEEPALIVE int eka2l1_js_shutdown() {
     if (!state || state->busy) return -1;
     state->system.reset();
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+    arm::direct_js::reset();
+#endif
 #if defined(EKA2L1_COUNTED_REGION_JS)
     arm::region_js::reset();
 #endif

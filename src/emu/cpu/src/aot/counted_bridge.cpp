@@ -22,7 +22,7 @@ WRITE(8, std::uint8_t) WRITE(16, std::uint16_t) WRITE(32, std::uint32_t)
 #undef READ
 #undef WRITE
 }
-EM_JS(int, counted_setup, (unsigned maximum), {
+EM_JS(int, counted_setup, (unsigned maximum, int retain_direct), {
     try {
         const factory = Module['countedBlockFactory'];
         if (typeof factory !== 'function') return 0;
@@ -33,6 +33,7 @@ EM_JS(int, counted_setup, (unsigned maximum), {
         if (!product || !Array.isArray(product.entries) || !Array.isArray(product.functions)
             || !product.entries.length || product.entries.length > maximum
             || product.functions.some(f => typeof f !== 'function')) throw Error('Invalid counted factory');
+        const directEntries = retain_direct ? [] : null;
         for (const row of product.entries) {
             if (!row || !Number.isInteger(row.pc) || row.pc < 0 || row.pc > 0xffffffff
                 || !Number.isInteger(row.asid) || row.asid < 0 || row.asid > 0xffffffff
@@ -50,8 +51,24 @@ EM_JS(int, counted_setup, (unsigned maximum), {
                 if (!Module['_eka2l1_counted_register'](row.asid, row.pc, pointer, row.words.length, row.function, row.shared === true ? 1 : 0, row.thumb === true ? 1 : 0))
                     throw Error('Counted registration rejected');
             } finally { Module['_free'](pointer); }
+            if (directEntries) directEntries.push(Object.freeze({asid:row.asid,pc:row.pc,function:row.function,
+                words:row.words.length,thumb:row.thumb===true,shared:row.shared===true,index:directEntries.length,
+                excluded:row.thumb!==true&&row.words.length===5&&row.words[4]===0x5afffffa,
+                dispatch:row.thumb===true
+                    ? ((row.words.at(-1)&0xff00)===0x4700||(row.words.at(-1)&0xf800)===0xe800
+                        ||(row.words.at(-1)&0xff00)===0xbd00||(row.words.at(-1)&0xff00)===0xdf00
+                        ||((row.words.at(-1)&0xfc00)===0x4400
+                            &&((row.words.at(-1)&7)|((row.words.at(-1)>>>4)&8))===15))
+                    : ((row.words.at(-1)>>>28)===15
+                        ||(row.words.at(-1)&0x0ffffff0)===0x012fff10
+                        ||(row.words.at(-1)&0x0ffffff0)===0x012fff30
+                        ||((row.words.at(-1)>>>25)&7)===7
+                        ||(((row.words.at(-1)>>>25)&7)===4&&(row.words.at(-1)&0x8000)!==0)
+                        ||(((row.words.at(-1)>>>25)&7)<=3&&(row.words.at(-1)&0xf000)===0xf000))}));
         }
         Module['__countedFunctions'] = Object.freeze([...product.functions]);
+        if (directEntries) Module['__countedDirectEntries'] = Object.freeze(directEntries);
+        else delete Module['__countedDirectEntries'];
         Module['__countedError'] = null;
         return product.entries.length;
     } catch (error) { Module['__countedError'] = String(error); return -1; }
@@ -66,7 +83,13 @@ EM_JS(unsigned, counted_call, (ARMul_State *cpu, unsigned function_index), {
 extern "C" {
 EMSCRIPTEN_KEEPALIVE int eka2l1_counted_configure(int diagnostics) {
     eka2l1::arm::counted_js::reset();
-    const int entries = counted_setup(eka2l1::arm::counted_js::entry_limit);
+    const int entries = counted_setup(eka2l1::arm::counted_js::entry_limit,
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+        1
+#else
+        0
+#endif
+    );
     if (entries > 0) eka2l1::arm::counted_js::install(counted_call, diagnostics != 0);
     else eka2l1::arm::counted_js::reset();
     return entries;

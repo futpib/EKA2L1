@@ -230,3 +230,11 @@ option(EKA2L1_MEMORY_ACCESS_PROFILE "Count guest memory accesses and chunk lifet
 if(EKA2L1_MEMORY_ACCESS_PROFILE)
     target_compile_definitions(cpu PUBLIC EKA2L1_MEMORY_ACCESS_PROFILE=1)
 endif()
+
+if(EKA2L1_COOPERATIVE_JS AND EKA2L1_COUNTED_DIRECT_JS)
+    target_compile_definitions(cpu PRIVATE EKA2L1_COUNTED_DIRECT_JS=1)
+    target_sources(cpu PRIVATE
+        include/cpu/aot/direct_js.h
+        src/aot/direct_js.cpp
+        src/aot/direct_bridge.cpp)
+endif()

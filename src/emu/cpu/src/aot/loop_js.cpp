@@ -1,3 +1,6 @@
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+#include <cpu/aot/direct_js.h>
+#endif
 #include <cpu/aot/loop_js.h>
 #include <cpu/aot/counted_js.h>
 #include <cpu/dyncom/armstate.h>
@@ -26,6 +29,9 @@ namespace eka2l1::arm::loop_js {
     static unsigned pixel_profile_count = 0, pixel_prepared_count = 0;
     static std::uint64_t pixel_call_count = 0, pixel_iteration_count = 0, pixel_decline_count = 0;
     std::uint8_t prepare_packed_pixel(const packed_pixel_pattern &pattern) {
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+        direct_js::require_idle();
+#endif
         const auto key = packed_pixel_profile(pattern);
         for (unsigned n = 0; n < pixel_profile_count; ++n)
             if (pixel_profiles[n] == key) return n;
@@ -89,6 +95,9 @@ namespace eka2l1::arm::loop_js {
     }
 #endif
     int configure_packed_pixel(bool on) {
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+        direct_js::require_idle();
+#endif
         packed_pixel_enabled = false;
         pixel_prepared_count = 0;
         pixel_call_count = pixel_iteration_count = pixel_decline_count = 0;
@@ -168,6 +177,9 @@ namespace eka2l1::arm::loop_js {
 #endif
 
     void reset() {
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+        direct_js::require_idle();
+#endif
 #if defined(EKA2L1_PACKED_PIXEL_JS)
         configure_packed_pixel(false); pixel_profile_count = 0;
 #endif
@@ -176,6 +188,9 @@ namespace eka2l1::arm::loop_js {
         counted_js::clear_loops();
     }
     void install(executor function, bool diagnostics) {
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+        direct_js::require_idle();
+#endif
         if (enabled || !function || !counted_js::enabled) throw std::runtime_error("Invalid loop installation");
         invoke = function; tracking = diagnostics; enabled = true;
     }

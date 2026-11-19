@@ -1,4 +1,10 @@
 #include <cpu/aot/counted_js.h>
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+#include <cpu/aot/direct_js.h>
+#endif
+#ifndef EKA2L1_COUNTED_DIRECT_OBSERVE
+#define EKA2L1_COUNTED_DIRECT_OBSERVE(event) ((void)0)
+#endif
 #include <cpu/aot/loop_pattern.h>
 #if defined(EKA2L1_PACKED_PIXEL_JS)
 #include <cpu/aot/packed_pixel_pattern.h>
@@ -72,6 +78,10 @@ namespace eka2l1::arm::counted_js {
     static_assert(sizeof(entry) <= 64 && sizeof(stamp) <= 64);
 #if defined(EKA2L1_COOPERATIVE_JS)
     static_assert(sizeof(std::size_t) == 4);
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+    static_assert(offsetof(stamp, accepted) == 0 && offsetof(stamp, generation) == 4
+        && offsetof(stamp, mapping) == 8 && offsetof(stamp, ptr) == 16 && offsetof(stamp, host) == 20);
+#endif
 #endif
     bool enabled = false;
     static executor invoke = nullptr;
@@ -153,6 +163,7 @@ namespace eka2l1::arm::counted_js {
         return owner.last_space;
     }
     static std::size_t find(ARMul_State *cpu) {
+        EKA2L1_COUNTED_DIRECT_OBSERVE(1);
         if (cpu->Reg[15] < first_pc || cpu->Reg[15] > last_pc) return entries.size();
         const auto asid = cpu->instruction_cache_asid;
         const auto pc = cpu->Reg[15] | (cpu->TFlag ? 1u : 0u);
@@ -175,6 +186,9 @@ namespace eka2l1::arm::counted_js {
         return index;
     }
     void reset() {
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+        direct_js::reset();
+#endif
 #if defined(EKA2L1_COUNTED_REGION_JS)
         for (const auto &owner : caches) require_idle_regions(*owner);
 #endif
@@ -212,6 +226,9 @@ namespace eka2l1::arm::counted_js {
         invoke = diagnostic ? tracked : execute; enabled = true;
     }
     void begin_decode(ARMul_State *cpu) {
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+        direct_js::require_idle();
+#endif
         decoding = nullptr;
         if (!enabled || cpu->NumInstrsToExecute == 1) return;
         const auto index = find(cpu);
@@ -230,6 +247,9 @@ namespace eka2l1::arm::counted_js {
     }
     void finish_decode(ARMul_State *cpu, std::size_t ptr) {
         if (decoding != cpu) return;
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+        direct_js::invalidate();
+#endif
         auto *space = stamps(cpu);
         if (!space) { decoding = nullptr; return; }
         auto &proof = space->stamps[decoding_entry];
@@ -254,7 +274,12 @@ namespace eka2l1::arm::counted_js {
     }
     // Both executors use exactly the same original decoded visibility proof.
     template<bool check_budget = true, bool check_l1 = true>
-    static bool admit(ARMul_State *cpu, std::uint32_t prefix, std::size_t index, stamp *&accepted) {
+    static bool admit(ARMul_State *cpu, std::uint32_t prefix, std::size_t index, stamp *&accepted
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+            , address_space_cache **direct_space = nullptr
+#endif
+            ) {
+        EKA2L1_COUNTED_DIRECT_OBSERVE(2);
         const auto &item = entries[index];
         const auto stride = item.thumb ? 2u : 4u;
         if constexpr (check_budget)
@@ -263,6 +288,9 @@ namespace eka2l1::arm::counted_js {
         owner.pending_resume = false;
         auto *space = stamps(cpu);
         if (!space) return false;
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+        if (direct_space) *direct_space = space;
+#endif
         auto &proof = space->stamps[index];
         accepted = &proof;
         if (!proof.accepted || proof.generation != cpu->trans_gen) return false;
@@ -289,6 +317,9 @@ namespace eka2l1::arm::counted_js {
     }
 #if defined(EKA2L1_COUNTED_REGION_JS)
     bool bind_region(const region_js::member *members, std::size_t count, std::uint32_t function) {
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+        direct_js::require_idle();
+#endif
         if (!enabled || !members || count < 2 || count > region_js::member_limit
                 || function >= entry_limit || regions.size() >= entry_limit) return false;
         region_record record{function,static_cast<std::uint32_t>(count)};
@@ -313,6 +344,9 @@ namespace eka2l1::arm::counted_js {
         return true;
     }
     void clear_regions() {
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+        direct_js::require_idle();
+#endif
         for (const auto &owner : caches) require_idle_regions(*owner);
         for (auto &item : entries) item.region_index = ~std::uint32_t(0);
         regions.clear();
@@ -412,6 +446,9 @@ namespace eka2l1::arm::counted_js {
 #endif
     bool bind_loop(std::uint32_t asid, std::uint32_t pc, const std::uint32_t *words,
             std::size_t count, std::uint32_t function) {
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+        direct_js::require_idle();
+#endif
         if (!enabled || function >= entry_limit
             || !loop_js::pure_loop_words(words, count, pc)) return false;
         for (auto &item : entries) if (item.asid == asid && item.pc == pc && !item.thumb
@@ -424,6 +461,9 @@ namespace eka2l1::arm::counted_js {
     }
     bool bind_word_loop(std::uint32_t asid, std::uint32_t pc, const std::uint32_t *words,
             std::size_t count, std::uint32_t function) {
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+        direct_js::require_idle();
+#endif
         if (!enabled || function >= entry_limit
             || !loop_js::word_loop_words(words, count, pc)) return false;
         for (auto &item : entries) if (item.asid == asid && item.pc == pc && !item.thumb
@@ -445,6 +485,9 @@ namespace eka2l1::arm::counted_js {
         return false;
     }
     void clear_loops() {
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+        direct_js::require_idle();
+#endif
         for (auto &item : entries) {
             item.loop_function = ~std::uint32_t(0);
 #if defined(EKA2L1_PACKED_PIXEL_JS)
@@ -501,6 +544,69 @@ namespace eka2l1::arm::counted_js {
             | (cpu->CFlag << 29) | (cpu->VFlag << 28) | (cpu->TFlag << 5);
         return count | (count == item.words.size() ? 0x100u : 0u);
     }
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+    static std::uint32_t invoke_direct(ARMul_State *cpu, std::uint32_t prefix,
+            std::size_t index, address_space_cache &space) {
+        const auto &item = entries[index];
+        if (!direct_js::enabled || item.loop_function != ~std::uint32_t(0)
+            || item.region_index != ~std::uint32_t(0)
+            || (!item.thumb && item.words.size() == 5 && item.words.back() == 0x5afffffau)
+            || cpu->NumInstrsToExecute > 0xffffffffu || cpu->NumInstrsToExecute < prefix
+            || (!cpu->NirqSig && !(cpu->Cpsr & 0x80))) return 0;
+        const auto address = [](const auto *value) {
+            return static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(value));
+        };
+        auto *tlb = cpu->mem_cache_;
+        cpu->aot_tlb = tlb && tlb->page_bits == 12 ? address(tlb->entries) : 0;
+        auto *epoch = direct_js::epoch_address();
+        direct_js::invocation_context context{
+            address(space.stamps.data()), sizeof(stamp), static_cast<std::uint32_t>(entries.size()),
+            static_cast<std::uint32_t>(index), static_cast<std::uint32_t>(std::min<std::uint64_t>(
+                cpu->NumInstrsToExecute - prefix, direct_js::progress_limit)), prefix,
+            address(&cpu->trans_gen), address(cpu->parent()->code_mapping_generation),
+            address(&cpu->instruction_cache_asid), address(&cpu->mem_cache_), address(cpu->block_l1_cache),
+            sizeof(ARMul_State::block_l1_entry), offsetof(ARMul_State::block_l1_entry, ptr),
+            address(&cpu->NumInstrsToExecute), address(&cpu->NirqSig), address(&cpu->Cpsr), address(&cpu->TFlag),
+            address(&cpu->aot_tlb), address(&cpu->aot_code_begin), address(&cpu->aot_code_end), address(&cpu->aot_exit),
+            address(epoch), *epoch, address(entries.data()), sizeof(entry), offsetof(entry, loop_function),
+            offsetof(entry, region_index), static_cast<std::uint32_t>(index), 0, 0};
+        const auto budget = context.budget, lifetime = *epoch;
+        const auto result = direct_js::invoke(cpu, &context);
+        // Zero is permitted only before any function ran. Effects never retry.
+        if (!result) {
+            if (context.blocks || context.last_prefix) throw std::runtime_error("Zero after direct effects");
+            return 0;
+        }
+        const auto count = result & direct_js::progress_limit;
+        const bool complete = result & direct_js::complete_bit;
+        if (result & ~(direct_js::progress_limit | direct_js::complete_bit)
+            || !count || count > budget || !context.blocks
+            || context.blocks > direct_js::block_limit || context.blocks > count
+            || context.last_index >= entries.size() || *epoch != lifetime || context.epoch != lifetime)
+            throw std::runtime_error("Invalid direct execution progress");
+        const auto &final = entries[context.last_index];
+        if (!context.last_prefix || context.last_prefix > final.words.size()
+            || context.last_prefix > count || complete != (context.last_prefix == final.words.size()))
+            throw std::runtime_error("Invalid direct member progress");
+        if (!complete) {
+            if (cpu->Reg[15] != final.pc + context.last_prefix * (final.thumb ? 2u : 4u)
+                || bool(cpu->TFlag) != final.thumb)
+                throw std::runtime_error("Invalid direct original tail");
+            if (cpu->NumInstrsToExecute) {
+                const auto &proof = space.stamps[context.last_index];
+                if (proof.instructions.size() != final.words.size())
+                    throw std::runtime_error("Missing direct original tail");
+                auto &owner = cache(cpu);
+                owner.pending_resume = true; owner.resume_ptr = proof.instructions[context.last_prefix];
+            }
+        }
+        cpu->Cpsr = (cpu->Cpsr & 0x0fffffdfu) | (cpu->NFlag << 31) | (cpu->ZFlag << 30)
+            | (cpu->CFlag << 29) | (cpu->VFlag << 28) | (cpu->TFlag << 5);
+        if (tracking) { call_count += context.blocks; instruction_count += count; }
+        direct_js::record(count, context.blocks);
+        return result;
+    }
+#endif
     std::uint32_t execute(ARMul_State *cpu, std::uint32_t prefix) {
         if (!enabled) return 0;
         const auto index = find(cpu);
@@ -515,7 +621,12 @@ namespace eka2l1::arm::counted_js {
         const auto index = find(cpu);
         if (index == entries.size()) return 0;
         stamp *proof = nullptr;
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+        address_space_cache *direct_space = nullptr;
+        if (!admit(cpu, prefix, index, proof, &direct_space)) return 0;
+#else
         if (!admit(cpu, prefix, index, proof)) return 0;
+#endif
         const auto &item = entries[index];
         if (loop_js::enabled && item.loop_function != ~std::uint32_t(0)) {
             loop_admission admitted{item.pc, static_cast<std::uint32_t>(item.words.size()),
@@ -532,6 +643,12 @@ namespace eka2l1::arm::counted_js {
             if (progress) return progress;
         }
 #endif
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+        if (direct_js::enabled) {
+            const auto progress = invoke_direct(cpu, prefix, index, *direct_space);
+            if (progress) return progress;
+        }
+#endif
         const auto progress = invoke_generic(cpu, prefix, index, *proof);
         return (progress & 0xffu) | ((progress & 0x100u) ? loop_js::complete_bit : 0u);
     }
@@ -542,6 +659,9 @@ namespace eka2l1::arm::counted_js {
         owner.pending_resume = false; ptr = owner.resume_ptr; return true;
     }
     void forget(ARMul_State *cpu) {
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+        direct_js::invalidate();
+#endif
 #if defined(EKA2L1_COUNTED_REGION_JS)
         for (const auto &owner : caches) if (owner->cpu == cpu) require_idle_regions(*owner);
 #endif
