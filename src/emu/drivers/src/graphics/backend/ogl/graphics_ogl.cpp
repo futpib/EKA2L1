@@ -126,6 +126,7 @@ namespace eka2l1::drivers {
         , should_stop(false)
         , surface_update_needed(false)
         , new_surface(nullptr)
+        , new_surface_size_(-1, -1)
         , is_gles(false)
         , support_line_width_(true)
         , point_size(1.0)
