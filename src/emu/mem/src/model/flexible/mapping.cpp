@@ -109,6 +109,7 @@ namespace eka2l1::mem::flexible {
         const std::size_t page_size = control->page_size();
         std::uint8_t *starting_point_host = reinterpret_cast<std::uint8_t *>(obj->ptr()) + start_offset;
 
+        const auto *data_backing = obj->data_backing(permissions);
         page_table *faulty = nullptr;
 
         while (start_addr < end_addr) {
@@ -135,7 +136,7 @@ namespace eka2l1::mem::flexible {
             while (start_page_index < end_page_index) {
                 page_info *info = tbl->get_page_info(start_page_index & control->page_index_mask_);
                 if (info) {
-                    info->assign(starting_point_host, permissions);
+                    info->assign(starting_point_host, permissions, data_backing);
                 }
 
                 start_page_index++;

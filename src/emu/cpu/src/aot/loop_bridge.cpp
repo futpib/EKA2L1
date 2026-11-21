@@ -87,11 +87,17 @@ static std::uint32_t invoke_loop(ARMul_State *cpu, std::uint32_t function_index,
     return loop_call(cpu, function_index, context);
 }
 extern "C" {
+int eka2l1_semantic_configure(int diagnostics);
 EMSCRIPTEN_KEEPALIVE int eka2l1_loop_configure(int diagnostics) {
     eka2l1::arm::loop_js::reset();
     if ((diagnostics != 0 && diagnostics != 1) || !eka2l1::arm::counted_js::enabled) return -1;
     const int entries = loop_setup(eka2l1::arm::counted_js::entry_limit);
-    if (entries > 0) eka2l1::arm::loop_js::install(invoke_loop, diagnostics != 0);
+    if (entries > 0) {
+        eka2l1::arm::loop_js::install(invoke_loop, diagnostics != 0);
+        if (eka2l1_semantic_configure(diagnostics) < 0) {
+            eka2l1::arm::loop_js::reset(); return -1;
+        }
+    }
     else eka2l1::arm::loop_js::reset();
     return entries;
 }

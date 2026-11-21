@@ -2,6 +2,7 @@
 #include <cpu/aot/direct_js.h>
 #endif
 #include <cpu/aot/loop_js.h>
+#include <cpu/aot/semantic_js.h>
 #include <cpu/aot/counted_js.h>
 #include <cpu/dyncom/armstate.h>
 #include <cpu/arm_interface.h>
@@ -183,6 +184,7 @@ namespace eka2l1::arm::loop_js {
 #if defined(EKA2L1_PACKED_PIXEL_JS)
         configure_packed_pixel(false); pixel_profile_count = 0;
 #endif
+        semantic_js::reset();
         enabled = tracking = false; invoke = nullptr;
         call_count = instruction_count = 0;
         counted_js::clear_loops();
@@ -205,6 +207,13 @@ namespace eka2l1::arm::loop_js {
         if (proof.word_memory && !mapping) return 0;
         const auto remaining = static_cast<std::uint32_t>(std::min<std::uint64_t>(
             cpu->NumInstrsToExecute - prefix, progress_limit));
+        if (proof.semantic) {
+            publish(cpu);
+            const auto count = semantic_js::execute(cpu, remaining, proof.function & ~semantic_js::function_bit);
+            if (!count) return 0;
+            publish(cpu);
+            return count | complete_bit;
+        }
         const auto key = cpu->make_instruction_cache_key(cpu->Reg[15]);
         const auto &slot = cpu->block_l1_cache[ARMul_State::block_l1_index(key)];
         const auto address = [](const auto *value) {

@@ -91,6 +91,22 @@ namespace eka2l1::mem {
             return true;
         };
 
+        cpu->resolve_data = [this](const vm_address addr, bool write, arm::core::data_mapping &view) {
+            view = {};
+            if (conf_->log_read || (write && conf_->log_write)) return false;
+            view.address_space = current_addr_space();
+            const auto *page = manager_->get_page_info(view.address_space, addr);
+            const auto required = write ? prot_read | prot_write : prot_read;
+            if (!page || !page->host_addr || !page->data_backing || !page->data_backing->load(std::memory_order_acquire)
+                || external_executable_overlap(page->host_addr, manager_->page_size())
+                || (page->perm & required) != required
+                || (page->perm & prot_exec)) return false;
+            const auto offset = addr & manager_->offset_mask_;
+            view.bytes = static_cast<std::uint8_t *>(page->host_addr) + offset;
+            view.size = manager_->page_size() - offset;
+            return true;
+        };
+
         cpu->write_8bit = [this](const vm_address addr, std::uint8_t *data) { return write_8bit_data(addr, data); };
         cpu->write_16bit = [this](const vm_address addr, std::uint16_t *data) { return write_16bit_data(addr, data); };
         cpu->write_32bit = [this](const vm_address addr, std::uint32_t *data) { return write_32bit_data(addr, data); };

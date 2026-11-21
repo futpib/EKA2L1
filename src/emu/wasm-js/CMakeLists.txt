@@ -1,9 +1,11 @@
 add_executable(eka2l1_js main.cpp platform.cpp)
+set(EKA2L1_JS_EXPORTED_FUNCTIONS "['_malloc','_free']")
 if(EKA2L1_COUNTED_JS)
     target_compile_definitions(eka2l1_js PRIVATE EKA2L1_COUNTED_JS=1)
 endif()
 if(EKA2L1_COUNTED_LOOP_JS)
     target_compile_definitions(eka2l1_js PRIVATE EKA2L1_COUNTED_LOOP_JS=1)
+    set(EKA2L1_JS_EXPORTED_FUNCTIONS "['_malloc','_free','_eka2l1_semantic_configure','_eka2l1_semantic_resolve']")
 endif()
 if(EKA2L1_COUNTED_DIRECT_JS)
     target_compile_definitions(eka2l1_js PRIVATE EKA2L1_COUNTED_DIRECT_JS=1)
@@ -42,7 +44,7 @@ target_link_options(eka2l1_js PRIVATE
     "SHELL:-s MIN_WEBGL_VERSION=2"
     "SHELL:-s MAX_WEBGL_VERSION=2"
     "SHELL:-s EXPORTED_RUNTIME_METHODS=['FS','ccall','cwrap','HEAPU8','HEAP16','UTF8ToString']"
-    "SHELL:-s EXPORTED_FUNCTIONS=['_malloc','_free']"
+    "SHELL:-s EXPORTED_FUNCTIONS=${EKA2L1_JS_EXPORTED_FUNCTIONS}"
     "SHELL:--preload-file ${PROJECT_SOURCE_DIR}/src/emu/drivers/resources/gles/@resources/"
     "SHELL:--preload-file ${PROJECT_SOURCE_DIR}/src/emu/drivers/resources/upscale/@resources/upscale/"
     "SHELL:--preload-file ${PROJECT_SOURCE_DIR}/src/emu/drivers/resources/defaultbank.sf2@resources/defaultbank.sf2"

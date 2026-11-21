@@ -23,6 +23,7 @@ namespace eka2l1::arm::counted_js {
         std::uint32_t pc, words, function, host;
         bool word_memory;
         const std::size_t *instructions;
+        bool semantic = false;
 #if defined(EKA2L1_PACKED_PIXEL_JS)
         const loop_js::packed_pixel_pattern *packed_pixel = nullptr;
 #endif
@@ -31,6 +32,9 @@ namespace eka2l1::arm::counted_js {
                    std::size_t count, std::uint32_t function);
     bool bind_word_loop(std::uint32_t asid, std::uint32_t pc, const std::uint32_t *words,
                         std::size_t count, std::uint32_t function);
+    bool bind_semantic(std::uint32_t asid, std::uint32_t pc, const std::uint32_t *words,
+                       std::size_t count, std::uint32_t function);
+    void clear_semantics();
     void clear_loops();
     bool admit_loop(ARMul_State *cpu, std::uint32_t prefix, loop_admission &result);
     void resume_loop(ARMul_State *cpu, const loop_admission &proof, std::uint32_t remainder);

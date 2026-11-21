@@ -15,6 +15,7 @@
 #endif
 #if defined(EKA2L1_COUNTED_LOOP_JS)
 #include <cpu/aot/loop_js.h>
+#include <cpu/aot/semantic_js.h>
 #endif
 #include <cpu/dyncom/armstate.h>
 #include <cpu/dyncom/arm_dyncom.h>
@@ -186,6 +187,9 @@ namespace eka2l1::arm::counted_js {
         return index;
     }
     void reset() {
+#if defined(EKA2L1_COUNTED_LOOP_JS)
+        semantic_js::reset();
+#endif
 #if defined(EKA2L1_COUNTED_DIRECT_JS)
         direct_js::reset();
 #endif
@@ -484,6 +488,27 @@ namespace eka2l1::arm::counted_js {
         }
         return false;
     }
+    bool bind_semantic(std::uint32_t asid, std::uint32_t pc, const std::uint32_t *words,
+            std::size_t count, std::uint32_t function) {
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+        direct_js::require_idle();
+#endif
+        if (!enabled || !words || !count || function >= 0x40000000u) return false;
+        for (auto &item : entries) if (item.asid == asid && item.pc == pc && !item.thumb
+                && item.words.size() == count && std::equal(item.words.begin(), item.words.end(), words)) {
+            if (item.loop_function != ~std::uint32_t(0) || item.region_index != ~std::uint32_t(0)) return false;
+            item.loop_function = function | 0x40000000u;
+            return true;
+        }
+        return false;
+    }
+    void clear_semantics() {
+#if defined(EKA2L1_COUNTED_DIRECT_JS)
+        direct_js::require_idle();
+#endif
+        for (auto &item : entries) if (item.loop_function != ~std::uint32_t(0)
+                && (item.loop_function & 0x40000000u)) item.loop_function = ~std::uint32_t(0);
+    }
     void clear_loops() {
 #if defined(EKA2L1_COUNTED_DIRECT_JS)
         direct_js::require_idle();
@@ -511,6 +536,7 @@ namespace eka2l1::arm::counted_js {
 #if defined(EKA2L1_PACKED_PIXEL_JS)
         if (item.packed_pixel < packed_pixels.size()) result.packed_pixel = &packed_pixels[item.packed_pixel];
 #endif
+        result.semantic = (result.function & 0x40000000u) != 0;
         return true;
     }
     void resume_loop(ARMul_State *cpu, const loop_admission &proof, std::uint32_t remainder) {
@@ -644,7 +670,10 @@ namespace eka2l1::arm::counted_js {
 #if defined(EKA2L1_PACKED_PIXEL_JS)
             if (item.packed_pixel < packed_pixels.size()) admitted.packed_pixel = &packed_pixels[item.packed_pixel];
 #endif
-            return loop_js::execute_admitted(cpu, prefix, admitted);
+            admitted.semantic = (admitted.function & semantic_js::function_bit) != 0;
+            const auto progress = loop_js::execute_admitted(cpu, prefix, admitted);
+            if (progress || !admitted.semantic) return progress;
+
         }
 #if defined(EKA2L1_COUNTED_REGION_JS)
         if (region_js::enabled && item.region_index != ~std::uint32_t(0)) {
@@ -668,6 +697,9 @@ namespace eka2l1::arm::counted_js {
         owner.pending_resume = false; ptr = owner.resume_ptr; return true;
     }
     void forget(ARMul_State *cpu) {
+#if defined(EKA2L1_COUNTED_LOOP_JS)
+        semantic_js::forget(cpu);
+#endif
 #if defined(EKA2L1_COUNTED_DIRECT_JS)
         direct_js::invalidate();
 #endif

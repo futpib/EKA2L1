@@ -43,6 +43,16 @@ namespace eka2l1::mem::flexible {
                     page_count);
             }
         }
+        data_backing_ = !external_;
+    }
+
+    const std::atomic<bool> *memory_object::data_backing(prot permissions) {
+        if (permissions & prot_exec) {
+            data_backing_ = false;
+            if (external_) record_external_executable(data_, page_occupied_ * control_->page_size());
+            mapping_changed();
+        }
+        return &data_backing_;
     }
 
     memory_object::~memory_object() {

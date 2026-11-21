@@ -99,7 +99,7 @@ namespace eka2l1::mem {
                         base_ + (poff << control_->page_size_bits_) + pt_base
                             - arm::aot::memory_experiment::direct_begin < previous_direct_capacity))
                         std::memset(host_page, 0, psize);
-                    pt->pages_[poff].assign(host_page, permission_);
+                    pt->pages_[poff].assign(host_page, permission_, &data_backing_);
 
                     // Increase committed size.
                     committed_ += psize;
@@ -431,6 +431,8 @@ namespace eka2l1::mem {
         std::fill(page_tabs_.begin(), page_tabs_.end(), 0xFFFFFFFF);
 
         permission_ = create_info.perm;
+        data_backing_ = !is_external_host && !(permission_ & prot_exec);
+        if (is_external_host && (permission_ & prot_exec)) record_external_executable(host_base_, max_size_);
 
         if (create_info.flags & MEM_MODEL_CHUNK_TYPE_DISCONNECT) {
             page_bma_ = std::make_unique<common::bitmap_allocator>(max_size_ >> control_->page_size_bits_);

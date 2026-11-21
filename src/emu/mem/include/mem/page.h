@@ -25,6 +25,9 @@
 #include <array>
 #include <atomic>
 #include <memory>
+#include <limits>
+#include <algorithm>
+#include <mutex>
 
 namespace eka2l1::mem {
     enum : uint32_t {
@@ -126,14 +129,52 @@ namespace eka2l1::mem {
         }
     }
 
+    // External executable wrappers may alias an otherwise owned data object.
+    // Keep a bounded conservative union: retirement can only over-reject a
+    // future fast view, never grant access to a formerly executable backing.
+    struct executable_backing_span { std::uintptr_t begin, end; };
+    inline std::array<executable_backing_span, 64> external_executable_backings{};
+    inline std::size_t external_executable_count = 0;
+    inline bool external_executable_unknown = false;
+    inline std::mutex external_executable_mutex;
+    inline void record_external_executable(void *host, std::size_t bytes) {
+        const std::lock_guard<std::mutex> guard(external_executable_mutex);
+        const auto begin = reinterpret_cast<std::uintptr_t>(host);
+        if (!host || !bytes || begin > std::numeric_limits<std::uintptr_t>::max() - bytes) {
+            external_executable_unknown = true; mapping_changed(); return;
+        }
+        auto first = begin, last = begin + bytes;
+        for (std::size_t i = 0; i < external_executable_count;) {
+            const auto row = external_executable_backings[i];
+            if (first <= row.end && row.begin <= last) {
+                first = std::min(first, row.begin); last = std::max(last, row.end);
+                external_executable_backings[i] = external_executable_backings[--external_executable_count];
+            } else ++i;
+        }
+        if (external_executable_count == external_executable_backings.size()) external_executable_unknown = true;
+        else external_executable_backings[external_executable_count++] = {first, last};
+        mapping_changed();
+    }
+    inline bool external_executable_overlap(const void *host, std::size_t bytes) {
+        const std::lock_guard<std::mutex> guard(external_executable_mutex);
+        const auto begin = reinterpret_cast<std::uintptr_t>(host);
+        if (external_executable_unknown || begin > std::numeric_limits<std::uintptr_t>::max() - bytes) return true;
+        for (std::size_t i = 0; i < external_executable_count; ++i) {
+            const auto row = external_executable_backings[i];
+            if (begin < row.end && row.begin < begin + bytes) return true;
+        }
+        return false;
+    }
+
     struct page_info {
         prot perm; ///< The permission of this page.
+        const std::atomic<bool> *data_backing = nullptr; ///< Owned backing, never mapped executable.
         void *host_addr; ///< Pointer to the host memory chunk. Nullptr for unoccupied
 
-        void assign(void *host, prot permission) {
-            host_addr = host; perm = permission; mapping_changed();
+        void assign(void *host, prot permission, const std::atomic<bool> *backing = nullptr) {
+            host_addr = host; perm = permission; data_backing = backing; mapping_changed();
         }
-        void clear() { host_addr = nullptr; mapping_changed(); }
+        void clear() { host_addr = nullptr; data_backing = nullptr; mapping_changed(); }
         bool occupied() const {
             return host_addr;
         }

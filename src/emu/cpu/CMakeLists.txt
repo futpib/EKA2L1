@@ -171,7 +171,10 @@ if(EKA2L1_COOPERATIVE_JS AND EKA2L1_COUNTED_LOOP_JS)
         include/cpu/aot/loop_js.h
         include/cpu/aot/loop_pattern.h
         src/aot/loop_js.cpp
-        src/aot/loop_bridge.cpp)
+        src/aot/loop_bridge.cpp
+        include/cpu/aot/semantic_js.h
+        src/aot/semantic_js.cpp
+        src/aot/semantic_bridge.cpp)
 endif()
 
 if(EKA2L1_COOPERATIVE_JS AND EKA2L1_PACKED_PIXEL_JS)

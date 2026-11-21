@@ -120,6 +120,15 @@ namespace eka2l1::arm {
             std::size_t size = 0;
         };
         std::function<bool(address, code_mapping &)> resolve_code;
+        // Callback-free ordinary RAM only. The view ends at the current page;
+        // mapping generations and the owning dispatch bound its lifetime.
+        struct data_mapping {
+            std::uint32_t address_space = 0;
+            std::uint8_t *bytes = nullptr;
+            std::size_t size = 0;
+        };
+        std::function<bool(address, bool, data_mapping &)> resolve_data;
+
         // Experimental view preparation. Direct backing is shared; leave does
         // not copy guest stores. Mapping notifications are consumed at entry
         // from the scheduler and when a host callback returns.

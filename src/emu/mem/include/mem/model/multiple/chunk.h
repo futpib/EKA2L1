@@ -24,6 +24,7 @@
 #include <mem/model/section.h>
 
 #include <memory>
+#include <atomic>
 #include <vector>
 
 namespace eka2l1::mem {
@@ -61,6 +62,7 @@ namespace eka2l1::mem {
         bool is_local{ false };
         bool is_code{ false };
         bool is_external_host{ false };
+        std::atomic<bool> data_backing_{ false };
         bool is_direct_host{ false };
         bool is_sparse_host{ false };
         bool clear_external_host_on_commit_{ false };

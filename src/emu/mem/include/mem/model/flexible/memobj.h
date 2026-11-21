@@ -24,6 +24,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <vector>
+#include <atomic>
 
 namespace eka2l1::mem {
     class control_base;
@@ -42,6 +43,7 @@ namespace eka2l1::mem::flexible {
 
         control_base *control_;
         bool external_;
+        std::atomic<bool> data_backing_{false};
 
         std::vector<mapping *> mappings_;
         page_array page_arr_;
@@ -49,6 +51,8 @@ namespace eka2l1::mem::flexible {
     public:
         explicit memory_object(control_base *ctrl, const std::size_t page_count, void *external_host);
         ~memory_object();
+
+        const std::atomic<bool> *data_backing(prot permissions);
 
         void *ptr() {
             return data_;
