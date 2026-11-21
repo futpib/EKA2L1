@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cpu/aot/palette_pixel_pattern.h>
+#include <cpu/aot/blend_pixel_pattern.h>
 namespace eka2l1::arm::loop_js {
     inline bool original_loop_words(const std::uint32_t *words, std::size_t count,
             std::uint32_t pc, bool word_memory) {
@@ -36,7 +37,8 @@ namespace eka2l1::arm::loop_js {
     inline bool word_loop_words(const std::uint32_t *words, std::size_t count, std::uint32_t pc) {
         if (original_loop_words(words, count, pc, true)) return true;
         palette_pixel_pattern pattern;
+        blend_pixel_pattern blend;
         return (pc & 3u) == 0 && count * 4 <= 4096 - (pc & 4095u)
-            && recognize_palette_pixel(words, count, pattern);
+            && (recognize_palette_pixel(words, count, pattern) || recognize_blend_pixel(words, count, blend));
     }
 }

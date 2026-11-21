@@ -38,6 +38,7 @@ namespace eka2l1::arm::counted_js {
 #if defined(EKA2L1_PACKED_PIXEL_JS)
         std::uint32_t packed_pixel = ~std::uint32_t(0);
         std::uint32_t palette_pixel = ~std::uint32_t(0);
+        std::uint32_t blend_pixel = ~std::uint32_t(0);
 #endif
         std::uint32_t region_index = ~std::uint32_t(0), region_member = 0;
     };
@@ -93,6 +94,7 @@ namespace eka2l1::arm::counted_js {
 #if defined(EKA2L1_PACKED_PIXEL_JS)
     static std::vector<loop_js::packed_pixel_pattern> packed_pixels;
     static std::vector<loop_js::palette_pixel_pattern> palette_pixels;
+    static std::vector<loop_js::blend_pixel_pattern> blend_pixels;
 #endif
 #if defined(EKA2L1_COUNTED_REGION_JS)
     struct region_record {
@@ -201,7 +203,7 @@ namespace eka2l1::arm::counted_js {
         enabled = false; invoke = untracked = nullptr; tracking = false; decoding = nullptr; last = nullptr;
         caches.clear(); stamp_spaces = 0; entries.clear(); first_pc = last_pc = 0;
 #if defined(EKA2L1_PACKED_PIXEL_JS)
-        packed_pixels.clear(); palette_pixels.clear();
+        packed_pixels.clear(); palette_pixels.clear(); blend_pixels.clear();
 #endif
         indices.clear(); shared_indices.clear();
 #if defined(EKA2L1_COUNTED_REGION_JS)
@@ -316,8 +318,22 @@ namespace eka2l1::arm::counted_js {
         // instruction visibility in both routes, without re-reading new bytes.
         if constexpr (check_l1) {
             const auto key = cpu->make_instruction_cache_key(item.pc);
-            const auto &slot = cpu->block_l1_cache[ARMul_State::block_l1_index(key)];
-            if (slot.key != key || slot.ptr != proof.ptr) return false;
+            auto &slot = cpu->block_l1_cache[ARMul_State::block_l1_index(key)];
+            if (slot.key != key) {
+#if defined(EKA2L1_COUNTED_LOOP_JS)
+                if (!loop_js::enabled || item.loop_function == ~std::uint32_t(0)
+                    || (item.loop_function & semantic_js::function_bit)) return false;
+                // Original branch links can enter this decoded block without
+                // refilling a colliding L1 slot. Recover only the identical
+                // authenticated entry from the full ASID/PC/T cache key.
+                const auto found = cpu->instruction_cache.find(key);
+                if (found == cpu->instruction_cache.end() || found->second != proof.ptr) return false;
+                slot = {key, found->second};
+#else
+                return false;
+#endif
+            }
+            if (slot.ptr != proof.ptr) return false;
         }
         return true;
     }
@@ -489,6 +505,10 @@ namespace eka2l1::arm::counted_js {
             if (loop_js::recognize_palette_pixel(words, count, palette)) {
                 item.palette_pixel = palette_pixels.size(); palette_pixels.push_back(palette);
             }
+            loop_js::blend_pixel_pattern blend;
+            if (loop_js::recognize_blend_pixel(words, count, blend)) {
+                item.blend_pixel = blend_pixels.size(); blend_pixels.push_back(blend);
+            }
 #endif
             return true;
         }
@@ -524,10 +544,11 @@ namespace eka2l1::arm::counted_js {
 #if defined(EKA2L1_PACKED_PIXEL_JS)
             item.packed_pixel = ~std::uint32_t(0);
             item.palette_pixel = ~std::uint32_t(0);
+            item.blend_pixel = ~std::uint32_t(0);
 #endif
         }
 #if defined(EKA2L1_PACKED_PIXEL_JS)
-        packed_pixels.clear(); palette_pixels.clear();
+        packed_pixels.clear(); palette_pixels.clear(); blend_pixels.clear();
 #endif
     }
     bool admit_loop(ARMul_State *cpu, std::uint32_t prefix, loop_admission &result) {
@@ -543,6 +564,7 @@ namespace eka2l1::arm::counted_js {
 #if defined(EKA2L1_PACKED_PIXEL_JS)
         if (item.packed_pixel < packed_pixels.size()) result.packed_pixel = &packed_pixels[item.packed_pixel];
         if (item.palette_pixel < palette_pixels.size()) result.palette_pixel = &palette_pixels[item.palette_pixel];
+        if (item.blend_pixel < blend_pixels.size()) result.blend_pixel = &blend_pixels[item.blend_pixel];
 #endif
         result.semantic = (result.function & 0x40000000u) != 0;
         return true;
@@ -678,6 +700,7 @@ namespace eka2l1::arm::counted_js {
 #if defined(EKA2L1_PACKED_PIXEL_JS)
             if (item.packed_pixel < packed_pixels.size()) admitted.packed_pixel = &packed_pixels[item.packed_pixel];
             if (item.palette_pixel < palette_pixels.size()) admitted.palette_pixel = &palette_pixels[item.palette_pixel];
+            if (item.blend_pixel < blend_pixels.size()) admitted.blend_pixel = &blend_pixels[item.blend_pixel];
 #endif
             admitted.semantic = (admitted.function & semantic_js::function_bit) != 0;
             const auto progress = loop_js::execute_admitted(cpu, prefix, admitted);

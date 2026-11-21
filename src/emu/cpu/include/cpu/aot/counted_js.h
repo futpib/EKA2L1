@@ -5,7 +5,7 @@
 struct ARMul_State;
 namespace eka2l1::arm::direct_js { struct configuration_layout; }
 namespace eka2l1::arm::region_js { struct member; }
-namespace eka2l1::arm::loop_js { struct packed_pixel_pattern; struct palette_pixel_pattern; }
+namespace eka2l1::arm::loop_js { struct packed_pixel_pattern; struct palette_pixel_pattern; struct blend_pixel_pattern; }
 namespace eka2l1::arm::counted_js {
     inline constexpr unsigned entry_limit = 5120;
     using executor = std::uint32_t (*)(ARMul_State *, std::uint32_t);
@@ -27,6 +27,7 @@ namespace eka2l1::arm::counted_js {
 #if defined(EKA2L1_PACKED_PIXEL_JS)
         const loop_js::packed_pixel_pattern *packed_pixel = nullptr;
         const loop_js::palette_pixel_pattern *palette_pixel = nullptr;
+        const loop_js::blend_pixel_pattern *blend_pixel = nullptr;
 #endif
     };
     bool bind_loop(std::uint32_t asid, std::uint32_t pc, const std::uint32_t *words,

@@ -25,6 +25,13 @@ namespace eka2l1::arm::loop_js {
     std::uint64_t palette_pixel_aligned_iterations();
     std::uint64_t palette_pixel_unaligned_iterations();
     std::uint64_t palette_pixel_declines();
+    std::uint64_t blend_pixel_calls();
+    std::uint64_t blend_pixel_iterations();
+    std::uint64_t blend_pixel_instructions();
+    std::uint64_t blend_pixel_additive_iterations();
+    std::uint64_t blend_pixel_subtractive_iterations();
+    std::uint64_t blend_pixel_declines();
+
 #endif
     void reset();
     void install(executor execute, bool diagnostics = false);

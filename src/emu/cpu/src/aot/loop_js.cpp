@@ -10,6 +10,7 @@
 #if defined(EKA2L1_PACKED_PIXEL_JS)
 #include <cpu/aot/packed_pixel_pattern.h>
 #include <cpu/aot/palette_pixel_pattern.h>
+#include <cpu/aot/blend_pixel_pattern.h>
 #include <array>
 #include <atomic>
 #include <cstring>
@@ -33,6 +34,13 @@ namespace eka2l1::arm::loop_js {
     static std::uint64_t pixel_call_count = 0, pixel_iteration_count = 0, pixel_decline_count = 0;
     static std::uint64_t palette_call_count = 0, palette_iteration_count = 0, palette_instruction_count = 0;
     static std::uint64_t palette_aligned_count = 0, palette_unaligned_count = 0, palette_decline_count = 0;
+    static std::uint64_t blend_call_count = 0, blend_iteration_count = 0, blend_instruction_count = 0;
+    static std::uint64_t blend_additive_count = 0, blend_subtractive_count = 0, blend_decline_count = 0;
+    struct blend_result {
+        std::array<std::uint32_t, 6> work;
+        std::uint32_t carry;
+    };
+    static_assert(sizeof(blend_result) == 28 && offsetof(blend_result, carry) == 24);
     struct palette_result {
         std::uint32_t value;
         std::array<std::uint16_t, 8> colors;
@@ -121,6 +129,34 @@ namespace eka2l1::arm::loop_js {
         halves[colors + 4] = e; halves[colors + 5] = f;
         halves[colors + 6] = g; halves[colors + 7] = h;
     });
+    EM_JS(void, blend_words, (unsigned source, unsigned palette, unsigned destination,
+            unsigned iterations, unsigned subtract, blend_result *result), {
+        const bytes = HEAPU8, halves = HEAPU16, words = HEAPU32, table = palette >>> 1;
+        let src = source, dst = destination >>> 1;
+        let a = 0, packed = 0, c = 0, d = 0, e = 0, f = 0, carry = 0;
+        for (let n = 0; n < iterations; ++n) for (let pixel = 0; pixel < 2; ++pixel) {
+            // Retain the second original byte load AFTER the first halfword store.
+            const value = bytes[src], index = pixel ? value >>> 4 : value & 15;
+            if (pixel) ++src;
+            const color = halves[table + index], old = halves[dst];
+            const x = color & 31, y = (color >>> 6) & 31, z = color >>> 11;
+            d = old & 31; e = (old >>> 6) & 31; f = old >>> 11;
+            let b;
+            if (subtract) {
+                a = d - x; b = e - y; c = f - z; carry = c >= 0 ? 1 : 0;
+                a = a < 0 ? 0 : a; b = b < 0 ? 0 : b; c = c < 0 ? 0 : c;
+            } else {
+                a = x + d; b = y + e; c = z + f; carry = c >= 31 ? 1 : 0;
+                a = a > 31 ? 31 : a; b = b > 31 ? 31 : b; c = c > 31 ? 31 : c;
+            }
+            packed = a | (b << 6) | (c << 11);
+            halves[dst++] = packed;
+        }
+        const at = result >>> 2;
+        words[at] = a; words[at + 1] = packed; words[at + 2] = c;
+        words[at + 3] = d; words[at + 4] = e; words[at + 5] = f;
+        words[at + 6] = carry;
+    });
 #else
     static int prepare_pixel_tables(const std::uint32_t *, unsigned) { return 1; }
     static void clear_pixel_tables() {}
@@ -166,6 +202,31 @@ namespace eka2l1::arm::loop_js {
             destination += stride;
         }
     }
+    static void blend_words(std::uintptr_t source, std::uintptr_t palette, std::uintptr_t destination,
+            unsigned iterations, unsigned subtract, blend_result *result) {
+        for (unsigned n = 0; n < iterations; ++n) for (unsigned pixel = 0; pixel < 2; ++pixel) {
+            std::uint8_t value; std::uint16_t color, old;
+            std::memcpy(&value, reinterpret_cast<const void *>(source), 1);
+            const unsigned index = pixel ? value >> 4 : value & 15;
+            if (pixel) ++source;
+            std::memcpy(&color, reinterpret_cast<const void *>(palette + index * 2), 2);
+            std::memcpy(&old, reinterpret_cast<const void *>(destination), 2);
+            auto &w = result->work;
+            const unsigned x = color & 31, y = (color >> 6) & 31, z = color >> 11;
+            w[3] = old & 31; w[4] = (old >> 6) & 31; w[5] = old >> 11;
+            unsigned green;
+            if (subtract) {
+                w[0] = w[3] >= x ? w[3] - x : 0; green = w[4] >= y ? w[4] - y : 0;
+                w[2] = w[5] >= z ? w[5] - z : 0; result->carry = w[5] >= z;
+            } else {
+                w[0] = std::min(31u, x + w[3]); green = std::min(31u, y + w[4]);
+                w[2] = std::min(31u, z + w[5]); result->carry = z + w[5] >= 31;
+            }
+            w[1] = w[0] | (green << 6) | (w[2] << 11);
+            const auto packed = static_cast<std::uint16_t>(w[1]);
+            std::memcpy(reinterpret_cast<void *>(destination), &packed, 2); destination += 2;
+        }
+    }
 #endif
     int configure_packed_pixel(bool on) {
 #if defined(EKA2L1_COUNTED_DIRECT_JS)
@@ -176,6 +237,8 @@ namespace eka2l1::arm::loop_js {
         pixel_call_count = pixel_iteration_count = pixel_decline_count = 0;
         palette_call_count = palette_iteration_count = palette_instruction_count = 0;
         palette_aligned_count = palette_unaligned_count = palette_decline_count = 0;
+        blend_call_count = blend_iteration_count = blend_instruction_count = 0;
+        blend_additive_count = blend_subtractive_count = blend_decline_count = 0;
         if (on && (!enabled || !counted_js::enabled)) { clear_pixel_tables(); return -1; }
         if (on && prepare_pixel_tables(pixel_profiles.data(), pixel_profile_count) != 1) {
             clear_pixel_tables(); return -1;
@@ -347,6 +410,105 @@ namespace eka2l1::arm::loop_js {
         }
         return iterations * proof.words | complete_bit;
     }
+    static std::uint32_t decline_blend() {
+        if (tracking) ++blend_decline_count;
+        return 0;
+    }
+    static std::uint32_t execute_blend_pixel(ARMul_State *cpu, unsigned prefix, unsigned remaining,
+            const counted_js::loop_admission &proof, bool &handoff) {
+        const auto &p = *proof.blend_pixel;
+        auto *core = cpu->parent();
+        auto *mapping = core->code_mapping_generation;
+        if (!mapping || !core->resolve_data || cpu->Reg[p.mask] != 31 || cpu->InBigEndianMode()
+            || cpu->TFlag || cpu->aot_exit || (!cpu->NirqSig && !(cpu->Cpsr & 0x80))) return decline_blend();
+        const auto source = cpu->Reg[p.source], destination = cpu->Reg[p.destination];
+        const auto palette = cpu->Reg[p.palette], before = cpu->Reg[p.counter];
+        if ((destination | palette) & 1u || palette > 0xffffffffu - 32u
+            || (palette & 4095u) > 4096u - 32u) return decline_blend();
+        auto iterations = std::min(remaining / proof.words, pixel_chunk_limit);
+        // Initial zero follows the original decrement wraparound; quantum/page limits remain bounded.
+        if (before) iterations = std::min(iterations, before);
+        iterations = std::min(iterations, 4096u - (source & 4095u));
+        iterations = std::min(iterations, (4096u - (destination & 4095u)) / 4u);
+        if (!iterations || source > 0xffffffffu - iterations
+            || destination > 0xffffffffu - iterations * 4u) return decline_blend();
+        const unsigned source_bytes = iterations, destination_bytes = iterations * 4u;
+        const auto generation = cpu->trans_gen;
+        const auto asid = cpu->instruction_cache_asid;
+        const auto epoch = mapping->load(std::memory_order_acquire);
+        const auto budget = cpu->NumInstrsToExecute;
+        const auto registers = cpu->Reg;
+        const std::array<std::uint32_t, 7> flags{cpu->Cpsr, cpu->NFlag, cpu->ZFlag,
+            cpu->CFlag, cpu->VFlag, cpu->TFlag, cpu->shifter_carry_out};
+        const auto *tlb = cpu->mem_cache_;
+        const auto unchanged = [&]() {
+            return cpu->trans_gen == generation && cpu->instruction_cache_asid == asid
+                && core->code_mapping_generation == mapping
+                && mapping->load(std::memory_order_acquire) == epoch && cpu->NumInstrsToExecute == budget
+                && cpu->Reg == registers && cpu->mem_cache_ == tlb
+                && flags == std::array<std::uint32_t, 7>{cpu->Cpsr, cpu->NFlag, cpu->ZFlag,
+                    cpu->CFlag, cpu->VFlag, cpu->TFlag, cpu->shifter_carry_out}
+                && cpu->Reg[15] == proof.pc && !cpu->InBigEndianMode() && !cpu->aot_exit
+                && (cpu->NirqSig || (cpu->Cpsr & 0x80));
+        };
+        const auto refuse = [&]() { handoff = !unchanged(); return decline_blend(); };
+        const auto span = [&](std::uint32_t address, unsigned bytes, bool write) -> std::uintptr_t {
+            eka2l1::arm::core::data_mapping view{};
+            if (!core->resolve_data(address, write, view) || view.address_space != asid
+                || !view.bytes || view.size < bytes) return 0;
+            const auto host = reinterpret_cast<std::uintptr_t>(view.bytes);
+            return host <= std::numeric_limits<std::uintptr_t>::max() - bytes ? host : 0;
+        };
+        const auto src = span(source, source_bytes, false);
+        if (!src || !unchanged()) return refuse();
+        const auto table = span(palette, 32, false);
+        if (!table || !unchanged()) return refuse();
+        const auto dst_read = span(destination, destination_bytes, false);
+        if (!dst_read || !unchanged()) return refuse();
+        const auto dst = span(destination, destination_bytes, true);
+        if (!dst || !unchanged()) return refuse();
+        blend_result result{};
+        const auto unsafe = [&](std::uintptr_t host, unsigned bytes) {
+            return pixel_overlaps(host, bytes, reinterpret_cast<std::uintptr_t>(cpu), sizeof(*cpu))
+                || pixel_overlaps(host, bytes, reinterpret_cast<std::uintptr_t>(core), sizeof(*core))
+                || pixel_overlaps(host, bytes, proof.host, proof.words * 4u)
+                || pixel_overlaps(host, bytes, reinterpret_cast<std::uintptr_t>(&proof), sizeof(proof))
+                || pixel_overlaps(host, bytes, reinterpret_cast<std::uintptr_t>(&p), sizeof(p))
+                || pixel_overlaps(host, bytes, reinterpret_cast<std::uintptr_t>(&result), sizeof(result));
+        };
+        if (dst != dst_read || (table | dst) & 1u
+            || unsafe(src, source_bytes) || unsafe(table, 32) || unsafe(dst, destination_bytes)
+            || pixel_overlaps(src, source_bytes, table, 32)
+            || pixel_overlaps(src, source_bytes, dst, destination_bytes)
+            || pixel_overlaps(table, 32, dst, destination_bytes)
+            || budget < prefix || budget - prefix < iterations * proof.words) return decline_blend();
+        // All accesses are owned ordinary RAM with stable read/write authority.
+        // Keep byte, palette, destination-read, destination-write order for each pixel.
+        blend_words(src, table, dst, iterations, p.subtract, &result);
+        for (unsigned n = 0; n < p.work.size(); ++n) cpu->Reg[p.work[n]] = result.work[n];
+        cpu->Reg[p.source] = source + source_bytes;
+        cpu->Reg[p.destination] = destination + destination_bytes;
+        const auto last_before = before - iterations + 1u, after = before - iterations;
+        cpu->Reg[p.counter] = after;
+        cpu->NFlag = after >> 31; cpu->ZFlag = after == 0;
+        cpu->CFlag = last_before != 0; cpu->VFlag = last_before == 0x80000000u;
+        // SUBS immediate1 copies the last channel CMP/SUBS carry to shifter scratch
+        // before replacing architectural NZCV with the counter subtraction flags.
+        cpu->shifter_carry_out = result.carry;
+        cpu->Reg[15] = proof.pc + (after == 0 ? proof.words * 4u : 0u);
+        if (tracking) {
+            ++blend_call_count; blend_iteration_count += iterations;
+            blend_instruction_count += iterations * proof.words;
+            (p.subtract ? blend_subtractive_count : blend_additive_count) += iterations;
+        }
+        return iterations * proof.words | complete_bit;
+    }
+    std::uint64_t blend_pixel_calls() { return blend_call_count; }
+    std::uint64_t blend_pixel_iterations() { return blend_iteration_count; }
+    std::uint64_t blend_pixel_instructions() { return blend_instruction_count; }
+    std::uint64_t blend_pixel_additive_iterations() { return blend_additive_count; }
+    std::uint64_t blend_pixel_subtractive_iterations() { return blend_subtractive_count; }
+    std::uint64_t blend_pixel_declines() { return blend_decline_count; }
     std::uint64_t palette_pixel_calls() { return palette_call_count; }
     std::uint64_t palette_pixel_iterations() { return palette_iteration_count; }
     std::uint64_t palette_pixel_instructions() { return palette_instruction_count; }
@@ -405,7 +567,11 @@ namespace eka2l1::arm::loop_js {
         publish(cpu); cpu->aot_exit = 0;
 #if defined(EKA2L1_PACKED_PIXEL_JS)
         std::uint32_t result = 0;
-        if (packed_pixel_enabled && proof.palette_pixel) {
+        if (packed_pixel_enabled && proof.blend_pixel) {
+            bool handoff = false;
+            result = execute_blend_pixel(cpu, prefix, remaining, proof, handoff);
+            if (handoff) return 0;
+        } else if (packed_pixel_enabled && proof.palette_pixel) {
             bool handoff = false;
             result = execute_palette_pixel(cpu, prefix, remaining, proof, handoff);
             if (handoff) return 0;

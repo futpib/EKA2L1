@@ -318,6 +318,22 @@ EMSCRIPTEN_KEEPALIVE const char *eka2l1_js_loop_status() {
     out << ",\"declines\":";
     if (detailed) out << arm::loop_js::palette_pixel_declines(); else out << "null";
     out << '}';
+    out << ",\"blend_pixel\":{\"available\":true,\"enabled\":"
+        << (arm::loop_js::packed_pixel_enabled ? "true" : "false")
+        << ",\"diagnostics\":" << (detailed ? "true" : "false");
+    out << ",\"calls\":";
+    if (detailed) out << arm::loop_js::blend_pixel_calls(); else out << "null";
+    out << ",\"iterations\":";
+    if (detailed) out << arm::loop_js::blend_pixel_iterations(); else out << "null";
+    out << ",\"instructions\":";
+    if (detailed) out << arm::loop_js::blend_pixel_instructions(); else out << "null";
+    out << ",\"additive_iterations\":";
+    if (detailed) out << arm::loop_js::blend_pixel_additive_iterations(); else out << "null";
+    out << ",\"subtractive_iterations\":";
+    if (detailed) out << arm::loop_js::blend_pixel_subtractive_iterations(); else out << "null";
+    out << ",\"declines\":";
+    if (detailed) out << arm::loop_js::blend_pixel_declines(); else out << "null";
+    out << '}';
 #endif
     out << '}'; state->report = out.str(); return state->report.c_str();
 #else
