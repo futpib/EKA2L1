@@ -405,6 +405,8 @@ namespace eka2l1 {
         large_chunk_backing_ = acquire_large_backing(large_size);
         if (large_chunk_backing_) large_chunk_backing_size_ = large_size;
 #endif
+        // The private pool owns ordinary RAM and retains it until after the
+        // chunk is destroyed; only then can another FBS server reuse it.
         large_chunk = kern->create_and_add<kernel::chunk>(
                               kernel::owner_type::kernel,
                               kern->get_memory_system(),
@@ -417,7 +419,8 @@ namespace eka2l1 {
                               kernel::chunk_type::normal,
                               kernel::chunk_access::global,
                               kernel::chunk_attrib::none,
-                              0, false, 0, large_chunk_backing_, large_chunk_backing_ != nullptr)
+                              0, false, 0, large_chunk_backing_, large_chunk_backing_ != nullptr,
+                              large_chunk_backing_ != nullptr)
                            .second;
 
         if (!shared_chunk || !large_chunk) {

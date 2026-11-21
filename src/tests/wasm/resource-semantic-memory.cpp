@@ -10,6 +10,7 @@
 #include <common/log.h>
 #include <emscripten/emscripten.h>
 #include <cstdio>
+#include <cstdlib>
 #include <stdexcept>
 #include <limits>
 using namespace eka2l1;
@@ -25,10 +26,11 @@ static void model_controls(mem::mem_model_type model) {
     auto second=mem::make_new_mem_model_process(control.get(),model);
     auto *mmu=control->get_or_create_mmu(&cpu);
     CHECK(mmu->set_current_addr_space(process->address_space_id()));
-    auto make=[&](prot permission,void *host=nullptr) {
+    auto make=[&](prot permission,void *host=nullptr,bool owned_data=false) {
         mem::mem_model_chunk_creation_info info{};
         info.size=8192; info.flags=mem::MEM_MODEL_CHUNK_REGION_USER_LOCAL|mem::MEM_MODEL_CHUNK_TYPE_NORMAL;
         info.perm=permission; info.host_map=host; info.clear_host_on_commit=false;
+        info.host_map_is_owned_data=owned_data;
         mem::mem_model_chunk *chunk=nullptr;
         CHECK(process->create_chunk(chunk,info)==mem::MEM_MODEL_CHUNK_ERR_OK);
         CHECK(chunk && chunk->commit(0,8192)==(model==mem::mem_model_type::flexible?2:8192));
@@ -58,6 +60,41 @@ static void model_controls(mem::mem_model_type model) {
     CHECK(!cpu.resolve_data(base,false,view));
     CHECK(mmu->set_current_addr_space(process->address_space_id()));
     CHECK(cpu.resolve_data(base,true,view));
+    // FBS owns a stable pool allocation beyond the lifetime of its guest chunk.
+    // An explicit creator grant admits it without trusting other host mappings.
+    void *owned_host=std::aligned_alloc(4096,8192); CHECK(owned_host);
+    auto *owned=make(prot_read_write,owned_host,true);
+    const auto owned_base=owned->base(process.get());
+    CHECK(cpu.resolve_data(owned_base+17,true,view));
+    CHECK(view.bytes==static_cast<unsigned char*>(owned_host)+17 && view.size==4096-17);
+    CHECK(cpu.resolve_data(owned_base+4096,false,view));
+    auto *untrusted_alias=make(prot_read_write,owned_host);
+    CHECK(!cpu.resolve_data(untrusted_alias->base(process.get()),true,view));
+    auto *owned_ro=make(prot_read,owned_host,true);
+    CHECK(cpu.resolve_data(owned_ro->base(process.get()),false,view));
+    CHECK(!cpu.resolve_data(owned_ro->base(process.get()),true,view));
+    const auto before_decommit=mem::mapping_generation.load();
+    owned->decommit(0,4096);
+    CHECK(mem::mapping_generation.load()>before_decommit);
+    CHECK(!cpu.resolve_data(owned_base,false,view));
+    CHECK(cpu.resolve_data(owned_base+4096,true,view));
+    CHECK(owned->commit(0,4096)==(model==mem::mem_model_type::flexible?1:4096));
+    CHECK(cpu.resolve_data(owned_base,true,view));
+    process->delete_chunk(untrusted_alias); process->delete_chunk(owned_ro);
+    process->delete_chunk(owned);
+    CHECK(!cpu.resolve_data(owned_base,false,view));
+    // The creator can retain and reuse the allocation after unpublishing it.
+    owned=make(prot_read_write,owned_host,true);
+    const auto reused_base=owned->base(process.get());
+    CHECK(cpu.resolve_data(reused_base,true,view));
+    auto *owned_exec=make(static_cast<prot>(prot_read|prot_exec),owned_host,true);
+    CHECK(!cpu.resolve_data(owned_exec->base(process.get()),false,view));
+    CHECK(!cpu.resolve_data(owned_exec->base(process.get()),true,view));
+    CHECK(!cpu.resolve_data(reused_base,false,view));
+    CHECK(!cpu.resolve_data(reused_base,true,view));
+    process->delete_chunk(owned_exec);
+    CHECK(!cpu.resolve_data(reused_base,true,view));
+    process->delete_chunk(owned); std::free(owned_host);
     auto generation=mem::mapping_generation.load();
     auto *exec_alias=make(static_cast<prot>(prot_read|prot_exec),data->host_base());
     CHECK(mem::mapping_generation.load()>generation);

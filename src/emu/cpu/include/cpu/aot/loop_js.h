@@ -19,6 +19,12 @@ namespace eka2l1::arm::loop_js {
     std::uint64_t packed_pixel_calls();
     std::uint64_t packed_pixel_iterations();
     std::uint64_t packed_pixel_declines();
+    std::uint64_t palette_pixel_calls();
+    std::uint64_t palette_pixel_iterations();
+    std::uint64_t palette_pixel_instructions();
+    std::uint64_t palette_pixel_aligned_iterations();
+    std::uint64_t palette_pixel_unaligned_iterations();
+    std::uint64_t palette_pixel_declines();
 #endif
     void reset();
     void install(executor execute, bool diagnostics = false);

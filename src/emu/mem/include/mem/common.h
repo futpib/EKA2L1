@@ -62,5 +62,9 @@ namespace eka2l1::mem {
         vm_address addr{ 0 };
         void *host_map{ nullptr }; ///< Allow custom host memory mapping to guest.
         bool clear_host_on_commit{ false };
+        // The internal creator owns stable ordinary RAM for the complete chunk
+        // lifetime. This does not transfer deallocation ownership to the chunk.
+        // Arbitrary host mappings remain ineligible for direct data views.
+        bool host_map_is_owned_data{ false };
     };
 }

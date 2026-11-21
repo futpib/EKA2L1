@@ -87,7 +87,8 @@ namespace eka2l1::mem::flexible {
         top_ = 0;
 
         // Create the mem object and page allocator
-        mem_obj_ = std::make_unique<memory_object>(control_, total_pages_occupied, create_info.host_map);
+        mem_obj_ = std::make_unique<memory_object>(control_, total_pages_occupied, create_info.host_map,
+            create_info.host_map_is_owned_data);
 
         if (!(create_info.flags & MEM_MODEL_CHUNK_TYPE_NORMAL))
             page_bma_ = std::make_unique<common::bitmap_allocator>(total_pages_occupied);

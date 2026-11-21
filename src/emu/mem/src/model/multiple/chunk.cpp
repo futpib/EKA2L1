@@ -431,7 +431,7 @@ namespace eka2l1::mem {
         std::fill(page_tabs_.begin(), page_tabs_.end(), 0xFFFFFFFF);
 
         permission_ = create_info.perm;
-        data_backing_ = !is_external_host && !(permission_ & prot_exec);
+        data_backing_ = (!is_external_host || create_info.host_map_is_owned_data) && !(permission_ & prot_exec);
         if (is_external_host && (permission_ & prot_exec)) record_external_executable(host_base_, max_size_);
 
         if (create_info.flags & MEM_MODEL_CHUNK_TYPE_DISCONNECT) {

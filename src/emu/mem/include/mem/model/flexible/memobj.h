@@ -49,7 +49,8 @@ namespace eka2l1::mem::flexible {
         page_array page_arr_;
 
     public:
-        explicit memory_object(control_base *ctrl, const std::size_t page_count, void *external_host);
+        explicit memory_object(control_base *ctrl, const std::size_t page_count, void *external_host,
+            bool host_map_is_owned_data = false);
         ~memory_object();
 
         const std::atomic<bool> *data_backing(prot permissions);

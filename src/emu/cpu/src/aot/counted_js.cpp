@@ -37,6 +37,7 @@ namespace eka2l1::arm::counted_js {
         std::uint32_t loop_function = ~std::uint32_t(0);
 #if defined(EKA2L1_PACKED_PIXEL_JS)
         std::uint32_t packed_pixel = ~std::uint32_t(0);
+        std::uint32_t palette_pixel = ~std::uint32_t(0);
 #endif
         std::uint32_t region_index = ~std::uint32_t(0), region_member = 0;
     };
@@ -91,6 +92,7 @@ namespace eka2l1::arm::counted_js {
     static std::vector<entry> entries;
 #if defined(EKA2L1_PACKED_PIXEL_JS)
     static std::vector<loop_js::packed_pixel_pattern> packed_pixels;
+    static std::vector<loop_js::palette_pixel_pattern> palette_pixels;
 #endif
 #if defined(EKA2L1_COUNTED_REGION_JS)
     struct region_record {
@@ -199,7 +201,7 @@ namespace eka2l1::arm::counted_js {
         enabled = false; invoke = untracked = nullptr; tracking = false; decoding = nullptr; last = nullptr;
         caches.clear(); stamp_spaces = 0; entries.clear(); first_pc = last_pc = 0;
 #if defined(EKA2L1_PACKED_PIXEL_JS)
-        packed_pixels.clear();
+        packed_pixels.clear(); palette_pixels.clear();
 #endif
         indices.clear(); shared_indices.clear();
 #if defined(EKA2L1_COUNTED_REGION_JS)
@@ -483,6 +485,10 @@ namespace eka2l1::arm::counted_js {
                     item.packed_pixel = packed_pixels.size(); packed_pixels.push_back(pattern);
                 }
             }
+            loop_js::palette_pixel_pattern palette;
+            if (loop_js::recognize_palette_pixel(words, count, palette)) {
+                item.palette_pixel = palette_pixels.size(); palette_pixels.push_back(palette);
+            }
 #endif
             return true;
         }
@@ -517,10 +523,11 @@ namespace eka2l1::arm::counted_js {
             item.loop_function = ~std::uint32_t(0);
 #if defined(EKA2L1_PACKED_PIXEL_JS)
             item.packed_pixel = ~std::uint32_t(0);
+            item.palette_pixel = ~std::uint32_t(0);
 #endif
         }
 #if defined(EKA2L1_PACKED_PIXEL_JS)
-        packed_pixels.clear();
+        packed_pixels.clear(); palette_pixels.clear();
 #endif
     }
     bool admit_loop(ARMul_State *cpu, std::uint32_t prefix, loop_admission &result) {
@@ -535,6 +542,7 @@ namespace eka2l1::arm::counted_js {
             bool(item.loop_function & 0x80000000u), proof->instructions.data()};
 #if defined(EKA2L1_PACKED_PIXEL_JS)
         if (item.packed_pixel < packed_pixels.size()) result.packed_pixel = &packed_pixels[item.packed_pixel];
+        if (item.palette_pixel < palette_pixels.size()) result.palette_pixel = &palette_pixels[item.palette_pixel];
 #endif
         result.semantic = (result.function & 0x40000000u) != 0;
         return true;
@@ -669,6 +677,7 @@ namespace eka2l1::arm::counted_js {
                 bool(item.loop_function & 0x80000000u), proof->instructions.data()};
 #if defined(EKA2L1_PACKED_PIXEL_JS)
             if (item.packed_pixel < packed_pixels.size()) admitted.packed_pixel = &packed_pixels[item.packed_pixel];
+            if (item.palette_pixel < palette_pixels.size()) admitted.palette_pixel = &palette_pixels[item.palette_pixel];
 #endif
             admitted.semantic = (admitted.function & semantic_js::function_bit) != 0;
             const auto progress = loop_js::execute_admitted(cpu, prefix, admitted);

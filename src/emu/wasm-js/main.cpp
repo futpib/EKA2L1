@@ -302,6 +302,23 @@ EMSCRIPTEN_KEEPALIVE const char *eka2l1_js_loop_status() {
     if (detailed) out << arm::loop_js::calls(); else out << "null";
     out << ",\"instructions\":";
     if (detailed) out << arm::loop_js::instructions(); else out << "null";
+#if defined(EKA2L1_PACKED_PIXEL_JS)
+    out << ",\"palette_pixel\":{\"available\":true,\"enabled\":"
+        << (arm::loop_js::packed_pixel_enabled ? "true" : "false")
+        << ",\"diagnostics\":" << (detailed ? "true" : "false") << ",\"calls\":";
+    if (detailed) out << arm::loop_js::palette_pixel_calls(); else out << "null";
+    out << ",\"iterations\":";
+    if (detailed) out << arm::loop_js::palette_pixel_iterations(); else out << "null";
+    out << ",\"instructions\":";
+    if (detailed) out << arm::loop_js::palette_pixel_instructions(); else out << "null";
+    out << ",\"aligned_iterations\":";
+    if (detailed) out << arm::loop_js::palette_pixel_aligned_iterations(); else out << "null";
+    out << ",\"unaligned_iterations\":";
+    if (detailed) out << arm::loop_js::palette_pixel_unaligned_iterations(); else out << "null";
+    out << ",\"declines\":";
+    if (detailed) out << arm::loop_js::palette_pixel_declines(); else out << "null";
+    out << '}';
+#endif
     out << '}'; state->report = out.str(); return state->report.c_str();
 #else
     return "{\"available\":false,\"enabled\":false,\"diagnostics\":false,\"calls\":null,\"instructions\":null}";

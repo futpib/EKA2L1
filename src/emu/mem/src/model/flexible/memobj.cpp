@@ -27,7 +27,8 @@
 #include <common/virtualmem.h>
 
 namespace eka2l1::mem::flexible {
-    memory_object::memory_object(control_base *ctrl, const std::size_t page_count, void *external_host)
+    memory_object::memory_object(control_base *ctrl, const std::size_t page_count, void *external_host,
+        bool host_map_is_owned_data)
         : data_(external_host)
         , page_occupied_(page_count)
         , control_(ctrl)
@@ -43,7 +44,7 @@ namespace eka2l1::mem::flexible {
                     page_count);
             }
         }
-        data_backing_ = !external_;
+        data_backing_ = !external_ || host_map_is_owned_data;
     }
 
     const std::atomic<bool> *memory_object::data_backing(prot permissions) {

@@ -1,6 +1,7 @@
 #pragma once
 #include <cstddef>
 #include <cstdint>
+#include <cpu/aot/palette_pixel_pattern.h>
 namespace eka2l1::arm::loop_js {
     inline bool original_loop_words(const std::uint32_t *words, std::size_t count,
             std::uint32_t pc, bool word_memory) {
@@ -33,6 +34,9 @@ namespace eka2l1::arm::loop_js {
         return original_loop_words(words, count, pc, false);
     }
     inline bool word_loop_words(const std::uint32_t *words, std::size_t count, std::uint32_t pc) {
-        return original_loop_words(words, count, pc, true);
+        if (original_loop_words(words, count, pc, true)) return true;
+        palette_pixel_pattern pattern;
+        return (pc & 3u) == 0 && count * 4 <= 4096 - (pc & 4095u)
+            && recognize_palette_pixel(words, count, pattern);
     }
 }
