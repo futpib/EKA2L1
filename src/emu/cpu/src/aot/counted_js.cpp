@@ -322,7 +322,8 @@ namespace eka2l1::arm::counted_js {
             if (slot.key != key) {
 #if defined(EKA2L1_COUNTED_LOOP_JS)
                 if (!loop_js::enabled || item.loop_function == ~std::uint32_t(0)
-                    || (item.loop_function & semantic_js::function_bit)) return false;
+                    || ((item.loop_function & semantic_js::function_bit)
+                        && !semantic_js::original_fallback(item.loop_function & ~semantic_js::function_bit))) return false;
                 // Original branch links can enter this decoded block without
                 // refilling a colliding L1 slot. Recover only the identical
                 // authenticated entry from the full ASID/PC/T cache key.
@@ -704,7 +705,7 @@ namespace eka2l1::arm::counted_js {
 #endif
             admitted.semantic = (admitted.function & semantic_js::function_bit) != 0;
             const auto progress = loop_js::execute_admitted(cpu, prefix, admitted);
-            if (progress || !admitted.semantic) return progress;
+            if (progress || !admitted.semantic || semantic_js::original_fallback(admitted.function & ~semantic_js::function_bit)) return progress;
 
         }
 #if defined(EKA2L1_COUNTED_REGION_JS)

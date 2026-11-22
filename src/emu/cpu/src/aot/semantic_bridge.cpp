@@ -28,19 +28,19 @@ static unsigned execute_semantic(ARMul_State *cpu, unsigned function, unsigned b
 }
 extern "C" {
 EMSCRIPTEN_KEEPALIVE int eka2l1_semantic_register(unsigned asid, unsigned pc, const unsigned *words, unsigned count,
-        unsigned function, const eka2l1::arm::semantic_js::source_span *sources, unsigned source_count, int diagnostics) {
+        unsigned function, const eka2l1::arm::semantic_js::source_span *sources, unsigned source_count, int diagnostics, int original_fallback) {
     if (!eka2l1::arm::loop_js::enabled) return 0;
-    if (!eka2l1::arm::semantic_js::install(asid, pc, function, sources, source_count, execute_semantic, diagnostics != 0)) return 0;
+    if (!eka2l1::arm::semantic_js::install(asid, pc, function, sources, source_count, execute_semantic, diagnostics != 0, original_fallback != 0)) return 0;
     return eka2l1::arm::counted_js::bind_semantic(asid, pc, words, count, function);
 }
 }
-EM_JS(int, semantic_setup, (const unsigned *layout, unsigned count, int diagnostics), {
+EM_JS(int, semantic_setup, (const unsigned *layout, unsigned count, int diagnostics, unsigned shifter), {
     try {
         const factory = Module['semanticFactory'];
         if (typeof factory !== 'function') return 0;
         if (count !== 8 || layout & 3 || layout + count * 4 > HEAPU8.length) throw Error('Invalid semantic CPU layout');
         const geometry = Array.from(HEAPU32.subarray(layout >>> 2, (layout >>> 2) + count));
-        const product = factory({geometry, diagnostics: diagnostics !== 0, memory: {buffer: HEAPU8.buffer},
+        const product = factory({geometry, shifterCarry: shifter, diagnostics: diagnostics !== 0, memory: {buffer: HEAPU8.buffer},
             heap: () => HEAPU8, resolve: Module['_eka2l1_semantic_resolve']});
         if (!product || product.abi !== 'original-resource-symbol-v1' || !Array.isArray(product.entries) || !product.entries.length || product.entries.length > 8)
             throw Error('Invalid semantic factory');
@@ -55,6 +55,7 @@ EM_JS(int, semantic_setup, (const unsigned *layout, unsigned count, int diagnost
         try {
             for (const [index, row] of product.entries.entries()) {
                 if (!row || !integer(row.asid) || !integer(row.pc) || row.pc & 3 || typeof row.execute !== 'function'
+                    || (row.originalFallback !== undefined && typeof row.originalFallback !== 'boolean')
                     || !Array.isArray(row.sources) || !row.sources.length || row.sources.length > 64) throw Error('Invalid semantic entry');
                 const words = put(row.words), spans = [];
                 for (const source of row.sources) {
@@ -63,7 +64,7 @@ EM_JS(int, semantic_setup, (const unsigned *layout, unsigned count, int diagnost
                     spans.push(source.pc, put(source.words), source.words.length);
                 }
                 const sources = put(spans);
-                if (!Module['_eka2l1_semantic_register'](row.asid, row.pc, words, row.words.length, index, sources, row.sources.length, diagnostics))
+                if (!Module['_eka2l1_semantic_register'](row.asid, row.pc, words, row.words.length, index, sources, row.sources.length, diagnostics, row.originalFallback === true ? 1 : 0))
                     throw Error('Original semantic registration refused');
                 if (diagnostics) functions.push((...args) => {
                     const result = row.execute(...args);
@@ -91,7 +92,7 @@ EMSCRIPTEN_KEEPALIVE int eka2l1_semantic_configure(int diagnostics) {
     const unsigned layout[]{sizeof(ARMul_State), offsetof(ARMul_State, Reg), offsetof(ARMul_State, Cpsr),
         offsetof(ARMul_State, NFlag), offsetof(ARMul_State, ZFlag), offsetof(ARMul_State, CFlag),
         offsetof(ARMul_State, VFlag), offsetof(ARMul_State, TFlag)};
-    const auto result = semantic_setup(layout, 8, diagnostics);
+    const auto result = semantic_setup(layout, 8, diagnostics, offsetof(ARMul_State, shifter_carry_out));
     if (result <= 0) { eka2l1::arm::semantic_js::reset(); eka2l1::arm::counted_js::clear_semantics(); }
     return result;
 }

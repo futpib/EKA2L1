@@ -20,6 +20,7 @@ namespace eka2l1::arm::semantic_js {
         std::vector<source_record> sources;
         executor invoke;
         bool diagnostics;
+        bool original_fallback;
     };
     struct physical_span { std::uintptr_t begin; std::size_t bytes; };
     struct proof {
@@ -43,6 +44,10 @@ namespace eka2l1::arm::semantic_js {
         return an && bn && a <= std::numeric_limits<std::uintptr_t>::max() - an
             && b <= std::numeric_limits<std::uintptr_t>::max() - bn && a < b + bn && b < a + an;
     }
+    bool original_fallback(std::uint32_t function) {
+        for (const auto &item : records) if (item.function == function) return item.original_fallback;
+        return false;
+    }
     void reset() {
         if (active) throw std::runtime_error("Semantic installation during execution");
         records.clear();
@@ -50,12 +55,12 @@ namespace eka2l1::arm::semantic_js {
         for (auto &item : proofs) item = {};
     }
     bool install(std::uint32_t asid, std::uint32_t pc, std::uint32_t function,
-            const source_span *sources, std::size_t count, executor invoke, bool diagnostics) {
+            const source_span *sources, std::size_t count, executor invoke, bool diagnostics, bool original_fallback) {
         if (active || std::any_of(proofs.begin(), proofs.end(), [](const auto &item) { return item.cpu != nullptr; })
             || !invoke || !sources || !count || count > 64 || records.size() == 8
             || (pc & 3u) || function >= function_bit) return false;
         for (const auto &item : records) if (item.function == function || (item.asid == asid && item.pc == pc)) return false;
-        record item{asid, pc, function, {}, invoke, diagnostics};
+        record item{asid, pc, function, {}, invoke, diagnostics, original_fallback};
         std::size_t words = 0;
         for (std::size_t i = 0; i < count; ++i) {
             const auto &source = sources[i];

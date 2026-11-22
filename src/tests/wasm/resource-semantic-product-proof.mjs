@@ -33,7 +33,7 @@ try{
  const sourceManifestFile=path.resolve(captureDir,captured.producer.source_manifest.file);const manifestBytes=pin(sourceManifestFile,captured.producer.source_manifest.sha256);assert.equal(sha(manifestBytes),semanticReport.source_manifest_sha256);
  const moduleRows=['skyforce.exe','euser.dll','drtaeabi.dll'].map(name=>{const rows=captured.modules.filter(r=>r.name.toLowerCase()===name&&r.asid===1&&r.process_uid===0xa020d913);assert.equal(rows.length,1,'Original fixture module absent or ambiguous');const row=rows[0],bytes=pin(path.resolve(captureDir,row.file),row.sha256);assert.equal(bytes.length,row.bytes);return {...row,raw:bytes};});
  assert.equal(moduleRows[0].base,0x70000000);
- const entry=semanticReport.entries[0];assert.equal(semanticReport.entries.length,1);assert.equal(entry.pc,0x70009768);assert.equal(entry.asid,1);
+ const entry=semanticReport.entries[0];assert(semanticReport.entries.length===1||(semanticReport.entries.length===2&&semanticReport.entries[1].pc===0x8019d81c&&semanticReport.entries[1].asid===1));assert.equal(entry.pc,0x70009768);assert.equal(entry.asid,1);
  const inputReportFile=path.resolve(values['input-report']),inputReport=load(inputReportFile);assert.equal(inputReport.pass,true);for(const[file,digest]of Object.entries(inputReport.inputs))pin(file,digest);
  const input=pin(inputReport.resource.file,inputReport.resource.sha256);assert.equal(input.length,692);assert.equal(inputReport.resource.original_slots,1013982);
  const factoryFiles=[['registry.mjs',values['registry-report'],registryReport],['loops.mjs',values['loop-report'],loopReport],['semantic-registry.mjs',values['semantic-report'],semanticReport]];
@@ -43,7 +43,7 @@ try{
   for(const row of moduleRows){const p=m._ref_map(row.base,row.bytes,5);m.HEAPU8.set(row.raw,p);}
   for(const[name,base,size]of[['object',0x100000,0x6470],['input',0x200000,input.length],['output',0x400000,input.readUInt32LE(0)],['stack',0x2000000,0x10000]]){const mappedSize=((size+4095)&~4095)+8192,p=m._ref_map(base-4096,mappedSize,3);m.HEAPU8.fill(0xa5,p,p+mappedSize);if(name==='object')m.HEAPU8.fill(0,p+4096,p+4096+size);if(name==='input')m.HEAPU8.set(input,p+4096);regions.push({name,base,size,p,mappedSize});}
   m._ref_cpsr(0x10);for(let i=0;i<13;i++)m._ref_register(i,0x12340000+i);for(const[i,v]of[[0,0x100000],[1,0x200000],[2,0x400000],[3,0],[13,0x200ff00],[14,0x70006860],[15,0x700095d4]])m._ref_register(i,v);m._ref_trace(0);m._ref_enable_tlb(1);
-  if(semantic){[m.countedBlockFactory,m.loopBlockFactory,m.semanticFactory]=factories;assert.equal(m._eka2l1_counted_configure(1),registryReport.accepted,m.__countedError);assert.equal(m._eka2l1_loop_configure(1),loopReport.accepted,m.__loopError||m.__semanticError);assert.equal(m.__semanticFunctions.length,1);}
+  if(semantic){[m.countedBlockFactory,m.loopBlockFactory,m.semanticFactory]=factories;assert.equal(m._eka2l1_counted_configure(1),registryReport.accepted,m.__countedError);assert.equal(m._eka2l1_loop_configure(1),loopReport.accepted,m.__loopError||m.__semanticError);assert.equal(m.__semanticFunctions.length,semanticReport.entries.length);}
   return {m,regions};
  }
  original=await instance(false);candidate=await instance(true);let done=0,index=0;const prefix=[0,1,2,15,128,1024,4840,3,4766,4767,4768,1],total=inputReport.resource.original_slots;
