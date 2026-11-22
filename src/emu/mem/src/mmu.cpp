@@ -30,6 +30,31 @@
 #include <mem/model/multiple/control.h>
 
 namespace eka2l1::mem {
+    // Mapping and external executable-alias changes share this generation.
+    // Copy page metadata so retirement never leaves a page-table pointer here.
+    class normal_data_mapping_cache {
+        struct entry {
+            std::uint64_t generation = 0;
+            asid space = 0;
+            vm_address page = 0;
+            page_info info{};
+        };
+        std::array<entry, 64> entries_{};
+    public:
+        template<class Resolve>
+        page_info lookup(asid space, vm_address page, unsigned bits, Resolve resolve) {
+            const auto generation = mapping_generation.load(std::memory_order_acquire);
+            auto &e = entries_[((page >> bits) ^ space) & 63];
+            if (e.generation != generation || e.space != space || e.page != page) {
+                const auto *p = resolve();
+                e = {generation, space, page, p ? *p : page_info{}};
+                if (e.info.host_addr && external_executable_overlap(e.info.host_addr, std::size_t(1) << bits))
+                    e.info = {};
+            }
+            return e.info;
+        }
+    };
+
     mmu_base::mmu_base(control_base *manager, arm::core *cpu, config::state *conf)
         : manager_(manager)
         , cpu_(cpu)
@@ -91,18 +116,18 @@ namespace eka2l1::mem {
             return true;
         };
 
-        cpu->resolve_data = [this](const vm_address addr, bool write, arm::core::data_mapping &view) {
+        cpu->resolve_data = [this, cache = normal_data_mapping_cache{}](const vm_address addr, bool write, arm::core::data_mapping &view) mutable {
             view = {};
             if (conf_->log_read || (write && conf_->log_write)) return false;
             view.address_space = current_addr_space();
-            const auto *page = manager_->get_page_info(view.address_space, addr);
+            const auto page = cache.lookup(view.address_space, addr & ~manager_->offset_mask_, manager_->page_size_bits_,
+                [&] { return manager_->get_page_info(view.address_space, addr); });
             const auto required = write ? prot_read | prot_write : prot_read;
-            if (!page || !page->host_addr || !page->data_backing || !page->data_backing->load(std::memory_order_acquire)
-                || external_executable_overlap(page->host_addr, manager_->page_size())
-                || (page->perm & required) != required
-                || (page->perm & prot_exec)) return false;
+            if (!page.host_addr || !page.data_backing || !page.data_backing->load(std::memory_order_acquire)
+                || (page.perm & required) != required
+                || (page.perm & prot_exec)) return false;
             const auto offset = addr & manager_->offset_mask_;
-            view.bytes = static_cast<std::uint8_t *>(page->host_addr) + offset;
+            view.bytes = static_cast<std::uint8_t *>(page.host_addr) + offset;
             view.size = manager_->page_size() - offset;
             return true;
         };

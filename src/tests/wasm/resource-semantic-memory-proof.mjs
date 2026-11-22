@@ -24,7 +24,7 @@ try {
     report.models.push(row);
     const module = await create({print: line => row.log.push(line), printErr: line => row.log.push(line)});
     row.controls = module._memory_controls(index);
-    if (row.controls !== 64) throw Error(`Expected 64 actual controls for ${model}`);
+    if (row.controls !== 74) throw Error(`Expected 74 actual controls for ${model}`);
   }
   report.pass = true;
 } catch (error) {

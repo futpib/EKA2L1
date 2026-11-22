@@ -42,6 +42,24 @@ static void model_controls(mem::mem_model_type model) {
     CHECK(cpu.resolve_data(base+17,true,view));
     CHECK(view.address_space==process->address_space_id() && view.bytes==static_cast<unsigned char*>(data->host_base())+17 && view.size==4096-17);
     CHECK(cpu.resolve_data(base+4096,false,view) && view.size==4096);
+    // Repeated offsets and access modes exercise warmed metadata. Actual page
+    // assignments must invalidate cached permissions and physical backing.
+    CHECK(cpu.resolve_data(base+31,false,view));
+    CHECK(view.bytes==static_cast<unsigned char*>(data->host_base())+31);
+    CHECK(cpu.resolve_data(base+31,true,view));
+    CHECK(view.size==4096-31);
+    auto *page=mmu->get_page_info(base);
+    const auto original=*page;
+    page->assign(original.host_addr,prot_read,original.data_backing);
+    CHECK(cpu.resolve_data(base,false,view));
+    CHECK(!cpu.resolve_data(base,true,view));
+    page->assign(original.host_addr,static_cast<prot>(0),original.data_backing);
+    CHECK(!cpu.resolve_data(base,false,view));
+    CHECK(!cpu.resolve_data(base,true,view));
+    page->assign(static_cast<unsigned char*>(original.host_addr)+4096,original.perm,original.data_backing);
+    CHECK(cpu.resolve_data(base+31,true,view) && view.bytes==static_cast<unsigned char*>(original.host_addr)+4096+31);
+    page->assign(original.host_addr,original.perm,original.data_backing);
+    CHECK(cpu.resolve_data(base+31,true,view) && view.bytes==static_cast<unsigned char*>(original.host_addr)+31);
     CHECK(!cpu.resolve_data(0,true,view));
     auto *ro=make(prot_read);
     const auto robase=ro->base(process.get());
