@@ -4,7 +4,7 @@ export function createTileRowFactory(entries) {
   if(!Array.isArray(geometry)||geometry.length!==8||[...geometry,shifterCarry].some(x=>!Number.isSafeInteger(x)||x<0))throw Error('CPU geometry');
   const [size,reg,cpsr,n,z,c,v,t]=geometry;
   if((reg&3)||reg+64>size||[cpsr,n,z,c,v,t,shifterCarry].some(x=>(x&3)||x+4>size))throw Error('CPU geometry');
-  const stats=diagnostics?{calls:0,tiles:0,transparent:0,additive:0,subtractive:0,empty:0,instructions:0,pages:0,declines:{}}:null;
+  const stats=diagnostics?{calls:0,tiles:0,transparent:0,additive:0,subtractive:0,empty:0,half:0,instructions:0,pages:0,declines:{}}:null;
   return {abi:'original-resource-symbol-v1',stats,entries:entries.map(row=>{
    const pages=new Uint32Array(256),reads=new Uint32Array(256),writes=new Uint32Array(256);
    let buffer,owner,gen,space,low,high;
@@ -39,7 +39,7 @@ export function createTileRowFactory(entries) {
     while(tiles<128&&((col+1)|0)<(limit|0)){
      const ob=pointer(object,100,false),res=pointer(resource,48,false),idx=pointer(cursor,2,false),ctx=pointer(context+252,1,false);
      if(!ob||!res||!idx||!ctx){decline('metadata');break;}
-     const mode=bytes[ob+9],subtractive=mode===5,blend=mode===4||subtractive;
+     const mode=bytes[ob+9],subtractive=mode===5,half=mode===2,blend=mode===4||subtractive||half;
      if((mode!==0&&!blend)||bytes[ctx]===12||(words[(ob+96)>>>2]&4)){decline('mode');break;}
      const tile=halves[idx>>>1];
      if(!tile){
@@ -64,13 +64,13 @@ export function createTileRowFactory(entries) {
      if(!out||(blend&&pointer(dest,3600,false)!==out)||overlap(sp,stackBytes,out,3600)||unsafe(ob,100)||unsafe(res,48)||unsafe(idx,2)||unsafe(ctx,1)||unsafe(attr,1)||unsafe(src,32)||unsafe(pal,32)){decline('alias-or-output');break;}
      let cost=transparent?267:(dest&3)?254:245;
      if(blend){
-      cost=subtractive?1430:1618;
-      if(transparent){cost=subtractive?406:402;const pixelCost=subtractive?18:21;for(let i=0;i<32;i++){const b=bytes[src+i];if(b&15)cost+=pixelCost;if(b>>>4)cost+=pixelCost;}}
+      cost=half?1420:subtractive?1430:1618;
+      if(transparent){cost=half?396:subtractive?406:402;const pixelCost=(half||subtractive)?18:21;for(let i=0;i<32;i++){const b=bytes[src+i];if(b&15)cost+=pixelCost;if(b>>>4)cost+=pixelCost;}}
      }
      if(count+cost>budget)break;
      // Preserve the guest stack writes of PUSH, including the return address.
      const saved=(transparent||blend)?[4,5,6,7,8,9,10]:[4,5,6,7,8,9,10,11];
-     const target=blend?(subtractive?(transparent?0x70003cb4:0x70003718):(transparent?0x70003bc4:0x70003638)):transparent?0x700037e0:0x700032bc;
+     const target=blend?(half?(transparent?0x700039fc:0x70003490):subtractive?(transparent?0x70003cb4:0x70003718):(transparent?0x70003bc4:0x70003638)):transparent?0x700037e0:0x700032bc;
      for(let j=0;j<saved.length;j++){
       const r=saved[j];words[(sp>>>2)+j]=r===5?col:r===7?target:r===8?cursor+2:words[ri+r];
      }
@@ -83,7 +83,10 @@ export function createTileRowFactory(entries) {
         const nibble=(sourceWord>>>(x*4))&15;packed=0;
         if(!transparent||nibble){
          const color=halves[pi+nibble],old=halves[di+x];
-         if(subtractive){
+         if(half){
+          const mixed=(color&old&0xffdf)+(((color^old)&0xf79e)>>>1);
+          packed=mixed&31;halves[di+x]=mixed;
+         }else if(subtractive){
           const red=(old&31)-(color&31),green=((old>>>6)&31)-((color>>>6)&31),blue=(old>>>11)-(color>>>11);
           packed=red<0?0:red;halves[di+x]=packed|((green<0?0:green)<<6)|((blue<0?0:blue)<<11);
          }else{
@@ -114,7 +117,7 @@ export function createTileRowFactory(entries) {
      const difference=(col-limit)>>>0,flags=(difference&0x80000000)|(difference===0?0x40000000:0)|(col>=limit?0x20000000:0)|((((col^limit)&(col^difference))>>>31)<<28);
      words[(cpu+cpsr)>>>2]=(words[(cpu+cpsr)>>>2]&0x0fffffff)|flags;
      words[(cpu+n)>>>2]=flags>>>31;words[(cpu+z)>>>2]=(flags>>>30)&1;words[(cpu+c)>>>2]=(flags>>>29)&1;words[(cpu+v)>>>2]=(flags>>>28)&1;words[(cpu+shifterCarry)>>>2]=1;
-     count+=cost;tiles++;if(stats){if(transparent)stats.transparent++;if(blend){if(subtractive)stats.subtractive++;else stats.additive++;}}
+     count+=cost;tiles++;if(stats){if(transparent)stats.transparent++;if(blend){if(half)stats.half++;else if(subtractive)stats.subtractive++;else stats.additive++;}}
     }
     if(stats&&count){stats.calls++;stats.tiles+=tiles;stats.instructions+=count;}return count;
    }
