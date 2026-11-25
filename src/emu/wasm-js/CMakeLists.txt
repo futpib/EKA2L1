@@ -24,12 +24,18 @@ add_dependencies(eka2l1_js ${EKA2L1_JS_PATCH_TARGET})
 target_include_directories(eka2l1_js PRIVATE ${PROJECT_SOURCE_DIR}/src/external/glm)
 target_link_libraries(eka2l1_js PRIVATE common config cpu drivers epoc epockern
     epocloader epocmem epocpkg epocservs epocutils epocio epocdispatch gdbstub j2me)
+if(EKA2L1_COOPERATIVE_WASM_EH)
+    target_link_options(eka2l1_js PRIVATE "SHELL:-fwasm-exceptions" "SHELL:-s WASM=1")
+    set(EKA2L1_COOPERATIVE_OUTPUT_NAME "eka2l1-wasm")
+else()
+    target_link_options(eka2l1_js PRIVATE "SHELL:-fexceptions" "SHELL:-s WASM=0"
+        "SHELL:-s DISABLE_EXCEPTION_CATCHING=0")
+    set(EKA2L1_COOPERATIVE_OUTPUT_NAME "eka2l1-js")
+endif()
 target_link_options(eka2l1_js PRIVATE
-    "SHELL:-fexceptions"
     "SHELL:-Wl,--error-limit=0"
     "SHELL:--emit-symbol-map"
     "SHELL:--no-entry"
-    "SHELL:-s WASM=0"
     "SHELL:-s MODULARIZE=1"
     "SHELL:-s EXPORT_ES6=1"
     "SHELL:-s ENVIRONMENT=web,node"
@@ -38,7 +44,6 @@ target_link_options(eka2l1_js PRIVATE
     "SHELL:-s STACK_SIZE=4194304"
     "SHELL:-s ASSERTIONS=1"
     "SHELL:-s ABORTING_MALLOC=0"
-    "SHELL:-s DISABLE_EXCEPTION_CATCHING=0"
     "SHELL:-s FORCE_FILESYSTEM=1"
     "SHELL:-s FULL_ES3=1"
     "SHELL:-s MIN_WEBGL_VERSION=2"
@@ -50,5 +55,5 @@ target_link_options(eka2l1_js PRIVATE
     "SHELL:--preload-file ${PROJECT_SOURCE_DIR}/src/emu/drivers/resources/defaultbank.sf2@resources/defaultbank.sf2"
     "SHELL:--preload-file ${PROJECT_SOURCE_DIR}/src/emu/drivers/resources/defaultbank.hsb@resources/defaultbank.hsb"
     "SHELL:--preload-file ${CMAKE_BINARY_DIR}/bin/patch/@patch/")
-set_target_properties(eka2l1_js PROPERTIES OUTPUT_NAME "eka2l1-js" SUFFIX ".mjs"
+set_target_properties(eka2l1_js PROPERTIES OUTPUT_NAME "${EKA2L1_COOPERATIVE_OUTPUT_NAME}" SUFFIX ".mjs"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
