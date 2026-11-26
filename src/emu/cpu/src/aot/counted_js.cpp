@@ -41,6 +41,9 @@ namespace eka2l1::arm::counted_js {
         std::uint32_t blend_pixel = ~std::uint32_t(0);
 #endif
         std::uint32_t region_index = ~std::uint32_t(0), region_member = 0;
+#if defined(EKA2L1_COUNTED_WASM) && defined(EKA2L1_COUNTED_DIRECT_JS)
+        bool direct_dispatch = false;
+#endif
     };
     struct stamp {
         bool accepted = false;
@@ -167,15 +170,15 @@ namespace eka2l1::arm::counted_js {
         owner.last_space = owner.spaces.back().get();
         return owner.last_space;
     }
-    static std::size_t find(ARMul_State *cpu) {
+    static std::size_t find(ARMul_State *cpu, std::uint32_t address) {
         EKA2L1_COUNTED_DIRECT_OBSERVE(1);
-        if (cpu->Reg[15] < first_pc || cpu->Reg[15] > last_pc) return entries.size();
+        if (address < first_pc || address > last_pc) return entries.size();
         const auto asid = cpu->instruction_cache_asid;
-        const auto pc = cpu->Reg[15] | (cpu->TFlag ? 1u : 0u);
+        const auto pc = address | (cpu->TFlag ? 1u : 0u);
         const auto set = ((pc >> 1) ^ (pc >> 12) ^ asid) & (lookup_sets - 1);
         for (const auto &slot : lookup_cache[set])
             if (slot.valid && slot.asid == asid && slot.pc == pc) return slot.index;
-        const auto key = cpu->make_instruction_cache_key(cpu->Reg[15]);
+        const auto key = cpu->make_instruction_cache_key(address);
         const auto found = indices.find(key);
         std::size_t index;
         if (found != indices.end()) index = found->second;
@@ -189,6 +192,9 @@ namespace eka2l1::arm::counted_js {
         lookup_cache[set][next] = {asid, pc, static_cast<std::uint32_t>(index), true};
         next ^= 1;
         return index;
+    }
+    static std::size_t find(ARMul_State *cpu) {
+        return find(cpu, cpu->Reg[15]);
     }
     void reset() {
 #if defined(EKA2L1_COUNTED_LOOP_JS)
@@ -224,6 +230,17 @@ namespace eka2l1::arm::counted_js {
         indices.emplace((std::uint64_t(asid) << 32) | tagged_pc, entries.size());
         if (shared) shared_indices.emplace(tagged_pc, entries.size());
         entries.push_back({asid, pc, function, shared, thumb, std::vector<std::uint32_t>(words, words + count)});
+#if defined(EKA2L1_COUNTED_WASM) && defined(EKA2L1_COUNTED_DIRECT_JS)
+        const auto word = words[count - 1];
+        entries.back().direct_dispatch = thumb
+            ? ((word & 0xff00) == 0x4700 || (word & 0xf800) == 0xe800
+                || (word & 0xff00) == 0xbd00 || (word & 0xff00) == 0xdf00
+                || ((word & 0xfc00) == 0x4400 && ((word & 7) | ((word >> 4) & 8)) == 15))
+            : ((word >> 28) == 15 || (word & 0x0ffffff0) == 0x012fff10
+                || (word & 0x0ffffff0) == 0x012fff30 || ((word >> 25) & 7) == 7
+                || (((word >> 25) & 7) == 4 && (word & 0x8000))
+                || (((word >> 25) & 7) <= 3 && (word & 0xf000) == 0xf000));
+#endif
         first_pc = entries.size() == 1 ? pc : std::min(first_pc, pc);
         last_pc = std::max(last_pc, pc);
         return true;
@@ -602,6 +619,68 @@ namespace eka2l1::arm::counted_js {
         return count | (count == item.words.size() ? 0x100u : 0u);
     }
 #if defined(EKA2L1_COUNTED_DIRECT_JS)
+#if defined(EKA2L1_COUNTED_WASM)
+    std::uint32_t execute_native_direct(ARMul_State *cpu, direct_js::invocation_context *context) {
+        const auto lifetime = *direct_js::epoch_address();
+        const auto generation = cpu->trans_gen, asid = cpu->instruction_cache_asid;
+        const auto *mapping_generation = reinterpret_cast<const std::atomic<std::uint64_t> *>(
+            static_cast<std::uintptr_t>(context->mapping));
+        const auto read_mapping = [mapping_generation]() {
+            return mapping_generation ? mapping_generation->load(std::memory_order_acquire) : 0;
+        };
+        const auto current_mapping = read_mapping(), quantum = cpu->NumInstrsToExecute;
+        const auto *owner = cpu->mem_cache_;
+        const auto mode = cpu->TFlag, controls = cpu->Cpsr & 0x3df, tlb = cpu->aot_tlb;
+        if (context->epoch != lifetime || context->start_index >= entries.size()
+            || !context->budget || context->budget > direct_js::progress_limit
+            || mode > 1 || quantum > 0xffffffffu || context->prefix > quantum
+            || context->budget > quantum - context->prefix)
+            throw std::runtime_error("Invalid native direct context");
+        auto *proofs = reinterpret_cast<stamp *>(static_cast<std::uintptr_t>(context->stamps));
+        std::size_t index = context->start_index;
+        std::uint32_t total = 0, blocks = 0, last_index = context->start_index, last_prefix = 0;
+        bool complete = false;
+        while (blocks < direct_js::block_limit) {
+            const auto &item = entries[index];
+            const auto stride = item.thumb ? 2u : 4u;
+            if (item.thumb != bool(mode) || item.words.size() > context->budget - total
+                || (!item.thumb && item.words.size() == 5 && item.words.back() == 0x5afffffau)) break;
+            const auto &proof = proofs[index];
+            if (blocks) {
+                if (item.loop_function != ~std::uint32_t(0) || item.region_index != ~std::uint32_t(0)) break;
+                const auto key = cpu->make_instruction_cache_key(item.pc);
+                const auto &slot = cpu->block_l1_cache[ARMul_State::block_l1_index(key)];
+                if (!proof.accepted || proof.generation != generation || proof.mapping != current_mapping
+                    || slot.key != key || slot.ptr != proof.ptr) break;
+                cpu->Reg[15] = item.pc;
+            }
+            cpu->aot_tlb = tlb;
+            cpu->aot_code_begin = proof.host; cpu->aot_code_end = proof.host + item.words.size() * stride;
+            cpu->aot_exit = 0;
+            const auto count = untracked(cpu, item.function);
+            if (*direct_js::epoch_address() != lifetime)
+                throw std::runtime_error("Native direct lifetime changed during function");
+            if (!count || count > item.words.size() || count > context->budget - total)
+                throw std::runtime_error("Invalid native direct function result");
+            if (count < item.words.size()
+                && (cpu->Reg[15] != item.pc + count * stride || cpu->TFlag != (item.thumb ? 1u : 0u)))
+                throw std::runtime_error("Invalid native direct partial PC");
+            total += count; ++blocks; complete = count == item.words.size();
+            last_index = index; last_prefix = count;
+            if (!complete || item.direct_dispatch || total == context->budget || blocks == direct_js::block_limit
+                || cpu->aot_exit || cpu->trans_gen != generation || cpu->instruction_cache_asid != asid
+                || cpu->mem_cache_ != owner || cpu->NumInstrsToExecute != quantum || cpu->TFlag != mode
+                || (cpu->Cpsr & 0x3df) != controls || (!cpu->NirqSig && !(cpu->Cpsr & 128))
+                || read_mapping() != current_mapping) break;
+            index = find(cpu, cpu->Reg[15] & (mode ? 0xfffffffeu : 0xfffffffcu));
+            if (index == entries.size()) break;
+        }
+        if (total) {
+            context->last_index = last_index; context->last_prefix = last_prefix; context->blocks = blocks;
+        }
+        return total | (complete ? direct_js::complete_bit : 0u);
+    }
+#endif
     direct_js::configuration_layout direct_configuration() {
         const auto address = [](const auto *value) {
             return static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(value));

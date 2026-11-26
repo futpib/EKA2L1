@@ -156,11 +156,20 @@ EM_JS(unsigned, direct_call, (ARMul_State *cpu, void *context), {
 static std::uint32_t invoke_direct(ARMul_State *cpu, eka2l1::arm::direct_js::invocation_context *context) {
     return direct_call(cpu, context);
 }
+#if defined(EKA2L1_COUNTED_WASM)
+extern "C" int eka2l1_counted_wasm_active();
+#endif
 extern "C" {
 EMSCRIPTEN_KEEPALIVE int eka2l1_direct_configure(int diagnostics) {
     using namespace eka2l1::arm;
     direct_js::reset(); direct_clear(1);
     if ((diagnostics != 0 && diagnostics != 1) || !counted_js::enabled) return -1;
+#if defined(EKA2L1_COUNTED_WASM)
+    if (eka2l1_counted_wasm_active()) {
+        direct_js::install(counted_js::execute_native_direct, diagnostics != 0);
+        return 1;
+    }
+#endif
     const auto layout = counted_js::direct_configuration();
     const int result = direct_setup(counted_js::entry_limit, &layout);
     if (result > 0) direct_js::install(invoke_direct, diagnostics != 0);

@@ -3,7 +3,7 @@
 #include <cstdint>
 
 struct ARMul_State;
-namespace eka2l1::arm::direct_js { struct configuration_layout; }
+namespace eka2l1::arm::direct_js { struct configuration_layout; struct invocation_context; }
 namespace eka2l1::arm::region_js { struct member; }
 namespace eka2l1::arm::loop_js { struct packed_pixel_pattern; struct palette_pixel_pattern; struct blend_pixel_pattern; }
 namespace eka2l1::arm::counted_js {
@@ -13,6 +13,9 @@ namespace eka2l1::arm::counted_js {
     void reset();
 #if defined(EKA2L1_COUNTED_DIRECT_JS)
     direct_js::configuration_layout direct_configuration();
+#if defined(EKA2L1_COUNTED_WASM)
+    std::uint32_t execute_native_direct(ARMul_State *cpu, direct_js::invocation_context *context);
+#endif
 #endif
     bool add(std::uint32_t asid, std::uint32_t pc, const std::uint32_t *words,
              std::size_t count, std::uint32_t function, bool shared = false, bool thumb = false);
