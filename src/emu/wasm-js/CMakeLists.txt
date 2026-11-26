@@ -55,5 +55,8 @@ target_link_options(eka2l1_js PRIVATE
     "SHELL:--preload-file ${PROJECT_SOURCE_DIR}/src/emu/drivers/resources/defaultbank.sf2@resources/defaultbank.sf2"
     "SHELL:--preload-file ${PROJECT_SOURCE_DIR}/src/emu/drivers/resources/defaultbank.hsb@resources/defaultbank.hsb"
     "SHELL:--preload-file ${CMAKE_BINARY_DIR}/bin/patch/@patch/")
+if(EKA2L1_COUNTED_WASM)
+    target_link_options(eka2l1_js PRIVATE "SHELL:-s ALLOW_TABLE_GROWTH=1" "SHELL:-Wl,--export-table")
+endif()
 set_target_properties(eka2l1_js PROPERTIES OUTPUT_NAME "${EKA2L1_COOPERATIVE_OUTPUT_NAME}" SUFFIX ".mjs"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")

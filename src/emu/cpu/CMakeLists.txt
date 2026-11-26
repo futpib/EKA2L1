@@ -159,6 +159,9 @@ endif()
 
 if(EKA2L1_COOPERATIVE_JS AND EKA2L1_COUNTED_JS)
     target_compile_definitions(cpu PRIVATE EKA2L1_COUNTED_JS=1)
+    if(EKA2L1_COUNTED_WASM)
+        target_compile_definitions(cpu PRIVATE EKA2L1_COUNTED_WASM=1)
+    endif()
     target_sources(cpu PRIVATE
         include/cpu/aot/counted_js.h
         src/aot/counted_js.cpp

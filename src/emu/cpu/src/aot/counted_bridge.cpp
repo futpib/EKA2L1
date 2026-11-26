@@ -1,6 +1,10 @@
 #include <cpu/aot/counted_js.h>
 #include <cpu/dyncom/armstate.h>
 #include <emscripten/emscripten.h>
+#if defined(EKA2L1_COUNTED_WASM)
+#include <array>
+#include <vector>
+#endif
 
 static void publish(ARMul_State *cpu) {
     cpu->Cpsr = (cpu->Cpsr & 0x0fffffdfu) | (cpu->NFlag << 31) | (cpu->ZFlag << 30)
@@ -67,6 +71,7 @@ EM_JS(int, counted_setup, (unsigned maximum, int retain_direct), {
                         ||(((row.words.at(-1)>>>25)&7)<=3&&(row.words.at(-1)&0xf000)===0xf000))}));
         }
         Module['__countedFunctions'] = Object.freeze([...product.functions]);
+        Module['__countedNativeWasm'] = product.abi === 'offline-counted-wasm-v1';
         if (directEntries) Module['__countedDirectEntries'] = Object.freeze(directEntries);
         else delete Module['__countedDirectEntries'];
         Module['__countedError'] = null;
@@ -80,9 +85,65 @@ EM_JS(unsigned, counted_call, (ARMul_State *cpu, unsigned function_index), {
         return result >>> 0;
     } catch (error) { Module['__countedError'] = String(error); return 0xffffffff; }
 });
+#if defined(EKA2L1_COUNTED_WASM)
+using wasm_function = unsigned (*)(ARMul_State *);
+static std::vector<wasm_function> wasm_functions;
+EM_JS(void, counted_wasm_reset, (), {
+    const slots = Module['__countedWasmSlots'];
+    if (slots) {
+        const table = wasmExports['__indirect_function_table'];
+        for (let i = 0; i < slots.used; ++i) WebAssembly.Table.prototype.set.call(table, slots.base + i, null);
+        slots.used = 0;
+    }
+});
+EM_JS(int, counted_wasm_setup, (unsigned *indices, unsigned maximum), {
+    try {
+        if (!Module['__countedNativeWasm']) return 0;
+        const functions = Module['__countedFunctions'];
+        if (!Array.isArray(functions) || !functions.length || functions.length > maximum)
+            throw Error('Invalid native counted function count');
+        const table = wasmExports['__indirect_function_table'];
+        if (!(table instanceof WebAssembly.Table)) throw Error('Native counted table unavailable');
+        let slots = Module['__countedWasmSlots'];
+        if (!slots) {
+            slots = {base: WebAssembly.Table.prototype.grow.call(table, maximum), capacity: maximum, used: 0};
+            Module['__countedWasmSlots'] = slots;
+        }
+        if (slots.capacity !== maximum || slots.used) throw Error('Native counted slots are not idle');
+        // Import validation checks the real Wasm signature without executing it.
+        const signature = Module['__countedWasmSignature'] || (Module['__countedWasmSignature'] =
+            new WebAssembly.Module(new Uint8Array([0,97,115,109,1,0,0,0,
+                1,6,1,96,1,127,1,127,2,9,1,3,101,110,118,1,102,0,0])));
+        slots.used = functions.length;
+        for (let i = 0; i < functions.length; ++i) {
+            new WebAssembly.Instance(signature, {env: {f: functions[i]}});
+            WebAssembly.Table.prototype.set.call(table, slots.base + i, functions[i]);
+            HEAPU32[(indices >>> 2) + i] = slots.base + i;
+        }
+        return functions.length;
+    } catch (error) { Module['__countedError'] = String(error); return -1; }
+});
+EM_JS(void, counted_wasm_error, (), {
+    Module['__countedError'] = 'Native counted invocation failed';
+});
+static unsigned counted_wasm_call(ARMul_State *cpu, unsigned index) {
+    try {
+        if (index < wasm_functions.size()) {
+            const unsigned result = wasm_functions[index](cpu);
+            if (result <= 128) return result;
+        }
+    } catch (...) {}
+    counted_wasm_error();
+    return 0xffffffffu;
+}
+#endif
 extern "C" {
 EMSCRIPTEN_KEEPALIVE int eka2l1_counted_configure(int diagnostics) {
     eka2l1::arm::counted_js::reset();
+#if defined(EKA2L1_COUNTED_WASM)
+    wasm_functions.clear();
+    counted_wasm_reset();
+#endif
     const int entries = counted_setup(eka2l1::arm::counted_js::entry_limit,
 #if defined(EKA2L1_COUNTED_DIRECT_JS)
         1
@@ -90,11 +151,35 @@ EMSCRIPTEN_KEEPALIVE int eka2l1_counted_configure(int diagnostics) {
         0
 #endif
     );
-    if (entries > 0) eka2l1::arm::counted_js::install(counted_call, diagnostics != 0);
+    if (entries > 0) {
+        auto invoke = counted_call;
+#if defined(EKA2L1_COUNTED_WASM)
+        std::array<unsigned, eka2l1::arm::counted_js::entry_limit> indices{};
+        const int functions = counted_wasm_setup(indices.data(), indices.size());
+        if (functions < 0) {
+            counted_wasm_reset();
+            eka2l1::arm::counted_js::reset();
+            return -1;
+        }
+        for (int i = 0; i < functions; ++i)
+            wasm_functions.push_back(reinterpret_cast<wasm_function>(indices[i]));
+        if (functions) invoke = counted_wasm_call;
+#endif
+        eka2l1::arm::counted_js::install(invoke, diagnostics != 0);
+    }
     else eka2l1::arm::counted_js::reset();
     return entries;
 }
-EMSCRIPTEN_KEEPALIVE void eka2l1_counted_disable() { eka2l1::arm::counted_js::reset(); }
+EMSCRIPTEN_KEEPALIVE void eka2l1_counted_disable() {
+    eka2l1::arm::counted_js::reset();
+#if defined(EKA2L1_COUNTED_WASM)
+    wasm_functions.clear();
+    counted_wasm_reset();
+#endif
+}
+#if defined(EKA2L1_COUNTED_WASM)
+EMSCRIPTEN_KEEPALIVE int eka2l1_counted_wasm_active() { return !wasm_functions.empty(); }
+#endif
 EMSCRIPTEN_KEEPALIVE double eka2l1_counted_calls() { return eka2l1::arm::counted_js::calls(); }
 EMSCRIPTEN_KEEPALIVE double eka2l1_counted_instructions() { return eka2l1::arm::counted_js::instructions(); }
 EMSCRIPTEN_KEEPALIVE int eka2l1_counted_diagnostics() { return eka2l1::arm::counted_js::diagnostics(); }
