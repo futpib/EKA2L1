@@ -2015,6 +2015,11 @@ namespace eka2l1::arm::aot {
                     w.load_reg(rn); w.set_local(ADDR_TMP);
                     w.load_reg(rn); w.i32_const(up ? count * 4 : -count * 4); w.op(op_i32_add);
                     w.set_local(TMP4); w.store_reg(rn, TMP4);
+                } else if (!load && writeback) {
+                    // A store callback or CPU-state alias may change the base.
+                    // Late STM writeback still uses its pre-transfer value.
+                    w.load_reg(rn); w.i32_const(up ? count * 4 : -count * 4); w.op(op_i32_add);
+                    w.set_local(TMP4);
                 }
 
                 const bool proved_span = w.has_proved_access();
@@ -2100,16 +2105,20 @@ namespace eka2l1::arm::aot {
                 if (defer_span && load && has_pc) w.pc_written = true;
 
                 if (writeback && !early_writeback) {
-                    w.load_reg(rn);
-                    if (up) {
-                        w.i32_const(count * 4);
-                        w.op(op_i32_add);
+                    if (!load) {
+                        w.store_reg(rn, TMP4);
                     } else {
-                        w.i32_const(count * 4);
-                        w.op(op_i32_sub);
+                        w.load_reg(rn);
+                        if (up) {
+                            w.i32_const(count * 4);
+                            w.op(op_i32_add);
+                        } else {
+                            w.i32_const(count * 4);
+                            w.op(op_i32_sub);
+                        }
+                        w.set_local(TMP2);
+                        w.store_reg(rn, TMP2);
                     }
-                    w.set_local(TMP2);
-                    w.store_reg(rn, TMP2);
                 }
 
                 if (load && has_pc) {
